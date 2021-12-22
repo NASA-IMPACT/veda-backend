@@ -28,7 +28,7 @@ class BootstrapPgStac(Construct):
         handler = aws_lambda.Function(
             self,
             "LambdaFunction",
-            handler="lambda.handler",
+            handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath("./"), 

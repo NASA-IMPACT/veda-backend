@@ -1,9 +1,7 @@
-import os
 from aws_cdk import (
-    CfnOutput,
     aws_ec2,
     aws_rds,
-    Stack, RemovalPolicy
+    CfnOutput, Stack, RemovalPolicy
 )
 from constructs import Construct
 
@@ -13,7 +11,7 @@ from database.infrastructure.custom_resource.bootstrapper import BootstrapPgStac
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
 # https://github.com/NASA-IMPACT/hls-sentinel2-downloader-serverless/blob/main/cdk/downloader_stack.py
 # https://github.com/aws-samples/aws-cdk-examples/blob/master/python/new-vpc-alb-asg-mysql/cdk_vpc_ec2/cdk_rds_stack.py
-class DatabaseStack(Stack):
+class RdsConstruct(Construct):
 
     def __init__(
         self, 
@@ -50,7 +48,7 @@ class DatabaseStack(Stack):
             database=database,
             new_dbname="postgis", # TODO this is config!
             new_username="delta", # TODO this is config!
-            secrets_prefix="BootstrappedPgStac",
+            secrets_prefix=Stack.of(self).stack_name # TODO
         )
 
         CfnOutput(

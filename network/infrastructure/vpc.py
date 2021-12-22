@@ -9,7 +9,7 @@ from constructs import Construct
 
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/new-vpc-alb-asg-mysql
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/docker-app-with-asg-alb
-class VpcStack(Stack):
+class VpcConstruct(Construct):
 
     def __init__(
         self, 
