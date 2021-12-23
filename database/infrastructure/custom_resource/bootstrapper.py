@@ -1,11 +1,10 @@
 import os
 import json
 from aws_cdk import (
-    CustomResource,
     aws_lambda,
     aws_rds,
     aws_secretsmanager,
-    Duration, Stack
+    CustomResource, Duration, Stack
 )
 from constructs import Construct
 
@@ -60,6 +59,14 @@ class BootstrapPgStac(Construct):
             ),
             description=f"{construct_id} bootstrapped database deployed by {Stack.of(self).stack_name}"
         )
+
+        # Allow lambda to...
+        # read new user secret
+        self.secret.grant_read(handler)
+        # read database secret
+        database.secret.grant_read(handler)
+        # connect to database
+        database.connections.allow_from(handler, port_range=ec2.Port.tcp(5432))
 
         CustomResource(
             scope=scope,
