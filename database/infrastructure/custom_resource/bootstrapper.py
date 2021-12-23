@@ -1,6 +1,7 @@
 import os
 import json
 from aws_cdk import (
+    aws_ec2,
     aws_lambda,
     aws_rds,
     aws_secretsmanager,
@@ -66,7 +67,7 @@ class BootstrapPgStac(Construct):
         # read database secret
         database.secret.grant_read(handler)
         # connect to database
-        database.connections.allow_from(handler, port_range=ec2.Port.tcp(5432))
+        database.connections.allow_from(handler, port_range=aws_ec2.Port.tcp(5432))
 
         CustomResource(
             scope=scope,
