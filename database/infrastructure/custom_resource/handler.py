@@ -6,7 +6,6 @@ Source: https://github.com/developmentseed/eoAPI/blob/master/deployment/handlers
 import json
 
 import boto3
-from aws_cdk import cfnresponse
 import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -103,9 +102,11 @@ def handler(event, context):
     print(f"Handling {event}")
 
     if event["RequestType"] not in ["Create", "Update"]:
-        return cfnresponse.send(
-            event, context, cfnresponse.SUCCESS, {"msg": "No action to be taken"}
-        )
+        print(f"RequestType={event['RequestType']}. No action to be taken")
+        # return cfnresponse.send(
+        #     event, context, cfnresponse.SUCCESS, {"msg": "No action to be taken"}
+        # )
+        return
 
     try:
         params = event["ResourceProperties"]
@@ -172,8 +173,9 @@ def handler(event, context):
             register_pgstac(cursor=cur)
 
     except Exception as e:
-        print(e)
-        return cfnresponse.send(event, context, cfnresponse.FAILED, {"message": str(e)})
+        print(f"Unable to bootstrap database with exception={e}")
+        # return cfnresponse.send(event, context, cfnresponse.FAILED, {"message": str(e)})
 
     print("Complete.")
-    return cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+    return
+    # return cfnresponse.send(event, context, cfnresponse.SUCCESS, {})

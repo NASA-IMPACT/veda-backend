@@ -2,7 +2,7 @@ import os
 from aws_cdk import (
     aws_apigateway,
     aws_lambda,
-    CfnOutput
+    CfnOutput, Duration
 )
 from constructs import Construct
 
@@ -30,9 +30,9 @@ class StacApiLambdaConstruct(Construct):
                 file="stac_api/infrastructure/runtime/Dockerfile",
             ),
             vpc=vpc,
-            # allow_public_subnet=True,
+            allow_public_subnet=True,
             # memory_size=eostac_settings.memory,
-            # timeout=core.Duration.seconds(eostac_settings.timeout),
+            timeout=Duration.minutes(2), # TODO config
             # environment=eostac_settings.env or {},
         )
         

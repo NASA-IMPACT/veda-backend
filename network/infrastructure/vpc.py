@@ -41,5 +41,22 @@ class VpcConstruct(Construct):
             ],
             nat_gateways=0,
         )
+
+        interface_endpoints = [
+            (
+                "SecretsManager Endpoint",
+                aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+            ),
+            (
+                "CloudWatch Logs Endpoint",
+                aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
+            ),
+        ]
+        for (id, service) in interface_endpoints:
+            self.vpc.add_interface_endpoint(id, service=service)
+
+        gateway_endpoints = [("S3", aws_ec2.GatewayVpcEndpointAwsService.S3)]
+        for (id, service) in gateway_endpoints:
+            self.vpc.add_gateway_endpoint(id, service=service)
         
         CfnOutput(self, "Output", value=self.vpc.vpc_id)
