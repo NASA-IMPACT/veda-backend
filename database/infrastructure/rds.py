@@ -35,7 +35,7 @@ class RdsConstruct(Construct):
                 aws_ec2.InstanceSize.SMALL
             ),
             vpc_subnets=aws_ec2.SubnetSelection(
-                subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED
+                subnet_type=aws_ec2.SubnetType.PUBLIC
             ),
             deletion_protection=False, # TODO we do want deletion protection
             removal_policy=RemovalPolicy.DESTROY, # TODO we need a safe removal policy like snapshot
