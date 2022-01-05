@@ -41,7 +41,7 @@ class BootstrapPgStac(Construct):
         self.secret = aws_secretsmanager.Secret(
             self,
             construct_id, # contains identifier
-            secret_name=os.pardir.join(secrets_prefix, f"{construct_id}Secret{self.node.id}"),
+            secret_name=os.path.join(secrets_prefix, f"{construct_id}Secret{self.node.id}"),
             generate_secret_string=aws_secretsmanager.SecretStringGenerator(
                 secret_string_template=json.dumps(
                     {

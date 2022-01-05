@@ -41,28 +41,28 @@ class RdsConstruct(Construct):
             removal_policy=RemovalPolicy.DESTROY, # TODO we need a safe removal policy like snapshot
         )
 
-        # # Use custom resource to bootstrap PgSTAC database
-        # pgstac_database = BootstrapPgStac(
-        #     self,
-        #     "BootstrappedPgStac",
-        #     database=database,
-        #     new_dbname="postgis", # TODO this is config!
-        #     new_username="delta", # TODO this is config!
-        #     secrets_prefix=Stack.of(self).stack_name # TODO
-        # )
+        # Use custom resource to bootstrap PgSTAC database
+        pgstac_database = BootstrapPgStac(
+            self,
+            "BootstrappedPgStac",
+            database=database,
+            new_dbname="postgis", # TODO this is config!
+            new_username="delta", # TODO this is config!
+            secrets_prefix=Stack.of(self).stack_name # TODO
+        )
 
-        # CfnOutput(
-        #     self,
-        #     "SecretArn",
-        #     value=pgstac_database.secret.secret_arn,
-        #     description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database"
-        # )
-
-        # TEMP
         CfnOutput(
             self,
             "SecretArn",
-            value=database.secret.secret_arn,
+            value=pgstac_database.secret.secret_arn,
             description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database"
         )
+
+        # TEMP
+        # CfnOutput(
+        #     self,
+        #     "SecretArn",
+        #     value=database.secret.secret_arn,
+        #     description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database"
+        # )
         
