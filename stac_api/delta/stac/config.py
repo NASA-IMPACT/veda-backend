@@ -10,7 +10,7 @@ import pydantic
 class _ApiSettings(pydantic.BaseSettings):
     """API settings"""
 
-    name: str = "eoAPI-stac"
+    name: str = "delta-backend-stac"
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
@@ -24,7 +24,7 @@ class _ApiSettings(pydantic.BaseSettings):
         """model config"""
 
         env_file = ".env"
-        env_prefix = "EOAPI_STAC_"
+        env_prefix = "DELTA_BACKEND_STAC_"
 
 
 @lru_cache()

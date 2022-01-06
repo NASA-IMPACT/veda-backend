@@ -1,12 +1,13 @@
 import os
+import json
+
 from aws_cdk import (
     aws_apigateway,
+    aws_ec2,
     aws_lambda,
     CfnOutput, Duration
 )
 from constructs import Construct
-
-from database.infrastructure.custom_resource.bootstrapper import BootstrapPgStac
 
 class StacApiLambdaConstruct(Construct):
     def __init__(
@@ -35,13 +36,31 @@ class StacApiLambdaConstruct(Construct):
             timeout=Duration.minutes(2), # TODO config
             # environment=eostac_settings.env or {},
         )
-        
-        # # TODO 
-        # database.secret.grant_read(lambda_function)
     
         # # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
-        # database.secret.grant_read(lambda_function)
-        # database.connections.allow_from(lambda_function, port_range=aws_ec2.Port.tcp(5432))
+        database.pgstac.secret.grant_read(lambda_function)
+        database.pgstac.connections.allow_from(lambda_function, port_range=aws_ec2.Port.tcp(5432))
+
+        db_secrets = {
+            "POSTGRES_HOST_READER": database.pgstac.secret.secret_value_from_json(
+                "host"
+            ).to_string(),
+            "POSTGRES_HOST_WRITER": database.pgstac.secret.secret_value_from_json(
+                "host"
+            ).to_string(),
+            "POSTGRES_DBNAME": database.pgstac.secret.secret_value_from_json(
+                "dbname"
+            ).to_string(),
+            "POSTGRES_USER": database.pgstac.secret.secret_value_from_json(
+                "username"
+            ).to_string(),
+            "POSTGRES_PASS": database.pgstac.secret.secret_value_from_json(
+                "password"
+            ).to_string(),
+            "POSTGRES_PORT": database.pgstac.secret.secret_value_from_json("port").to_string(),
+        }
+        for k, v in db_secrets.items():
+            lambda_function.add_environment(key=k, value=str(v))
 
         
         stac_api = aws_apigateway.LambdaRestApi(
@@ -49,5 +68,6 @@ class StacApiLambdaConstruct(Construct):
             "StacEndpoint",
             handler=lambda_function,
         )
+        print(f"DeltaBackendStacApi url={stac_api.url}")
         
         CfnOutput(self, "DeltaBackendStacApi", value=stac_api.url)

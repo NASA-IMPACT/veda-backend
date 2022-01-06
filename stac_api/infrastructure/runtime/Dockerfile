@@ -2,7 +2,7 @@ FROM --platform=linux/amd64 lambci/lambda:build-python3.8
 
 WORKDIR /tmp
 
-COPY stac_api/api /tmp/stac
+COPY stac_api/ /tmp/stac
 RUN pip install mangum /tmp/stac -t /asset --no-binary pydantic
 RUN rm -rf /tmp/stac
 

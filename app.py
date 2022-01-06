@@ -40,12 +40,12 @@ database = RdsConstruct(
     vpc.vpc,
 )
 
-# stac_api = StacApiLambdaConstruct(
-#     delta_stack,
-#     f"StacApi{identifier}",
-#     vpc.vpc,
-#     database,
-# )
+stac_api = StacApiLambdaConstruct(
+    delta_stack,
+    f"StacApi{identifier}",
+    vpc.vpc,
+    database,
+)
 
 app.synth()
 

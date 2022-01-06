@@ -42,7 +42,7 @@ class RdsConstruct(Construct):
         )
 
         # Use custom resource to bootstrap PgSTAC database
-        pgstac_database = BootstrapPgStac(
+        self.pgstac = BootstrapPgStac(
             self,
             "BootstrappedPgStac",
             database=database,
@@ -54,7 +54,7 @@ class RdsConstruct(Construct):
         CfnOutput(
             self,
             "SecretArn",
-            value=pgstac_database.secret.secret_arn,
+            value=self.pgstac.secret.secret_arn,
             description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database"
         )
 

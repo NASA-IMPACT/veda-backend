@@ -2,7 +2,7 @@
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
-from stac_api.config import ApiSettings, TilesApiSettings
+from delta.stac.config import ApiSettings, TilesApiSettings
 # from xx.stac.extension import TiTilerExtension
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -29,7 +29,7 @@ except ImportError:
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))
 
 api_settings = ApiSettings()
-tiles_settings = TilesApiSettings()
+# tiles_settings = TilesApiSettings()
 settings = Settings()
 
 

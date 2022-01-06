@@ -65,6 +65,8 @@ class BootstrapPgStac(Construct):
         database.secret.grant_read(handler)
         # connect to database
         database.connections.allow_from(handler, port_range=aws_ec2.Port.tcp(5432))
+        
+        self.connections = database.connections
 
         CustomResource(
             scope=scope,
