@@ -2,7 +2,8 @@ import os
 import json
 
 from aws_cdk import (
-    aws_apigateway,
+    aws_apigatewayv2_alpha,
+    aws_apigatewayv2_integrations_alpha,
     aws_ec2,
     aws_lambda,
     CfnOutput, Duration
@@ -61,13 +62,16 @@ class StacApiLambdaConstruct(Construct):
         }
         for k, v in db_secrets.items():
             lambda_function.add_environment(key=k, value=str(v))
-
         
-        stac_api = aws_apigateway.LambdaRestApi(
+        stac_api_integration = aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
+            "StacApiIntegration", lambda_function
+        )
+        stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             "StacEndpoint",
-            handler=lambda_function,
+            default_integration=stac_api_integration
         )
+
         print(f"DeltaBackendStacApi url={stac_api.url}")
         
         CfnOutput(self, "DeltaBackendStacApi", value=stac_api.url)
