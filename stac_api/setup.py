@@ -9,10 +9,14 @@ with open("README.md") as f:
 
 inst_reqs = [
     "fastapi==0.67.*",
-    "stac-fastapi.api~=2.2",
-    "stac-fastapi.types~=2.2",
-    "stac-fastapi.extensions~=2.2",
-    "stac-fastapi.pgstac~=2.2",
+    "stac-fastapi.api==2.1.*",
+    "stac-fastapi.types==2.1.*",
+    "stac-fastapi.extensions==2.1.*",
+    "stac-fastapi.pgstac==2.1.*",
+    # "stac-fastapi.api~=2.1",
+    # "stac-fastapi.types~=2.1",
+    # "stac-fastapi.extensions~=2.1",
+    # "stac-fastapi.pgstac~=2.1",
     "jinja2>=2.11.2,<3.0.0",
     "starlette-cramjam>=0.1.0.a0,<0.2",
     "importlib_resources>=1.1.0;python_version<'3.9'",
@@ -24,7 +28,7 @@ extra_reqs = {
 
 
 setup(
-    name="delta.stac", # TODO this is hidden
+    name="delta.stac",  # TODO this is hidden
     description=u"",
     python_requires=">=3.7",
     packages=find_namespace_packages(exclude=["tests*"]),

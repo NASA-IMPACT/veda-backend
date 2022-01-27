@@ -3,7 +3,7 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
 from delta.stac.config import ApiSettings, TilesApiSettings
-# from xx.stac.extension import TiTilerExtension
+from delta.stac.extension import TiTilerExtension
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
@@ -29,7 +29,7 @@ except ImportError:
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))
 
 api_settings = ApiSettings()
-# tiles_settings = TilesApiSettings()
+tiles_settings = TilesApiSettings()
 settings = Settings()
 
 
@@ -58,10 +58,10 @@ if api_settings.cors_origins:
         allow_headers=["*"],
     )
 
-# if tiles_settings.titiler_endpoint:
-#     # Register to the TiTiler extension to the api
-#     extension = TiTilerExtension()
-#     extension.register(api.app, tiles_settings.titiler_endpoint)
+if tiles_settings.titiler_endpoint:
+    # Register to the TiTiler extension to the api
+    extension = TiTilerExtension()
+    extension.register(api.app, tiles_settings.titiler_endpoint)
 
 
 @app.get("/index.html", response_class=HTMLResponse)
