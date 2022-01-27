@@ -1,0 +1,17 @@
+
+FROM tiangolo/uvicorn-gunicorn:python3.8
+
+ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
+
+RUN pip install \
+    stac-fastapi.api==2.1.* \
+    stac-fastapi.types==2.1.* \
+    stac-fastapi.extensions==2.1.* \
+    stac-fastapi.pgstac==2.1.*
+
+COPY stac_api/ /tmp/stac
+RUN pip install /tmp/stac
+RUN rm -rf /tmp/stac
+
+ENV MODULE_NAME delta.stac.app
+ENV VARIABLE_NAME app

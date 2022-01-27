@@ -1,0 +1,5 @@
+aws-cdk-lib<3.0.0,>=2.4.0
+constructs>=10.0.0,<11.0.0
+aws-cdk.aws-apigatewayv2-alpha
+aws_cdk.aws_apigatewayv2_integrations_alpha
+pydantic 
