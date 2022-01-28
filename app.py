@@ -24,10 +24,10 @@ delta_stack = DeltaStack(app, f"{app_name}-{identifier}")
 
 vpc = VpcConstruct(delta_stack, "network")
 
-database = RdsConstruct(delta_stack, f"database", vpc.vpc)
+database = RdsConstruct(delta_stack, "database", vpc.vpc)
 
 raster_api = RasterApiLambdaConstruct(
-    delta_stack, f"raster-api", vpc=vpc.vpc, database=database
+    delta_stack, "raster-api", vpc=vpc.vpc, database=database
 )
 
 stac_api = StacApiLambdaConstruct(
