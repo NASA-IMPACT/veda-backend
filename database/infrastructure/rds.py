@@ -41,8 +41,10 @@ class RdsConstruct(Construct):
             vpc_subnets=aws_ec2.SubnetSelection(
                 subnet_type=aws_ec2.SubnetType.PUBLIC
             ),
-            deletion_protection=identifier=="prod" , # enables deletion protection for production databases
-            removal_policy=RemovalPolicy.RETAIN if identifier == "prod" else RemovalPolicy.DESTROY, # TODO we need a safe removal policy like snapshot
+            deletion_protection=False, # TODO we do want deletion protection
+            removal_policy=RemovalPolicy.DESTROY, # TODO we need a safe removal policy like snapshot
+            # deletion_protection=identifier=="prod" , # enables deletion protection for production databases
+            # removal_policy=RemovalPolicy.RETAIN if identifier == "prod" else RemovalPolicy.DESTROY, # TODO we need a safe removal policy like snapshot
             publicly_accessible=True,
         )
 
