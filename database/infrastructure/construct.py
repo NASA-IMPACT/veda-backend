@@ -37,7 +37,7 @@ class BootstrapPgStac(Construct):
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath("./"), 
-                file="database/infrastructure/Dockerfile"
+                file="database/runtime/Dockerfile"
             ),
             timeout=Duration.minutes(2),
             vpc=database.vpc
