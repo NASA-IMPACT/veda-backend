@@ -1,7 +1,7 @@
 from aws_cdk import (
     aws_ec2,
     aws_rds,
-    CfnOutput, Stack, RemovalPolicy
+    CfnOutput, RemovalPolicy, Stack
 )
 from constructs import Construct
 
@@ -24,10 +24,14 @@ class RdsConstruct(Construct):
 
         # The code that defines your stack goes here
 
+        # TODO config
+        stack_name = Stack.of(self).stack_name
+
         # Provision RDS Resource
         database = aws_rds.DatabaseInstance(
             self,
-            construct_id,
+            id="rds",
+            instance_identifier=f"{stack_name}-postgres",
             vpc=vpc,
             engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
             instance_type=aws_ec2.InstanceType.of(
@@ -39,30 +43,22 @@ class RdsConstruct(Construct):
             ),
             deletion_protection=False, # TODO we do want deletion protection
             removal_policy=RemovalPolicy.DESTROY, # TODO we need a safe removal policy like snapshot
+            publicly_accessible=True,
         )
 
         # Use custom resource to bootstrap PgSTAC database
         self.pgstac = BootstrapPgStac(
             self,
-            "BootstrappedPgStac",
+            "pgstac",
             database=database,
             new_dbname="postgis", # TODO this is config!
             new_username="delta", # TODO this is config!
-            secrets_prefix=Stack.of(self).stack_name # TODO
+            secrets_prefix=stack_name
         )
 
         CfnOutput(
             self,
-            "SecretArn",
+            "pgstac-secret-arn",
             value=self.pgstac.secret.secret_arn,
             description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database"
         )
-
-        # TEMP
-        # CfnOutput(
-        #     self,
-        #     "SecretArn",
-        #     value=database.secret.secret_arn,
-        #     description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database"
-        # )
-        

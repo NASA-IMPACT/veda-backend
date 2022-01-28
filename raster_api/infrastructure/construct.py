@@ -9,6 +9,7 @@ from aws_cdk import (
     aws_lambda,
     CfnOutput,
     Duration,
+    Stack,
 )
 from constructs import Construct
 from .config import eoraster_settings
@@ -26,9 +27,12 @@ class RasterApiLambdaConstruct(Construct):
     ) -> None:
         super().__init__(scope, construct_id)
 
+        # TODO config
+        stack_name = Stack.of(self).stack_name
+
         eoraster_function = aws_lambda.Function(
             self,
-            f"{id}-raster-lambda",
+            f"lambda",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
@@ -72,16 +76,16 @@ class RasterApiLambdaConstruct(Construct):
 
         raster_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-                "StacApiIntegration", eoraster_function
+                construct_id, eoraster_function
             )
         )
         self.raster_api = aws_apigatewayv2_alpha.HttpApi(
-            self, f"{construct_id}Endpoint", default_integration=raster_api_integration
+            self, f"{stack_name}-{construct_id}", default_integration=raster_api_integration
         )
 
-        print(f"DeltaBackendTilerApi url={self.raster_api.url}")
+        print(f"raster-api url={self.raster_api.url}")
 
-        CfnOutput(self, "DeltaBackendTilerApi", value=self.raster_api.url)
+        CfnOutput(self, "raster-api", value=self.raster_api.url)
 
         for k, v in db_secrets.items():
             eoraster_function.add_environment(key=k, value=str(v))
