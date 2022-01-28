@@ -4,7 +4,7 @@ import logging
 
 from mangum import Mangum
 
-from delta.stac.app import app
+from src.app import app
 
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
 logging.getLogger("mangum.http").setLevel(logging.ERROR)

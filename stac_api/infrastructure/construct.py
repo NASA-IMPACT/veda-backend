@@ -1,5 +1,4 @@
 import os
-import json
 
 from aws_cdk import (
     aws_apigatewayv2_alpha,
@@ -36,7 +35,7 @@ class StacApiLambdaConstruct(Construct):
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath("./"),
-                file="stac_api/infrastructure/runtime/Dockerfile",
+                file="stac_api/runtime/Dockerfile",
             ),
             vpc=vpc,
             allow_public_subnet=True,
