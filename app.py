@@ -6,7 +6,7 @@ from constructs import Construct
 
 from network.infrastructure.construct import VpcConstruct
 from database.infrastructure.construct import RdsConstruct
-from stac_api.infrastructure.lambda_function import StacApiLambdaConstruct
+from stac_api.infrastructure.construct import StacApiLambdaConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 
 identifier = os.getenv("IDENTIFIER").lower()

@@ -2,7 +2,7 @@ FROM --platform=linux/amd64 lambci/lambda:build-python3.8
 
 WORKDIR /tmp
 
-COPY stac_api/ /tmp/stac
+COPY stac_api/runtime /tmp/stac
 RUN pip install mangum /tmp/stac -t /asset --no-binary pydantic
 RUN rm -rf /tmp/stac
 
@@ -12,6 +12,6 @@ RUN cd /asset && find . -type d -a -name '__pycache__' -print0 | xargs -0 rm -rf
 RUN cd /asset && find . -type f -a -name '*.py' -print0 | xargs -0 rm -f
 RUN find /asset -type d -a -name 'tests' -print0 | xargs -0 rm -rf
 
-COPY stac_api/infrastructure/runtime/handler.py /asset/handler.py
+COPY stac_api/runtime/handler.py /asset/handler.py
 
 CMD ["echo", "hello world"]
