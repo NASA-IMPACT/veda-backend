@@ -2,8 +2,8 @@
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
-from delta.stac.config import ApiSettings, TilesApiSettings
-from delta.stac.extension import TiTilerExtension
+from src.config import ApiSettings, TilesApiSettings
+from src.extension import TiTilerExtension
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
