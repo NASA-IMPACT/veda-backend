@@ -5,7 +5,7 @@ from aws_cdk import App, Stack, Tags
 from constructs import Construct
 
 from network.infrastructure.construct import VpcConstruct
-from database.infrastructure.rds import RdsConstruct
+from database.infrastructure.construct import RdsConstruct
 from stac_api.infrastructure.lambda_function import StacApiLambdaConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 

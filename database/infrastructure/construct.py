@@ -5,7 +5,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from database.infrastructure.custom_resource.bootstrapper import BootstrapPgStac
+from database.infrastructure.custom_resource.construct import BootstrapPgStac
 
 
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
