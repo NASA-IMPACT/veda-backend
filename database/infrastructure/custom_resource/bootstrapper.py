@@ -5,7 +5,7 @@ from aws_cdk import (
     aws_lambda,
     aws_rds,
     aws_secretsmanager,
-    CustomResource, Duration, Stack
+    CustomResource, Duration, RemovalPolicy, Stack
 )
 from constructs import Construct
 
@@ -27,7 +27,7 @@ class BootstrapPgStac(Construct):
 
         handler = aws_lambda.Function(
             self,
-            "LambdaFunction",
+            "lambda",
             handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
@@ -40,8 +40,8 @@ class BootstrapPgStac(Construct):
 
         self.secret = aws_secretsmanager.Secret(
             self,
-            construct_id, # contains identifier
-            secret_name=os.path.join(secrets_prefix, f"{construct_id}Secret{self.node.id}"),
+            "secret",
+            secret_name=os.path.join(secrets_prefix, construct_id, self.node.addr[-8:]),
             generate_secret_string=aws_secretsmanager.SecretStringGenerator(
                 secret_string_template=json.dumps(
                     {
@@ -55,7 +55,7 @@ class BootstrapPgStac(Construct):
                 generate_string_key="password",
                 exclude_punctuation=True
             ),
-            description=f"{construct_id} bootstrapped database deployed by {Stack.of(self).stack_name}"
+            description=f"Pgstac database bootsrapped by {Stack.of(self).stack_name} stack"
         )
 
         # Allow lambda to...
@@ -70,10 +70,11 @@ class BootstrapPgStac(Construct):
 
         CustomResource(
             scope=scope,
-            id="BootstrapperCustomResource",
+            id="bootstrapper",
             service_token=handler.function_arn,
             properties={
                 "conn_secret_arn": database.secret.secret_arn,
                 "new_user_secret_arn": self.secret.secret_arn
-            }
+            },
+            removal_policy=RemovalPolicy.RETAIN # This retains the custom resource (which doesn't really exist), not the database
         )

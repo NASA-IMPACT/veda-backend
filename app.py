@@ -9,7 +9,8 @@ from database.infrastructure.rds import RdsConstruct
 from stac_api.infrastructure.lambda_function import StacApiLambdaConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 
-identifier = os.getenv("IDENTIFIER").capitalize()
+identifier = os.getenv("IDENTIFIER").lower()
+app_name = "delta-backend"
 
 app = App()
 
@@ -19,32 +20,33 @@ class DeltaStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
 
-delta_stack = DeltaStack(app, f"DeltaBackend{identifier}")
+delta_stack = DeltaStack(app, f"{app_name}-{identifier}")
 
-vpc = VpcConstruct(delta_stack, f"Vpc{identifier}")
+vpc = VpcConstruct(delta_stack, "network")
 
-database = RdsConstruct(delta_stack, f"Database{identifier}", vpc.vpc)
-
+database = RdsConstruct(delta_stack, "database", vpc.vpc)
 
 raster_api = RasterApiLambdaConstruct(
-    delta_stack, f"DeltaBackendRasterApi{identifier}", vpc=vpc.vpc, database=database
+    delta_stack, "raster-api", vpc=vpc.vpc, database=database
 )
 
 stac_api = StacApiLambdaConstruct(
     delta_stack,
-    f"DeltaBackendStacApi{identifier}",
+    f"stac-api",
     vpc=vpc.vpc,
     database=database,
     raster_api=raster_api,
 )
 
-app.synth()
-
 for key, value in {
-    "Project": "delta-backend",
+    "Project": app_name,
     "Stack": identifier,
     "Client": "nasa-impact",
     "Owner": "ds",
 }.items():
     if value:
         Tags.of(app).add(key=key, value=value)
+
+app.synth()
+
+

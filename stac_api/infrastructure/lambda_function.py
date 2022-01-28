@@ -8,7 +8,7 @@ from aws_cdk import (
     aws_lambda,
     CfnOutput,
     Duration,
-    Fn,
+    Stack,
 )
 from constructs import Construct
 
@@ -26,9 +26,12 @@ class StacApiLambdaConstruct(Construct):
     ) -> None:
         super().__init__(scope, construct_id)
 
+        # TODO config
+        stack_name = Stack.of(self).stack_name
+
         lambda_function = aws_lambda.Function(
             self,
-            "LambdaFunction",
+            "lambda",
             handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
@@ -77,15 +80,16 @@ class StacApiLambdaConstruct(Construct):
 
         stac_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-                "StacApiIntegration", lambda_function
+                construct_id,
+                handler=lambda_function
             )
         )
         stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
-            f"{construct_id}Endpoint",
+            f"{stack_name}-{construct_id}",
             default_integration=stac_api_integration,
         )
 
-        print(f"DeltaBackendStacApi url={stac_api.url}")
+        print(f"stac-api url={stac_api.url}")
 
-        CfnOutput(self, "DeltaBackendStacApi", value=stac_api.url)
+        CfnOutput(self, "stac-api", value=stac_api.url)

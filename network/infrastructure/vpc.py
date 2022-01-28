@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import os
+from unicodedata import name
 
 from aws_cdk import (
     aws_ec2,
-    CfnOutput, Stack
+    CfnOutput
 )
 from constructs import Construct
 
@@ -32,7 +33,7 @@ class VpcConstruct(Construct):
 
         self.vpc = aws_ec2.Vpc(
             self,
-            construct_id,
+            "vpc",
             max_azs=2,
             cidr="10.10.0.0/16",
             subnet_configuration=[
@@ -44,19 +45,19 @@ class VpcConstruct(Construct):
 
         interface_endpoints = [
             (
-                "SecretsManager Endpoint",
+                "secretsmanager",
                 aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
             ),
             (
-                "CloudWatch Logs Endpoint",
+                "cloudwatch-logs",
                 aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
             ),
         ]
         for (id, service) in interface_endpoints:
             self.vpc.add_interface_endpoint(id, service=service)
 
-        gateway_endpoints = [("S3", aws_ec2.GatewayVpcEndpointAwsService.S3)]
+        gateway_endpoints = [("s3", aws_ec2.GatewayVpcEndpointAwsService.S3)]
         for (id, service) in gateway_endpoints:
             self.vpc.add_gateway_endpoint(id, service=service)
         
-        CfnOutput(self, "Output", value=self.vpc.vpc_id)
+        CfnOutput(self, "vpc-id", value=self.vpc.vpc_id)
