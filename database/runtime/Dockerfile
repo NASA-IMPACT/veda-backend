@@ -1,9 +1,16 @@
-FROM --platform=linux/amd64 lambci/lambda:build-python3.8
+FROM lambci/lambda:build-python3.8
+
+ARG PGSTAC_VERSION
+RUN echo "Using PGSTAC Version ${PGSTAC_VERSION}"
 
 WORKDIR /tmp
 
-RUN pip install "importlib_resources;python_version>='3.8'" requests psycopg2-binary pypgstac==0.3.4 -t /asset
+RUN pip install requests psycopg2-binary pypgstac==${PGSTAC_VERSION} -t /asset
 
 COPY database/runtime/handler.py /asset/handler.py
+
+# https://stackoverflow.com/a/61746719
+# Tip from eoAPI: turns out, asyncio is part of python
+RUN rm -rf /asset/asyncio*
 
 CMD ["echo", "hello world database"]
