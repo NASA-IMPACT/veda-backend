@@ -21,6 +21,7 @@ from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
+from src.version import __version__ as delta_stac_version
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -37,7 +38,7 @@ settings = Settings()
 
 
 api = StacApi(
-    app=FastAPI(title=api_settings.name),
+    app=FastAPI(title=api_settings.name, version=delta_stac_version),
     title=api_settings.name,
     description=api_settings.name,
     settings=settings,
