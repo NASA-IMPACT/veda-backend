@@ -2,8 +2,6 @@
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
-from src.config import ApiSettings, TilesApiSettings
-from src.extension import TiTilerExtension
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
@@ -16,8 +14,13 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
+from starlette_cramjam.middleware import CompressionMiddleware
 
-# from starlette_cramjam.middleware import CompressionMiddleware
+from src.config import ApiSettings, TilesApiSettings
+from src.config import extensions as PgStacExtensions
+from src.config import get_request_model as GETModel
+from src.config import post_request_model as POSTModel
+from src.extension import TiTilerExtension
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -38,10 +41,12 @@ api = StacApi(
     title=api_settings.name,
     description=api_settings.name,
     settings=settings,
-    extensions=[QueryExtension(), SortExtension(), FieldsExtension()],
-    client=CoreCrudClient(),
-    search_request_model=PgstacSearch,
+    extensions=PgStacExtensions,
+    client=CoreCrudClient(post_request_model=POSTModel),
+    search_get_request_model=GETModel,
+    search_post_request_model=POSTModel,
     response_class=ORJSONResponse,
+    middlewares=[CompressionMiddleware],
 )
 app = api.app
 
