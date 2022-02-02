@@ -47,7 +47,6 @@ class RasterApiLambdaConstruct(Construct):
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
 
-        # # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
         database.pgstac.secret.grant_read(eoraster_function)
         database.pgstac.connections.allow_from(
             eoraster_function, port_range=aws_ec2.Port.tcp(5432)
