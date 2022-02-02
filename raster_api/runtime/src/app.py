@@ -28,6 +28,17 @@ app = FastAPI(title=settings.name, version=delta_raster_version)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
+app.add_middleware(
+    CompressionMiddleware,
+    exclude_mediatype={
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/jp2",
+        "image/webp",
+    },
+)
+
 # Set all CORS enabled origins
 if settings.cors_origins:
     app.add_middleware(
@@ -42,17 +53,6 @@ app.add_middleware(
     CacheControlMiddleware,
     cachecontrol=settings.cachecontrol,
     exclude_path={r"/healthz"},
-)
-
-app.add_middleware(
-    CompressionMiddleware,
-    exclude_mediatype={
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/jp2",
-        "image/webp",
-    },
 )
 
 # PgSTAC mosaic tiler
