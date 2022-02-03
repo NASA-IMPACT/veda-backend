@@ -28,6 +28,29 @@ app = FastAPI(title=settings.name, version=delta_raster_version)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
+# PgSTAC mosaic tiler
+mosaic = MosaicTilerFactory(router_prefix="mosaic", optional_headers=optional_headers)
+app.include_router(mosaic.router, prefix="/mosaic", tags=["PgSTAC Mosaic"])
+
+# Custom STAC titiler endpoint (not added to the openapi docs)
+stac = MultiBaseTilerFactory(
+    reader=STACReader,
+    router_prefix="stac",
+    optional_headers=optional_headers,
+)
+app.include_router(
+    stac.router,
+    prefix="/stac",
+    tags=["SpatioTemporal Asset Catalog"],
+    include_in_schema=False,
+)
+
+
+@app.get("/healthz", description="Health Check", tags=["Health Check"])
+def ping():
+    """Health check."""
+    return {"ping": "pong!"}
+
 app.add_middleware(
     CompressionMiddleware,
     exclude_mediatype={
@@ -54,30 +77,6 @@ app.add_middleware(
     cachecontrol=settings.cachecontrol,
     exclude_path={r"/healthz"},
 )
-
-# PgSTAC mosaic tiler
-mosaic = MosaicTilerFactory(router_prefix="mosaic", optional_headers=optional_headers)
-app.include_router(mosaic.router, prefix="/mosaic", tags=["PgSTAC Mosaic"])
-
-# Custom STAC titiler endpoint (not added to the openapi docs)
-stac = MultiBaseTilerFactory(
-    reader=STACReader,
-    router_prefix="stac",
-    optional_headers=optional_headers,
-)
-app.include_router(
-    stac.router,
-    prefix="/stac",
-    tags=["SpatioTemporal Asset Catalog"],
-    include_in_schema=False,
-)
-
-
-@app.get("/healthz", description="Health Check", tags=["Health Check"])
-def ping():
-    """Health check."""
-    return {"ping": "pong!"}
-
 
 @app.on_event("startup")
 async def startup_event() -> None:

@@ -48,7 +48,6 @@ class BootstrapPgStac(Construct):
             ),
             timeout=Duration.minutes(2),
             vpc=database.vpc,
-            allow_public_subnet=True,
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
 
