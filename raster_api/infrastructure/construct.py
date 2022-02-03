@@ -43,7 +43,7 @@ class RasterApiLambdaConstruct(Construct):
             allow_public_subnet=True,
             handler="handler.handler",
             memory_size=1536,  # TODO: from config
-            timeout=Duration.minutes(2),  # TODO: from config
+            timeout=Duration.seconds(10),  # TODO: from config
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
 
