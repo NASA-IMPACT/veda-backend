@@ -4,6 +4,9 @@
     "@aws-cdk/core:bootstrapQualifier": "toolkitv2",
     "dev": {
       "pgstac_version": "0.4.3"
+    },
+    "prod": {
+      "pgstac_version": "0.4.3"
     }
   }
 }
