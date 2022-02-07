@@ -7,11 +7,12 @@ from typing import Optional
 import pydantic
 
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
-from stac_fastapi.pgstac.extensions import QueryExtension
+# from stac_fastapi.pgstac.extensions import QueryExtension
 from stac_fastapi.extensions.core import (
     ContextExtension,
     FieldsExtension,
     FilterExtension,
+    QueryExtension,
     SortExtension,
     TokenPaginationExtension,
 )
@@ -72,11 +73,12 @@ def TilesApiSettings() -> _TilesApiSettings:
     return _TilesApiSettings()
 
 
+
 extensions = [
+    FilterExtension(),
     QueryExtension(),
     SortExtension(),
     FieldsExtension(),
-    FilterExtension(),
     TokenPaginationExtension(),
     ContextExtension(),
 ]

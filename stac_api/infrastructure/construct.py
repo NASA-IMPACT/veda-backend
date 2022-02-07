@@ -35,7 +35,7 @@ class StacApiLambdaConstruct(Construct):
             handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath("./"),
+                path=os.path.abspath(code_dir),
                 file="stac_api/runtime/Dockerfile",
             ),
             vpc=vpc,
@@ -79,12 +79,11 @@ class StacApiLambdaConstruct(Construct):
             "TITILER_ENDPOINT", raster_api.raster_api.url
         )
 
-        stac_api_integration = (
-            aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-                construct_id,
-                handler=lambda_function
-            )
+        stac_api_integration = aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
+            construct_id,
+            handler=lambda_function
         )
+        
         stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",
