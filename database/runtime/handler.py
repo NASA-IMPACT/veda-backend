@@ -129,6 +129,15 @@ def register_extensions(cursor) -> None:
     """Add PostGIS extension."""
     cursor.execute(sql.SQL("CREATE EXTENSION IF NOT EXISTS postgis;"))
 
+def enable_context(cursor) -> None:
+    """Enable context extension (Do a full count of rows if context is set to on 
+    or if auto is set and estimates are low enough)."""
+    cursor.execute(sql.SQL(
+        "INSERT INTO pgstac.pgstac_settings (name, value) "
+        "   VALUES "
+        "       ('context', 'auto')"
+        "   ON CONFLICT ON CONSTRAINT pgstac_settings_pkey DO UPDATE SET value = excluded.value;"
+    ))
 
 def handler(event, context):
     """Lambda Handler."""
@@ -190,6 +199,9 @@ def handler(event, context):
                 print("Registering PostGIS ...")
                 register_extensions(cursor=cur)
 
+                print("Enabling context extension ...")
+                enable_context(cursor=cur)
+
         dsn = "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
             dbname=user_params.get("dbname", "postgres"),
             user=user_params["username"],
@@ -201,7 +213,7 @@ def handler(event, context):
         asyncio.run(run_migration(dsn))
 
     except Exception as e:
-        print(e)
+        print(f"Unable to bootstrap database with exception={e}")
         return send(event, context, "FAILED", {"message": str(e)})
 
     print("Complete.")

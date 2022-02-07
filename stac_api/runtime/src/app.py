@@ -13,14 +13,6 @@ from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
-# from stac_fastapi.pgstac.extensions import QueryExtension
-# from stac_fastapi.extensions.core import (
-#     ContextExtension,
-#     FieldsExtension,
-#     SortExtension,
-#     TokenPaginationExtension,
-# )
-
 from src.config import ApiSettings, TilesApiSettings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
@@ -70,7 +62,7 @@ if api_settings.cors_origins:
 
 if tiles_settings.titiler_endpoint:
     # Register to the TiTiler extension to the api
-    print("Registering TiTiler extension")
+    print(f"Registering TiTiler extension={tiles_settings.titiler_endpoint}")
     extension = TiTilerExtension()
     extension.register(api.app, tiles_settings.titiler_endpoint)
 
