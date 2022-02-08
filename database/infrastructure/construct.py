@@ -1,9 +1,11 @@
 import os
 import json
+from platform import node
 
 from aws_cdk import (
     aws_ec2,
     aws_lambda,
+    aws_logs,
     aws_rds,
     aws_secretsmanager,
     CfnOutput, 
@@ -26,9 +28,13 @@ class BootstrapPgStac(Construct):
         database: aws_rds.DatabaseInstance,
         new_dbname: str,
         new_username: str,
-        secrets_prefix: str
+        secrets_prefix: str,
+        stage: str,
     ) -> None:
         super().__init__(scope, construct_id)
+
+        # get pgstac version from context
+        pgstac_version = scope.node.try_get_context(stage)["pgstac_version"]
 
         handler = aws_lambda.Function(
             self,
@@ -37,10 +43,12 @@ class BootstrapPgStac(Construct):
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath("./"), 
-                file="database/runtime/Dockerfile"
+                file="database/runtime/Dockerfile",
+                build_args={"PGSTAC_VERSION": pgstac_version},
             ),
             timeout=Duration.minutes(2),
-            vpc=database.vpc
+            vpc=database.vpc,
+            log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
 
         self.secret = aws_secretsmanager.Secret(
@@ -58,7 +66,7 @@ class BootstrapPgStac(Construct):
                     }
                 ),
                 generate_string_key="password",
-                exclude_punctuation=True
+                exclude_punctuation=True,
             ),
             description=f"Pgstac database bootsrapped by {Stack.of(self).stack_name} stack"
         )
@@ -78,6 +86,9 @@ class BootstrapPgStac(Construct):
             id="bootstrapper",
             service_token=handler.function_arn,
             properties={
+                # By setting pgstac_version in the properties assures
+                # that Create/Update events will be passed to the service token
+                "pgstac_version": pgstac_version,
                 "conn_secret_arn": database.secret.secret_arn,
                 "new_user_secret_arn": self.secret.secret_arn
             },
@@ -94,6 +105,7 @@ class RdsConstruct(Construct):
         scope: Construct,
         construct_id: str, 
         vpc,
+        stage: str,
         **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -117,10 +129,8 @@ class RdsConstruct(Construct):
             vpc_subnets=aws_ec2.SubnetSelection(
                 subnet_type=aws_ec2.SubnetType.PUBLIC
             ),
-            deletion_protection=False, # TODO we do want deletion protection
-            removal_policy=RemovalPolicy.DESTROY, # TODO we need a safe removal policy like snapshot
-            # deletion_protection=identifier=="prod" , # enables deletion protection for production databases
-            # removal_policy=RemovalPolicy.RETAIN if identifier == "prod" else RemovalPolicy.DESTROY, # TODO we need a safe removal policy like snapshot
+            deletion_protection=stage=="prod" , # enables deletion protection for production databases
+            removal_policy=RemovalPolicy.RETAIN if stage == "prod" else RemovalPolicy.DESTROY, 
             publicly_accessible=True,
         )
 
@@ -131,7 +141,8 @@ class RdsConstruct(Construct):
             database=database,
             new_dbname="postgis", # TODO this is config!
             new_username="delta", # TODO this is config!
-            secrets_prefix=stack_name
+            secrets_prefix=stack_name,
+            stage=stage,
         )
 
         CfnOutput(

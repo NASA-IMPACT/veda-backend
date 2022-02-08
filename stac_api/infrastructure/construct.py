@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_apigatewayv2_integrations_alpha,
     aws_ec2,
     aws_lambda,
+    aws_logs,
     CfnOutput,
     Duration,
     Stack,
@@ -34,14 +35,15 @@ class StacApiLambdaConstruct(Construct):
             handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath("./"),
+                path=os.path.abspath(code_dir),
                 file="stac_api/runtime/Dockerfile",
             ),
             vpc=vpc,
             allow_public_subnet=True,
-            # memory_size=eostac_settings.memory,
+            # memory_size=eostac_settings.memory, # TODO config
             timeout=Duration.minutes(2),  # TODO config
-            # environment=eostac_settings.env or {},
+            # environment=eostac_settings.env or {}, # TODO config
+            log_retention=aws_logs.RetentionDays.ONE_WEEK, # TODO config
         )
 
         # # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
@@ -74,15 +76,14 @@ class StacApiLambdaConstruct(Construct):
             lambda_function.add_environment(key=k, value=str(v))
 
         lambda_function.add_environment(
-            "DELTA_BACKEND_STAC_TITILER_ENDPOINT", raster_api.raster_api.url
+            "TITILER_ENDPOINT", raster_api.raster_api.url
         )
 
-        stac_api_integration = (
-            aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-                construct_id,
-                handler=lambda_function
-            )
+        stac_api_integration = aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
+            construct_id,
+            handler=lambda_function
         )
+        
         stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",

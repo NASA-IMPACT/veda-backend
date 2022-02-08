@@ -7,6 +7,7 @@ from aws_cdk import (
     aws_ec2,
     aws_iam,
     aws_lambda,
+    aws_logs,
     CfnOutput,
     Duration,
     Stack,
@@ -42,10 +43,10 @@ class RasterApiLambdaConstruct(Construct):
             allow_public_subnet=True,
             handler="handler.handler",
             memory_size=1536,  # TODO: from config
-            timeout=Duration.minutes(2),  # TODO: from config
+            timeout=Duration.seconds(10),  # TODO: from config
+            log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
 
-        # # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
         database.pgstac.secret.grant_read(eoraster_function)
         database.pgstac.connections.allow_from(
             eoraster_function, port_range=aws_ec2.Port.tcp(5432)
@@ -69,6 +70,9 @@ class RasterApiLambdaConstruct(Construct):
             ).to_string(),
             "POSTGRES_PORT": database.pgstac.secret.secret_value_from_json(
                 "port"
+            ).to_string(),
+            "POSTGRES_HOST": database.pgstac.secret.secret_value_from_json(
+                "host"
             ).to_string(),
         }
         for k, v in db_secrets.items():
