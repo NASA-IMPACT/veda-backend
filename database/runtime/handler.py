@@ -199,9 +199,6 @@ def handler(event, context):
                 print("Registering PostGIS ...")
                 register_extensions(cursor=cur)
 
-                print("Enabling context extension ...")
-                enable_context(cursor=cur)
-
         dsn = "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
             dbname=user_params.get("dbname", "postgres"),
             user=user_params["username"],
@@ -212,9 +209,16 @@ def handler(event, context):
 
         asyncio.run(run_migration(dsn))
 
+        # Enable context extension after migrating database
+        with psycopg.connect(con_str, autocommit=True) as conn:
+            with conn.cursor() as cur:
+                print("Enabling context extension ...")
+                enable_context(cursor=cur)
+
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")
         return send(event, context, "FAILED", {"message": str(e)})
+
 
     print("Complete.")
     return send(event, context, "SUCCESS", {})
