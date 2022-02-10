@@ -25,11 +25,7 @@ class VpcConstruct(Construct):
             subnet_type=aws_ec2.SubnetType.PUBLIC,
             cidr_mask=24,
         )
-        isolated_subnet = aws_ec2.SubnetConfiguration(
-            name="isolated",
-            subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED,
-            cidr_mask=24,
-        )
+
         private_subnet1 = aws_ec2.SubnetConfiguration(
             name="private-subnet-1",
             subnet_type=aws_ec2.SubnetType.PRIVATE,
@@ -48,7 +44,6 @@ class VpcConstruct(Construct):
             cidr="10.10.0.0/16",
             subnet_configuration=[
                 public_subnet,
-                isolated_subnet,
                 private_subnet1,
                 private_subnet2
             ],
