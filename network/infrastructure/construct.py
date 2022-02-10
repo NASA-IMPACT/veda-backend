@@ -30,6 +30,16 @@ class VpcConstruct(Construct):
             subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED,
             cidr_mask=24,
         )
+        private_subnet1 = aws_ec2.SubnetConfiguration(
+            name="private-subnet-1",
+            subnet_type=aws_ec2.SubnetType.PRIVATE,
+            cidr_mask=24,
+        )
+        private_subnet2 = aws_ec2.SubnetConfiguration(
+            name="private-subnet-2",
+            subnet_type=aws_ec2.SubnetType.PRIVATE,
+            cidr_mask=24,
+        )
 
         self.vpc = aws_ec2.Vpc(
             self,
@@ -38,9 +48,11 @@ class VpcConstruct(Construct):
             cidr="10.10.0.0/16",
             subnet_configuration=[
                 public_subnet,
-                isolated_subnet
+                isolated_subnet,
+                private_subnet1,
+                private_subnet2
             ],
-            nat_gateways=0,
+            nat_gateways=1,
         )
 
         interface_endpoints = [
