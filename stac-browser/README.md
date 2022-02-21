@@ -20,3 +20,7 @@ npm run build -- --CATALOG_URL=${STAC_API_ENDPOINT}
 BROWSER_CODE_BUCKET=s3://delta-dev-stac-browser
 aws s3 cp --recursive dist/ $BROWSER_CODE_BUCKET
 ```
+
+## TODO:
+
+Add CDK Code to automatically deploy. A challenge to doing so is the API handles pagination differently form how the browser code requests. The browser is simply using `?page=2` and our stac-api pages need a next token of the form `token=next:<next-item-id>`.
