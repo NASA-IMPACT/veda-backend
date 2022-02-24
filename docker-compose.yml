@@ -36,7 +36,7 @@ services:
     depends_on:
       - database
       - raster
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh database:5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 25 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
 
@@ -87,7 +87,7 @@ services:
 
     depends_on:
       - database
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh database:5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 25 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
       - $HOME/.aws/credentials:/root/.aws/credentials
@@ -95,7 +95,7 @@ services:
   database:
     container_name: delta.db
     platform: linux/amd64
-    image: ghcr.io/stac-utils/pgstac:v0.3.6
+    image: ghcr.io/stac-utils/pgstac:v0.4.5
     environment:
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
@@ -105,7 +105,7 @@ services:
       - PGHOST=localhost
       - PGDATABASE=postgis
     ports:
-      - "5439:5432"
+      - "5432:5432"
     command: postgres -N 500
     volumes:
       - ./.pgdata:/var/lib/postgresql/data

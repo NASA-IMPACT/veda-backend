@@ -51,6 +51,7 @@ def ping():
     """Health check."""
     return {"ping": "pong!"}
 
+
 app.add_middleware(
     CompressionMiddleware,
     exclude_mediatype={
@@ -77,6 +78,7 @@ app.add_middleware(
     cachecontrol=settings.cachecontrol,
     exclude_path={r"/healthz"},
 )
+
 
 @app.on_event("startup")
 async def startup_event() -> None:
