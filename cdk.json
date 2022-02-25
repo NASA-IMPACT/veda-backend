@@ -5,6 +5,9 @@
     "dev": {
       "pgstac_version": "0.4.3"
     },
+    "staging": {
+      "pgstac_version": "0.4.3"
+    },
     "prod": {
       "pgstac_version": "0.4.3"
     }
