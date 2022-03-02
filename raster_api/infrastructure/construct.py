@@ -3,7 +3,7 @@ import os
 
 from aws_cdk import (CfnOutput, Duration, Stack, aws_apigatewayv2_alpha,
                      aws_apigatewayv2_integrations_alpha, aws_ec2, aws_iam,
-                     aws_lambda, aws_logs)
+                     aws_lambda, aws_logs, aws_route53, aws_route53_targets)
 from constructs import Construct
 
 from .config import delta_raster_settings
@@ -74,9 +74,11 @@ class RasterApiLambdaConstruct(Construct):
             )
         )
 
-        domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
-            domain_name=domain_name
-        )
+        domain_mapping = None
+        if domain_name:
+            domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
+                domain_name=domain_name
+            )
 
         self.raster_api = aws_apigatewayv2_alpha.HttpApi(
             self,
@@ -84,6 +86,7 @@ class RasterApiLambdaConstruct(Construct):
             default_integration=raster_api_integration,
             default_domain_mapping=domain_mapping,
         )
+
         CfnOutput(self, "raster-api", value=self.raster_api.url)
 
         delta_raster_function.add_to_role_policy(

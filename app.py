@@ -34,7 +34,7 @@ raster_api = RasterApiLambdaConstruct(
     "raster-api",
     vpc=vpc.vpc,
     database=database,
-    domain_name=domain.raster_domain_name,
+    domain=domain.raster_domain_name,
 )
 
 stac_api = StacApiLambdaConstruct(
@@ -43,7 +43,7 @@ stac_api = StacApiLambdaConstruct(
     vpc=vpc.vpc,
     database=database,
     raster_api=raster_api,
-    domain_name=domain.raster_domain_name,
+    domain=domain.stac_domain_name,
 )
 
 for key, value in {

@@ -3,7 +3,6 @@
 import logging
 
 from mangum import Mangum
-
 from src.app import app
 
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)

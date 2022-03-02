@@ -4,7 +4,7 @@ WORKDIR /tmp
 
 COPY raster_api/runtime /tmp/raster
 RUN pip install --upgrade pip
-RUN pip install mangum /tmp/raster["psycopg-binary"] -t /asset --no-binary pydantic 
+RUN pip install mangum==0.12.3 /tmp/raster["psycopg-binary"] -t /asset --no-binary pydantic 
 RUN rm -rf /tmp/raster
 
 # # Reduce package size and remove useless files

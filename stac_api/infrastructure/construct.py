@@ -78,9 +78,11 @@ class StacApiLambdaConstruct(Construct):
                 construct_id, handler=lambda_function
             )
         )
-        domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
-            domain_name=domain_name
-        )
+        domain_mapping = None
+        if domain_name:
+            domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
+                domain_name=domain_name
+            )
         stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",
