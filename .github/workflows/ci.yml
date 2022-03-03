@@ -1,0 +1,131 @@
+name: CI
+
+# On every pull request, but only on push to master
+on:
+  push:
+    branches:
+    - master
+    - develop
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+    
+      - uses: actions/cache@v2
+        with:
+        path: ${{ env.pythonLocation }}
+        key:  ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
+
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r dev-requirements.txt -e . 
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files
+    
+    test:
+      needs: [lint]
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - name: Set up Python
+          uses: actions/setup-python@v2
+          with:
+            python-version: '3.8'
+      
+        - uses: actions/cache@v2
+          with:
+          path: ${{ env.pythonLocation }}
+          key:  ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
+
+        - name: Install python dependencies
+          run: |
+            python -m pip install --upgrade pip
+            python -m pip install -r dev-requirements.txt -e . 
+        - name: Launch services
+          run: docker-compose up -d stac raster
+
+        - name: Ingest Stac Items/Collection
+          run: |
+            pypgstac pgready --dsn postgresql://username:password@0.0.0.0:5432/postgis
+            pypgstac load collections .github/workflows/data/noaa-emergency-response.json --dsn postgresql://username:password@0.0.0.0:5432/postgis --method insert_ignore
+            pypgstac load items .github/workflows/data/noaa-eri-nashville2020.json --dsn postgresql://username:password@0.0.0.0:5432/postgis --method insert_ignore
+
+        - name: Sleep for 10 seconds
+          run: sleep 10s
+          shell: bash
+
+        - name: Integrations tests
+          run: python -m pytest .github/workflows/tests/
+
+        - name: Stop services
+          run: docker-compose stop
+
+    deploy: 
+      needs: [test]
+      
+      runs-on: ubuntu-latest
+      steps:
+      
+        - uses: actions/checkout@v2
+        - name: Set up Python
+          uses: actions/setup-python@v2
+          with:
+            python-version: '3.8'
+        
+        - name: Setup Node
+          uses: actions/setup-node@v1
+          with: 
+            node-version: 17
+        
+        - name: Configure awscli
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: us-east-1
+
+        - uses: actions/cache@v2
+          cache-name: cache-node-modules
+          with:
+            path: ~/.npm
+            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+        
+        - name: Install CDK
+          run: npm install -g aws-cdk@2
+        
+        - uses: actions/cache@v2
+          cache-name: cache-python modules
+          with:
+            path: ${{ env.pythonLocation }}
+            key:  ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
+        
+        - name: Install python dependencies
+          run: |
+            python -m pip install --upgrade pip
+            python -m pip install -r dev-requirements.txt -e . 
+                
+        - name: Set deployment stage to dev
+            if: ${{github.event.ref == 'refs/heads/develop'}}
+            run: echo "{STAGE}={dev}" >> $GITHUB_ENV
+        
+        - name : Set deployment stage to prod
+            if: ${{github.event.ref == 'refs/heads/master'}}
+            run: echo "{STAGE}={prod}" >> $GITHUB_ENV
+  
+        - name: Deploy 
+          run: |
+            STAGE=${{STAGE}} \
+            DELTA_RASTER_BUCKET=climatedashboard-data \
+            DELTA_DOMAIN_HOSTED_ZONE_ID=$Z061650539BO6YWF9XDMA \
+            DELTA_DOMAIN_HOSTED_ZONR_NAME=$delta-backend.xyz \
+            DELTA_DB_PGSTAC_VERSION=0.4.3
+            cdk deploy delta-backend-${{STAGE}} --require-approval nevel
+            

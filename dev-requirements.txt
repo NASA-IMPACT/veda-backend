@@ -3,3 +3,8 @@ constructs>=10.0.0,<11.0.0
 aws-cdk.aws-apigatewayv2-alpha
 aws_cdk.aws_apigatewayv2_integrations_alpha
 pydantic 
+pre-commit 
+pytest 
+pytest-asyncio 
+httpx 
+pypgstac
