@@ -117,7 +117,7 @@ jobs:
             run: echo "{STAGE}={dev}" >> $GITHUB_ENV
         
         - name : Set deployment stage to prod
-            if: ${{github.event.ref == 'refs/heads/master'}}
+            if: ${{ github.event.ref == 'refs/heads/master' }}
             run: echo "{STAGE}={prod}" >> $GITHUB_ENV
   
         - name: Deploy 
