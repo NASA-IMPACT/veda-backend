@@ -113,19 +113,19 @@ jobs:
             python -m pip install -r dev-requirements.txt -e . 
                 
         - name: Set deployment stage to dev
-            if: ${{github.event.ref == 'refs/heads/develop'}}
-            run: echo "{STAGE}={dev}" >> $GITHUB_ENV
+          if: ${{github.event.ref == 'refs/heads/develop'}}
+          run: echo "{STAGE}={dev}" >> $GITHUB_ENV
         
         - name : Set deployment stage to prod
-            if: ${{ github.event.ref == 'refs/heads/master' }}
-            run: echo "{STAGE}={prod}" >> $GITHUB_ENV
+          if: ${{ github.event.ref == 'refs/heads/master' }}
+          run: echo "{STAGE}={prod}" >> $GITHUB_ENV
   
         - name: Deploy 
           run: |
             STAGE=${{STAGE}} \
             DELTA_RASTER_BUCKET=climatedashboard-data \
-            DELTA_DOMAIN_HOSTED_ZONE_ID=$Z061650539BO6YWF9XDMA \
-            DELTA_DOMAIN_HOSTED_ZONR_NAME=$delta-backend.xyz \
+            DELTA_DOMAIN_HOSTED_ZONE_ID=Z061650539BO6YWF9XDMA \
+            DELTA_DOMAIN_HOSTED_ZONR_NAME=delta-backend.xyz \
             DELTA_DB_PGSTAC_VERSION=0.4.3
             cdk deploy delta-backend-${{STAGE}} --require-approval nevel
             
