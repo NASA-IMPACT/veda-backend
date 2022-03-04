@@ -19,8 +19,8 @@ jobs:
     
       - uses: actions/cache@v2
         with:
-        path: ${{ env.pythonLocation }}
-        key:  ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
+          path: ${{ env.pythonLocation }}
+          key:  ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
 
       - name: Install python dependencies
         run: |
@@ -42,8 +42,8 @@ jobs:
       
         - uses: actions/cache@v2
           with:
-          path: ${{ env.pythonLocation }}
-          key:  ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
+            path: ${{ env.pythonLocation }}
+            key:  ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
 
         - name: Install python dependencies
           run: |
