@@ -9,3 +9,7 @@ pydantic[dotenv]
 
 # dev
 pre-commit
+pytest 
+pytest-asyncio 
+httpx 
+pypgstac
