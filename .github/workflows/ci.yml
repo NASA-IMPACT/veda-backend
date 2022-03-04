@@ -93,7 +93,6 @@ jobs:
           aws-region: us-east-1
 
       - uses: actions/cache@v2
-        cache-name: cache-node-modules
         with:
           path: ~/.npm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
@@ -102,7 +101,6 @@ jobs:
         run: npm install -g aws-cdk@2
       
       - uses: actions/cache@v2
-        cache-name: cache-python modules
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
