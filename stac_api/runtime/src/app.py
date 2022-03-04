@@ -3,6 +3,11 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+from src.config import ApiSettings, TilesApiSettings
+from src.config import extensions as PgStacExtensions
+from src.config import get_request_model as GETModel
+from src.config import post_request_model as POSTModel
+from src.extension import TiTilerExtension
 from stac_fastapi.api.app import StacApi
 from stac_fastapi.pgstac.config import Settings
 from stac_fastapi.pgstac.core import CoreCrudClient
@@ -12,12 +17,6 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
-
-from src.config import ApiSettings, TilesApiSettings
-from src.config import extensions as PgStacExtensions
-from src.config import get_request_model as GETModel
-from src.config import post_request_model as POSTModel
-from src.extension import TiTilerExtension
 
 try:
     from importlib.resources import files as resources_files  # type: ignore

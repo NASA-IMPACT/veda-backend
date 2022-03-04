@@ -1,16 +1,11 @@
 import os
 
-from aws_cdk import (
-    aws_apigatewayv2_alpha,
-    aws_apigatewayv2_integrations_alpha,
-    aws_ec2,
-    aws_lambda,
-    aws_logs,
-    CfnOutput,
-    Duration,
-    Stack,
-)
+from aws_cdk import (CfnOutput, Duration, Stack, aws_apigatewayv2_alpha,
+                     aws_apigatewayv2_integrations_alpha, aws_ec2, aws_lambda,
+                     aws_logs)
 from constructs import Construct
+
+from .config import delta_stac_settings
 
 
 class StacApiLambdaConstruct(Construct):
@@ -22,6 +17,7 @@ class StacApiLambdaConstruct(Construct):
         database,
         raster_api,  # TODO: typing!
         code_dir: str = "./",
+        domain_name: aws_apigatewayv2_alpha.DomainName = None,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id)
@@ -40,10 +36,10 @@ class StacApiLambdaConstruct(Construct):
             ),
             vpc=vpc,
             allow_public_subnet=True,
-            # memory_size=eostac_settings.memory, # TODO config
-            timeout=Duration.minutes(2),  # TODO config
-            # environment=eostac_settings.env or {}, # TODO config
-            log_retention=aws_logs.RetentionDays.ONE_WEEK, # TODO config
+            memory_size=delta_stac_settings.memory,
+            timeout=Duration.seconds(delta_stac_settings.timeout),
+            environment=delta_stac_settings.env or {},
+            log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
 
         # # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
@@ -75,19 +71,23 @@ class StacApiLambdaConstruct(Construct):
         for k, v in db_secrets.items():
             lambda_function.add_environment(key=k, value=str(v))
 
-        lambda_function.add_environment(
-            "TITILER_ENDPOINT", raster_api.raster_api.url
-        )
+        lambda_function.add_environment("TITILER_ENDPOINT", raster_api.raster_api.url)
 
-        stac_api_integration = aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-            construct_id,
-            handler=lambda_function
+        stac_api_integration = (
+            aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
+                construct_id, handler=lambda_function
+            )
         )
-        
+        domain_mapping = None
+        if domain_name:
+            domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
+                domain_name=domain_name
+            )
         stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",
             default_integration=stac_api_integration,
+            default_domain_mapping=domain_mapping,
         )
 
         print(f"stac-api url={stac_api.url}")
