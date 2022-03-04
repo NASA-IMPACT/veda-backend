@@ -3,6 +3,10 @@
 import logging
 
 from fastapi import FastAPI
+from src.config import ApiSettings
+from src.factory import MultiBaseTilerFactory
+from src.reader import STACReader
+from src.version import __version__ as delta_raster_version
 from starlette.middleware.cors import CORSMiddleware
 from starlette_cramjam.middleware import CompressionMiddleware
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
@@ -11,11 +15,6 @@ from titiler.core.resources.enums import OptionalHeader
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
 from titiler.pgstac.factory import MosaicTilerFactory
-
-from src.config import ApiSettings
-from src.factory import MultiBaseTilerFactory
-from src.reader import STACReader
-from src.version import __version__ as delta_raster_version
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
@@ -49,7 +48,7 @@ app.include_router(
 @app.get("/healthz", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
-    return {"ping": "pong!"}
+    return {"ping": "pong!!"}
 
 
 app.add_middleware(

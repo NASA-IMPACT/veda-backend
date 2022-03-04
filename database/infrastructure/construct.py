@@ -1,26 +1,21 @@
-import os
 import json
+import os
 from platform import node
 
-from aws_cdk import (
-    aws_ec2,
-    aws_lambda,
-    aws_logs,
-    aws_rds,
-    aws_secretsmanager,
-    CfnOutput, 
-    CustomResource,
-    Duration,
-    RemovalPolicy, 
-    Stack,
-)
+from aws_cdk import (CfnOutput, CustomResource, Duration, RemovalPolicy, Stack,
+                     aws_ec2, aws_lambda, aws_logs, aws_rds,
+                     aws_secretsmanager)
 from constructs import Construct
+
+from .config import delta_db_settings
+
 
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
 class BootstrapPgStac(Construct):
     """
     Given an RDS database, connect and create a database, user, and password
     """
+
     def __init__(
         self,
         scope: Construct,
@@ -42,7 +37,7 @@ class BootstrapPgStac(Construct):
             handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath("./"), 
+                path=os.path.abspath("./"),
                 file="database/runtime/Dockerfile",
                 build_args={"PGSTAC_VERSION": pgstac_version},
             ),
@@ -62,13 +57,13 @@ class BootstrapPgStac(Construct):
                         "engine": "postgres",
                         "port": 5432,
                         "host": database.instance_endpoint.hostname,
-                        "username": new_username
+                        "username": new_username,
                     }
                 ),
                 generate_string_key="password",
                 exclude_punctuation=True,
             ),
-            description=f"Pgstac database bootsrapped by {Stack.of(self).stack_name} stack"
+            description=f"Pgstac database bootsrapped by {Stack.of(self).stack_name} stack",
         )
 
         # Allow lambda to...
@@ -78,7 +73,7 @@ class BootstrapPgStac(Construct):
         database.secret.grant_read(handler)
         # connect to database
         database.connections.allow_from(handler, port_range=aws_ec2.Port.tcp(5432))
-        
+
         self.connections = database.connections
 
         CustomResource(
@@ -90,23 +85,18 @@ class BootstrapPgStac(Construct):
                 # that Create/Update events will be passed to the service token
                 "pgstac_version": pgstac_version,
                 "conn_secret_arn": database.secret.secret_arn,
-                "new_user_secret_arn": self.secret.secret_arn
+                "new_user_secret_arn": self.secret.secret_arn,
             },
-            removal_policy=RemovalPolicy.RETAIN # This retains the custom resource (which doesn't really exist), not the database
+            removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
         )
+
 
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
 # https://github.com/NASA-IMPACT/hls-sentinel2-downloader-serverless/blob/main/cdk/downloader_stack.py
 # https://github.com/aws-samples/aws-cdk-examples/blob/master/python/new-vpc-alb-asg-mysql/cdk_vpc_ec2/cdk_rds_stack.py
 class RdsConstruct(Construct):
-
     def __init__(
-        self, 
-        scope: Construct,
-        construct_id: str, 
-        vpc,
-        stage: str,
-        **kwargs
+        self, scope: Construct, construct_id: str, vpc, stage: str, **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
@@ -123,14 +113,14 @@ class RdsConstruct(Construct):
             vpc=vpc,
             engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
             instance_type=aws_ec2.InstanceType.of(
-                aws_ec2.InstanceClass.BURSTABLE3, 
-                aws_ec2.InstanceSize.SMALL
+                aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
             ),
-            vpc_subnets=aws_ec2.SubnetSelection(
-                subnet_type=aws_ec2.SubnetType.PUBLIC
-            ),
-            deletion_protection=stage=="prod" , # enables deletion protection for production databases
-            removal_policy=RemovalPolicy.RETAIN if stage == "prod" else RemovalPolicy.DESTROY, 
+            vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
+            deletion_protection=stage
+            == "prod",  # enables deletion protection for production databases
+            removal_policy=RemovalPolicy.RETAIN
+            if stage == "prod"
+            else RemovalPolicy.DESTROY,
             publicly_accessible=True,
         )
 
@@ -139,8 +129,8 @@ class RdsConstruct(Construct):
             self,
             "pgstac",
             database=database,
-            new_dbname="postgis", # TODO this is config!
-            new_username="delta", # TODO this is config!
+            new_dbname=delta_db_settings.dbname,
+            new_username=delta_db_settings.user,
             secrets_prefix=stack_name,
             stage=stage,
         )
@@ -149,5 +139,5 @@ class RdsConstruct(Construct):
             self,
             "pgstac-secret-arn",
             value=self.pgstac.secret.secret_arn,
-            description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database"
+            description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
         )

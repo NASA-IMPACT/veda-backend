@@ -1,8 +1,9 @@
 from typing import Dict, List
+
 import pydantic
 
 
-class eoRasterSettings(pydantic.BaseSettings):
+class deltaRasterSettings(pydantic.BaseSettings):
     """Application settings"""
 
     # Default options are optimized for CloudOptimized GeoTIFF
@@ -31,14 +32,14 @@ class eoRasterSettings(pydantic.BaseSettings):
     # S3 key pattern to limit the access to specific items (e.g: "my_data/*.tif")
     key: str = "*"
 
-    timeout: int = 10
-    memory: int = 3008
+    timeout: int = 10  # seconds
+    memory: int = 3008  # Mb
 
     class Config:
         """model config"""
 
-        env_file = "deployment/.env"
+        env_file = ".env"
         env_prefix = "DELTA_RASTER_"
 
 
-eoraster_settings = eoRasterSettings()
+delta_raster_settings = deltaRasterSettings()

@@ -12,7 +12,7 @@ inst_reqs = [
     "stac-fastapi.types~=2.3",
     "stac-fastapi.extensions~=2.3",
     "stac-fastapi.pgstac~=2.3",
-    "jinja2>=2.11.2,<3.0.0",
+    "jinja2>=3.0,<4.0",
     "starlette-cramjam>=0.1.0.a0,<0.2",
     "importlib_resources>=1.1.0;python_version<'3.9'",
 ]
@@ -23,7 +23,7 @@ extra_reqs = {
 
 
 setup(
-    name="delta.stac_api",  
+    name="delta.stac_api",
     description=u"",
     python_requires=">=3.7",
     packages=find_namespace_packages(exclude=["tests*"]),

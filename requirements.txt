@@ -1,5 +1,11 @@
-aws-cdk-lib<3.0.0,>=2.4.0
+# aws settings
+aws-cdk-lib<3.0.0,>=2.15.0
 constructs>=10.0.0,<11.0.0
-aws-cdk.aws-apigatewayv2-alpha
-aws_cdk.aws_apigatewayv2_integrations_alpha
-pydantic 
+aws-cdk.aws_apigatewayv2_alpha~=2.15.0a0
+aws_cdk.aws_apigatewayv2_integrations_alpha~=2.15.0a0
+
+# pydantic settings
+pydantic[dotenv]
+
+# dev
+pre-commit

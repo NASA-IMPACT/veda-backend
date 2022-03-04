@@ -42,4 +42,3 @@ class MultiBaseTilerFactory(factory.MultiBaseTilerFactory):
                 },
                 media_type="text/html",
             )
-

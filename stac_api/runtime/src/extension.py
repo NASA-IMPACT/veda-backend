@@ -7,14 +7,13 @@ from urllib.parse import urlencode
 
 import attr
 from buildpg import render
-
 from fastapi import APIRouter, FastAPI, HTTPException, Path, Query
 from fastapi.responses import RedirectResponse
+from src.config import post_request_model as POSTModel
 from stac_fastapi.types.errors import NotFoundError
 from stac_fastapi.types.extension import ApiExtension
 from starlette.requests import Request
 
-from src.config import post_request_model as POSTModel
 router = APIRouter()
 
 

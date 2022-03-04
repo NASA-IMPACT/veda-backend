@@ -4,15 +4,17 @@ import os
 from aws_cdk import App, Stack, Tags
 from constructs import Construct
 
-from network.infrastructure.construct import VpcConstruct
 from database.infrastructure.construct import RdsConstruct
-from stac_api.infrastructure.construct import StacApiLambdaConstruct
+from domain.infrastructure.construct import DomainConstruct
+from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
+from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
 stage = os.getenv("STAGE").lower()
 app_name = "delta-backend"
 
 app = App()
+
 
 class DeltaStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -25,16 +27,23 @@ vpc = VpcConstruct(delta_stack, "network")
 
 database = RdsConstruct(delta_stack, "database", vpc.vpc, stage=stage)
 
+domain = DomainConstruct(delta_stack, "domain", stage=stage)
+
 raster_api = RasterApiLambdaConstruct(
-    delta_stack, "raster-api", vpc=vpc.vpc, database=database
+    delta_stack,
+    "raster-api",
+    vpc=vpc.vpc,
+    database=database,
+    domain=domain.raster_domain_name,
 )
 
 stac_api = StacApiLambdaConstruct(
     delta_stack,
-    f"stac-api",
+    "stac-api",
     vpc=vpc.vpc,
     database=database,
     raster_api=raster_api,
+    domain=domain.stac_domain_name,
 )
 
 for key, value in {
@@ -47,5 +56,3 @@ for key, value in {
         Tags.of(app).add(key=key, value=value)
 
 app.synth()
-
-
