@@ -1,3 +1,6 @@
+"""Settings for Raster API - any environment variables starting with
+`DELTA_RASTER_` will overwrite the values of variables in this file
+"""
 from typing import Dict, List
 
 import pydantic

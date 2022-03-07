@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+""" CDK Configuration for the delta-backend stack."""
 import os
 
 from aws_cdk import App, Stack, Tags
@@ -10,14 +11,17 @@ from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
-stage = os.getenv("STAGE").lower()
+stage = os.environ["STAGE"].lower()
 app_name = "delta-backend"
 
 app = App()
 
 
 class DeltaStack(Stack):
+    """CDK stack for hte delta-backend stack."""
+
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        """."""
         super().__init__(scope, construct_id, **kwargs)
 
 

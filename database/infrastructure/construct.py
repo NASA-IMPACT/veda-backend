@@ -1,10 +1,19 @@
+"""CDK Construct for delta-backend RDS instance."""
 import json
 import os
-from platform import node
 
-from aws_cdk import (CfnOutput, CustomResource, Duration, RemovalPolicy, Stack,
-                     aws_ec2, aws_lambda, aws_logs, aws_rds,
-                     aws_secretsmanager)
+from aws_cdk import (
+    CfnOutput,
+    CustomResource,
+    Duration,
+    RemovalPolicy,
+    Stack,
+    aws_ec2,
+    aws_lambda,
+    aws_logs,
+    aws_rds,
+    aws_secretsmanager,
+)
 from constructs import Construct
 
 from .config import delta_db_settings
@@ -26,6 +35,7 @@ class BootstrapPgStac(Construct):
         secrets_prefix: str,
         stage: str,
     ) -> None:
+        """."""
         super().__init__(scope, construct_id)
 
         # get pgstac version from context
@@ -95,14 +105,18 @@ class BootstrapPgStac(Construct):
 # https://github.com/NASA-IMPACT/hls-sentinel2-downloader-serverless/blob/main/cdk/downloader_stack.py
 # https://github.com/aws-samples/aws-cdk-examples/blob/master/python/new-vpc-alb-asg-mysql/cdk_vpc_ec2/cdk_rds_stack.py
 class RdsConstruct(Construct):
+    """Provisions an empty RDS database, fed to the BootstrapPgStac construct
+    which provisions and executes a lambda function that loads the PGSTAC
+    schema in the database"""
+
     def __init__(
         self, scope: Construct, construct_id: str, vpc, stage: str, **kwargs
     ) -> None:
+        """."""
         super().__init__(scope, construct_id, **kwargs)
 
         # The code that defines your stack goes here
 
-        # TODO config
         stack_name = Stack.of(self).stack_name
 
         # Provision RDS Resource

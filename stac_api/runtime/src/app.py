@@ -1,13 +1,14 @@
 """FastAPI application using PGStac.
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
 from src.config import ApiSettings, TilesApiSettings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
+
+from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
 from stac_fastapi.pgstac.config import Settings
 from stac_fastapi.pgstac.core import CoreCrudClient
@@ -25,7 +26,7 @@ except ImportError:
     from importlib_resources import files as resources_files  # type: ignore
 
 
-templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))
+templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 api_settings = ApiSettings()
 tiles_settings = TilesApiSettings()
