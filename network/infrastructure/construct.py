@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
-from unicodedata import name
-
+"""
+CDK construct for delta-backend VPC.
+"""
 from aws_cdk import CfnOutput, aws_ec2
 from constructs import Construct
 
@@ -8,7 +8,10 @@ from constructs import Construct
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/new-vpc-alb-asg-mysql
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/docker-app-with-asg-alb
 class VpcConstruct(Construct):
+    """CDK construct for delta-abckend VPC."""
+
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        """Initialized construct."""
         super().__init__(scope, construct_id, **kwargs)
 
         public_subnet = aws_ec2.SubnetConfiguration(

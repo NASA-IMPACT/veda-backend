@@ -1,3 +1,4 @@
+"""Configuration options for the Lambda backed API implementing `stac-fastapi`."""
 from typing import Dict
 
 import pydantic

@@ -1,6 +1,11 @@
-#!/usr/bin/env python3
-from aws_cdk import (CfnOutput, aws_apigatewayv2_alpha, aws_certificatemanager,
-                     aws_route53, aws_route53_targets)
+"""CDK Construct for a custom API domain (under the route 53 domain: delta-backend.xyz)."""
+from aws_cdk import (
+    CfnOutput,
+    aws_apigatewayv2_alpha,
+    aws_certificatemanager,
+    aws_route53,
+    aws_route53_targets,
+)
 from constructs import Construct
 
 from .config import delta_domain_settings
@@ -9,9 +14,12 @@ from .config import delta_domain_settings
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/new-vpc-alb-asg-mysql
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/docker-app-with-asg-alb
 class DomainConstruct(Construct):
+    """CDK Construct for a custom API domain (under the route 53 domain: delta-backend.xyz)."""
+
     def __init__(
         self, scope: Construct, construct_id: str, stage: str, **kwargs
     ) -> None:
+        """."""
         super().__init__(scope, construct_id, **kwargs)
 
         self.stac_domain_name = None
@@ -40,7 +48,6 @@ class DomainConstruct(Construct):
                 self,
                 "raster-api-custom-domain",
                 domain_name=f"{stage.lower()}-raster.delta-backend.xyz",
-                # domain_name=f"{stage.lower()}-raster",
                 certificate=certificate,
             )
 
@@ -61,7 +68,6 @@ class DomainConstruct(Construct):
                 self,
                 "stac-api-custom-domain",
                 domain_name=f"{stage.lower()}-stac.delta-backend.xyz",
-                # domain_name=f"{stage.lower()-stac"
                 certificate=certificate,
             )
 
