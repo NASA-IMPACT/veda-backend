@@ -24,7 +24,7 @@ extra_reqs = {
 
 setup(
     name="delta.stac_api",
-    description=u"",
+    description="",
     python_requires=">=3.7",
     packages=find_namespace_packages(exclude=["tests*"]),
     package_data={"delta": ["stac/templates/*.html"]},

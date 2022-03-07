@@ -2,11 +2,12 @@
 
 import logging
 
-from fastapi import FastAPI
 from src.config import ApiSettings
 from src.factory import MultiBaseTilerFactory
 from src.reader import STACReader
 from src.version import __version__ as delta_raster_version
+
+from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette_cramjam.middleware import CompressionMiddleware
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers

@@ -1,5 +1,5 @@
 """
-Custom resource lambda handler to bootstrap Postgres db. 
+Custom resource lambda handler to bootstrap Postgres db.
 Source: https://github.com/developmentseed/eoAPI/blob/master/deployment/handlers/db_handler.py
 """
 import asyncio

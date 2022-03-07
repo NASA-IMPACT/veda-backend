@@ -1,11 +1,15 @@
+"""Configuration options for a custom API domain."""
+# TODO: make the domain root (`delta-backend.xyz` configurable too)
+from typing import Optional
+
 import pydantic
 
 
 class deltaDomainSettings(pydantic.BaseSettings):
     """Application settings"""
 
-    hosted_zone_id: str = None
-    hosted_zone_name: str = None
+    hosted_zone_id: Optional[str] = None
+    hosted_zone_name: Optional[str] = None
 
     class Config:
         """model config"""

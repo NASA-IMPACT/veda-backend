@@ -1,15 +1,25 @@
-# delta.raster
+"""CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
 import os
 
-from aws_cdk import (CfnOutput, Duration, Stack, aws_apigatewayv2_alpha,
-                     aws_apigatewayv2_integrations_alpha, aws_ec2, aws_iam,
-                     aws_lambda, aws_logs, aws_route53, aws_route53_targets)
+from aws_cdk import (
+    CfnOutput,
+    Duration,
+    Stack,
+    aws_apigatewayv2_alpha,
+    aws_apigatewayv2_integrations_alpha,
+    aws_ec2,
+    aws_iam,
+    aws_lambda,
+    aws_logs,
+)
 from constructs import Construct
 
 from .config import delta_raster_settings
 
 
 class RasterApiLambdaConstruct(Construct):
+    """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
+
     def __init__(
         self,
         scope: Construct,
@@ -20,6 +30,7 @@ class RasterApiLambdaConstruct(Construct):
         domain_name: aws_apigatewayv2_alpha.DomainName = None,
         **kwargs,
     ) -> None:
+        """."""
         super().__init__(scope, construct_id)
 
         # TODO config

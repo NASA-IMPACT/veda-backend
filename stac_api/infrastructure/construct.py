@@ -1,14 +1,24 @@
+"""CDK Construct for a Lambda backed API implementing stac-fastapi."""
 import os
 
-from aws_cdk import (CfnOutput, Duration, Stack, aws_apigatewayv2_alpha,
-                     aws_apigatewayv2_integrations_alpha, aws_ec2, aws_lambda,
-                     aws_logs)
+from aws_cdk import (
+    CfnOutput,
+    Duration,
+    Stack,
+    aws_apigatewayv2_alpha,
+    aws_apigatewayv2_integrations_alpha,
+    aws_ec2,
+    aws_lambda,
+    aws_logs,
+)
 from constructs import Construct
 
 from .config import delta_stac_settings
 
 
 class StacApiLambdaConstruct(Construct):
+    """CDK Construct for a Lambda backed API implementing stac-fastapi."""
+
     def __init__(
         self,
         scope: Construct,
@@ -20,6 +30,7 @@ class StacApiLambdaConstruct(Construct):
         domain_name: aws_apigatewayv2_alpha.DomainName = None,
         **kwargs,
     ) -> None:
+        """."""
         super().__init__(scope, construct_id)
 
         # TODO config
