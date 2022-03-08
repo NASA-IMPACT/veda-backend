@@ -9,9 +9,9 @@ class deltaDBSettings(pydantic.BaseSettings):
     user: str = "delta"
 
     # Define PGSTAC VERSION
-    pgstac_version: str = None
+    pgstac_version: str
     # Define delta db/custom schema version
-    version: str = None
+    version: str
 
     class Config:
         """model config."""
