@@ -1,15 +1,6 @@
 {
   "app": "python3 app.py",
   "context": {
-    "@aws-cdk/core:bootstrapQualifier": "toolkitv2",
-    "dev": {
-      "pgstac_version": "0.4.3"
-    },
-    "staging": {
-      "pgstac_version": "0.4.3"
-    },
-    "prod": {
-      "pgstac_version": "0.4.3"
-    }
+    "@aws-cdk/core:bootstrapQualifier": "toolkitv2"
   }
 }

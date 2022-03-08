@@ -38,8 +38,8 @@ class BootstrapPgStac(Construct):
         """."""
         super().__init__(scope, construct_id)
 
-        # get pgstac version from context
-        pgstac_version = scope.node.try_get_context(stage)["pgstac_version"]
+        pgstac_version = delta_db_settings.pgstac_version
+        delta_version = delta_db_settings.version
 
         handler = aws_lambda.Function(
             self,
@@ -49,7 +49,10 @@ class BootstrapPgStac(Construct):
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath("./"),
                 file="database/runtime/Dockerfile",
-                build_args={"PGSTAC_VERSION": pgstac_version},
+                build_args={
+                    "PGSTAC_VERSION": pgstac_version,
+                    "VERSION": delta_version
+                },
             ),
             timeout=Duration.minutes(2),
             vpc=database.vpc,
