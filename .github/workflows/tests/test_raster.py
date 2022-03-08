@@ -1,4 +1,4 @@
-"""test EOapi."""
+"""test delta-backend.raster."""
 
 import json
 from base64 import b64encode

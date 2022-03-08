@@ -1,4 +1,4 @@
-"""test EOapi."""
+"""test Delta-backend STAC."""
 
 import httpx
 

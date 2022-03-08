@@ -4,12 +4,15 @@ import os
 
 from aws_cdk import App, Stack, Tags
 from constructs import Construct
+from dotenv import load_dotenv
 
 from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
+
+load_dotenv()
 
 stage = os.environ["STAGE"].lower()
 app_name = "delta-backend"

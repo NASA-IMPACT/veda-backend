@@ -3,7 +3,6 @@ version: '3'
 services:
   stac:
     container_name: delta.stac
-    platform: linux/amd64
     build:
       context: .
       dockerfile: local/Dockerfile.stac
@@ -95,7 +94,7 @@ services:
   database:
     container_name: delta.db
     platform: linux/amd64
-    image: ghcr.io/stac-utils/pgstac:v0.4.5
+    image: ghcr.io/stac-utils/pgstac:v0.4.3
     environment:
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
