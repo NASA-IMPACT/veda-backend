@@ -11,8 +11,6 @@ from constructs import Construct
 from .config import delta_domain_settings
 
 
-# https://github.com/aws-samples/aws-cdk-examples/tree/master/python/new-vpc-alb-asg-mysql
-# https://github.com/aws-samples/aws-cdk-examples/tree/master/python/docker-app-with-asg-alb
 class DomainConstruct(Construct):
     """CDK Construct for a custom API domain (under the route 53 domain: delta-backend.xyz)."""
 
@@ -84,4 +82,5 @@ class DomainConstruct(Construct):
                 record_name=self.stac_domain_name.name,
             )
 
-        CfnOutput(self, "hosted-zone-name", value=hosted_zone.zone_name)
+            CfnOutput(self, "hosted-zone-name", value=hosted_zone.zone_name)
+
