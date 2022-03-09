@@ -7,7 +7,7 @@ with open("README.md") as f:
 
 
 extra_reqs = {
-    "dev": ["pre-commit"],
+    "dev": ["pre-commit", "python-dotenv"],
     "deploy": [
         "aws-cdk-lib<3.0.0,>=2.15.0",
         "constructs>=10.0.0,<11.0.0",

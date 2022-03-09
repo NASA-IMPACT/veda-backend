@@ -4,12 +4,15 @@ import os
 
 from aws_cdk import App, Stack, Tags
 from constructs import Construct
+from dotenv import load_dotenv
 
 from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
+
+load_dotenv()
 
 stage = os.environ["STAGE"].lower()
 app_name = "delta-backend"
@@ -38,7 +41,7 @@ raster_api = RasterApiLambdaConstruct(
     "raster-api",
     vpc=vpc.vpc,
     database=database,
-    domain=domain.raster_domain_name,
+    domain_name=domain.raster_domain_name,
 )
 
 stac_api = StacApiLambdaConstruct(
@@ -47,7 +50,7 @@ stac_api = StacApiLambdaConstruct(
     vpc=vpc.vpc,
     database=database,
     raster_api=raster_api,
-    domain=domain.stac_domain_name,
+    domain_name=domain.stac_domain_name,
 )
 
 for key, value in {

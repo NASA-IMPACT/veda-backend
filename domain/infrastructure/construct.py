@@ -44,7 +44,7 @@ class DomainConstruct(Construct):
             )
             self.raster_domain_name = aws_apigatewayv2_alpha.DomainName(
                 self,
-                "raster-api-custom-domain",
+                "rasterApiCustomDomain",
                 domain_name=f"{stage.lower()}-raster.delta-backend.xyz",
                 certificate=certificate,
             )
@@ -59,12 +59,13 @@ class DomainConstruct(Construct):
                         regional_hosted_zone_id=self.raster_domain_name.regional_hosted_zone_id,
                     )
                 ),
-                record_name=self.raster_domain_name.name,
+                # Note: CDK will append the hosted zone name (eg: `delta-backend.xyz` to this record name)
+                record_name=f"{stage.lower()}-raster",
             )
 
             self.stac_domain_name = aws_apigatewayv2_alpha.DomainName(
                 self,
-                "stac-api-custom-domain",
+                "stacApiCustomDomain",
                 domain_name=f"{stage.lower()}-stac.delta-backend.xyz",
                 certificate=certificate,
             )
@@ -79,8 +80,8 @@ class DomainConstruct(Construct):
                         regional_hosted_zone_id=self.stac_domain_name.regional_hosted_zone_id,
                     )
                 ),
-                record_name=self.stac_domain_name.name,
+                # Note: CDK will append the hosted zone name (eg: `delta-backend.xyz` to this record name)
+                record_name=f"{stage.lower()}-stac",
             )
 
             CfnOutput(self, "hosted-zone-name", value=hosted_zone.zone_name)
-
