@@ -279,8 +279,7 @@ def handler(event, context):
 
         # Create custom dashboard schema and functions
         with psycopg.connect(con_str, autocommit=True) as conn:
-            with conn.cursor as cur:
-
+            with conn.cursor() as cur:
                 print("Creating dashboard schema")
                 create_dashboard_schema(cursor=cur)
                 
