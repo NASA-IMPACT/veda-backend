@@ -281,7 +281,7 @@ def handler(event, context):
         with psycopg.connect(con_str, autocommit=True) as conn:
             with conn.cursor() as cur:
                 print("Creating dashboard schema")
-                create_dashboard_schema(cursor=cur)
+                create_dashboard_schema(cursor=cur, username=connection_params["username"])
                 
                 print("Creating update_default_summaries functions")
                 create_update_default_summaries_function(cursor=cur)
