@@ -89,18 +89,18 @@ class StacApiLambdaConstruct(Construct):
                 construct_id, handler=lambda_function
             )
         )
+
         domain_mapping = None
         if domain_name:
             domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
                 domain_name=domain_name
             )
+
         stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",
             default_integration=stac_api_integration,
             default_domain_mapping=domain_mapping,
         )
-
-        print(f"stac-api url={stac_api.url}")
 
         CfnOutput(self, "stac-api", value=stac_api.url)

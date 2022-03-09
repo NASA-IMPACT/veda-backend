@@ -38,8 +38,7 @@ class BootstrapPgStac(Construct):
         """."""
         super().__init__(scope, construct_id)
 
-        # get pgstac version from context
-        pgstac_version = scope.node.try_get_context(stage)["pgstac_version"]
+        pgstac_version = delta_db_settings.pgstac_version
 
         handler = aws_lambda.Function(
             self,
