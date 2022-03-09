@@ -94,7 +94,7 @@ services:
   database:
     container_name: delta.db
     platform: linux/amd64
-    image: ghcr.io/stac-utils/pgstac:v0.4.3
+    image: ghcr.io/stac-utils/pgstac:v0.4.5
     environment:
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
