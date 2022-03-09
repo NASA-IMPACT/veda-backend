@@ -1,6 +1,7 @@
 """Custom STACTilerFactory."""
 
 from dataclasses import dataclass
+from typing import Any
 
 from fastapi import Depends
 from starlette.requests import Request
@@ -30,7 +31,7 @@ class MultiBaseTilerFactory(factory.MultiBaseTilerFactory):
         @self.router.get("/viewer", response_class=HTMLResponse)
         def stac_demo(
             request: Request,
-            src_path: str = Depends(self.path_dependency),
+            src_path: Any = Depends(self.path_dependency),
         ):
             """STAC Viewer."""
             return templates.TemplateResponse(
@@ -38,7 +39,9 @@ class MultiBaseTilerFactory(factory.MultiBaseTilerFactory):
                 context={
                     "request": request,
                     "endpoint": request.url.path.replace("/viewer", ""),
-                    "stac_url": src_path,
+                    "stac_url": request.query_params[
+                        "url"
+                    ],  # Warning: This assume that `self.path_dependency` uses `url=`
                 },
                 media_type="text/html",
             )

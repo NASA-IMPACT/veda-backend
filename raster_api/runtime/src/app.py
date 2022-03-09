@@ -3,6 +3,7 @@
 import logging
 
 from src.config import ApiSettings
+from src.dependencies import DatasetPathParams
 from src.factory import MultiBaseTilerFactory
 from src.reader import STACReader
 from src.version import __version__ as delta_raster_version
@@ -22,7 +23,11 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
-optional_headers = [OptionalHeader.server_timing] if settings.debug else []
+
+if settings.debug:
+    optional_headers = [OptionalHeader.server_timing, OptionalHeader.x_assets]
+else:
+    optional_headers = []
 
 app = FastAPI(title=settings.name, version=delta_raster_version)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
@@ -35,6 +40,7 @@ app.include_router(mosaic.router, prefix="/mosaic", tags=["PgSTAC Mosaic"])
 # Custom STAC titiler endpoint (not added to the openapi docs)
 stac = MultiBaseTilerFactory(
     reader=STACReader,
+    path_dependency=DatasetPathParams,
     router_prefix="stac",
     optional_headers=optional_headers,
 )
@@ -52,6 +58,21 @@ def ping():
     return {"ping": "pong!!"}
 
 
+# Set all CORS enabled origins
+if settings.cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
+
+app.add_middleware(
+    CacheControlMiddleware,
+    cachecontrol=settings.cachecontrol,
+    exclude_path={r"/healthz"},
+)
 app.add_middleware(
     CompressionMiddleware,
     exclude_mediatype={
@@ -61,22 +82,6 @@ app.add_middleware(
         "image/jp2",
         "image/webp",
     },
-)
-
-# Set all CORS enabled origins
-if settings.cors_origins:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=True,
-        allow_methods=["GET", "POST"],
-        allow_headers=["*"],
-    )
-
-app.add_middleware(
-    CacheControlMiddleware,
-    cachecontrol=settings.cachecontrol,
-    exclude_path={r"/healthz"},
 )
 
 
