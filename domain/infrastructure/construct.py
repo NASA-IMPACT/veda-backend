@@ -62,7 +62,7 @@ class DomainConstruct(Construct):
                     )
                 ),
                 # Note: CDK will append the hosted zone name (eg: `delta-backend.xyz` to this record name)
-                record_name=f"{stage.lower()}-stac",
+                record_name=f"{stage.lower()}-raster",
             )
 
             self.stac_domain_name = aws_apigatewayv2_alpha.DomainName(
