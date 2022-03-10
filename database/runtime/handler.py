@@ -133,15 +133,14 @@ def register_extensions(cursor) -> None:
     cursor.execute(sql.SQL("CREATE EXTENSION IF NOT EXISTS postgis;"))
 
 
-def create_dashboard_schema(cursor,  username: str) -> None:
+def create_dashboard_schema(cursor, username: str) -> None:
     """Create custom schema for dashboard-specific functions."""
     cursor.execute(
         sql.SQL(
             "CREATE SCHEMA IF NOT EXISTS dashboard;"
-            "SET SEARCH_PATH TO dashboard, pgstac, public;"
-            "ALTER ROLE {username} SET SEARCH_PATH TO dashboard, pgstac, public;".format(
-                username=sql.Identifier(username),
-            )
+            "ALTER ROLE {username} SET SEARCH_PATH TO dashboard, pgstac, public;"
+        ).format(
+            username=sql.Identifier(username)
         )
     )
 
@@ -179,7 +178,7 @@ def create_update_default_summaries_function(cursor) -> None:
         collections.id coll_id
         FROM items
         JOIN collections on items.collection_id = collections.id
-        WHERE collections.id = %s
+        WHERE collections.id = _collection_id
         GROUP BY collections."content" , collections.id
     )
     UPDATE collections SET "content" = "content" || coll_item_cte.summaries
@@ -281,8 +280,7 @@ def handler(event, context):
         with psycopg.connect(con_str, autocommit=True) as conn:
             with conn.cursor() as cur:
                 print("Creating dashboard schema")
-                create_dashboard_schema(cursor=cur, username=connection_params["username"])
-                
+                create_dashboard_schema(cursor=cur, username=user_params["username"])
                 print("Creating update_default_summaries functions")
                 create_update_default_summaries_function(cursor=cur)
                 create_update_all_default_summaries_function(cursor=cur)
