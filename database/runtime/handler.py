@@ -138,6 +138,7 @@ def create_dashboard_schema(cursor, username: str) -> None:
     cursor.execute(
         sql.SQL(
             "CREATE SCHEMA IF NOT EXISTS dashboard;"
+            "ALTER DEFAULT PRIVILEGES IN SCHEMA dashboard GRANT EXECUTE ON FUNCTIONS TO {username};"
             "ALTER ROLE {username} SET SEARCH_PATH TO dashboard, pgstac, public;"
         ).format(
             username=sql.Identifier(username)
