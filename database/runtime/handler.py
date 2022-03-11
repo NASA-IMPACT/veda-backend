@@ -185,7 +185,7 @@ def create_update_default_summaries_function(cursor) -> None:
     UPDATE collections SET "content" = "content" || coll_item_cte.summaries
     FROM coll_item_cte 
     WHERE collections.id = coll_item_cte.coll_id;
-    $$ LANGUAGE PLPGSQL SET SEARCH_PATH TO dashboard, pgstac, public;"""
+    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;"""
 
     cursor.execute(
         sql.SQL(update_default_summary_sql)
