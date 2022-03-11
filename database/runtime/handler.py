@@ -249,13 +249,6 @@ def handler(event, context):
                     username=user_params["username"],
                 )
 
-                # Create custom dashboard schema and grant privileges to bootstrapped user
-                print("Creating dashboard schema")
-                create_dashboard_schema(
-                    cursor=cur, 
-                    username=user_params["username"]
-                )
-
         # Install extensions on the user DB with
         # superuser permissions, since they will
         # otherwise fail to install when run as
@@ -284,19 +277,22 @@ def handler(event, context):
 
         asyncio.run(run_migration(dsn))
 
-        # Create custom dashboard schema functions
-
-        # Connect as delta user
-        delta_con_str = make_conninfo(
-            dbname=user_params.get("dbname"),
-            user=user_params["username"],
-            password=user_params["password"],
-            host=user_params["host"],
-            port=user_params["port"],
+        # As admin, create custom dashboard schema and functions and grant privileges to bootstrapped user
+        con_str = make_conninfo(
+            dbname=user_params["dbname"],
+            user=connection_params["username"],
+            password=connection_params["password"],
+            host=connection_params["host"],
+            port=connection_params["port"],
         )
-        
-        with psycopg.connect(delta_con_str, autocommit=True) as conn:
+        with psycopg.connect(con_str, autocommit=True) as conn:
             with conn.cursor() as cur:
+                print("Creating dashboard schema")
+                create_dashboard_schema(
+                    cursor=cur,
+                    username=user_params["username"]
+                )
+
                 print("Creating update_default_summaries functions")
                 create_update_default_summaries_function(cursor=cur)
                 create_update_all_default_summaries_function(cursor=cur)
