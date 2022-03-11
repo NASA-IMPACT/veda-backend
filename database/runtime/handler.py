@@ -138,7 +138,7 @@ def create_dashboard_schema(cursor, username: str) -> None:
     cursor.execute(
         sql.SQL(
             "CREATE SCHEMA IF NOT EXISTS dashboard;"
-            "ALTER DEFAULT PRIVILEGES IN SCHEMA dashboard GRANT EXECUTE ON FUNCTIONS TO {username};"
+            "GRANT ALL ON SCHEMA dashboard TO {username};"
             "ALTER ROLE {username} SET SEARCH_PATH TO dashboard, pgstac, public;"
         ).format(
             username=sql.Identifier(username)
@@ -150,7 +150,7 @@ def create_update_default_summaries_function(cursor) -> None:
     """Create function to update collection summary metadata about default item assets."""
 
     update_default_summary_sql = """
-    CREATE OR REPLACE FUNCTION update_default_summaries(_collection_id text) RETURNS VOID AS $$
+    CREATE OR REPLACE FUNCTION dashboard.update_default_summaries(_collection_id text) RETURNS VOID AS $$
     WITH coll_item_cte AS (
         SELECT jsonb_build_object(
             'summaries',
@@ -185,7 +185,7 @@ def create_update_default_summaries_function(cursor) -> None:
     UPDATE collections SET "content" = "content" || coll_item_cte.summaries
     FROM coll_item_cte 
     WHERE collections.id = coll_item_cte.coll_id;
-    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;"""
+    $$ LANGUAGE PLPGSQL SET SEARCH_PATH TO dashboard, pgstac, public;"""
 
     cursor.execute(
         sql.SQL(update_default_summary_sql)
@@ -196,7 +196,7 @@ def create_update_all_default_summaries_function(cursor) -> None:
     """Create function to update default summaries for all collections with required properties"""
 
     update_all_default_summaries_sql = """
-    CREATE OR REPLACE FUNCTION update_all_default_summaries() RETURNS VOID AS $$
+    CREATE OR REPLACE FUNCTION dashboard.update_all_default_summaries() RETURNS VOID AS $$
     SELECT 
         update_default_summaries(id)
     FROM collections
@@ -249,6 +249,13 @@ def handler(event, context):
                     username=user_params["username"],
                 )
 
+                # Create custom dashboard schema and grant privileges to bootstrapped user
+                print("Creating dashboard schema")
+                create_dashboard_schema(
+                    cursor=cur, 
+                    username=user_params["username"]
+                )
+
         # Install extensions on the user DB with
         # superuser permissions, since they will
         # otherwise fail to install when run as
@@ -277,11 +284,19 @@ def handler(event, context):
 
         asyncio.run(run_migration(dsn))
 
-        # Create custom dashboard schema and functions
-        with psycopg.connect(con_str, autocommit=True) as conn:
+        # Create custom dashboard schema functions
+
+        # Connect as delta user
+        delta_con_str = make_conninfo(
+            dbname=user_params.get("dbname"),
+            user=user_params["username"],
+            password=user_params["password"],
+            host=user_params["host"],
+            port=user_params["port"],
+        )
+        
+        with psycopg.connect(delta_con_str, autocommit=True) as conn:
             with conn.cursor() as cur:
-                print("Creating dashboard schema")
-                create_dashboard_schema(cursor=cur, username=user_params["username"])
                 print("Creating update_default_summaries functions")
                 create_update_default_summaries_function(cursor=cur)
                 create_update_all_default_summaries_function(cursor=cur)
