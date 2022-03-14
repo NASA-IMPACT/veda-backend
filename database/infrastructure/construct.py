@@ -39,6 +39,7 @@ class BootstrapPgStac(Construct):
         super().__init__(scope, construct_id)
 
         pgstac_version = delta_db_settings.pgstac_version
+        delta_schema_version = delta_db_settings.schema_version
 
         handler = aws_lambda.Function(
             self,
@@ -95,6 +96,7 @@ class BootstrapPgStac(Construct):
                 "pgstac_version": pgstac_version,
                 "conn_secret_arn": database.secret.secret_arn,
                 "new_user_secret_arn": self.secret.secret_arn,
+                "delta_schema_version": delta_schema_version,
             },
             removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
         )
