@@ -140,9 +140,7 @@ def create_dashboard_schema(cursor, username: str) -> None:
             "CREATE SCHEMA IF NOT EXISTS dashboard;"
             "GRANT ALL ON SCHEMA dashboard TO {username};"
             "ALTER ROLE {username} SET SEARCH_PATH TO dashboard, pgstac, public;"
-        ).format(
-            username=sql.Identifier(username)
-        )
+        ).format(username=sql.Identifier(username))
     )
 
 
@@ -183,13 +181,11 @@ def create_update_default_summaries_function(cursor) -> None:
         GROUP BY collections."content" , collections.id
     )
     UPDATE collections SET "content" = "content" || coll_item_cte.summaries
-    FROM coll_item_cte 
+    FROM coll_item_cte
     WHERE collections.id = coll_item_cte.coll_id;
     $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;"""
 
-    cursor.execute(
-        sql.SQL(update_default_summary_sql)
-    )
+    cursor.execute(sql.SQL(update_default_summary_sql))
 
 
 def create_update_all_default_summaries_function(cursor) -> None:
@@ -197,7 +193,7 @@ def create_update_all_default_summaries_function(cursor) -> None:
 
     update_all_default_summaries_sql = """
     CREATE OR REPLACE FUNCTION dashboard.update_all_default_summaries() RETURNS VOID AS $$
-    SELECT 
+    SELECT
         update_default_summaries(id)
     FROM collections
     WHERE collections."content" ?| array['item_assets', 'dashboard:is_periodic'];
@@ -288,10 +284,7 @@ def handler(event, context):
         with psycopg.connect(con_str, autocommit=True) as conn:
             with conn.cursor() as cur:
                 print("Creating dashboard schema")
-                create_dashboard_schema(
-                    cursor=cur,
-                    username=user_params["username"]
-                )
+                create_dashboard_schema(cursor=cur, username=user_params["username"])
 
                 print("Creating update_default_summaries functions")
                 create_update_default_summaries_function(cursor=cur)
