@@ -17,10 +17,10 @@ jobs:
         with:
           python-version: '3.8'
     
-      # - uses: actions/cache@v2
-      #   with:
-      #     path: ${{ env.pythonLocation }}
-      #     key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
 
       - name: Install python dependencies
         run: |
@@ -40,10 +40,10 @@ jobs:
         with:
           python-version: '3.8'
     
-      # - uses: actions/cache@v2
-      #   with:
-      #     path: ${{ env.pythonLocation }}
-      #     key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
 
       - name: Install python dependencies
         run: |
@@ -92,18 +92,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # - uses: actions/cache@v2
-      #   with:
-      #     path: ~/.npm
-      #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
       
       - name: Install CDK
         run: npm install -g aws-cdk@2
       
-      # - uses: actions/cache@v2
-      #   with:
-      #     path: ${{ env.pythonLocation }}
-      #     key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
       
       - name: Install python dependencies
         run: |
