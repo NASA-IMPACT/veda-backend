@@ -125,5 +125,6 @@ jobs:
           DELTA_DOMAIN_HOSTED_ZONE_ID=Z061650539BO6YWF9XDMA \
           DELTA_DOMAIN_HOSTED_ZONR_NAME=delta-backend.xyz \
           DELTA_DB_PGSTAC_VERSION=0.4.3 \
+          DELTA_DB_SCHEMA_VERSION=0.1.0 \
           cdk deploy delta-backend-${{ env.STAGE }} --require-approval never
           
