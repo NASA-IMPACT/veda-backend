@@ -13,6 +13,7 @@ extra_reqs = {
         "constructs>=10.0.0,<11.0.0",
         "aws-cdk.aws_apigatewayv2_alpha~=2.15.0a0",
         "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.15.0a0",
+        "pydantic",
     ],
     "test": [
         "pytest",
