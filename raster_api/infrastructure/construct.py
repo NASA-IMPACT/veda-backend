@@ -109,7 +109,3 @@ class RasterApiLambdaConstruct(Construct):
                 ],
             )
         )
-
-        database.pgstac.connections.allow_from(
-            delta_raster_function, port_range=aws_ec2.Port.tcp(5432)
-        )

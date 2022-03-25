@@ -19,11 +19,17 @@ class deltaRasterSettings(pydantic.BaseSettings):
         "GDAL_HTTP_MERGE_CONSECUTIVE_RANGES": "YES",
         "GDAL_HTTP_MULTIPLEX": "YES",
         "GDAL_HTTP_VERSION": "2",
+        "GDAL_HTTP_MAX_RETRY": "5",
+        "GDAL_HTTP_RETRY_DELAY": "0.42685866976877296",
         "PYTHONWARNINGS": "ignore",
         "VSI_CACHE": "TRUE",
         "VSI_CACHE_SIZE": "5000000",  # 5 MB (per file-handle)
+        "RIO_TILER_MAX_THREADS": "1",
         "DB_MIN_CONN_SIZE": "1",
         "DB_MAX_CONN_SIZE": "1",
+        "CPL_DEBUG": "ON",
+        "CPL_CURL_VERBOSE": "TRUE",
+        "CPL_VSIL_CURL_CHUNK_SIZE": "81920",
     }
 
     # S3 bucket names where TiTiler could do HEAD and GET Requests
@@ -35,8 +41,8 @@ class deltaRasterSettings(pydantic.BaseSettings):
     # S3 key pattern to limit the access to specific items (e.g: "my_data/*.tif")
     key: str = "*"
 
-    timeout: int = 10  # seconds
-    memory: int = 3008  # Mb
+    timeout: int = 30  # seconds
+    memory: int = 8000  # Mb
 
     class Config:
         """model config"""
