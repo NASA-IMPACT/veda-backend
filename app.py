@@ -12,10 +12,11 @@ from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
+# App configuration
 load_dotenv()
-
 stage = os.environ["STAGE"].lower()
 app_name = "delta-backend"
+vpc_id = os.getenv("VPC_ID", None)
 
 app = App()
 
@@ -30,7 +31,7 @@ class DeltaStack(Stack):
 
 delta_stack = DeltaStack(app, f"{app_name}-{stage}")
 
-vpc = VpcConstruct(delta_stack, "network")
+vpc = VpcConstruct(delta_stack, "network", vpc_id=vpc_id, stage=stage)
 
 database = RdsConstruct(delta_stack, "database", vpc.vpc, stage=stage)
 
