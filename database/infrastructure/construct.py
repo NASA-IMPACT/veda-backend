@@ -84,6 +84,10 @@ class BootstrapPgStac(Construct):
         # connect to database
         database.connections.allow_from(handler, port_range=aws_ec2.Port.tcp(5432))
 
+        # Allow ingest partners
+        # TODO We should create a jumpbox, for now only roles with secrets permissions can connect
+        database.connections.allow_default_port_from_any_ipv4()
+
         self.connections = database.connections
 
         CustomResource(
@@ -100,7 +104,6 @@ class BootstrapPgStac(Construct):
             },
             removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
         )
-
 
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
 # https://github.com/NASA-IMPACT/hls-sentinel2-downloader-serverless/blob/main/cdk/downloader_stack.py
@@ -120,24 +123,48 @@ class RdsConstruct(Construct):
 
         stack_name = Stack.of(self).stack_name
 
-        # Provision RDS Resource
-        database = aws_rds.DatabaseInstance(
-            self,
-            id="rds",
-            instance_identifier=f"{stack_name}-postgres",
-            vpc=vpc,
-            engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
-            instance_type=aws_ec2.InstanceType.of(
-                aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
-            ),
-            vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
-            deletion_protection=stage
-            == "prod",  # enables deletion protection for production databases
-            removal_policy=RemovalPolicy.RETAIN
-            if stage == "prod"
-            else RemovalPolicy.DESTROY,
-            publicly_accessible=True,
-        )
+        # Create a new database instance from snapshot if provided
+        if delta_db_settings.snapshot_id:
+            # For the database from snapshot we will need a new master secret
+            credentials = aws_rds.SnapshotCredentials.from_generated_secret(
+                username=delta_db_settings.admin_user
+            )
+
+            database = aws_rds.DatabaseInstanceFromSnapshot(
+                self,
+                id="rds",
+                snapshot_identifier=delta_db_settings.snapshot_id,
+                vpc=vpc,
+                engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
+                instance_type=aws_ec2.InstanceType.of(
+                    aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
+                ),
+                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
+                deletion_protection=stage == "prod",  # enables deletion protection for production databases
+                removal_policy=RemovalPolicy.RETAIN
+                if stage == "prod"
+                else RemovalPolicy.DESTROY,
+                publicly_accessible=True,
+                credentials=credentials,
+            )
+
+        # Or create/update RDS Resource
+        else:
+            database = aws_rds.DatabaseInstance(
+                self,
+                id="rds",
+                vpc=vpc,
+                engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
+                instance_type=aws_ec2.InstanceType.of(
+                    aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
+                ),
+                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
+                deletion_protection=stage == "prod",  # enables deletion protection for production databases
+                removal_policy=RemovalPolicy.RETAIN
+                if stage == "prod"
+                else RemovalPolicy.DESTROY,
+                publicly_accessible=True,
+            )
 
         # Use custom resource to bootstrap PgSTAC database
         self.pgstac = BootstrapPgStac(
