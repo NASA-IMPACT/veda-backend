@@ -1,6 +1,7 @@
 """CDK Construct for delta-backend RDS instance."""
 import json
 import os
+from typing import Union
 
 from aws_cdk import (
     CfnOutput,
@@ -29,7 +30,7 @@ class BootstrapPgStac(Construct):
         self,
         scope: Construct,
         construct_id: str,
-        database: aws_rds.DatabaseInstance,
+        database: Union[aws_rds.DatabaseInstance, aws_rds.DatabaseInstanceFromSnapshot],
         new_dbname: str,
         new_username: str,
         secrets_prefix: str,
@@ -114,7 +115,12 @@ class RdsConstruct(Construct):
     schema in the database"""
 
     def __init__(
-        self, scope: Construct, construct_id: str, vpc, stage: str, **kwargs
+        self, 
+        scope: Construct, 
+        construct_id: str, 
+        vpc: aws_ec2.Vpc, 
+        stage: str, 
+        **kwargs
     ) -> None:
         """."""
         super().__init__(scope, construct_id, **kwargs)
@@ -134,16 +140,15 @@ class RdsConstruct(Construct):
                 self,
                 id="rds",
                 snapshot_identifier=delta_db_settings.snapshot_id,
+                instance_identifier=f"{stack_name}-postgres",
                 vpc=vpc,
                 engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
                 instance_type=aws_ec2.InstanceType.of(
                     aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
                 ),
                 vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
-                deletion_protection=stage == "prod",  # enables deletion protection for production databases
-                removal_policy=RemovalPolicy.RETAIN
-                if stage == "prod"
-                else RemovalPolicy.DESTROY,
+                deletion_protection=True,
+                removal_policy=RemovalPolicy.RETAIN,
                 publicly_accessible=True,
                 credentials=credentials,
             )
@@ -153,16 +158,15 @@ class RdsConstruct(Construct):
             database = aws_rds.DatabaseInstance(
                 self,
                 id="rds",
+                instance_identifier=f"{stack_name}-postgres",
                 vpc=vpc,
                 engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
                 instance_type=aws_ec2.InstanceType.of(
                     aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
                 ),
                 vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
-                deletion_protection=stage == "prod",  # enables deletion protection for production databases
-                removal_policy=RemovalPolicy.RETAIN
-                if stage == "prod"
-                else RemovalPolicy.DESTROY,
+                deletion_protection=True,
+                removal_policy=RemovalPolicy.RETAIN,
                 publicly_accessible=True,
             )
 
