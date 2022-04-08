@@ -7,7 +7,6 @@ from pydantic import BaseSettings
 # https://www.admin-magazine.com/Articles/The-AWS-CDK-for-software-defined-deployments/(offset)/6
 class devVpcSettings(BaseSettings):
     """Dev VPC settings"""
-    stage: str = Literal["dev"]
     cidr: str = "10.100.0.0/16"
     max_azs: int = 2
     nat_gateways: int = 1
@@ -17,7 +16,6 @@ class devVpcSettings(BaseSettings):
 
 class stagingVpcSettings(BaseSettings):
     """Staging VPC settings"""
-    stage: str = Literal["staging"]
     env: Dict = {}
     cidr: str = "10.200.0.0/16"
     max_azs: int = 2
@@ -28,7 +26,6 @@ class stagingVpcSettings(BaseSettings):
 
 class prodVpcSettings(BaseSettings):
     """Production VPC settings"""
-    stage: str = Literal["prod"]
     env: Dict = {}
     cidr: str = "10.300.0.0/16"
     max_azs: int = 2
