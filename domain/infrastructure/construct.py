@@ -95,6 +95,5 @@ class DomainConstruct(Construct):
                 record_name=stac_url_prefix,
             )
 
-            CfnOutput(self, "hosted-zone-name", value=hosted_zone.zone_name)
             CfnOutput(self, "raster-api", value=f"https://{raster_url_prefix}.delta-backend.xyz/docs")
             CfnOutput(self, "stac-api", value=f"https://{stac_url_prefix}.delta-backend.xyz/")

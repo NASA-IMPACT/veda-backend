@@ -183,7 +183,7 @@ class RdsConstruct(Construct):
 
         CfnOutput(
             self,
-            "pgstac-secret-arn",
+            "pgstac-secret-name",
             value=self.pgstac.secret.secret_arn,
-            description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
+            description=f"Name of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
         )
