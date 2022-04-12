@@ -85,10 +85,6 @@ class BootstrapPgStac(Construct):
         # connect to database
         database.connections.allow_from(handler, port_range=aws_ec2.Port.tcp(5432))
 
-        # Allow ingest partners
-        # TODO We should create a jumpbox, for now only roles with secrets permissions can connect
-        database.connections.allow_default_port_from_any_ipv4()
-
         self.connections = database.connections
 
         CustomResource(
