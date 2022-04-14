@@ -16,6 +16,7 @@ class deltaRasterSettings(pydantic.BaseSettings):
         "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.TIF,.tiff",
         "GDAL_CACHEMAX": "200",  # 200 mb
         "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
+        "GDAL_INGESTED_BYTES_AT_OPEN": "32768",
         "GDAL_HTTP_MERGE_CONSECUTIVE_RANGES": "YES",
         "GDAL_HTTP_MULTIPLEX": "YES",
         "GDAL_HTTP_VERSION": "2",
@@ -37,6 +38,9 @@ class deltaRasterSettings(pydantic.BaseSettings):
 
     timeout: int = 10  # seconds
     memory: int = 3008  # Mb
+
+    # MosaicTiler settings
+    enable_mosaic_search: bool = False
 
     class Config:
         """model config"""
