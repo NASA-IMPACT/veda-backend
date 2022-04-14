@@ -23,7 +23,9 @@ class VpcConstruct(Construct):
         # Get existing VPC if provided
         if vpc_id:
             self.vpc = aws_ec2.Vpc.from_lookup(
-                vpc_id=vpc_id
+                self,
+                "vpc",
+                vpc_id=vpc_id,
             )
         # Or create a new VPC using the deployment stage configuration
         else:
@@ -55,21 +57,21 @@ class VpcConstruct(Construct):
                 nat_gateways=delta_vpc_settings.nat_gateways,
             )
 
-        interface_endpoints = [
-            (
-                "secretsmanager",
-                aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-            ),
-            (
-                "cloudwatch-logs",
-                aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
-            ),
-        ]
-        for (id, service) in interface_endpoints:
-            self.vpc.add_interface_endpoint(id, service=service)
+            interface_endpoints = [
+                (
+                    "secretsmanager",
+                    aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+                ),
+                (
+                    "cloudwatch-logs",
+                    aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
+                ),
+            ]
+            for (id, service) in interface_endpoints:
+                self.vpc.add_interface_endpoint(id, service=service)
 
-        gateway_endpoints = [("s3", aws_ec2.GatewayVpcEndpointAwsService.S3)]
-        for (id, service) in gateway_endpoints:
-            self.vpc.add_gateway_endpoint(id, service=service)
+            gateway_endpoints = [("s3", aws_ec2.GatewayVpcEndpointAwsService.S3)]
+            for (id, service) in gateway_endpoints:
+                self.vpc.add_gateway_endpoint(id, service=service)
 
         CfnOutput(self, "vpc-id", value=self.vpc.vpc_id)
