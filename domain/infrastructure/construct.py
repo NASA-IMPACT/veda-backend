@@ -42,10 +42,21 @@ class DomainConstruct(Construct):
                     hosted_zone=hosted_zone
                 ),
             )
+
+            # Use custom api prefix if provided or deployment stage if not
+            if delta_domain_settings.api_prefix:
+                raster_url_prefix = f"{delta_domain_settings.api_prefix.lower()}-raster"
+                stac_url_prefix = f"{delta_domain_settings.api_prefix.lower()}-stac"
+            else:
+                raster_url_prefix = f"{stage.lower()}-raster"
+                stac_url_prefix = f"{stage.lower()}-stac"
+            raster_domain_name = f"{raster_url_prefix}.delta-backend.xyz"
+            stac_domain_name = f"{stac_url_prefix}.delta-backend.xyz"
+
             self.raster_domain_name = aws_apigatewayv2_alpha.DomainName(
                 self,
                 "rasterApiCustomDomain",
-                domain_name=f"{stage.lower()}-raster.delta-backend.xyz",
+                domain_name=raster_domain_name,
                 certificate=certificate,
             )
 
@@ -60,13 +71,13 @@ class DomainConstruct(Construct):
                     )
                 ),
                 # Note: CDK will append the hosted zone name (eg: `delta-backend.xyz` to this record name)
-                record_name=f"{stage.lower()}-raster",
+                record_name=raster_url_prefix,
             )
 
             self.stac_domain_name = aws_apigatewayv2_alpha.DomainName(
                 self,
                 "stacApiCustomDomain",
-                domain_name=f"{stage.lower()}-stac.delta-backend.xyz",
+                domain_name=stac_domain_name,
                 certificate=certificate,
             )
 
@@ -81,7 +92,8 @@ class DomainConstruct(Construct):
                     )
                 ),
                 # Note: CDK will append the hosted zone name (eg: `delta-backend.xyz` to this record name)
-                record_name=f"{stage.lower()}-stac",
+                record_name=stac_url_prefix,
             )
 
-            CfnOutput(self, "hosted-zone-name", value=hosted_zone.zone_name)
+            CfnOutput(self, "raster-api", value=f"https://{raster_url_prefix}.delta-backend.xyz/docs")
+            CfnOutput(self, "stac-api", value=f"https://{stac_url_prefix}.delta-backend.xyz/")

@@ -1,6 +1,7 @@
 """CDK Construct for delta-backend RDS instance."""
 import json
 import os
+from typing import Union
 
 from aws_cdk import (
     CfnOutput,
@@ -29,7 +30,7 @@ class BootstrapPgStac(Construct):
         self,
         scope: Construct,
         construct_id: str,
-        database: aws_rds.DatabaseInstance,
+        database: Union[aws_rds.DatabaseInstance, aws_rds.DatabaseInstanceFromSnapshot],
         new_dbname: str,
         new_username: str,
         secrets_prefix: str,
@@ -101,7 +102,6 @@ class BootstrapPgStac(Construct):
             removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
         )
 
-
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
 # https://github.com/NASA-IMPACT/hls-sentinel2-downloader-serverless/blob/main/cdk/downloader_stack.py
 # https://github.com/aws-samples/aws-cdk-examples/blob/master/python/new-vpc-alb-asg-mysql/cdk_vpc_ec2/cdk_rds_stack.py
@@ -111,7 +111,12 @@ class RdsConstruct(Construct):
     schema in the database"""
 
     def __init__(
-        self, scope: Construct, construct_id: str, vpc, stage: str, **kwargs
+        self, 
+        scope: Construct, 
+        construct_id: str, 
+        vpc: aws_ec2.Vpc, 
+        stage: str, 
+        **kwargs
     ) -> None:
         """."""
         super().__init__(scope, construct_id, **kwargs)
@@ -120,24 +125,46 @@ class RdsConstruct(Construct):
 
         stack_name = Stack.of(self).stack_name
 
-        # Provision RDS Resource
-        database = aws_rds.DatabaseInstance(
-            self,
-            id="rds",
-            instance_identifier=f"{stack_name}-postgres",
-            vpc=vpc,
-            engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
-            instance_type=aws_ec2.InstanceType.of(
-                aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
-            ),
-            vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
-            deletion_protection=stage
-            == "prod",  # enables deletion protection for production databases
-            removal_policy=RemovalPolicy.RETAIN
-            if stage == "prod"
-            else RemovalPolicy.DESTROY,
-            publicly_accessible=True,
-        )
+        # Create a new database instance from snapshot if provided
+        if delta_db_settings.snapshot_id:
+            # For the database from snapshot we will need a new master secret
+            credentials = aws_rds.SnapshotCredentials.from_generated_secret(
+                username=delta_db_settings.admin_user
+            )
+
+            database = aws_rds.DatabaseInstanceFromSnapshot(
+                self,
+                id="rds",
+                snapshot_identifier=delta_db_settings.snapshot_id,
+                instance_identifier=f"{stack_name}-postgres",
+                vpc=vpc,
+                engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
+                instance_type=aws_ec2.InstanceType.of(
+                    aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
+                ),
+                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
+                deletion_protection=True,
+                removal_policy=RemovalPolicy.RETAIN,
+                publicly_accessible=True,
+                credentials=credentials,
+            )
+
+        # Or create/update RDS Resource
+        else:
+            database = aws_rds.DatabaseInstance(
+                self,
+                id="rds",
+                instance_identifier=f"{stack_name}-postgres",
+                vpc=vpc,
+                engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
+                instance_type=aws_ec2.InstanceType.of(
+                    aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
+                ),
+                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
+                deletion_protection=True,
+                removal_policy=RemovalPolicy.RETAIN,
+                publicly_accessible=True,
+            )
 
         # Use custom resource to bootstrap PgSTAC database
         self.pgstac = BootstrapPgStac(
@@ -152,7 +179,7 @@ class RdsConstruct(Construct):
 
         CfnOutput(
             self,
-            "pgstac-secret-arn",
+            "pgstac-secret-name",
             value=self.pgstac.secret.secret_arn,
-            description=f"Arn of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
+            description=f"Name of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
         )
