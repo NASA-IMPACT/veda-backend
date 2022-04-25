@@ -1,21 +1,25 @@
 """
 CDK construct for delta-backend VPC.
 """
+from typing import Optional
+
 from aws_cdk import CfnOutput, aws_ec2
 from constructs import Construct
 
-from .config import *
+from .config import dev_vpc_settings, prod_vpc_settings, staging_vpc_settings
+
+
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/new-vpc-alb-asg-mysql
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/docker-app-with-asg-alb
 class VpcConstruct(Construct):
     """CDK construct for delta-abckend VPC."""
 
     def __init__(
-        self, 
-        scope: Construct, 
-        construct_id: str, 
+        self,
+        scope: Construct,
+        construct_id: str,
         stage: str,
-        vpc_id: str = None,
+        vpc_id: Optional[str] = None,
     ) -> None:
         """Initialized construct."""
         super().__init__(scope, construct_id)

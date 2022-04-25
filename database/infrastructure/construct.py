@@ -102,6 +102,7 @@ class BootstrapPgStac(Construct):
             removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
         )
 
+
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
 # https://github.com/NASA-IMPACT/hls-sentinel2-downloader-serverless/blob/main/cdk/downloader_stack.py
 # https://github.com/aws-samples/aws-cdk-examples/blob/master/python/new-vpc-alb-asg-mysql/cdk_vpc_ec2/cdk_rds_stack.py
@@ -111,12 +112,12 @@ class RdsConstruct(Construct):
     schema in the database"""
 
     def __init__(
-        self, 
-        scope: Construct, 
-        construct_id: str, 
-        vpc: aws_ec2.Vpc, 
-        stage: str, 
-        **kwargs
+        self,
+        scope: Construct,
+        construct_id: str,
+        vpc: aws_ec2.Vpc,
+        stage: str,
+        **kwargs,
     ) -> None:
         """."""
         super().__init__(scope, construct_id, **kwargs)
@@ -142,7 +143,9 @@ class RdsConstruct(Construct):
                 instance_type=aws_ec2.InstanceType.of(
                     aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
                 ),
-                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
+                vpc_subnets=aws_ec2.SubnetSelection(
+                    subnet_type=aws_ec2.SubnetType.PUBLIC
+                ),
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
                 publicly_accessible=True,
@@ -160,7 +163,9 @@ class RdsConstruct(Construct):
                 instance_type=aws_ec2.InstanceType.of(
                     aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
                 ),
-                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PUBLIC),
+                vpc_subnets=aws_ec2.SubnetSelection(
+                    subnet_type=aws_ec2.SubnetType.PUBLIC
+                ),
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
                 publicly_accessible=True,

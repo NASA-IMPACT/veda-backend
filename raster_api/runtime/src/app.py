@@ -51,10 +51,12 @@ stac = MultiBaseTilerFactory(
 app.include_router(stac.router, tags=["Items"], prefix="/stac")
 app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
 
+
 @app.get("/healthz", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
     return {"ping": "pong!!"}
+
 
 # Set all CORS enabled origins
 if settings.cors_origins:

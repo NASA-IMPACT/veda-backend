@@ -80,8 +80,8 @@ class RasterApiLambdaConstruct(Construct):
             delta_raster_function.add_environment(key=k, value=str(v))
 
         delta_raster_function.add_environment(
-            "DELTA_RASTER_ENABLE_MOSAIC_SEARCH", 
-            str(delta_raster_settings.enable_mosaic_search)
+            "DELTA_RASTER_ENABLE_MOSAIC_SEARCH",
+            str(delta_raster_settings.enable_mosaic_search),
         )
 
         raster_api_integration = (
