@@ -79,6 +79,11 @@ class RasterApiLambdaConstruct(Construct):
         for k, v in db_secrets.items():
             delta_raster_function.add_environment(key=k, value=str(v))
 
+        delta_raster_function.add_environment(
+            "DELTA_RASTER_ENABLE_MOSAIC_SEARCH",
+            str(delta_raster_settings.enable_mosaic_search),
+        )
+
         raster_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
                 construct_id, delta_raster_function

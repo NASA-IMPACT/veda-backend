@@ -1,21 +1,25 @@
 """
 CDK construct for delta-backend VPC.
 """
+from typing import Optional
+
 from aws_cdk import CfnOutput, aws_ec2
 from constructs import Construct
 
-from .config import *
+from .config import dev_vpc_settings, prod_vpc_settings, staging_vpc_settings
+
+
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/new-vpc-alb-asg-mysql
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/docker-app-with-asg-alb
 class VpcConstruct(Construct):
     """CDK construct for delta-abckend VPC."""
 
     def __init__(
-        self, 
-        scope: Construct, 
-        construct_id: str, 
+        self,
+        scope: Construct,
+        construct_id: str,
         stage: str,
-        vpc_id: str = None,
+        vpc_id: Optional[str] = None,
     ) -> None:
         """Initialized construct."""
         super().__init__(scope, construct_id)
@@ -23,7 +27,9 @@ class VpcConstruct(Construct):
         # Get existing VPC if provided
         if vpc_id:
             self.vpc = aws_ec2.Vpc.from_lookup(
-                vpc_id=vpc_id
+                self,
+                "vpc",
+                vpc_id=vpc_id,
             )
         # Or create a new VPC using the deployment stage configuration
         else:
@@ -55,21 +61,21 @@ class VpcConstruct(Construct):
                 nat_gateways=delta_vpc_settings.nat_gateways,
             )
 
-        interface_endpoints = [
-            (
-                "secretsmanager",
-                aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-            ),
-            (
-                "cloudwatch-logs",
-                aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
-            ),
-        ]
-        for (id, service) in interface_endpoints:
-            self.vpc.add_interface_endpoint(id, service=service)
+            interface_endpoints = [
+                (
+                    "secretsmanager",
+                    aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+                ),
+                (
+                    "cloudwatch-logs",
+                    aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
+                ),
+            ]
+            for (id, service) in interface_endpoints:
+                self.vpc.add_interface_endpoint(id, service=service)
 
-        gateway_endpoints = [("s3", aws_ec2.GatewayVpcEndpointAwsService.S3)]
-        for (id, service) in gateway_endpoints:
-            self.vpc.add_gateway_endpoint(id, service=service)
+            gateway_endpoints = [("s3", aws_ec2.GatewayVpcEndpointAwsService.S3)]
+            for (id, service) in gateway_endpoints:
+                self.vpc.add_gateway_endpoint(id, service=service)
 
         CfnOutput(self, "vpc-id", value=self.vpc.vpc_id)

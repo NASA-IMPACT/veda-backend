@@ -1,5 +1,6 @@
 """Delta-backend database construct configuration."""
 from typing import Optional
+
 import pydantic
 
 
