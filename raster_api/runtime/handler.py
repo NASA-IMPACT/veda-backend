@@ -3,9 +3,12 @@
 import os
 import logging
 
-os.environ["AWS_SECRET_ACCESS_KEY"] = os.getenv("SECRET_ACCESS_KEY")
-os.environ["AWS_ACCESS_KEY_ID"] = os.getenv("ACCESS_KEY_ID")
-os.environ["AWS_SESSION_TOKEN"] = os.getenv("SESSION_TOKEN")
+try:
+    os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ["SECRET_ACCESS_KEY"]
+    os.environ["AWS_ACCESS_KEY_ID"] = os.environ["ACCESS_KEY_ID"]
+    os.environ["AWS_SESSION_TOKEN"] = os.environ["SESSION_TOKEN"]
+except KeyError:
+    print("Earthdata session token not found")
 
 from mangum import Mangum
 from src.app import app
