@@ -16,6 +16,7 @@ from stac_api.infrastructure.construct import StacApiLambdaConstruct
 load_dotenv()
 stage = os.environ["STAGE"].lower()
 app_name = "delta-backend"
+# Account and region are required env vars for a stack that uses an existing VPC
 try:
     vpc_id = os.environ["VPC_ID"]
     cdk_env = {
@@ -23,7 +24,6 @@ try:
         "region": os.environ["CDK_DEFAULT_REGION"],
     }
 except KeyError:
-    vpc_id = None
     cdk_env = {}
 
 app = App()
@@ -43,9 +43,9 @@ delta_stack = DeltaStack(
     env=cdk_env,
 )
 
-if vpc_id:
+try:
     vpc = VpcConstruct(delta_stack, "network", vpc_id=vpc_id, stage=stage)
-else:
+except NameError:
     vpc = VpcConstruct(delta_stack, "network", stage=stage)
 
 database = RdsConstruct(delta_stack, "database", vpc.vpc, stage=stage)

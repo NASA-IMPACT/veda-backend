@@ -1,7 +1,7 @@
 """AWS Lambda handler."""
 
-import os
 import logging
+import os
 
 try:
     os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ["SECRET_ACCESS_KEY"]
