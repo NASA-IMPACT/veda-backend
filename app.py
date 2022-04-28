@@ -16,10 +16,15 @@ from stac_api.infrastructure.construct import StacApiLambdaConstruct
 load_dotenv()
 stage = os.environ["STAGE"].lower()
 app_name = "delta-backend"
-cdk_env = {
-    "account": os.environ["CDK_DEFAULT_ACCOUNT"],
-    "region": os.environ["CDK_DEFAULT_REGION"],
-}
+try:
+    vpc_id = os.environ["VPC_ID"]
+    cdk_env = {
+        "account": os.environ["CDK_DEFAULT_ACCOUNT"],
+        "region": os.environ["CDK_DEFAULT_REGION"],
+    }
+except KeyError:
+    vpc_id = None
+    cdk_env = {}
 
 app = App()
 
@@ -38,10 +43,9 @@ delta_stack = DeltaStack(
     env=cdk_env,
 )
 
-try:
-    vpc_id = os.environ["VPC_ID"]
+if vpc_id:
     vpc = VpcConstruct(delta_stack, "network", vpc_id=vpc_id, stage=stage)
-except KeyError:
+else:
     vpc = VpcConstruct(delta_stack, "network", stage=stage)
 
 database = RdsConstruct(delta_stack, "database", vpc.vpc, stage=stage)
