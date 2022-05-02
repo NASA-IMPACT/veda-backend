@@ -1,7 +1,9 @@
 """FastAPI application using PGStac.
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
-from src.config import ApiSettings, TilesApiSettings
+import os
+
+from src.config import ApiSettings, TilesApiSettings, PostgresSettings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
@@ -30,13 +32,18 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 
 api_settings = ApiSettings()
 tiles_settings = TilesApiSettings()
-settings = Settings()
+# settings = Settings()
+postgres_settings = (
+    PostgresSettings.from_secret(secretsmanager_arn)
+    if (secretsmanager_arn := os.environ.get("PGSTAC_SECRET_ARN"))
+    else PostgresSettings()
+)
 
 api = StacApi(
     app=FastAPI(title=api_settings.name),
     title=api_settings.name,
     description=api_settings.name,
-    settings=settings,
+    settings=postgres_settings,
     extensions=PgStacExtensions,
     client=CoreCrudClient(post_request_model=POSTModel),
     search_get_request_model=GETModel,
