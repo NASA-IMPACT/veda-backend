@@ -84,6 +84,10 @@ class StacApiLambdaConstruct(Construct):
 
         lambda_function.add_environment("TITILER_ENDPOINT", raster_api.raster_api.url)
 
+        lambda_function.add_environment(
+            "PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
+        )
+
         stac_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
                 construct_id, handler=lambda_function

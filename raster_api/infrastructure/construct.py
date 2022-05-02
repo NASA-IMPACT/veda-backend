@@ -84,6 +84,10 @@ class RasterApiLambdaConstruct(Construct):
             str(delta_raster_settings.enable_mosaic_search),
         )
 
+        delta_raster_function.add_environment(
+            "PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
+        )
+
         raster_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
                 construct_id, delta_raster_function
