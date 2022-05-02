@@ -6,7 +6,9 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "titiler.pgstac==0.1.0.a7",
+    # "titiler.pgstac==0.1.0.a7",
+    # Use unreleased titiler-pgstac 1b570c2f777aa0eabf1497bea3e428d295b3b38a to support postgres settings via argument
+    "titiler.pgstac @ git+https://github.com/stac-utils/titiler-pgstac.git@1b570c2f777aa0eabf1497bea3e428d295b3b38a#egg=titiler.pgstac",
     "titiler.application>=0.5,<0.6",
     "starlette-cramjam>=0.1.0,<0.2",
     "importlib_resources>=1.1.0;python_version<'3.9'",
