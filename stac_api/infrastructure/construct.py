@@ -59,29 +59,6 @@ class StacApiLambdaConstruct(Construct):
             lambda_function, port_range=aws_ec2.Port.tcp(5432)
         )
 
-        db_secrets = {
-            "POSTGRES_HOST_READER": database.pgstac.secret.secret_value_from_json(
-                "host"
-            ).to_string(),
-            "POSTGRES_HOST_WRITER": database.pgstac.secret.secret_value_from_json(
-                "host"
-            ).to_string(),
-            "POSTGRES_DBNAME": database.pgstac.secret.secret_value_from_json(
-                "dbname"
-            ).to_string(),
-            "POSTGRES_USER": database.pgstac.secret.secret_value_from_json(
-                "username"
-            ).to_string(),
-            "POSTGRES_PASS": database.pgstac.secret.secret_value_from_json(
-                "password"
-            ).to_string(),
-            "POSTGRES_PORT": database.pgstac.secret.secret_value_from_json(
-                "port"
-            ).to_string(),
-        }
-        for k, v in db_secrets.items():
-            lambda_function.add_environment(key=k, value=str(v))
-
         lambda_function.add_environment("TITILER_ENDPOINT", raster_api.raster_api.url)
 
         lambda_function.add_environment(

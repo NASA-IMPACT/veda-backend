@@ -110,8 +110,12 @@ class deltaRasterSettings(pydantic.BaseSettings):
         client = boto3.client("secretsmanager")
         try:
             secret = client.get_secret_dict(SecretId=cls.pgstac_secret_arn)
-            for k, v in secret.items():
-                os.environ[k] = v
+            os.environ["POSTGRES_DBNAME"] = secret["dbname"]
+            os.environ["POSTGRES_USER"] = secret["username"]
+            os.environ["POSTGRES_PASS"] = secret["password"]
+            os.environ["POSTGRES_PORT"] = secret["port"]
+            os.environ["POSTGRES_HOST"] = secret["host"]
+
         except Exception:
             pass
 

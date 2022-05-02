@@ -59,26 +59,6 @@ class RasterApiLambdaConstruct(Construct):
             delta_raster_function, port_range=aws_ec2.Port.tcp(5432)
         )
 
-        db_secrets = {
-            "POSTGRES_DBNAME": database.pgstac.secret.secret_value_from_json(
-                "dbname"
-            ).to_string(),
-            "POSTGRES_USER": database.pgstac.secret.secret_value_from_json(
-                "username"
-            ).to_string(),
-            "POSTGRES_PASS": database.pgstac.secret.secret_value_from_json(
-                "password"
-            ).to_string(),
-            "POSTGRES_PORT": database.pgstac.secret.secret_value_from_json(
-                "port"
-            ).to_string(),
-            "POSTGRES_HOST": database.pgstac.secret.secret_value_from_json(
-                "host"
-            ).to_string(),
-        }
-        for k, v in db_secrets.items():
-            delta_raster_function.add_environment(key=k, value=str(v))
-
         delta_raster_function.add_environment(
             "DELTA_RASTER_ENABLE_MOSAIC_SEARCH",
             str(delta_raster_settings.enable_mosaic_search),
