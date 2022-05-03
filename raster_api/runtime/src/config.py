@@ -4,6 +4,7 @@ from functools import lru_cache
 
 import pydantic
 
+
 class _ApiSettings(pydantic.BaseSettings):
     """API settings"""
 

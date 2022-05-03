@@ -23,13 +23,12 @@ logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
 
-
 if settings.debug:
     optional_headers = [OptionalHeader.server_timing, OptionalHeader.x_assets]
 else:
     optional_headers = []
 
-app = FastAPI(title=settings.name, version=delta_raster_version,)
+app = FastAPI(title=settings.name, version=delta_raster_version)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
