@@ -1,8 +1,7 @@
 """TiTiler+PgSTAC FastAPI application."""
-import os
 import logging
 
-from src.config import ApiSettings, PostgresSettings
+from src.config import ApiSettings
 from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
 from src.version import __version__ as delta_raster_version
 
@@ -23,18 +22,14 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
-postgres_settings = (
-    PostgresSettings.from_secret(secretsmanager_arn)
-    if (secretsmanager_arn := os.environ.get("PGSTAC_SECRET_ARN"))
-    else PostgresSettings()
-)
+
 
 if settings.debug:
     optional_headers = [OptionalHeader.server_timing, OptionalHeader.x_assets]
 else:
     optional_headers = []
 
-app = FastAPI(title=settings.name, version=delta_raster_version)
+app = FastAPI(title=settings.name, version=delta_raster_version,)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
@@ -93,7 +88,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event() -> None:
     """Connect to database on startup."""
-    await connect_to_db(app, settings=postgres_settings)
+    await connect_to_db(app)
 
 
 @app.on_event("shutdown")
