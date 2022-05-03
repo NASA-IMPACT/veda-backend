@@ -114,7 +114,8 @@ class deltaRasterSettings(pydantic.BaseSettings):
             os.environ["POSTGRES_PASS"] = secret["password"]
             os.environ["POSTGRES_PORT"] = secret["port"]
             os.environ["POSTGRES_HOST"] = secret["host"]
-        except Exception:
+        except Exception as e:
+            print(f"Unable to set posgres conn info with exception={e}")
             pass
 
     class Config:

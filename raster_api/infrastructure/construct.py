@@ -65,6 +65,10 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         delta_raster_function.add_environment(
+            "DELTA_RASTER_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
+        )
+
+        delta_raster_function.add_environment(
             "PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
