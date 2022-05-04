@@ -3,7 +3,7 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 import os
 
-from src.config import ApiSettings, TilesApiSettings, PostgresSettings
+from src.config import ApiSettings, PostgresSettings, TilesApiSettings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel

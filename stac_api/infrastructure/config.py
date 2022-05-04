@@ -12,6 +12,7 @@ class deltaSTACSettings(pydantic.BaseSettings):
     timeout: int = 60 * 2  # seconds
     memory: int = 256  # Mb
 
+    # Secret database credentials
     pgstac_secret_arn: Optional[str] = None
 
     class Config:

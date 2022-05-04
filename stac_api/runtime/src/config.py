@@ -1,13 +1,13 @@
 """API settings.
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac"""
-import json
 import base64
+import json
 from functools import lru_cache
 from typing import Optional
 
 import boto3
-from botocore.exceptions import ClientError
 import pydantic
+from botocore.exceptions import ClientError
 
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
 
@@ -20,11 +20,11 @@ from stac_fastapi.extensions.core import (
     SortExtension,
     TokenPaginationExtension,
 )
+from stac_fastapi.pgstac.config import Settings
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
-from stac_fastapi.pgstac.config import Settings
 
-def get_secret_dict(secret_name: str) -> None:
+def get_secret_dict(secret_name: str):
     """Retrieve secrets from AWS Secrets Manager
 
     Args:
@@ -77,6 +77,7 @@ def get_secret_dict(secret_name: str) -> None:
             return json.loads(
                 base64.b64decode(get_secret_value_response["SecretBinary"])
             )
+
 
 class _ApiSettings(pydantic.BaseSettings):
     """API settings"""
@@ -133,6 +134,8 @@ def TilesApiSettings() -> _TilesApiSettings:
 
 
 class PostgresSettings(Settings):
+    """Postgres database connection settings"""
+
     @classmethod
     def from_secret(cls, secretsmanager_arn: str) -> "PostgresSettings":
         """Get database connection settings from AWS secret"""
@@ -148,6 +151,7 @@ class PostgresSettings(Settings):
                 "postgres_port": secret["port"],
             }
         )
+
 
 extensions = [
     FilterExtension(),

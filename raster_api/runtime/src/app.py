@@ -23,7 +23,7 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
-if (secretsmanager_arn := os.environ.get("PGSTAC_SECRET_ARN")):
+if secretsmanager_arn := os.environ.get("PGSTAC_SECRET_ARN"):
     put_postgres_env(secretsmanager_arn=secretsmanager_arn)
 
 if settings.debug:

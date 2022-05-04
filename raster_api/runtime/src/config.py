@@ -1,16 +1,16 @@
 """API settings."""
 
-from functools import lru_cache
 import base64
 import json
 import os
+from functools import lru_cache
 
 import boto3
-from botocore.exceptions import ClientError
 import pydantic
-from titiler.pgstac.settings import PostgresSettings as BasePostgresSettings
+from botocore.exceptions import ClientError
 
-def get_secret_dict(secret_name: str) -> None:
+
+def get_secret_dict(secret_name: str):
     """Retrieve secrets from AWS Secrets Manager
 
     Args:
@@ -64,6 +64,7 @@ def get_secret_dict(secret_name: str) -> None:
                 base64.b64decode(get_secret_value_response["SecretBinary"])
             )
 
+
 class _ApiSettings(pydantic.BaseSettings):
     """API settings"""
 
@@ -97,6 +98,7 @@ def ApiSettings() -> _ApiSettings:
     From https://github.com/dmontagu/fastapi-utils/blob/af95ff4a8195caaa9edaa3dbd5b6eeb09691d9c7/fastapi_utils/api_settings.py#L60-L69
     """
     return _ApiSettings()
+
 
 def put_postgres_env(secretsmanager_arn: str) -> None:
     """Get database connection settings from AWS secret and put in environment"""

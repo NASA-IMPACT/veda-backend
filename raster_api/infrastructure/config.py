@@ -3,12 +3,11 @@
 """
 import base64
 import json
-import os
 from typing import Dict, List, Optional
 
 import boto3
-from botocore.exceptions import ClientError
 import pydantic
+from botocore.exceptions import ClientError
 
 
 def get_secret_dict(secret_name: str) -> None:
@@ -102,25 +101,14 @@ class deltaRasterSettings(pydantic.BaseSettings):
     # MosaicTiler settings
     enable_mosaic_search: bool = False
 
+    # Secret database credentials
     pgstac_secret_arn: Optional[str] = None
-
-    @pydantic.validator("pgstac_secret_arn")
-    def set_secret_in_environment(cls, v):
-        """Set environment variables in lambda from aws secret"""
-        try:
-            secret = get_secret_dict(SecretId=cls.pgstac_secret_arn)
-            os.environ["POSTGRES_DBNAME"] = secret["dbname"]
-            os.environ["POSTGRES_USER"] = secret["username"]
-            os.environ["POSTGRES_PASS"] = secret["password"]
-            os.environ["POSTGRES_PORT"] = secret["port"]
-            os.environ["POSTGRES_HOST"] = secret["host"]
-        except Exception:
-            pass
 
     class Config:
         """model config"""
 
         env_file = ".env"
         env_prefix = "DELTA_RASTER_"
+
 
 delta_raster_settings = deltaRasterSettings()
