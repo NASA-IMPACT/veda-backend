@@ -7,8 +7,8 @@ import os
 from typing import Dict, List, Optional
 
 import boto3
-import pydantic
 from botocore.exceptions import ClientError
+import pydantic
 
 
 def get_secret_dict(secret_name: str) -> None:
@@ -114,8 +114,7 @@ class deltaRasterSettings(pydantic.BaseSettings):
             os.environ["POSTGRES_PASS"] = secret["password"]
             os.environ["POSTGRES_PORT"] = secret["port"]
             os.environ["POSTGRES_HOST"] = secret["host"]
-        except Exception as e:
-            print(f"Unable to set posgres conn info with exception={e}")
+        except Exception:
             pass
 
     class Config:
@@ -123,6 +122,5 @@ class deltaRasterSettings(pydantic.BaseSettings):
 
         env_file = ".env"
         env_prefix = "DELTA_RASTER_"
-
 
 delta_raster_settings = deltaRasterSettings()

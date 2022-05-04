@@ -1,7 +1,8 @@
 """TiTiler+PgSTAC FastAPI application."""
 import logging
+import os
 
-from src.config import ApiSettings
+from src.config import ApiSettings, put_postgres_env
 from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
 from src.version import __version__ as delta_raster_version
 
@@ -22,6 +23,7 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
+put_postgres_env(os.environ.get("PGSTAC_SECRET_ARN"))
 
 if settings.debug:
     optional_headers = [OptionalHeader.server_timing, OptionalHeader.x_assets]
