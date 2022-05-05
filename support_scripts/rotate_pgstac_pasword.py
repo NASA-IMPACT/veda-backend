@@ -1,31 +1,74 @@
-"""A boto3 utility to 
-    1. rotate pgstac user database password
-    2. update corresponding AWS secret
-    3. reboot lambdas using secret"""
+"""
+A boto3 utility to rotate pgstac user database password, update corresponding AWS secret, and reboot lambdas using secret
+"""
 
 import argparse
+import base64
 import json
 from datetime import datetime
 from sys import exit
-from typing import Dict, Optional
+from typing import Optional
 
 import boto3
-import base64
-from botocore.exceptions import ClientError
 import psycopg
+from botocore.exceptions import ClientError
 from psycopg import sql
 
-
 parser = argparse.ArgumentParser()
-parser.add_argument("-a", "--admin", dest="admin_secret_name", type=str, required=True, help="Name of AWS secret containing admin role database credentials")
-parser.add_argument("-p", "--pgstac", dest="pgstac_secret_name", type=str, required=True, help="Name of AWS secret containing pgstac role database credentials")
-parser.add_argument("-s", "--stac", dest="stac_lambda_name", type=str, required=True, help="Name of STAC API lambda")
-parser.add_argument("-r", "--raster", dest="raster_lambda_name", type=str, required=True, help="Name of raster/tiler lambda")
-parser.add_argument("-profile", "--profile_name", dest="profile_name", type=str, required=False, default=None, help="Optional name of AWS config profile")
-parser.add_argument("-d", "--dry", dest="dry_run", required=False, action="store_true", default=False, help="Optional Dry run to confirm current AWS config profile can read database secrets and connect to postgres")
+parser.add_argument(
+    "-a",
+    "--admin",
+    dest="admin_secret_name",
+    type=str,
+    required=True,
+    help="Name of AWS secret containing admin role database credentials",
+)
+parser.add_argument(
+    "-p",
+    "--pgstac",
+    dest="pgstac_secret_name",
+    type=str,
+    required=True,
+    help="Name of AWS secret containing pgstac role database credentials",
+)
+parser.add_argument(
+    "-s",
+    "--stac",
+    dest="stac_lambda_name",
+    type=str,
+    required=True,
+    help="Name of STAC API lambda",
+)
+parser.add_argument(
+    "-r",
+    "--raster",
+    dest="raster_lambda_name",
+    type=str,
+    required=True,
+    help="Name of raster/tiler lambda",
+)
+parser.add_argument(
+    "-profile",
+    "--profile_name",
+    dest="profile_name",
+    type=str,
+    required=False,
+    default=None,
+    help="Optional name of AWS config profile",
+)
+parser.add_argument(
+    "-d",
+    "--dry",
+    dest="dry_run",
+    required=False,
+    action="store_true",
+    default=False,
+    help="Optional Dry run to confirm current AWS config profile can read database secrets and connect to postgres",
+)
 args = parser.parse_args()
 
-def get_secret_dict(secret_name:str, profile_name:str=None) -> Optional[Dict]:
+
+def get_secret_dict(secret_name: str, profile_name: Optional[str] = None) -> dict:
     """Retrieve secrets from AWS Secrets Manager
 
     Args:
@@ -41,52 +84,50 @@ def get_secret_dict(secret_name:str, profile_name:str=None) -> Optional[Dict]:
         session = boto3.session.Session(profile_name=profile_name)
     else:
         session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager'
-    )
+    client = session.client(service_name="secretsmanager")
 
     try:
-        get_secret_value_response = client.get_secret_value(
-            SecretId=secret_name
-        )
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
     except ClientError as e:
         raise e
     else:
         # Decrypts secret using the associated KMS key.
         # Depending on whether the secret is a string or binary, one of these fields will be populated.
-        if 'SecretString' in get_secret_value_response:
-            return json.loads(get_secret_value_response['SecretString'])
+        if "SecretString" in get_secret_value_response:
+            return json.loads(get_secret_value_response["SecretString"])
         else:
-            return json.loads(base64.b64decode(get_secret_value_response['SecretBinary']))
+            return json.loads(
+                base64.b64decode(get_secret_value_response["SecretBinary"])
+            )
 
-def update_secret(secret_name:str, updated_secret:Dict, profile_name:str=None) -> None:
+
+def update_secret(
+    secret_name: str, updated_secret: dict, profile_name: Optional[str] = None
+) -> None:
     """Update an aws secretsmanager secret"""
     # Create a Secrets Manager client
     if profile_name:
         session = boto3.session.Session(profile_name=profile_name)
     else:
         session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager'
-    )
+    client = session.client(service_name="secretsmanager")
 
-    client.update_secret(
-        SecretId=secret_name,
-        SecretString=json.dumps(updated_secret)
-    )
+    client.update_secret(SecretId=secret_name, SecretString=json.dumps(updated_secret))
 
-def get_random_password(profile_name:str=None) -> str:
+
+def get_random_password(profile_name: Optional[str] = None) -> str:
     """Get new password"""
     if profile_name:
         session = boto3.session.Session(profile_name=profile_name)
     else:
         session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager'
-    )
-    return client.get_random_password(ExcludePunctuation=True,)["RandomPassword"]
+    client = session.client(service_name="secretsmanager")
+    return client.get_random_password(
+        ExcludePunctuation=True,
+    )["RandomPassword"]
 
-def get_dsn_string(secret:dict) -> str:
+
+def get_dsn_string(secret: dict) -> str:
     """Form database connection string from a dictionary of connection secrets
 
     Args:
@@ -106,6 +147,7 @@ def get_dsn_string(secret:dict) -> str:
         )
     except Exception as e:
         raise e
+
 
 def create_user(cursor, username: str, password: str) -> None:
     """Create or update User."""
@@ -128,15 +170,16 @@ def create_user(cursor, username: str, password: str) -> None:
         ).format(username=sql.Identifier(username), password=password, user=username)
     )
 
-def force_update_lambda(function_name:str, new_description:str, profile_name:str=None) -> None:
+
+def force_update_lambda(
+    function_name: str, new_description: str, profile_name: Optional[str] = None
+) -> None:
     """Force lambda to reboot by providing a new description string"""
     if profile_name:
         session = boto3.session.Session(profile_name=profile_name)
     else:
         session = boto3.session.Session()
-    client = session.client(
-        service_name='lambda'
-    )
+    client = session.client(service_name="lambda")
     client.update_function_configuration(
         FunctionName=function_name,
         Description=new_description,
@@ -145,12 +188,16 @@ def force_update_lambda(function_name:str, new_description:str, profile_name:str
 
 # Load admin connection info
 print(f"Loading admin credentials from secret={args.admin_secret_name}")
-admin_secret_dict = get_secret_dict(args.admin_secret_name, profile_name=args.profile_name)
+admin_secret_dict = get_secret_dict(
+    args.admin_secret_name, profile_name=args.profile_name
+)
 admin_dsn = get_dsn_string(admin_secret_dict)
 
 # Get pgstac user secret to update
 print(f"Loading pgstac delta user credentials from secret={args.pgstac_secret_name}")
-pgstac_secret_dict = get_secret_dict(args.pgstac_secret_name, profile_name=args.profile_name)
+pgstac_secret_dict = get_secret_dict(
+    args.pgstac_secret_name, profile_name=args.profile_name
+)
 
 # Create a new secret password and update local dict
 print("Getting new random password from secretsmanager")
@@ -158,14 +205,23 @@ new_password = get_random_password()
 pgstac_secret_dict["password"] = new_password
 
 # Use admin role to update password for pgstac user role
-print(f"Updating postgres password for username={pgstac_secret_dict['username']} autocommit={args.dry_run==False}")
-with psycopg.connect(admin_dsn, autocommit=args.dry_run==False) as conn:
+autocommit = True if args.dry_run is False else False
+print(
+    f"Updating postgres password for username={pgstac_secret_dict['username']} autocommit={autocommit}"
+)
+with psycopg.connect(admin_dsn, autocommit=autocommit) as conn:
     with conn.cursor() as cur:
         # Update user password
-        create_user(cursor=cur, username=pgstac_secret_dict["username"], password=pgstac_secret_dict["password"])
+        create_user(
+            cursor=cur,
+            username=pgstac_secret_dict["username"],
+            password=pgstac_secret_dict["password"],
+        )
 
     if args.dry_run:
-        print("Exiting dry run, not committing postgres role update or updating aws secret")
+        print(
+            "Exiting dry run, not committing postgres role update or updating aws secret"
+        )
         exit()
 
     print("Commiting user password changes...")
@@ -175,15 +231,23 @@ with psycopg.connect(admin_dsn, autocommit=args.dry_run==False) as conn:
 pgstac_dsn = get_dsn_string(pgstac_secret_dict)
 conn = psycopg.connect(pgstac_dsn)
 if conn:
-    print("Connection succeeded with new pgstac user credentials, updating AWS Secret...")
+    print(
+        "Connection succeeded with new pgstac user credentials, updating AWS Secret..."
+    )
     conn.close()
 else:
-    print("Connection failed with new pgstac user credentials, rollback role change in postgres")
+    print(
+        "Connection failed with new pgstac user credentials, rollback role change in postgres"
+    )
     current_pgstac_secret_dict = get_secret_dict(args.pgstac_secret_name)
-    with psycopg.connect(admin_dsn, autocommit=args.dry_run==False) as conn:
+    with psycopg.connect(admin_dsn, autocommit=autocommit) as conn:
         with conn.cursor() as cur:
             # Rollback user password
-            create_user(cursor=cur, username=current_pgstac_secret_dict["username"], password=current_pgstac_secret_dict["password"])
+            create_user(
+                cursor=cur,
+                username=current_pgstac_secret_dict["username"],
+                password=current_pgstac_secret_dict["password"],
+            )
     exit()
 
 # Update aws secrets manager
