@@ -7,7 +7,6 @@ from typing import Optional
 
 import boto3
 import pydantic
-from botocore.exceptions import ClientError
 
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
 
@@ -39,44 +38,14 @@ def get_secret_dict(secret_name: str):
     session = boto3.session.Session()
     client = session.client(service_name="secretsmanager")
 
-    # In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
-    # See https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-    # We rethrow the exception by default.
-
-    try:
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "AccessDeniedException":
-            raise e
-        if e.response["Error"]["Code"] == "DecryptionFailureException":
-            # Secrets Manager can't decrypt the protected secret text using the provided KMS key.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
-        elif e.response["Error"]["Code"] == "InternalServiceErrorException":
-            # An error occurred on the server side.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
-        elif e.response["Error"]["Code"] == "InvalidParameterException":
-            # You provided an invalid value for a parameter.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
-        elif e.response["Error"]["Code"] == "InvalidRequestException":
-            # You provided a parameter value that is not valid for the current state of the resource.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
-        elif e.response["Error"]["Code"] == "ResourceNotFoundException":
-            # We can't find the resource that you asked for.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
+    get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    
+    if "SecretString" in get_secret_value_response:
+        return json.loads(get_secret_value_response["SecretString"])
     else:
-        # Decrypts secret using the associated KMS key.
-        # Depending on whether the secret is a string or binary, one of these fields will be populated.
-        if "SecretString" in get_secret_value_response:
-            return json.loads(get_secret_value_response["SecretString"])
-        else:
-            return json.loads(
-                base64.b64decode(get_secret_value_response["SecretBinary"])
-            )
+        return json.loads(
+            base64.b64decode(get_secret_value_response["SecretBinary"])
+        )
 
 
 class _ApiSettings(pydantic.BaseSettings):
@@ -87,16 +56,34 @@ class _ApiSettings(pydantic.BaseSettings):
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
 
+    pgstac_secret_arn: Optional[str]
+
     @pydantic.validator("cors_origins")
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
 
+    def load_postgres_settings(self) -> "Settings":
+
+        if self.pgstac_secret_arn:
+            secret = get_secret_dict(self.pgstac_secret_arn)
+            
+            return Settings(
+                postgres_host_reader=secret["host"],
+                postgres_host_writer=secret["host"],
+                postgres_dbname=secret["dbname"],
+                postgres_user=secret["username"],
+                postgres_pass=secret["password"],
+                postgres_port=secret["port"],
+            )
+        else:
+            return Settings()
+
     class Config:
         """model config"""
 
         env_file = ".env"
-        env_prefix = "DELTA_BACKEND_STAC_"
+        env_prefix = "DELTA_STAC_"
 
 
 @lru_cache()
@@ -131,27 +118,6 @@ def TilesApiSettings() -> _TilesApiSettings:
 
     """
     return _TilesApiSettings()
-
-
-class PostgresSettings(Settings):
-    """Postgres database connection settings"""
-
-    @classmethod
-    def from_secret(cls, secretsmanager_arn: str) -> "PostgresSettings":
-        """Get database connection settings from AWS secret"""
-
-        secret = get_secret_dict(secretsmanager_arn)
-        return cls.parse_obj(
-            {
-                "postgres_host_reader": secret["host"],
-                "postgres_host_writer": secret["host"],
-                "postgres_dbname": secret["dbname"],
-                "postgres_user": secret["username"],
-                "postgres_pass": secret["password"],
-                "postgres_port": secret["port"],
-            }
-        )
-
 
 extensions = [
     FilterExtension(),
