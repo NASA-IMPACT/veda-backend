@@ -39,13 +39,11 @@ def get_secret_dict(secret_name: str):
     client = session.client(service_name="secretsmanager")
 
     get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    
+
     if "SecretString" in get_secret_value_response:
         return json.loads(get_secret_value_response["SecretString"])
     else:
-        return json.loads(
-            base64.b64decode(get_secret_value_response["SecretBinary"])
-        )
+        return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
 class _ApiSettings(pydantic.BaseSettings):
@@ -64,10 +62,11 @@ class _ApiSettings(pydantic.BaseSettings):
         return [origin.strip() for origin in v.split(",")]
 
     def load_postgres_settings(self) -> "Settings":
+        """Load postgres connection params from AWS secret"""
 
         if self.pgstac_secret_arn:
             secret = get_secret_dict(self.pgstac_secret_arn)
-            
+
             return Settings(
                 postgres_host_reader=secret["host"],
                 postgres_host_writer=secret["host"],
@@ -118,6 +117,7 @@ def TilesApiSettings() -> _TilesApiSettings:
 
     """
     return _TilesApiSettings()
+
 
 extensions = [
     FilterExtension(),

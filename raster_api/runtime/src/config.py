@@ -30,9 +30,7 @@ def get_secret_dict(secret_name: str):
     if "SecretString" in get_secret_value_response:
         return json.loads(get_secret_value_response["SecretString"])
     else:
-        return json.loads(
-            base64.b64decode(get_secret_value_response["SecretBinary"])
-        )
+        return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
 class ApiSettings(pydantic.BaseSettings):
@@ -54,6 +52,7 @@ class ApiSettings(pydantic.BaseSettings):
         return [origin.strip() for origin in v.split(",")]
 
     def load_postgres_settings(self) -> "PostgresSettings":
+        """Load postgres connection params from AWS secret"""
 
         if self.pgstac_secret_arn:
             secret = get_secret_dict(self.pgstac_secret_arn)
@@ -72,6 +71,7 @@ class ApiSettings(pydantic.BaseSettings):
 
         env_file = ".env"
         env_prefix = "DELTA_RASTER_"
+
 
 # from titiler.pgstac.settings import PostgresSettings
 # class PostgresSettings(pydantic.BaseSettings):

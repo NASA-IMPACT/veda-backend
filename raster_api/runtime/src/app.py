@@ -1,6 +1,5 @@
 """TiTiler+PgSTAC FastAPI application."""
 import logging
-import os
 
 from src.config import ApiSettings
 from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
