@@ -7,6 +7,8 @@ from typing import Optional
 import boto3
 import pydantic
 
+from titiler.pgstac.settings import PostgresSettings
+
 
 def get_secret_dict(secret_name: str):
     """Retrieve secrets from AWS Secrets Manager
@@ -69,43 +71,3 @@ class ApiSettings(pydantic.BaseSettings):
 
         env_file = ".env"
         env_prefix = "DELTA_RASTER_"
-
-
-# TODO should be importing from titiler.pgstac.settings import PostgresSettings
-# but the imported settings throw "TypeError: PostgresSettings() got an unexpected keyword argument 'postgres_user'""
-class PostgresSettings(pydantic.BaseSettings):
-    """Postgres-specific API settings.
-    Attributes:
-        postgres_user: postgres username.
-        postgres_pass: postgres password.
-        postgres_host: database hostname.
-        postgres_port: database port.
-        postgres_dbname: database name.
-    """
-
-    postgres_user: str
-    postgres_pass: str
-    postgres_host: str
-    postgres_port: str
-    postgres_dbname: str
-
-    # see https://www.psycopg.org/psycopg3/docs/api/pool.html#the-connectionpool-class for options
-    db_min_conn_size: int = 1  # The minimum number of connection the pool will hold
-    db_max_conn_size: int = 10  # The maximum number of connections the pool will hold
-    db_max_queries: int = (
-        50000  # Maximum number of requests that can be queued to the pool
-    )
-    db_max_idle: float = 300  # Maximum time, in seconds, that a connection can stay unused in the pool before being closed, and the pool shrunk.
-    db_num_workers: int = (
-        3  # Number of background worker threads used to maintain the pool state
-    )
-
-    class Config:
-        """model config"""
-
-        env_file = ".env"
-
-    @property
-    def connection_string(self):
-        """Create reader psql connection string."""
-        return f"postgresql://{self.postgres_user}:{self.postgres_pass}@{self.postgres_host}:{self.postgres_port}/{self.postgres_dbname}"
