@@ -1,5 +1,4 @@
 """TiTiler+PgSTAC FastAPI application."""
-
 import logging
 
 from src.config import ApiSettings
@@ -88,7 +87,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event() -> None:
     """Connect to database on startup."""
-    await connect_to_db(app)
+    await connect_to_db(app, settings=settings.load_postgres_settings())
 
 
 @app.on_event("shutdown")

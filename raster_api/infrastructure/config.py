@@ -1,7 +1,7 @@
 """Settings for Raster API - any environment variables starting with
 `DELTA_RASTER_` will overwrite the values of variables in this file
 """
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import pydantic
 
@@ -41,6 +41,9 @@ class deltaRasterSettings(pydantic.BaseSettings):
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False
+
+    # Secret database credentials
+    pgstac_secret_arn: Optional[str] = None
 
     class Config:
         """model config"""
