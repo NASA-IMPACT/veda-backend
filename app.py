@@ -18,12 +18,14 @@ stage = os.environ["STAGE"].lower()
 app_name = "delta-backend"
 try:
     vpc_id = os.environ["VPC_ID"]
+    existing_vpc = True
     # If deploying to existing VPC, default stack account and region are required
     cdk_env = {
         "account": os.environ["CDK_DEFAULT_ACCOUNT"],
         "region": os.environ["CDK_DEFAULT_REGION"],
     }
 except KeyError:
+    existing_vpc = False
     cdk_env = {}
 
 app = App()
@@ -43,7 +45,7 @@ delta_stack = DeltaStack(
     env=cdk_env,
 )
 
-if vpc_id:
+if existing_vpc:
     vpc = VpcConstruct(delta_stack, "network", vpc_id=vpc_id, stage=stage)
 else:
     vpc = VpcConstruct(delta_stack, "network", stage=stage)
