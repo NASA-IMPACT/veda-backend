@@ -1,5 +1,5 @@
 """Configuration options for the Lambda backed API implementing `stac-fastapi`."""
-from typing import Dict
+from typing import Dict, Optional
 
 import pydantic
 
@@ -11,6 +11,9 @@ class deltaSTACSettings(pydantic.BaseSettings):
 
     timeout: int = 60 * 2  # seconds
     memory: int = 256  # Mb
+
+    # Secret database credentials
+    pgstac_secret_arn: Optional[str] = None
 
     class Config:
         """model config"""
