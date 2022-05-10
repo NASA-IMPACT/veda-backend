@@ -88,6 +88,7 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         CfnOutput(self, "raster-api", value=self.raster_api.url)
+        CfnOutput(self, "raster-api-arn", value = delta_raster_function.function_arn)
 
         delta_raster_function.add_to_role_policy(
             aws_iam.PolicyStatement(
