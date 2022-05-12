@@ -8,6 +8,7 @@ from rasterio.session import AWSSession
 from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_cogeo.models import Info
 from src.config import ApiSettings
+from src.datasetparams import DatasetParams
 from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
 from src.version import __version__ as delta_raster_version
 
@@ -61,6 +62,7 @@ mosaic = MosaicTilerFactory(
     enable_mosaic_search=settings.enable_mosaic_search,
     optional_headers=optional_headers,
     gdal_config=gdal_config,
+    dataset_dependency=DatasetParams,
 )
 app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
 
