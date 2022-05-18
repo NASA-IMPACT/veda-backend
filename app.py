@@ -71,6 +71,25 @@ stac_api = StacApiLambdaConstruct(
     domain_name=domain.stac_domain_name,
 )
 
+alt_domain = DomainConstruct(delta_stack, "alt-domain", stage=stage, alt_domain=True)
+
+alt_raster_api = RasterApiLambdaConstruct(
+    delta_stack,
+    "alt-raster-api",
+    vpc=vpc.vpc,
+    database=database,
+    domain_name=alt_domain.raster_domain_name,
+)
+
+alt_stac_api = StacApiLambdaConstruct(
+    delta_stack,
+    "alt-stac-api",
+    vpc=vpc.vpc,
+    database=database,
+    raster_api=raster_api,
+    domain_name=alt_domain.stac_domain_name,
+)
+
 for key, value in {
     "Project": app_name,
     "Stack": stage,
