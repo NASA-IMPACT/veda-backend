@@ -23,6 +23,8 @@ class DomainConstruct(Construct):
         self.stac_domain_name = None
         self.raster_domain_name = None
 
+        hosted_zone_name = delta_domain_settings.hosted_zone_name
+
         if (
             delta_domain_settings.hosted_zone_id
             and delta_domain_settings.hosted_zone_name
@@ -37,7 +39,7 @@ class DomainConstruct(Construct):
             certificate = aws_certificatemanager.Certificate(
                 self,
                 "certificate",
-                domain_name="*.delta-backend.xyz",
+                domain_name=f"*.{hosted_zone_name}",
                 validation=aws_certificatemanager.CertificateValidation.from_dns(
                     hosted_zone=hosted_zone
                 ),
@@ -50,8 +52,8 @@ class DomainConstruct(Construct):
             else:
                 raster_url_prefix = f"{stage.lower()}-raster"
                 stac_url_prefix = f"{stage.lower()}-stac"
-            raster_domain_name = f"{raster_url_prefix}.delta-backend.xyz"
-            stac_domain_name = f"{stac_url_prefix}.delta-backend.xyz"
+            raster_domain_name = f"{raster_url_prefix}.{hosted_zone_name}"
+            stac_domain_name = f"{stac_url_prefix}.{hosted_zone_name}"
 
             self.raster_domain_name = aws_apigatewayv2_alpha.DomainName(
                 self,
@@ -98,8 +100,8 @@ class DomainConstruct(Construct):
             CfnOutput(
                 self,
                 "raster-api",
-                value=f"https://{raster_url_prefix}.delta-backend.xyz/docs",
+                value=f"https://{raster_url_prefix}.{hosted_zone_name}/docs",
             )
             CfnOutput(
-                self, "stac-api", value=f"https://{stac_url_prefix}.delta-backend.xyz/"
+                self, "stac-api", value=f"https://{stac_url_prefix}.{hosted_zone_name}/"
             )
