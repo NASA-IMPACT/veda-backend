@@ -12,7 +12,7 @@ class deltaDomainSettings(pydantic.BaseSettings):
     hosted_zone_name: Optional[str] = None
     api_prefix: Optional[str] = None
 
-    # TODO remove this after users have moved to new custom domain
+    # Temporary support for deploying APIs to a second custom domain
     alt_hosted_zone_id: Optional[str] = None
     alt_hosted_zone_name: Optional[str] = None
 

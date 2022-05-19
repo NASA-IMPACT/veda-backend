@@ -1,4 +1,6 @@
 """CDK Construct for a custom API domain (under the route 53 domain: delta-backend.xyz)."""
+from typing import Optional
+
 from aws_cdk import (
     CfnOutput,
     aws_apigatewayv2_alpha,
@@ -7,7 +9,6 @@ from aws_cdk import (
     aws_route53_targets,
 )
 from constructs import Construct
-from typing import Optional
 
 from .config import delta_domain_settings
 
@@ -16,12 +17,12 @@ class DomainConstruct(Construct):
     """CDK Construct for a custom API domain (under the route 53 domain: delta-backend.xyz)."""
 
     def __init__(
-        self, 
-        scope: Construct, 
-        construct_id: str, 
-        stage: str, 
+        self,
+        scope: Construct,
+        construct_id: str,
+        stage: str,
         alt_domain: Optional[bool] = False,
-        **kwargs
+        **kwargs,
     ) -> None:
         """."""
         super().__init__(scope, construct_id, **kwargs)
@@ -33,13 +34,13 @@ class DomainConstruct(Construct):
             delta_domain_settings.hosted_zone_id
             and delta_domain_settings.hosted_zone_name
         ):
+            # If alternative custom domain provided, use it instead of the default
             if alt_domain is True:
                 hosted_zone_name = delta_domain_settings.alt_hosted_zone_name
                 hosted_zone_id = delta_domain_settings.alt_hosted_zone_id
             else:
                 hosted_zone_name = delta_domain_settings.hosted_zone_name
                 hosted_zone_id = delta_domain_settings.hosted_zone_id
-
 
             hosted_zone = aws_route53.HostedZone.from_hosted_zone_attributes(
                 self,
