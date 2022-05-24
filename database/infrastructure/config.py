@@ -20,6 +20,9 @@ class deltaDBSettings(pydantic.BaseSettings):
     # Optional snapshot id to restore
     snapshot_id: Optional[str] = None
 
+    # Deploy database in private subnets
+    private_subnets: Optional[bool] = False
+
     class Config:
         """model config."""
 
