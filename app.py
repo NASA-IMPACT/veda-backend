@@ -1,30 +1,16 @@
 #!/usr/bin/env python3
 """ CDK Configuration for the delta-backend stack."""
+import os
 
-from aws_cdk import App, Aspects, Stack, Tags, aws_iam
+from aws_cdk import App, Stack, Tags, aws_iam
 from constructs import Construct
 
+from config import delta_app_settings
 from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
-
-from config import PermissionBoundaryAspect, delta_app_settings
-
-# App configuration
-# load_dotenv()
-# stage = os.environ["STAGE"].lower()
-# app_name = "delta-backend"
-# vpc_id = os.environ.get("VPC_ID")
-# if vpc_id:
-#     # If deploying to existing VPC, default stack account and region are required
-#     cdk_env = {
-#         "account": os.environ["CDK_DEFAULT_ACCOUNT"],
-#         "region": os.environ["CDK_DEFAULT_REGION"],
-#     }
-# else:
-#     cdk_env = {}
 
 # TODO remove temporary alternative domain variables or move to app settings configuration
 alt_domain = all(
@@ -45,8 +31,10 @@ class DeltaStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         if delta_app_settings.permissions_boundary_policy:
-            permission_boundary_policy = aws_iam.ManagedPolicy.from_aws_managed_policy_name(
-                delta_app_settings.permissions_boundary_policy,
+            permission_boundary_policy = (
+                aws_iam.ManagedPolicy.from_aws_managed_policy_name(
+                    delta_app_settings.permissions_boundary_policy,
+                )
             )
             aws_iam.PermissionsBoundary.of(self).apply(permission_boundary_policy)
 
@@ -93,7 +81,10 @@ stac_api = StacApiLambdaConstruct(
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
 if alt_domain:
     alt_domain = DomainConstruct(
-        delta_stack, "alt-domain", stage=stage, alt_domain=True
+        delta_stack,
+        "alt-domain",
+        stage=delta_app_settings.stage.lower(),
+        alt_domain=True,
     )
 
     alt_raster_api = RasterApiLambdaConstruct(
