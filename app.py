@@ -26,6 +26,14 @@ from config import PermissionBoundaryAspect, delta_app_settings
 # else:
 #     cdk_env = {}
 
+# TODO remove temporary alternative domain variables or move to app settings configuration
+alt_domain = all(
+    [
+        os.environ.get("DELTA_DOMAIN_ALT_HOSTED_ZONE_ID"),
+        os.environ.get("DELTA_DOMAIN_ALT_HOSTED_ZONE_NAME"),
+    ]
+)
+
 app = App()
 
 
@@ -81,6 +89,29 @@ stac_api = StacApiLambdaConstruct(
     raster_api=raster_api,
     domain_name=domain.stac_domain_name,
 )
+
+# TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
+if alt_domain:
+    alt_domain = DomainConstruct(
+        delta_stack, "alt-domain", stage=stage, alt_domain=True
+    )
+
+    alt_raster_api = RasterApiLambdaConstruct(
+        delta_stack,
+        "alt-raster-api",
+        vpc=vpc.vpc,
+        database=database,
+        domain_name=alt_domain.raster_domain_name,
+    )
+
+    alt_stac_api = StacApiLambdaConstruct(
+        delta_stack,
+        "alt-stac-api",
+        vpc=vpc.vpc,
+        database=database,
+        raster_api=raster_api,
+        domain_name=alt_domain.stac_domain_name,
+    )
 
 for key, value in {
     "Project": delta_app_settings.app_name,
