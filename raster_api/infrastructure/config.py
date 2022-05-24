@@ -3,10 +3,10 @@
 """
 from typing import Dict, List, Optional
 
-import pydantic
+from pydantic import BaseSettings, Field
 
 
-class deltaRasterSettings(pydantic.BaseSettings):
+class deltaRasterSettings(BaseSettings):
     """Application settings"""
 
     # Default options are optimized for CloudOptimized GeoTIFF
@@ -45,11 +45,14 @@ class deltaRasterSettings(pydantic.BaseSettings):
     timeout: int = 30  # seconds
     memory: int = 8000  # Mb
 
-    # MosaicTiler settings
-    enable_mosaic_search: bool = False
-
-    # Secret database credentials
-    pgstac_secret_arn: Optional[str] = None
+    enable_mosaic_search: bool = Field(
+        False,
+        description="Deploy the raster API with the mosaic/list endpoint TRUE/FALSE",
+    )
+    pgstac_secret_arn: Optional[str] = Field(
+        None,
+        description="Name or ARN of the AWS Secret containing database connection parameters",
+    )
 
     class Config:
         """model config"""
