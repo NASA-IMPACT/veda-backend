@@ -126,6 +126,14 @@ class RdsConstruct(Construct):
 
         stack_name = Stack.of(self).stack_name
 
+        # Configure accessibility
+        publicly_accessible = False if delta_db_settings.private_subnets else True
+        subnet_type = (
+            aws_ec2.SubnetType.PRIVATE_ISOLATED
+            if delta_db_settings.private_subnets is True
+            else aws_ec2.SubnetType.PUBLIC
+        )
+
         # Create a new database instance from snapshot if provided
         if delta_db_settings.snapshot_id:
             # For the database from snapshot we will need a new master secret
@@ -143,12 +151,10 @@ class RdsConstruct(Construct):
                 instance_type=aws_ec2.InstanceType.of(
                     aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
                 ),
-                vpc_subnets=aws_ec2.SubnetSelection(
-                    subnet_type=aws_ec2.SubnetType.PUBLIC
-                ),
+                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
-                publicly_accessible=True,
+                publicly_accessible=publicly_accessible,
                 credentials=credentials,
             )
 
@@ -163,12 +169,10 @@ class RdsConstruct(Construct):
                 instance_type=aws_ec2.InstanceType.of(
                     aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
                 ),
-                vpc_subnets=aws_ec2.SubnetSelection(
-                    subnet_type=aws_ec2.SubnetType.PUBLIC
-                ),
+                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
-                publicly_accessible=True,
+                publicly_accessible=publicly_accessible,
             )
 
         # Use custom resource to bootstrap PgSTAC database
