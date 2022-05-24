@@ -19,6 +19,9 @@ class deltaAppSettings(pydantic.BaseSettings):
     # Optional permissions boundary policy
     permissions_boundary_policy: Optional[str] = None
 
+    delta_domain_alt_hosted_zone_id: Optional[str] = None
+    delta_domain_alt_hosted_zone_name: Optional[str] = None
+
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""
 
@@ -29,6 +32,15 @@ class deltaAppSettings(pydantic.BaseSettings):
             }
         else:
             return {}
+
+    def alt_domain(self) -> bool:
+        """True if alternative domain and host parameters provided"""
+        return all(
+            [
+                self.delta_domain_alt_hosted_zone_id,
+                self.delta_domain_alt_hosted_zone_name,
+            ]
+        )
 
     class Config:
         """model config."""

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """ CDK Configuration for the delta-backend stack."""
-import os
 
 from aws_cdk import App, Stack, Tags, aws_iam
 from constructs import Construct
@@ -11,14 +10,6 @@ from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
-
-# TODO remove temporary alternative domain variables or move to app settings configuration
-alt_domain = all(
-    [
-        os.environ.get("DELTA_DOMAIN_ALT_HOSTED_ZONE_ID"),
-        os.environ.get("DELTA_DOMAIN_ALT_HOSTED_ZONE_NAME"),
-    ]
-)
 
 app = App()
 
@@ -79,7 +70,8 @@ stac_api = StacApiLambdaConstruct(
 )
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
-if alt_domain:
+if delta_app_settings.alt_domain():
+
     alt_domain = DomainConstruct(
         delta_stack,
         "alt-domain",
