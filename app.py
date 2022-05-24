@@ -32,7 +32,7 @@ class DeltaStack(Stack):
 
 delta_stack = DeltaStack(
     app,
-    f"{delta_app_settings.app_name}-{delta_app_settings.stage.lower()}",
+    f"{delta_app_settings.app_name}-{delta_app_settings.stage_name()}",
     env=delta_app_settings.cdk_env(),
 )
 
@@ -41,16 +41,16 @@ if delta_app_settings.vpc_id:
         delta_stack,
         "network",
         vpc_id=delta_app_settings.vpc_id,
-        stage=delta_app_settings.stage.lower(),
+        stage=delta_app_settings.stage_name(),
     )
 else:
-    vpc = VpcConstruct(delta_stack, "network", stage=delta_app_settings.stage.lower())
+    vpc = VpcConstruct(delta_stack, "network", stage=delta_app_settings.stage_name())
 
 database = RdsConstruct(
-    delta_stack, "database", vpc.vpc, stage=delta_app_settings.stage.lower()
+    delta_stack, "database", vpc.vpc, stage=delta_app_settings.stage_name()
 )
 
-domain = DomainConstruct(delta_stack, "domain", stage=delta_app_settings.stage.lower())
+domain = DomainConstruct(delta_stack, "domain", stage=delta_app_settings.stage_name())
 
 raster_api = RasterApiLambdaConstruct(
     delta_stack,
@@ -75,7 +75,7 @@ if delta_app_settings.alt_domain():
     alt_domain = DomainConstruct(
         delta_stack,
         "alt-domain",
-        stage=delta_app_settings.stage.lower(),
+        stage=delta_app_settings.stage_name(),
         alt_domain=True,
     )
 
@@ -98,7 +98,7 @@ if delta_app_settings.alt_domain():
 
 for key, value in {
     "Project": delta_app_settings.app_name,
-    "Stack": delta_app_settings.stage.lower(),
+    "Stack": delta_app_settings.stage_name(),
     "Client": "nasa-impact",
     "Owner": "ds",
 }.items():

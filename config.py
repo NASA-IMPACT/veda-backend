@@ -42,6 +42,10 @@ class deltaAppSettings(pydantic.BaseSettings):
             ]
         )
 
+    def stage_name(self) -> str:
+        """Force lowercase stage name"""
+        return self.stage.lower()
+
     class Config:
         """model config."""
 
