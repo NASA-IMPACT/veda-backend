@@ -1,26 +1,51 @@
 """App settings."""
 from typing import Optional
 
-import pydantic
+from pydantic import BaseSettings, Field
 
 
-class deltaAppSettings(pydantic.BaseSettings):
+class deltaAppSettings(BaseSettings):
     """Application settings."""
 
     # App name and deployment stage
-    app_name: Optional[str] = "delta-backend"
-    stage: str
-
-    # Optional specify vpc-id in target account
-    vpc_id: Optional[str] = None
-    cdk_default_account: Optional[str] = None
-    cdk_default_region: Optional[str] = None
-
-    # Optional permissions boundary policy
-    permissions_boundary_policy: Optional[str] = None
-
-    delta_domain_alt_hosted_zone_id: Optional[str] = None
-    delta_domain_alt_hosted_zone_name: Optional[str] = None
+    app_name: Optional[str] = Field(
+        "delta-backend",
+        description="Optional app name used to name stack and resources",
+    )
+    stage: str = Field(
+        ...,
+        description=(
+            "Deployment stage used to name stack and resources, "
+            "i.e. `dev`, `staging`, `prod`"
+        ),
+    )
+    vpc_id: Optional[str] = Field(
+        None,
+        description=(
+            "Resource identifier of VPC, if none a new VPC with public and private "
+            "subnets will be provisioned."
+        ),
+    )
+    cdk_default_account: Optional[str] = Field(
+        None,
+        description="When deploying from a local machine the AWS account id is required to deploy to an exiting VPC",
+    )
+    cdk_default_region: Optional[str] = Field(
+        None,
+        description="When deploying from a local machine the AWS region id is required to deploy to an exiting VPC",
+    )
+    permissions_boundary_policy: Optional[str] = Field(
+        None,
+        description="Name of IAM policy to define stack permissions boundary",
+    )
+    delta_domain_alt_hosted_zone_id: Optional[str] = Field(
+        None,
+        description="Route53 zone identifier if using a custom domain name",
+    )
+    delta_domain_alt_hosted_zone_name: Optional[str] = Field(
+        None,
+        description="Custom domain name, i.e. delta-backend.xyz",
+    )
 
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""
