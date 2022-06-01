@@ -45,7 +45,9 @@ STAC records should be loaded using [pypgstac](https://github.com/stac-utils/pgs
 ## Support scripts
 Support scripts are provided for manual system operations.
 - [Rotate pgstac password](support_scripts/README.md#rotate-pgstac-password)
+## Usage examples: 
 
+https://github.com/NASA-IMPACT/veda-documentation
 ## STAC community resources
 
 ### STAC browser
