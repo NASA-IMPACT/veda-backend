@@ -39,6 +39,6 @@ PostgreSQL schema and functions supporting stac-api.
 
 ## Consequences
 
-There will be some startup cost to standing up and learning to use a new database and API, but using an actively maintained ecosystem of tooling for stac-fastapi and pgstac will accelerate the initial deployment and operation a STAC compliant API and PostGreSQL metadata store. Dashboard evolution work can quickly jump to developing new functionality such as scientific model metadata and aggregating dataset statistics over custom temporal ranges.
+There will be some startup cost to standing up and learning to use a new database and API, but using an actively maintained ecosystem of tooling for stac-fastapi and pgstac will accelerate the initial deployment and operation a STAC compliant API and PostGreSQL metadata store. VEDA backend work can quickly jump to developing new functionality such as scientific model metadata and aggregating dataset statistics over custom temporal ranges.
 
 Dashboard API and metadata storage evolution developments on stac-spec, stac-fastapi, and pgstac are likely to be widely applicable and could be contributed back to the STAC community.
