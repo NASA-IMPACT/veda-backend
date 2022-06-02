@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseSettings, Field
 
-
 class deltaRasterSettings(BaseSettings):
     """Application settings"""
 
@@ -28,8 +27,8 @@ class deltaRasterSettings(BaseSettings):
         "RIO_TILER_MAX_THREADS": "1",
         "DB_MIN_CONN_SIZE": "1",
         "DB_MAX_CONN_SIZE": "1",
-        "CPL_DEBUG": "ON",
-        "CPL_CURL_VERBOSE": "TRUE",
+        # "CPL_DEBUG": "ON",
+        # "CPL_CURL_VERBOSE": "TRUE",
         "CPL_VSIL_CURL_CHUNK_SIZE": "81920",
     }
 
@@ -52,6 +51,11 @@ class deltaRasterSettings(BaseSettings):
     pgstac_secret_arn: Optional[str] = Field(
         None,
         description="Name or ARN of the AWS Secret containing database connection parameters",
+    )
+
+    data_access_role_arn: Optional[str] = Field(
+        None,
+        description="Resource name of role permitting access to specified external S3 buckets"
     )
 
     class Config:

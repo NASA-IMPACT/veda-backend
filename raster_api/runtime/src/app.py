@@ -2,6 +2,7 @@
 import logging
 import os
 
+import boto3
 from rasterio.session import AWSSession
 
 # from titiler.application.routers.cog import cog
@@ -39,21 +40,39 @@ if settings.debug:
 else:
     optional_headers = []
 
+# if settings.data_access_role_arn:
+#     sts = boto3.client("sts")
+#     print(f"Runtime attempting to assume role arn={settings.data_access_role_arn} at runtime")
+#     data_access_credentials=sts.assume_role(
+#         RoleArn=settings.data_access_role_arn,
+#         RoleSessionName="AssumeRoleSession",
+#     )
+#     print(f"Runtime assumed role")
+#     gdal_configuration = {
+#         "session": AWSSession(
+#             aws_access_key_id=data_access_credentials["AccessKeyId"],
+#             aws_secret_access_key=data_access_credentials["SecretAccessKey"],
+#             aws_session_token=data_access_credentials["SessionToken"],
+#         )
+#     }
+# else:
+#     gdal_configuration = {}
+
 app = FastAPI(title=settings.name, version=delta_raster_version)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
-try:
-    gdal_config = {
-        # We use Custom AWS session with credential created by the EDL lambda
-        "session": AWSSession(
-            aws_access_key_id=os.environ["ACCESS_KEY_ID"],
-            aws_secret_access_key=os.environ["SECRET_ACCESS_KEY"],
-            aws_session_token=os.environ["SESSION_TOKEN"],
-        )
-    }
-except KeyError:
-    gdal_config = {}
+# try:
+#     gdal_config = {
+#         # We use Custom AWS session with credential created by the EDL lambda
+#         "session": AWSSession(
+#             aws_access_key_id=os.environ["ACCESS_KEY_ID"],
+#             aws_secret_access_key=os.environ["SECRET_ACCESS_KEY"],
+#             aws_session_token=os.environ["SESSION_TOKEN"],
+#         )
+#     }
+# except KeyError:
+#     gdal_config = {}
 
 
 # Custom PgSTAC mosaic tiler
@@ -61,7 +80,7 @@ mosaic = MosaicTilerFactory(
     router_prefix="/mosaic",
     enable_mosaic_search=settings.enable_mosaic_search,
     optional_headers=optional_headers,
-    gdal_config=gdal_config,
+    gdal_config=settings.get_gdal_config(),
     dataset_dependency=DatasetParams,
 )
 app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
@@ -72,12 +91,14 @@ stac = MultiBaseTilerFactory(
     path_dependency=ItemPathParams,
     optional_headers=optional_headers,
     router_prefix="/stac",
-    gdal_config=gdal_config,
+    gdal_config=settings.get_gdal_config(),
 )
 app.include_router(stac.router, tags=["Items"], prefix="/stac")
 
 cog = TilerFactory(
-    router_prefix="/cog", optional_headers=optional_headers, gdal_config=gdal_config
+    router_prefix="/cog", 
+    optional_headers=optional_headers, 
+    gdal_config=settings.get_gdal_config()
 )
 
 

@@ -99,3 +99,28 @@ class RasterApiLambdaConstruct(Construct):
                 ],
             )
         )
+
+        # Optional use sts assume role with GetObject permissions for external S3 bucket(s)
+        if delta_raster_settings.data_access_role_arn:
+            # Get the role for external data access
+            data_access_role = aws_iam.Role.from_role_arn(
+                self,
+                "data-access-role",
+                delta_raster_settings.data_access_role_arn,
+            )
+            # Allow this lambda to assume the data access role
+            data_access_role.grant(
+                delta_raster_function.grant_principal,
+                "sts:AssumeRole",
+            )
+            # Try allowing the raster function to assume any role
+            delta_raster_function.add_to_role_policy(
+                aws_iam.PolicyStatement(
+                    actions=["sts:AssumeRole"],
+                    resources=["*"],
+                )
+            )
+
+            delta_raster_function.add_environment(
+                "DELTA_RASTER_DATA_ACCESS_ROLE_ARN", delta_raster_settings.data_access_role_arn
+            )
