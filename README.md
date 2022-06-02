@@ -1,5 +1,13 @@
 # delta-backend
-Backend services for the Dashboard Evolution
+This project deploys a complete backend for a [SpatioTemporal Asset Catalog](https://stacspec.org/) including a postgres database, a metadata API, and raster tiling API. Delta-backend is a non-forked version of the [eoAPI](https://github.com/developmentseed/eoAPI) demo project. Delta-backend is decoupled from the demo project to selectively incorporate new stable functionality from the fast moving development in eoAPI while providing a continuous baseline for delta-backend users and to support project specific business and deployment logic.
+
+The primary tools employed in the [eoAPI demo](https://github.com/developmentseed/eoAPI) and this project are:
+- [stac-spec](https://github.com/radiantearth/stac-spec)
+- [stac-api-spec](https://github.com/radiantearth/stac-api-spec)
+- [stac-fastapi](https://github.com/stac-utils/stac-fastapi)
+- [pgstac](https://github.com/stac-utils/pgstac)
+- [titiler](https://github.com/developmentseed/titiler)
+- [titiler-pgstac](https://github.com/stac-utils/titiler-pgstac)
 
 ## Deployment
 
@@ -28,3 +36,19 @@ An [.example.env](.example.env) template is supplied for for local deployments. 
 
 ### CDK context
 Currently a named version of the CDK toolkit is used for deployments. To use the default CDK toolkit bootstrapped for the account, remove `"@aws-cdk/core:bootstrapQualifier"` from the `"context"` in [`cdk.json`](cdk.json).
+
+## Operations
+
+## Ingesting metadata
+STAC records should be loaded using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac). The [cloud-optimized-data-pipelines](https://github.com/NASA-IMPACT/cloud-optimized-data-pipelines) project provides examples of cloud pipelines that use pypgstac to load data into a STAC catalog, as well as examples of transforming data to cloud optimized formats.
+
+## Support scripts
+Support scripts are provided for manual system operations.
+- [Rotate pgstac password](support_scripts/README.md#rotate-pgstac-password)
+## Usage examples: 
+
+https://github.com/NASA-IMPACT/veda-documentation
+## STAC community resources
+
+### STAC browser
+Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the delta-backend STAC catalog, paste the delta-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
