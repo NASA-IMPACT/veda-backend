@@ -117,8 +117,9 @@ class RasterApiLambdaConstruct(Construct):
                 )
             )
             # Allow this lambda to assume the data access role
-            data_access_role.grant_assume_role(
-                delta_raster_function.grant_principal
+            data_access_role.grant(
+                delta_raster_function.grant_principal,
+                "sts:AssumeRole",
             )
             delta_raster_function.add_environment(
                 "DELTA_RASTER_DATA_ACCESS_ROLE_ARN", delta_raster_settings.data_access_role_arn
