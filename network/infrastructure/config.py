@@ -33,7 +33,7 @@ class prodVpcSettings(BaseSettings):
     """Production VPC settings"""
 
     env: Dict = {}
-    cidr: str = "10.300.0.0/16"
+    cidr: str = "10.40.0.0/16"
     max_azs: int = 2
     nat_gateways: int = 1
     public_mask: int = 24

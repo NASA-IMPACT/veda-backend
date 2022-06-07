@@ -37,6 +37,18 @@ An [.example.env](.example.env) template is supplied for for local deployments. 
 ### CDK context
 Currently a named version of the CDK toolkit is used for deployments. To use the default CDK toolkit bootstrapped for the account, remove `"@aws-cdk/core:bootstrapQualifier"` from the `"context"` in [`cdk.json`](cdk.json).
 
+### CDK deployment
+
+```bash
+nvm install 17
+node --version
+npm install --location=global aws-cdk
+python3 -m pip install --upgrade pip
+python3 -m pip install -e ".[dev,deploy,test]"
+cdk synth
+cdk deploy
+```
+
 ## Operations
 
 ## Ingesting metadata
