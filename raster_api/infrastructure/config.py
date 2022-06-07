@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseSettings, Field
 
+
 class deltaRasterSettings(BaseSettings):
     """Application settings"""
 
@@ -55,7 +56,7 @@ class deltaRasterSettings(BaseSettings):
 
     data_access_role_arn: Optional[str] = Field(
         None,
-        description="Resource name of role permitting access to specified external S3 buckets"
+        description="Resource name of role permitting access to specified external S3 buckets",
     )
 
     class Config:

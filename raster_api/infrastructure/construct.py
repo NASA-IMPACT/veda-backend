@@ -113,7 +113,7 @@ class RasterApiLambdaConstruct(Construct):
                 aws_iam.PolicyStatement(
                     actions=["sts:AssumeRole"],
                     effect=aws_iam.Effect.ALLOW,
-                    resources=[delta_raster_function.function_arn]
+                    resources=[delta_raster_function.function_arn],
                 )
             )
             # Allow this lambda to assume the data access role
@@ -122,5 +122,6 @@ class RasterApiLambdaConstruct(Construct):
                 "sts:AssumeRole",
             )
             delta_raster_function.add_environment(
-                "DELTA_RASTER_DATA_ACCESS_ROLE_ARN", delta_raster_settings.data_access_role_arn
+                "DELTA_RASTER_DATA_ACCESS_ROLE_ARN",
+                delta_raster_settings.data_access_role_arn,
             )
