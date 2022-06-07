@@ -41,7 +41,7 @@ def get_role_credentials(role_arn: str):
     sts = boto3.client("sts")
     return sts.assume_role(
         RoleArn=role_arn,
-        RoleSessionName="VedaSession",
+        RoleSessionName="AssumeRoleSession",
     )["Credentials"]
 
 

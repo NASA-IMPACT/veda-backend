@@ -16,6 +16,9 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 An [.example.env](.example.env) template is supplied for for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `delta-backend/<stage>-env`, for example the `dev` stack environment variables secret is named `delta-backend/dev-env`.
 
 ### Fetch environment variables using AWS CLI
+To retrieve the variables for a stage that has been previously deployed, the secrets manager can be used to quickly populate an .env file. 
+> Note: The environment variables stored as AWS secrets are manually maintained and should be reviewed before using.
+
 ```
 export AWS_SECRET_ID=delta-backend/<stage>-env
 
@@ -40,7 +43,7 @@ aws secretsmanager get-secret-value --secret-id ${AWS_SECRET_ID} --query SecretS
 | `DELTA_DOMAIN_ALT_HOSTED_ZONE_NAME` | Optional second custom domain name, i.e. alt-delta-backend.xyz |
 | `DELTA_DOMAIN_API_PREFIX` | Optional domain prefix override supports using a custom prefix instead of the STAGE variabe (an alternate version of the stack can be deployed with a unique STAGE=altprod and after testing prod API traffic can be cut over to the alternate version of the stack by setting the prefix to prod) |
 | `DELTA_RASTER_ENABLE_MOSAIC_SEARCH` | Optional deploy the raster API with the mosaic/list endpoint TRUE/FALSE |
-| `DELTA_RASTER_DATA_ACCESS_ROLE_ARN` | Optional arn of IAM Role for S3 bucket data access, if not provided default role for the lambda construct is used |
+| `DELTA_RASTER_DATA_ACCESS_ROLE_ARN` | Optional arn of IAM Role to be assumed by raster-api for S3 bucket data access, if not provided default role for the lambda construct is used |
 
 ### CDK context
 Currently a named version of the CDK toolkit is used for deployments. To use the default CDK toolkit bootstrapped for the account, remove `"@aws-cdk/core:bootstrapQualifier"` from the `"context"` in [`cdk.json`](cdk.json).
