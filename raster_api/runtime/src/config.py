@@ -6,6 +6,8 @@ from typing import Optional
 
 import boto3
 import pydantic
+from pydantic import BaseSettings, Field
+from rasterio.session import AWSSession
 
 from titiler.pgstac.settings import PostgresSettings
 
@@ -33,7 +35,17 @@ def get_secret_dict(secret_name: str):
         return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
-class ApiSettings(pydantic.BaseSettings):
+def get_role_credentials(role_arn: str):
+    """Get AWS IAM role credentials from ARN"""
+
+    sts = boto3.client("sts")
+    return sts.assume_role(
+        RoleArn=role_arn,
+        RoleSessionName="AssumeRoleSession",
+    )["Credentials"]
+
+
+class ApiSettings(BaseSettings):
     """API settings"""
 
     name: str = "delta-raster"
@@ -65,6 +77,37 @@ class ApiSettings(pydantic.BaseSettings):
             )
         else:
             return PostgresSettings()
+
+    data_access_role_arn: Optional[str] = Field(
+        None,
+        description="Resource name of role permitting access to specified external S3 buckets",
+    )
+
+    def get_gdal_config(self):
+        """return default aws session config or assume role data_access_role_arn credentials session"""
+        # STS assume data access role for session credentials
+        if self.data_access_role_arn:
+            try:
+                data_access_credentials = get_role_credentials(
+                    self.data_access_role_arn
+                )
+                return {
+                    "session": AWSSession(
+                        aws_access_key_id=data_access_credentials["AccessKeyId"],
+                        aws_secret_access_key=data_access_credentials[
+                            "SecretAccessKey"
+                        ],
+                        aws_session_token=data_access_credentials["SessionToken"],
+                    )
+                }
+            except Exception as e:
+                print(
+                    f"Unable to assume role {self.data_access_role_arn} with exception={e}"
+                )
+                return {}
+        else:
+            # Use the default role of this lambda
+            return {}
 
     class Config:
         """model config"""

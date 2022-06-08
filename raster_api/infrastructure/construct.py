@@ -88,6 +88,7 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         CfnOutput(self, "raster-api", value=self.raster_api.url)
+        CfnOutput(self, "raster-api-arn", value=delta_raster_function.function_arn)
 
         delta_raster_function.add_to_role_policy(
             aws_iam.PolicyStatement(
@@ -99,6 +100,28 @@ class RasterApiLambdaConstruct(Construct):
             )
         )
 
-        database.pgstac.connections.allow_from(
-            delta_raster_function, port_range=aws_ec2.Port.tcp(5432)
-        )
+        # Optional use sts assume role with GetObject permissions for external S3 bucket(s)
+        if delta_raster_settings.data_access_role_arn:
+            # Get the role for external data access
+            data_access_role = aws_iam.Role.from_role_arn(
+                self,
+                "data-access-role",
+                delta_raster_settings.data_access_role_arn,
+            )
+            # Allow data access role to be assumed by lambda
+            data_access_role.grant_principal.add_to_principal_policy(
+                aws_iam.PolicyStatement(
+                    actions=["sts:AssumeRole"],
+                    effect=aws_iam.Effect.ALLOW,
+                    resources=[delta_raster_function.function_arn],
+                )
+            )
+            # Allow this lambda to assume the data access role
+            data_access_role.grant(
+                delta_raster_function.grant_principal,
+                "sts:AssumeRole",
+            )
+            delta_raster_function.add_environment(
+                "DELTA_RASTER_DATA_ACCESS_ROLE_ARN",
+                delta_raster_settings.data_access_role_arn,
+            )
