@@ -12,8 +12,13 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 ## Deployment
 ### Overview
 TODO
+
 ### Prerequisites
+#### Local Deployment
 TODO
+#### Cloud deployment
+TODO
+
 ### Enviroment variables
 
 An [.example.env](.example.env) template is supplied for for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `delta-backend/<stage>-env`, for example the `dev` stack environment variables secret is named `delta-backend/dev-env`.
@@ -41,6 +46,9 @@ An [.example.env](.example.env) template is supplied for for local deployments. 
 Currently a named version of the CDK toolkit is used for deployments. To use the default CDK toolkit bootstrapped for the account, remove `"@aws-cdk/core:bootstrapQualifier"` from the `"context"` in [`cdk.json`](cdk.json).
 
 ### Deploying the delta-backend
+#### Local Deployment
+TODO
+#### Cloud deployment
 TODO
 
 ### Gotchas
