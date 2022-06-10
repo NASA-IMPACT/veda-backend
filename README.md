@@ -41,6 +41,7 @@ Currently a named version of the CDK toolkit is used for deployments. To use the
 
 ```bash
 nvm install 17
+nvm use 17
 node --version
 npm install --location=global aws-cdk
 python3 -m pip install --upgrade pip
