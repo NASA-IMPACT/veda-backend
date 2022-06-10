@@ -50,6 +50,22 @@ cdk synth
 cdk deploy
 ```
 
+### MCP requirements
+
+In order to configure the lambda to be able to communicate with secretsmanager, a VPC interface endpoint must be configured.
+
+```
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-XXX \
+  --vpc-endpoint-type Interface \
+  --service-name com.amazonaws.us-west-2.secretsmanager \
+  --subnet-ids <private subnets of the lambda>
+```
+
+- added inbound rule of ALL type to security group attached to VPc endpoint (i think 443 may be ok)
+- add configuration of endpoint_url as part of the boto3 client (not sure this is 100% necessary)
+
+
 ## Operations
 
 ## Ingesting metadata
