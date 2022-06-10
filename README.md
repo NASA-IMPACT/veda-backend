@@ -15,14 +15,19 @@ TODO
 
 ### Prerequisites
 #### All Deployments
+##### Tooling
 -[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
-
 -[AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
-
 #### Local Deployment
+##### Tooling 
 -[Docker](https://docs.docker.com/get-docker/)
 #### Cloud deployment
+##### Tooling 
 TODO
+##### Access
+- Kion
+- Stuff + Things?
+- 
 
 ### Enviroment variables
 
