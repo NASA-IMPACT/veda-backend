@@ -53,11 +53,19 @@ Currently a named version of the CDK toolkit is used for deployments. To use the
 ### Deploying the delta-backend
 #### Local Deployment
 TODO
+
 #### Cloud deployment
 TODO
+##### Checking status
+The status of the deployment can be checked by going to <XXX> for the deployment in question and going to the resources tab.
+The reference for the deployment can be found by <YYY>.
+The resources tab will show the name and status of the various resources in the deployment.
+To find out more information <ZZZ>.
 
 ### Gotchas
 TODO
+
+###
 
 ## Operations
 
