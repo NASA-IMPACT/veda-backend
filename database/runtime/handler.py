@@ -10,8 +10,8 @@ import psycopg
 import requests
 from psycopg import sql
 from psycopg.conninfo import make_conninfo
-from pypgstac.migrate import run_migration
-
+from pypgstac.migrate import Migrate
+from pypgstac.db import PgstacDB
 
 def send(
     event,
@@ -69,6 +69,8 @@ def get_secret(secret_name):
     print(f"Fetching {secret_name}")
     client = boto3.client(
         service_name="secretsmanager",
+        # TODO: deploy this as environment variable
+        endpoint_url="https://secretsmanager.us-west-2.amazonaws.com"
     )
     response = client.get_secret_value(SecretId=secret_name)
     return json.loads(response["SecretString"])
@@ -271,7 +273,10 @@ def handler(event, context):
             port=connection_params["port"],
         )
 
-        asyncio.run(run_migration(dsn))
+        pgdb = PgstacDB(dsn)
+        pgdb.query("DROP SCHEMA IF EXISTS pgstac CASCADE;")
+        migrator = Migrate(pgdb)
+        print(migrator.run_migration())
 
         print("Adding mosaic index...")
         with psycopg.connect(
