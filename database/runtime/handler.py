@@ -274,7 +274,7 @@ def handler(event, context):
         )
 
         pgdb = PgstacDB(dsn)
-        pgdb.query("DROP SCHEMA IF EXISTS pgstac CASCADE;")
+        # pgdb.query("DROP SCHEMA IF EXISTS pgstac CASCADE;")
         migrator = Migrate(pgdb)
         print(migrator.run_migration())
 
