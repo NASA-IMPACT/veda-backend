@@ -13,11 +13,15 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 ### Overview
 TODO
 
+### Other Documentation
+#### Tooling
+- [CDK Documentation] (https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
+
 ### Prerequisites
 #### All Deployments
 ##### Tooling
 -[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
--[AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
+-[AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)
 #### Local Deployment
 ##### Tooling 
 -[Docker](https://docs.docker.com/get-docker/)
