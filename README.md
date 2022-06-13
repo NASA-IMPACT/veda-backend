@@ -27,7 +27,6 @@ TODO
 ##### Access
 - Kion
 - Stuff + Things?
-- 
 
 ### Enviroment variables
 
@@ -56,11 +55,24 @@ An [.example.env](.example.env) template is supplied for for local deployments. 
 Currently a named version of the CDK toolkit is used for deployments. To use the default CDK toolkit bootstrapped for the account, remove `"@aws-cdk/core:bootstrapQualifier"` from the `"context"` in [`cdk.json`](cdk.json).
 
 ### Deploying the delta-backend
-#### Local Deployment
+#### Local Docker Deployment
 TODO
 
 #### Cloud deployment
-TODO
+- Install prerequisites (see above)
+```bash
+nvm install 17
+node --version
+npm install --location=global aws-cdk
+python3 -m pip install --upgrade pip
+```
+- Install ???, Perform CDK Synth and Deploy
+```bash
+python3 -m pip install -e ".[dev,deploy,test]"
+cdk synth
+cdk deploy
+```
+
 ##### Checking status
 The status of the deployment can be checked by going to <XXX> for the deployment in question and going to the resources tab.
 The reference for the deployment can be found by <YYY>.
@@ -68,9 +80,10 @@ The resources tab will show the name and status of the various resources in the 
 To find out more information <ZZZ>.
 
 ### Gotchas
+#### General
 TODO
-
-###
+#### MCP
+TODO
 
 ## Operations
 
