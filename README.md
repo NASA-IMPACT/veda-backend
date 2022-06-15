@@ -78,10 +78,9 @@ cdk deploy
 ```
 
 ##### Checking status
-The status of the deployment can be checked by going to <XXX> for the deployment in question and going to the resources tab.
-The reference for the deployment can be found by <YYY>.
-The resources tab will show the name and status of the various resources in the deployment.
-To find out more information <ZZZ>.
+After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
+
+The Cloudformation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
 
 ### Gotchas
 #### General
