@@ -59,34 +59,54 @@ An [.example.env](.example.env) template is supplied for for local deployments. 
 Currently a named version of the CDK toolkit is used for deployments. To use the default CDK toolkit bootstrapped for the account, remove `"@aws-cdk/core:bootstrapQualifier"` from the `"context"` in [`cdk.json`](cdk.json).
 
 ### Deploying the delta-backend
+
 #### Local Docker Deployment
 TODO
 
 #### Cloud deployment
-- Install prerequisites (see above)
+
+Install pre-requisites
 ```bash
 nvm install 17
+nvm use 17
 node --version
 npm install --location=global aws-cdk
 python3 -m pip install --upgrade pip
-```
-- Install ???, Perform CDK Synth and Deploy
-```bash
 python3 -m pip install -e ".[dev,deploy,test]"
+```
+
+Run the deployment
+```
 cdk synth
 cdk deploy
 ```
 
 ##### Checking status
+
 After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
 
 The Cloudformation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
 
 ### Gotchas
+
 #### General
 TODO
-#### MCP
-TODO
+
+### MCP requirements
+
+In order to configure the lambda to be able to communicate with secretsmanager, a VPC interface endpoint must be configured.
+
+```
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-XXX \
+  --vpc-endpoint-type Interface \
+  --service-name com.amazonaws.us-west-2.secretsmanager \
+  --subnet-ids <private subnets of the lambda>
+```
+
+- added inbound rule of ALL type to security group attached to VPc endpoint (i think 443 may be ok)
+- add configuration of endpoint_url as part of the boto3 client (not sure this is 100% necessary)
+
 
 ## Operations
 

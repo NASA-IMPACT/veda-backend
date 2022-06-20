@@ -22,10 +22,11 @@ class DeltaStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         if delta_app_settings.permissions_boundary_policy:
-            permission_boundary_policy = (
-                aws_iam.ManagedPolicy.from_aws_managed_policy_name(
-                    delta_app_settings.permissions_boundary_policy,
-                )
+            policy_name = delta_app_settings.permissions_boundary_policy
+            permission_boundary_policy = aws_iam.Policy.from_policy_name(
+                id=policy_name,
+                scope=self,
+                policy_name=policy_name
             )
             aws_iam.PermissionsBoundary.of(self).apply(permission_boundary_policy)
 
