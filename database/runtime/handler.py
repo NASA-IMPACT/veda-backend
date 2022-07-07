@@ -10,7 +10,8 @@ import psycopg
 import requests
 from psycopg import sql
 from psycopg.conninfo import make_conninfo
-from pypgstac.migrate import run_migration
+from pypgstac.migrate import Migrate
+from pypgstac.db import PgstacDB
 
 
 def send(
@@ -121,6 +122,8 @@ def create_permissions(cursor, db_name: str, username: str) -> None:
             "GRANT ALL PRIVILEGES ON TABLES TO {username};"
             "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
             "GRANT ALL PRIVILEGES ON SEQUENCES TO {username};"
+            "GRANT pgstac_read TO {username};"
+            "GRANT pgstac_ingest TO {username};"
         ).format(
             db_name=sql.Identifier(db_name),
             username=sql.Identifier(username),
@@ -176,14 +179,15 @@ def create_update_default_summaries_function(cursor) -> None:
         ) summaries,
         collections.id coll_id
         FROM items
-        JOIN collections on items.collection_id = collections.id
+        JOIN collections on items.collection = collections.id
         WHERE collections.id = _collection_id
         GROUP BY collections."content" , collections.id
     )
     UPDATE collections SET "content" = "content" || coll_item_cte.summaries
     FROM coll_item_cte
     WHERE collections.id = coll_item_cte.coll_id;
-    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;"""
+    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;
+    """
 
     cursor.execute(sql.SQL(update_default_summary_sql))
 
@@ -215,15 +219,15 @@ def handler(event, context):
         connection_params = get_secret(params["conn_secret_arn"])
         user_params = get_secret(params["new_user_secret_arn"])
 
-        print("Connecting to DB...")
-        con_str = make_conninfo(
+        print("Connecting to admin DB...")
+        admin_db_conninfo = make_conninfo(
             dbname=connection_params.get("dbname", "postgres"),
             user=connection_params["username"],
             password=connection_params["password"],
             host=connection_params["host"],
             port=connection_params["port"],
         )
-        with psycopg.connect(con_str, autocommit=True) as conn:
+        with psycopg.connect(admin_db_conninfo, autocommit=True) as conn:
             with conn.cursor() as cur:
                 print("Creating database...")
                 create_db(
@@ -250,32 +254,39 @@ def handler(event, context):
         # otherwise fail to install when run as
         # the non-superuser within the pgstac
         # migrations.
-        print("Connecting to DB...")
-        con_str = make_conninfo(
+        print("Connecting to STAC DB...")
+        stac_db_conninfo = make_conninfo(
             dbname=user_params["dbname"],
             user=connection_params["username"],
             password=connection_params["password"],
             host=connection_params["host"],
             port=connection_params["port"],
         )
-        with psycopg.connect(con_str, autocommit=True) as conn:
+        with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
             with conn.cursor() as cur:
                 print("Registering PostGIS ...")
                 register_extensions(cursor=cur)
 
-        dsn = "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
-            dbname=user_params.get("dbname", "postgres"),
-            user=user_params["username"],
-            password=user_params["password"],
-            host=connection_params["host"],
-            port=connection_params["port"],
+        stac_db_admin_dsn = (
+            "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
+                dbname=user_params.get("dbname", "postgres"),
+                user=connection_params["username"],
+                password=connection_params["password"],
+                host=connection_params["host"],
+                port=connection_params["port"],
+            )
         )
 
-        asyncio.run(run_migration(dsn))
+        pgdb = PgstacDB(dsn=stac_db_admin_dsn, debug=True)
+        print(f"Current {pgdb.version=}")
+
+        # As admin, run migrations
+        print("Running migrations...")
+        Migrate(pgdb).run_migration(params["pgstac_version"])
 
         print("Adding mosaic index...")
         with psycopg.connect(
-            dsn,
+            stac_db_admin_dsn,
             autocommit=True,
             options="-c search_path=pgstac,public -c application_name=pgstac",
         ) as conn:
@@ -286,19 +297,12 @@ def handler(event, context):
             )
 
         # As admin, create custom dashboard schema and functions and grant privileges to bootstrapped user
-        con_str = make_conninfo(
-            dbname=user_params["dbname"],
-            user=connection_params["username"],
-            password=connection_params["password"],
-            host=connection_params["host"],
-            port=connection_params["port"],
-        )
-        with psycopg.connect(con_str, autocommit=True) as conn:
+        with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
             with conn.cursor() as cur:
-                print("Creating dashboard schema")
+                print("Creating dashboard schema...")
                 create_dashboard_schema(cursor=cur, username=user_params["username"])
 
-                print("Creating update_default_summaries functions")
+                print("Creating update_default_summaries functions...")
                 create_update_default_summaries_function(cursor=cur)
                 create_update_all_default_summaries_function(cursor=cur)
 
