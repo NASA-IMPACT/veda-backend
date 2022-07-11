@@ -1,7 +1,10 @@
 name: CI
 
-# On every pull request, but only on push to master
-on: [push]
+on:
+  push:
+    branches:
+    - main
+    - develop
 
 jobs:
   lint:
