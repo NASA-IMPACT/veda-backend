@@ -107,6 +107,10 @@ jobs:
       - name: Get environment configuration
         run: ./scripts/get-env.sh "delta-backend/dev-env"
 
+      - name: Set deployment stage to dev
+        if: ${{github.event.ref == 'refs/heads/develop'}}
+        run: ./scripts/get-env.sh "delta-backend/dev-env"
+
       - name: Deploy 
         run: |
           echo $STAGE
