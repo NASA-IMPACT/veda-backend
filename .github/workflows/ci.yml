@@ -1,6 +1,9 @@
 name: CI
 
-on: [push]
+on:
+  push:
+    branches:
+    - develop
 
 jobs:
   lint:
@@ -64,7 +67,8 @@ jobs:
         run: docker-compose stop
 
   deploy: 
-    
+    needs: [test]
+
     runs-on: ubuntu-latest
     steps:
     
@@ -104,10 +108,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .[dev,deploy,test] 
 
-      - name: Get environment configuration
-        run: ./scripts/get-env.sh "delta-backend/dev-env"
-
-      - name: Set deployment stage to dev
+      - name: Get dev environment configuration for develop branch
         if: ${{github.event.ref == 'refs/heads/develop'}}
         run: ./scripts/get-env.sh "delta-backend/dev-env"
 
