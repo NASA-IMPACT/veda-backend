@@ -7,7 +7,10 @@ ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 RUN pip install boto3
 
 COPY stac_api/runtime /tmp/stac
-RUN pip install /tmp/stac
+# Installing boto3, which isn't needed in the lambda container instance
+# since lambda execution environment includes boto3 by default
+RUN pip install boto3
+RUN pip install /tmp/stac 
 RUN rm -rf /tmp/stac
 
 ENV MODULE_NAME src.app
