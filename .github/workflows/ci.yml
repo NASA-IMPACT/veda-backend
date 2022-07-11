@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches:
+    - main
     - develop
 
 jobs:
@@ -111,6 +112,10 @@ jobs:
       - name: Get dev environment configuration for develop branch
         if: ${{github.event.ref == 'refs/heads/develop'}}
         run: ./scripts/get-env.sh "delta-backend/dev-env"
+
+      - name: Get staging environment configuration for main branch
+        if: ${{github.event.ref == 'refs/heads/main'}}
+        run: ./scripts/get-env.sh "delta-backend/staging-env"
 
       - name: Deploy 
         run: |
