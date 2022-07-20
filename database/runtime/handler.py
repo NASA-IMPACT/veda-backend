@@ -2,7 +2,6 @@
 Custom resource lambda handler to bootstrap Postgres db.
 Source: https://github.com/developmentseed/eoAPI/blob/master/deployment/handlers/db_handler.py
 """
-import asyncio
 import json
 
 import boto3
@@ -124,6 +123,7 @@ def create_permissions(cursor, db_name: str, username: str) -> None:
             "GRANT ALL PRIVILEGES ON SEQUENCES TO {username};"
             "GRANT pgstac_read TO {username};"
             "GRANT pgstac_ingest TO {username};"
+            "GRANT pgstac_admin TO {username};"
         ).format(
             db_name=sql.Identifier(db_name),
             username=sql.Identifier(username),
@@ -242,13 +242,6 @@ def handler(event, context):
                     password=user_params["password"],
                 )
 
-                print("Setting permissions...")
-                create_permissions(
-                    cursor=cur,
-                    db_name=user_params["dbname"],
-                    username=user_params["username"],
-                )
-
         # Install extensions on the user DB with
         # superuser permissions, since they will
         # otherwise fail to install when run as
@@ -283,6 +276,16 @@ def handler(event, context):
         # As admin, run migrations
         print("Running migrations...")
         Migrate(pgdb).run_migration(params["pgstac_version"])
+
+        # Assign appropriate permissions to user (requires pgSTAC migrations to have run)
+        with psycopg.connect(admin_db_conninfo, autocommit=True) as conn:
+            with conn.cursor() as cur:
+                print("Setting permissions...")
+                create_permissions(
+                    cursor=cur,
+                    db_name=user_params["dbname"],
+                    username=user_params["username"],
+                )
 
         print("Adding mosaic index...")
         with psycopg.connect(
