@@ -1,4 +1,4 @@
-name: CI
+name: Main - Lint, Test, and Deploy Workflow
 
 on:
   push:
