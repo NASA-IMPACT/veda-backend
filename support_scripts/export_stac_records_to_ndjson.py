@@ -1,9 +1,9 @@
 """A utility script to create ndjson STAC Collection and Item records from a given STAC catalog, not intended for large catalogs"""
-import os
 import argparse
-from datetime import datetime
 import json
+import os
 import shutil
+from datetime import datetime
 from typing import List, Optional
 
 import boto3
@@ -35,7 +35,7 @@ parser.add_argument(
     type=str,
     required=False,
     default=None,
-    help="Optional S3 destination bucket to store ndjson backup. If not provided, local files will be created.",
+    help="Optional S3 destination bucket to store ndjson backup. If not provided, only local files will be created.",
 )
 parser.add_argument(
     "-n",
@@ -69,12 +69,17 @@ args = parser.parse_args()
 
 def strip_dynamic_links(links: List[dict]) -> List[Optional[dict]]:
     """Strips dynamic catalog-specific links"""
-    return [link for link in links if link["rel"] not in ["collection", "items", "parent", "root", "self"]]
+    return [
+        link
+        for link in links
+        if link["rel"] not in ["collection", "items", "parent", "root", "self"]
+    ]
 
-# Setup destination 
+
+# Setup destination
 date_prefix = datetime.utcnow().isoformat(timespec="hours")
 prefix = date_prefix if not args.prefix else os.path.join(args.prefix, date_prefix)
-collections_path = os.path.join(prefix,"collections-nd.json")
+collections_path = os.path.join(prefix, "collections-nd.json")
 os.makedirs(prefix, exist_ok=True)
 
 
@@ -82,7 +87,7 @@ os.makedirs(prefix, exist_ok=True)
 if args.bucket:
     bucket = args.bucket
     session = boto3.Session(profile_name=args.profile_name)
-    s3_client = session.client('s3')
+    s3_client = session.client("s3")
 
 # Get STAC catalog
 stac_client = Client.open(args.stac_api)
@@ -94,42 +99,46 @@ else:
     collections = stac_client.get_all_collections()
 
 # Iterate over collections and produce ndjson
-with open(collections_path, "w") as f_collections:
-    for collection in collections:
-        collection_dict = collection.to_dict(include_self_link=False)
-        collection_dict["links"] = strip_dynamic_links(collection_dict["links"]) # TODO confirm that pypgstac will ignore self, parent, child links on load or strip these
+for collection in collections:
+    with open(collections_path, "a") as f_collections:
+        print(f"Starting {collection.id}")
 
+        collection_dict = collection.to_dict(include_self_link=False)
+        collection_dict["links"] = strip_dynamic_links(
+            collection_dict["links"]
+        )  # TODO confirm that pypgstac will ignore self, parent, child links on load or strip these
         f_collections.write(f"{json.dumps(collection_dict)}\n")
-        print(f"Collection {collection.id} written to {collections_path}")
 
         items_path = os.path.join(prefix, f"items-{collection.id}-nd.json")
-        items_search = stac_client.search(collections=[collection.id])
+        items_search = stac_client.search(collections=[collection.id], max_items=None)
+        item_count = 0
         with open(items_path, "w") as f_items:
-            items_dict = items_search.get_all_items_as_dict()
             for item in items_search.get_items():
                 item_dict = item.to_dict(include_self_link=False)
                 item_dict["links"] = strip_dynamic_links(item_dict["links"])
                 f_items.write(f"{json.dumps(item_dict)}\n")
+                item_count += 1
 
         # Upload items object if bucket config provided
         if args.bucket:
-            print(f"Uploading {items_path=} to {bucket=}")
+            print(f"Uploading {items_path=} {item_count=} to {bucket=}")
             try:
                 response = s3_client.upload_file(items_path, bucket, items_path)
             except ClientError as e:
                 raise e
-        
-    # Upload collections object if bucket config provided
-    if args.bucket:
-        print(f"Uploading {collections_path=} to {bucket=}")
-        try:
-            response = s3_client.upload_file(collections_path, bucket, collections_path)
-        except ClientError as e:
-            raise e
-    
-    if args.delete_local:
-        print(f"Processing complete, removing {prefix=}")
-        shutil.rmtree(prefix)
 
-    print("fin.")
+        # Upload collections object if bucket config provided
+        if args.bucket:
+            print(f"Uploading {collections_path=} to {bucket=}")
+            try:
+                response = s3_client.upload_file(
+                    collections_path, bucket, collections_path
+                )
+            except ClientError as e:
+                raise e
 
+if args.delete_local:
+    print(f"Processing complete, removing {prefix=}")
+    shutil.rmtree(prefix)
+
+print("fin.")

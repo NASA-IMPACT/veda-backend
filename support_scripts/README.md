@@ -1,11 +1,13 @@
 # Operations Support Scripts
 Tools for performing maintenance operations that are not yet automated.
+- [Rotate pgstac password](#rotate-pgstac-password)
+- [Export STAC records to NDJSON](#export-stac-records-to-ndjson)
 
 ## Rotate pgstac password
 This cli script will rotate the postgres connection password in a specified AWS SecretsManager Secret, update the corresponding role in the postgres database, and trigger all services that depend on postgres connections to retrieve the updated secret.
 
 ### Usage
-`support_scripts/rotate_pgstac_password.py -h`
+`python support_scripts/rotate_pgstac_password.py -h`
 
 ### Required input parameters
 To use the script, the following AWS resource names are required
@@ -15,3 +17,30 @@ To use the script, the following AWS resource names are required
 
 ### Optional dry run
 This this tool has a dry run mode that will not alter the database role or AWS secrets **`--dry`**.
+
+## Export STAC records to NDJSON
+Export a full STAC catalog or single STAC collection to newline delimited JSON archive (preferred format for uploading files to a pgstac catalog using [pypgstac](https://stac-utils.github.io/pgstac/pypgstac/#bulk-data-loading)). Note that this script is not optimized and may not perform as expected for large STAC catalogs.
+
+### Required input parameters
+- **`--stac_api`** Url of STAC catalog
+
+### Optional input parameters
+- `--collection_id` Identifier for collection to back up. If not supplied all collections will be included.
+- `--bucket` S3 destination bucket to store ndjson backup. If not provided, only local files will be created.
+- `--prefix` S3 destination key prefix or local path prefix to store ndjson backup.
+- `--profile_name` AWS profile name for boto3 session configuration.
+- `--delete` Flag to delete local files at the end of processing, defaults False
+
+### Output
+These files will be uploaded to S3 if a bucket is provided, and will be deleted at the end of the run if the --delete flag is set.
+
+```
+.
+├── <prefix>
+│   └── YYYY-MM-DDTHH
+│       ├── collections-nd.json
+│       └── items-<collection_id>-nd.json
+```
+
+### Usage
+`python support_scripts/export_stac_records_to_ndjson.py -h`
