@@ -4,7 +4,6 @@ on:
   push:
     branches:
     - main
-    - develop
 
 jobs:
   lint:
@@ -109,12 +108,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .[dev,deploy,test] 
 
-      - name: Get dev environment configuration for develop branch
-        if: ${{github.event.ref == 'refs/heads/develop'}}
-        run: ./scripts/get-env.sh "delta-backend/dev-env"
-
       - name: Get staging environment configuration for main branch
-        if: ${{github.event.ref == 'refs/heads/main'}}
         run: ./scripts/get-env.sh "delta-backend/staging-env"
 
       - name: Deploy 
