@@ -9,8 +9,8 @@ import psycopg
 import requests
 from psycopg import sql
 from psycopg.conninfo import make_conninfo
-from pypgstac.migrate import Migrate
 from pypgstac.db import PgstacDB
+from pypgstac.migrate import Migrate
 
 
 def send(
