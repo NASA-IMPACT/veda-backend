@@ -124,7 +124,7 @@ jobs:
           DELTA_RASTER_BUCKET=climatedashboard-data \
           DELTA_DOMAIN_HOSTED_ZONE_ID=Z061650539BO6YWF9XDMA \
           DELTA_DOMAIN_HOSTED_ZONE_NAME=delta-backend.xyz \
-          DELTA_DB_PGSTAC_VERSION=0.4.5 \
-          DELTA_DB_SCHEMA_VERSION=0.1.1 \
+          DELTA_DB_PGSTAC_VERSION=0.6.6 \
+          DELTA_DB_SCHEMA_VERSION=0.1.2 \
           cdk diff delta-backend-${{ env.STAGE }}
           
