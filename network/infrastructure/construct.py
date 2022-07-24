@@ -61,21 +61,17 @@ class VpcConstruct(Construct):
                 nat_gateways=delta_vpc_settings.nat_gateways,
             )
 
-            interface_endpoints = [
-                (
-                    "secretsmanager",
-                    aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-                ),
-                (
-                    "cloudwatch-logs",
-                    aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
-                ),
-            ]
-            for (id, service) in interface_endpoints:
-                self.vpc.add_interface_endpoint(id, service=service)
+            vpc_endpoints = {
+                "secretsmanager": aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+                "cloudwatch-logs": aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
+                "s3": aws_ec2.GatewayVpcEndpointAwsService.S3,
+                "dynamodb": aws_ec2.GatewayVpcEndpointAwsService.DYNAMODB,
+            }
 
-            gateway_endpoints = [("s3", aws_ec2.GatewayVpcEndpointAwsService.S3)]
-            for (id, service) in gateway_endpoints:
-                self.vpc.add_gateway_endpoint(id, service=service)
+            for (id, service) in vpc_endpoints.items():
+                if isinstance(service, aws_ec2.InterfaceVpcEndpointAwsService):
+                    self.vpc.add_interface_endpoint(id, service=service)
+                elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):
+                    self.vpc.add_gateway_endpoint(id, service=service)
 
         CfnOutput(self, "vpc-id", value=self.vpc.vpc_id)
