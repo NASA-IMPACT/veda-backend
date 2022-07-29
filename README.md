@@ -27,7 +27,7 @@ aws secretsmanager get-secret-value --secret-id ${AWS_SECRET_ID} --query SecretS
 
 | Name | Explanation |
 | --- | --- |
-| `APP_NAME` | Optional app name used to name stack and resources, defaults to `delta-backend` |
+| `APP_NAME` | Optional app name used to name stack and resources, defaults to `delta` |
 | `STAGE` | **REQUIRED** Deployment stage used to name stack and resources, i.e. `dev`, `staging`, `prod` |
 | `VPC_ID` | Optional resource identifier of VPC, if none a new VPC with public and private subnets will be provisioned. |
 | `PERMISSIONS_BOUNDARY_POLICY_NAME` | Optional name of IAM policy to define stack permissions boundary |
@@ -109,7 +109,7 @@ aws ec2 create-vpc-endpoint \
 --route-table-ids <route table ids for each subnet in vpc>
 ```
 
-## Operations
+# Operations
 
 ## Ingesting metadata
 STAC records should be loaded using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac). The [cloud-optimized-data-pipelines](https://github.com/NASA-IMPACT/cloud-optimized-data-pipelines) project provides examples of cloud pipelines that use pypgstac to load data into a STAC catalog, as well as examples of transforming data to cloud optimized formats.
@@ -120,7 +120,7 @@ Support scripts are provided for manual system operations.
 ## Usage examples: 
 
 https://github.com/NASA-IMPACT/veda-documentation
-## STAC community resources
+# STAC community resources
 
-### STAC browser
+## STAC browser
 Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the delta-backend STAC catalog, paste the delta-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
