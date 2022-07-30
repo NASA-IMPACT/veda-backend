@@ -81,6 +81,14 @@ cdk synth
 cdk deploy
 ```
 
+## Deleting the stack
+
+If this is a development stack that is safe to delete, you can delete the stack in Cloudformation console or via `cdk destroy`, however:
+
+1. you will need to disable deletion protection and delete the database and delete the database
+2. detach IGW from VPC and delete
+3. delete the VPC (this should delete a subnet and security group too)
+
 ##### Checking status
 
 After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
@@ -123,3 +131,4 @@ https://github.com/NASA-IMPACT/veda-documentation
 
 ### STAC browser
 Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the delta-backend STAC catalog, paste the delta-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
+
