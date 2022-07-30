@@ -19,7 +19,7 @@ extra_reqs = {
         "pytest",
         "pytest-asyncio",
         "httpx",
-        "pypgstac",
+        "pypgstac==0.6.6",
     ],
 }
 
