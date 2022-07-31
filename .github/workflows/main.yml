@@ -1,11 +1,9 @@
-name: CI
+name: Main - Lint, Test, and Deploy Workflow
 
-# On every pull request, but only on push to master
 on:
   push:
     branches:
-    - master
-    - develop
+    - main
 
 jobs:
   lint:
@@ -70,7 +68,7 @@ jobs:
 
   deploy: 
     needs: [test]
-    
+
     runs-on: ubuntu-latest
     steps:
     
@@ -109,22 +107,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .[dev,deploy,test] 
-              
-      - name: Set deployment stage to dev
-        if: ${{github.event.ref == 'refs/heads/develop'}}
-        run: echo "STAGE=staging" >> $GITHUB_ENV
-      
-      - name: Set deployment stage to prod
-        if: ${{ github.event.ref == 'refs/heads/main' }}
-        run: echo "STAGE=prod" >> $GITHUB_ENV 
+
+      - name: Get staging environment configuration for main branch
+        run: ./scripts/get-env.sh "delta-backend/staging-env"
 
       - name: Deploy 
         run: |
-          STAGE=${{ env.STAGE }} \
-          DELTA_RASTER_BUCKET=climatedashboard-data \
-          DELTA_DOMAIN_HOSTED_ZONE_ID=Z061650539BO6YWF9XDMA \
-          DELTA_DOMAIN_HOSTED_ZONE_NAME=delta-backend.xyz \
-          DELTA_DB_PGSTAC_VERSION=0.4.5 \
-          DELTA_DB_SCHEMA_VERSION=0.1.1 \
-          cdk diff delta-backend-${{ env.STAGE }}
+          echo $STAGE
+          cdk diff delta-backend-$STAGE
           
