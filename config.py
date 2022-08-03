@@ -34,7 +34,7 @@ class deltaAppSettings(BaseSettings):
         None,
         description="When deploying from a local machine the AWS region id is required to deploy to an exiting VPC",
     )
-    permissions_boundary_policy: Optional[str] = Field(
+    permissions_boundary_policy_name: Optional[str] = Field(
         None,
         description="Name of IAM policy to define stack permissions boundary",
     )
