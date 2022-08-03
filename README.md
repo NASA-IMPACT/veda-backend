@@ -10,33 +10,29 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 - [titiler-pgstac](https://github.com/stac-utils/titiler-pgstac)
 
 ## Deployment
+
 ### Overview
-TODO
+
+This repo includes CDK scripts to deploy a pgSTAC AWS RDS database and other resources to support APIs maintained by the VEDA backend development team.
 
 ### Other Documentation
+
 #### Tooling
-- [CDK Documentation] (https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
+
+- [CDK Documentation](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
 
 ### Prerequisites
-#### All Deployments
+
 ##### Tooling
 -[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
 -[AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)
-#### Local Deployment
-##### Tooling 
--[Docker](https://docs.docker.com/get-docker/)
-#### Cloud deployment
-##### Tooling 
-TODO
-##### Access
-- Kion
-- Stuff + Things?
 
 ### Enviroment variables
 
 An [.example.env](.example.env) template is supplied for for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `<app-name>-backend/<stage>-env`, for example `delta-backend/dev-env`.
 
 ### Fetch environment variables using AWS CLI
+
 To retrieve the variables for a stage that has been previously deployed, the secrets manager can be used to quickly populate an .env file. 
 > Note: The environment variables stored as AWS secrets are manually maintained and should be reviewed before using.
 
@@ -68,10 +64,13 @@ aws secretsmanager get-secret-value --secret-id ${AWS_SECRET_ID} --query SecretS
 
 ## Deployment to an existing VPC
 
-### Deploying the delta-backend
+ADD ME
+
+### Deploying delta-backend
 
 #### Local Docker Deployment
-TODO
+
+ADD ME
 
 #### Cloud deployment
 
@@ -104,11 +103,12 @@ If this is a development stack that is safe to delete, you can delete the stack 
 After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
 
 The Cloudformation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
+  
+## Deployment to MCP
+  
+### Access
 
-### Gotchas
-
-#### General
-TODO
+  At this time, this project requires that anyone deploying to the Mission Cloud Platform (MCP) environments should have gone through a NASA credentialing process and then submitted and gotten approval for access to the VEDA project on MCP.
 
 ### MCP requirements
 
