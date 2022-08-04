@@ -67,9 +67,7 @@ def get_secret(secret_name):
     """Get Secrets from secret manager."""
     print(f"Fetching {secret_name}")
     client = boto3.client(
-        service_name="secretsmanager",
-        # TODO: deploy this as environment variable
-        endpoint_url="https://secretsmanager.us-west-2.amazonaws.com"
+        service_name="secretsmanager"
     )
     response = client.get_secret_value(SecretId=secret_name)
     return json.loads(response["SecretString"])
