@@ -11,11 +11,28 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 
 ## Deployment
 
+### Overview
+
+This repo includes CDK scripts to deploy a pgSTAC AWS RDS database and other resources to support APIs maintained by the VEDA backend development team.
+
+### Other Documentation
+
+#### Tooling
+
+- [CDK Documentation](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
+
+### Prerequisites
+
+##### Tooling
+-[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
+-[AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)
+
 ### Enviroment variables
 
 An [.example.env](.example.env) template is supplied for for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `<app-name>-backend/<stage>-env`, for example `delta-backend/dev-env`.
 
 ### Fetch environment variables using AWS CLI
+
 To retrieve the variables for a stage that has been previously deployed, the secrets manager can be used to quickly populate an .env file. 
 > Note: The environment variables stored as AWS secrets are manually maintained and should be reviewed before using.
 
@@ -46,6 +63,69 @@ aws secretsmanager get-secret-value --secret-id ${AWS_SECRET_ID} --query SecretS
 | `DELTA_RASTER_DATA_ACCESS_ROLE_ARN` | Optional arn of IAM Role to be assumed by raster-api for S3 bucket data access, if not provided default role for the lambda construct is used |
 
 ## Deployment to an existing VPC
+
+ADD ME
+
+### Deploying delta-backend
+
+#### Local Docker Deployment
+
+ADD ME
+
+#### Cloud deployment
+
+Install pre-requisites
+```bash
+nvm install 17
+nvm use 17
+node --version
+npm install --location=global aws-cdk
+python3 -m pip install --upgrade pip
+python3 -m pip install -e ".[dev,deploy,test]"
+```
+
+Run the deployment
+```
+cdk synth
+cdk deploy
+```
+
+## Deleting the stack
+
+If this is a development stack that is safe to delete, you can delete the stack in Cloudformation console or via `cdk destroy`, however, the additional manual steps were required to completely delete the stack resources:
+
+1. You will need to disable deletion protection of the RDS database and delete the database.
+2. Detach the Internet Gateway (IGW) from the VPC and delete it.
+3. If this stack created a new VPC, delete the VPC (this should delete a subnet and security group too).
+
+##### Checking status
+
+After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
+
+The Cloudformation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
+  
+## Deployment to MCP
+  
+### Access
+
+  At this time, this project requires that anyone deploying to the Mission Cloud Platform (MCP) environments should have gone through a NASA credentialing process and then submitted and gotten approval for access to the VEDA project on MCP.
+
+### MCP requirements
+
+In order to configure the lambda to be able to communicate with secretsmanager, a VPC interface endpoint must be configured.
+
+```
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-XXX \
+  --vpc-endpoint-type Interface \
+  --service-name com.amazonaws.us-west-2.secretsmanager \
+  --subnet-ids <private subnets of the lambda>
+```
+
+- added inbound rule of ALL type to security group attached to VPc endpoint (i think 443 may be ok)
+- add configuration of endpoint_url as part of the boto3 client (not sure this is 100% necessary)
+
+
 
 ### Pre-requisite VPC endpoints
 | service-name | vpc-endpoint-type | comments |
@@ -124,3 +204,4 @@ https://github.com/NASA-IMPACT/veda-documentation
 
 ## STAC browser
 Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the delta-backend STAC catalog, paste the delta-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
+
