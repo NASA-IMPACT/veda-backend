@@ -79,7 +79,7 @@ After logging in to the console at https://<account number>.signin.aws.amazon.co
 
 The Cloudformation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
   
-## Deleting the cloud formation stack
+## Deleting the CloudFormation stack
 
 If this is a development stack that is safe to delete, you can delete the stack in Cloudformation console or via `cdk destroy`, however, the additional manual steps were required to completely delete the stack resources:
 
