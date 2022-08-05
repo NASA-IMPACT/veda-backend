@@ -73,15 +73,15 @@ cdk synth
 cdk deploy
 ```
 
-#### Check cloud formation status
+#### Check CloudFormation deployment status
 
 After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
 
-The Cloudformation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
+The CloudFormation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
   
 ## Deleting the CloudFormation stack
 
-If this is a development stack that is safe to delete, you can delete the stack in Cloudformation console or via `cdk destroy`, however, the additional manual steps were required to completely delete the stack resources:
+If this is a development stack that is safe to delete, you can delete the stack in CloudFormation console or via `cdk destroy`, however, the additional manual steps were required to completely delete the stack resources:
 
 1. You will need to disable deletion protection of the RDS database and delete the database.
 2. Detach the Internet Gateway (IGW) from the VPC and delete it.
