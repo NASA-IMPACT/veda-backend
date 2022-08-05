@@ -11,21 +11,12 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 
 ## Deployment
 
-### Overview
+This repo includes CDK scripts to deploy a PgStac AWS RDS database and other resources to support APIs maintained by the VEDA backend development team.
 
-This repo includes CDK scripts to deploy a pgSTAC AWS RDS database and other resources to support APIs maintained by the VEDA backend development team.
-
-### Other Documentation
-
-#### Tooling
+### Tooling & supporting documentation
 
 - [CDK Documentation](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
-
-### Prerequisites
-
-##### Tooling
--[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
--[AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
 
 ### Enviroment variables
 
@@ -37,7 +28,7 @@ To retrieve the variables for a stage that has been previously deployed, the sec
 > Note: The environment variables stored as AWS secrets are manually maintained and should be reviewed before using.
 
 ```
-export AWS_SECRET_ID=delta-backend/<stage>-env
+export AWS_SECRET_ID=<app-name>-backend/<stage>-env
 
 aws secretsmanager get-secret-value --secret-id ${AWS_SECRET_ID} --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' > .env
 ```
@@ -62,19 +53,10 @@ aws secretsmanager get-secret-value --secret-id ${AWS_SECRET_ID} --query SecretS
 | `DELTA_RASTER_ENABLE_MOSAIC_SEARCH` | Optional deploy the raster API with the mosaic/list endpoint TRUE/FALSE |
 | `DELTA_RASTER_DATA_ACCESS_ROLE_ARN` | Optional arn of IAM Role to be assumed by raster-api for S3 bucket data access, if not provided default role for the lambda construct is used |
 
-## Deployment to an existing VPC
+### Deploying to the cloud
 
-ADD ME
+#### Install pre-requisites
 
-### Deploying delta-backend
-
-#### Local Docker Deployment
-
-ADD ME
-
-#### Cloud deployment
-
-Install pre-requisites
 ```bash
 nvm install 17
 nvm use 17
@@ -84,13 +66,20 @@ python3 -m pip install --upgrade pip
 python3 -m pip install -e ".[dev,deploy,test]"
 ```
 
-Run the deployment
+#### Run the deployment
+
 ```
 cdk synth
 cdk deploy
 ```
 
-## Deleting the stack
+#### Check cloud formation status
+
+After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
+
+The Cloudformation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
+  
+## Deleting the cloud formation stack
 
 If this is a development stack that is safe to delete, you can delete the stack in Cloudformation console or via `cdk destroy`, however, the additional manual steps were required to completely delete the stack resources:
 
@@ -98,36 +87,16 @@ If this is a development stack that is safe to delete, you can delete the stack 
 2. Detach the Internet Gateway (IGW) from the VPC and delete it.
 3. If this stack created a new VPC, delete the VPC (this should delete a subnet and security group too).
 
-##### Checking status
-
-After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
-
-The Cloudformation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
+## Deployment to MCP and/or an existing VPC
   
-## Deployment to MCP
-  
-### Access
+### MCP access
 
   At this time, this project requires that anyone deploying to the Mission Cloud Platform (MCP) environments should have gone through a NASA credentialing process and then submitted and gotten approval for access to the VEDA project on MCP.
 
-### MCP requirements
+### MCP and existing VPC endpoint requirements
 
-In order to configure the lambda to be able to communicate with secretsmanager, a VPC interface endpoint must be configured.
+VPC interface endpoints must be configured to allow app components to connect to other services within the VPC and gateway endpoints need to be configured for external connections.
 
-```
-aws ec2 create-vpc-endpoint \
-  --vpc-id vpc-XXX \
-  --vpc-endpoint-type Interface \
-  --service-name com.amazonaws.us-west-2.secretsmanager \
-  --subnet-ids <private subnets of the lambda>
-```
-
-- added inbound rule of ALL type to security group attached to VPc endpoint (i think 443 may be ok)
-- add configuration of endpoint_url as part of the boto3 client (not sure this is 100% necessary)
-
-
-
-### Pre-requisite VPC endpoints
 | service-name | vpc-endpoint-type | comments |
 | -- | -- | -- |
 | secretsmanager | Interface | security group configuration recommendations below |
@@ -189,6 +158,20 @@ aws ec2 create-vpc-endpoint \
 --route-table-ids <route table ids for each subnet in vpc>
 ```
 
+## [OPTIONAL] Deploy standalone base infrastructure
+For convenience, [standalone base infrastructure](standalone_base_infrastructure/README.md#standalone-base-infrastructure) scripts are provided to deploy base infrastructure to simulate deployment in a controlled environment.
+
+## Local Docker deployment
+
+Start up a local stack
+```
+docker compose up
+```
+Clean up after running locally
+```
+docker compose down
+```
+
 # Operations
 
 ## Ingesting metadata
@@ -204,4 +187,3 @@ https://github.com/NASA-IMPACT/veda-documentation
 
 ## STAC browser
 Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the delta-backend STAC catalog, paste the delta-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
-
