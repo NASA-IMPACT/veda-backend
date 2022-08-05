@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """ CDK Configuration for the delta-backend stack."""
 
-from aws_cdk import App, Stack, Tags, aws_iam
+from aws_cdk import App, Stack
 from constructs import Construct
-
-from config import base_settings
 from network_construct import BaseVpcConstruct
+from standalone_config import base_settings
 
 app = App()
+
 
 class BaseStack(Stack):
     """CDK stack for base infrastructure"""
@@ -15,6 +15,7 @@ class BaseStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         """."""
         super().__init__(scope, construct_id, **kwargs)
+
 
 base_stack = BaseStack(
     app,
@@ -25,7 +26,7 @@ base_stack = BaseStack(
         "Stack": base_settings.base_name,
         "Client": "nasa-impact",
         "Owner": "ds",
-    }
+    },
 )
 
 vpc = BaseVpcConstruct(base_stack, "network")

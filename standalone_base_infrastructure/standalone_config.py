@@ -3,8 +3,10 @@ from typing import Optional
 
 from pydantic import BaseSettings, Field
 
+
 class baseSettings(BaseSettings):
     """Settings for standalone base infrastructure"""
+
     base_name: Optional[str] = Field(
         "veda-shared",
         description="Optional name used to name stack and resources",
