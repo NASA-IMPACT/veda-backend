@@ -12,7 +12,7 @@ from .config import dev_vpc_settings, prod_vpc_settings, staging_vpc_settings
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/new-vpc-alb-asg-mysql
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/docker-app-with-asg-alb
 class VpcConstruct(Construct):
-    """CDK construct for delta-abckend VPC."""
+    """CDK construct for delta-backend VPC."""
 
     def __init__(
         self,

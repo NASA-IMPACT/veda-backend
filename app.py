@@ -15,7 +15,7 @@ app = App()
 
 
 class DeltaStack(Stack):
-    """CDK stack for hte delta-backend stack."""
+    """CDK stack for the delta-backend stack."""
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         """."""
