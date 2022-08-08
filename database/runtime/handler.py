@@ -184,7 +184,7 @@ def create_update_default_summaries_function(cursor) -> None:
     UPDATE collections SET "content" = "content" || coll_item_cte.summaries
     FROM coll_item_cte
     WHERE collections.id = coll_item_cte.coll_id;
-    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;
+    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public SET SESSION_REPLICATION_ROLE TO replica;
     """
 
     cursor.execute(sql.SQL(update_default_summary_sql))
@@ -196,7 +196,7 @@ def create_update_all_default_summaries_function(cursor) -> None:
     update_all_default_summaries_sql = """
     CREATE OR REPLACE FUNCTION dashboard.update_all_default_summaries() RETURNS VOID AS $$
     SELECT
-        update_default_summaries(id)
+        dashboard.update_default_summaries(id)
     FROM collections
     WHERE collections."content" ?| array['item_assets', 'dashboard:is_periodic'];
     $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;
