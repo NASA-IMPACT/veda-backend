@@ -26,12 +26,17 @@ class BaseVpcConstruct(Construct):
             subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED,
         )
 
+        nat_gateway_provider = aws_ec2.NatProvider.instance(
+            instance_type=aws_ec2.InstanceType("t3.nano")
+        )
+
         vpc = aws_ec2.Vpc(
             self,
             "vpc",
             max_azs=base_settings.vpc_max_azs,
             cidr=base_settings.vpc_cidr,
             subnet_configuration=[public_subnet, private_subnet],
+            nat_gateway_provider=nat_gateway_provider,
             nat_gateways=base_settings.vpc_nat_gateways,
         )
 
