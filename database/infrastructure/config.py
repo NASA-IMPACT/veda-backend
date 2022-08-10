@@ -39,6 +39,19 @@ class deltaDBSettings(BaseSettings):
         description="Boolean deploy database to private subnets",
     )
 
+    # RDS custom postgres parameters
+    max_locks_per_transaction: Optional[str] = Field(
+        "1024",
+        description="Number of database objects that can be locked simultaneously",
+    )
+    work_mem: Optional[str] = Field(
+        "64000",
+        description="Maximum amount of memory to be used by a query operation before writing to temporary disk files",
+    )
+    temp_buffers: Optional[str] = Field(
+        "32000", description="maximum number of temporary buffers used by each session"
+    )
+
     class Config:
         """model config."""
 
