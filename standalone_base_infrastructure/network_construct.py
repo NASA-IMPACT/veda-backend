@@ -53,4 +53,14 @@ class BaseVpcConstruct(Construct):
             elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):
                 vpc.add_gateway_endpoint(id, service=service)
 
+        # Add EIPs to NAT instances
+        # https://github.com/aws/aws-cdk/issues/18353#issuecomment-1012696907
+        for instance in nat_gateway_provider.configured_gateways:
+            aws_ec2.CfnEIPAssociation(
+                self,
+                "nat-eip-association",
+                allocation_id=aws_ec2.CfnEIP(self, "nat-eip").attr_allocation_id,
+                instance_id=instance.gateway_id
+            )
+
         CfnOutput(self, "vpc-id", value=vpc.vpc_id)
