@@ -134,6 +134,21 @@ class RdsConstruct(Construct):
             else aws_ec2.SubnetType.PUBLIC
         )
 
+        # Custom parameter group
+        engine = aws_rds.DatabaseInstanceEngine.postgres(
+            version=aws_rds.PostgresEngineVersion.VER_14
+        )
+        parameter_group = aws_rds.ParameterGroup(
+            self,
+            "parameter-group",
+            engine=engine,
+            parameters={
+                "max_locks_per_transaction": delta_db_settings.max_locks_per_transaction,
+                "work_mem": delta_db_settings.work_mem,
+                "temp_buffers": delta_db_settings.temp_buffers,
+            },
+        )
+
         # Create a new database instance from snapshot if provided
         if delta_db_settings.snapshot_id:
             # For the database from snapshot we will need a new master secret
@@ -147,7 +162,7 @@ class RdsConstruct(Construct):
                 snapshot_identifier=delta_db_settings.snapshot_id,
                 instance_identifier=f"{stack_name}-postgres",
                 vpc=vpc,
-                engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
+                engine=engine,
                 instance_type=aws_ec2.InstanceType.of(
                     aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
                 ),
@@ -156,6 +171,7 @@ class RdsConstruct(Construct):
                 removal_policy=RemovalPolicy.RETAIN,
                 publicly_accessible=publicly_accessible,
                 credentials=credentials,
+                parameter_group=parameter_group,
             )
 
         # Or create/update RDS Resource
@@ -165,7 +181,7 @@ class RdsConstruct(Construct):
                 id="rds",
                 instance_identifier=f"{stack_name}-postgres",
                 vpc=vpc,
-                engine=aws_rds.DatabaseInstanceEngine.POSTGRES,
+                engine=engine,
                 instance_type=aws_ec2.InstanceType.of(
                     aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
                 ),
@@ -173,6 +189,7 @@ class RdsConstruct(Construct):
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
                 publicly_accessible=publicly_accessible,
+                parameter_group=parameter_group,
             )
 
         # Use custom resource to bootstrap PgSTAC database
