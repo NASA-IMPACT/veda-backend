@@ -52,13 +52,11 @@ class BaseVpcConstruct(Construct):
                 vpc.add_interface_endpoint(id, service=service)
             elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):
                 vpc.add_gateway_endpoint(id, service=service)
-        
-        # TODO the vpc construct should be doing adding private subnet routes for the gateway instance, why isn't it?
-        for private_subnet in  vpc.select_subnets(
+
+        # This config step associates the NAT instance EIP with the private subnet and should happen in VPC construct but does not
+        for private_subnet in vpc.select_subnets(
             subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED
-        ).subnets:    
+        ).subnets:
             nat_gateway_provider.configure_subnet(subnet=private_subnet)
-
-
 
         CfnOutput(self, "vpc-id", value=vpc.vpc_id)

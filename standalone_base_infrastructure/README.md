@@ -1,6 +1,6 @@
 # Standalone Base Infrastructure
 
-Optional shared base infrastructure provisioning. This CloudFormation stack is intended to simulate controlled deployment environments. It also useful for deploying a long-standing VPC that can be shared across stacks.
+Optional shared base infrastructure provisioning. This CloudFormation stack is intended to simulate controlled deployment environments. It also useful for deploying a long-standing VPC that can be shared across stacks. This VPC is deployed with an EC2 NAT Instance that is configured as the NAT gateway provider for the private subnets.
 
 ## Deployment
 
@@ -26,4 +26,4 @@ See main app [deployment instructions](../README.md#deployment).
 | `CDK_DEFAULT_REGION` | The AWS region id is required to deploy to an exiting VPC |
 | `VPC_CIDR` | The CIDR range to use for the VPC. Default is 10.100.0.0/16 |
 | `VPC_MAX_AZS` | Maximum number of availability zones per region. Default is 2. |
-| `VPC_NAT_GATEWAYS` | Number of gateways to create. Default is 0. |
+| `VPC_NAT_GATEWAYS` | Number of NAT gateways to create. Default is 1. |
