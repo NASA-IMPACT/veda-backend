@@ -9,8 +9,8 @@ class deltaSTACSettings(BaseSettings):
 
     env: Dict = {}
 
-    timeout: int = 60 * 2  # seconds
-    memory: int = 256  # Mb
+    timeout: int = 30  # seconds
+    memory: int = 8000  # Mb
 
     # Secret database credentials
     pgstac_secret_arn: Optional[str] = Field(
