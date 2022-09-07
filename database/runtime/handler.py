@@ -149,14 +149,19 @@ def create_update_default_summaries_function(cursor) -> None:
     """Create function to update collection summary metadata about default item assets."""
 
     update_default_summary_sql = """
+    SET ROLE pgstac_admin;
+
     CREATE OR REPLACE FUNCTION dashboard.update_default_summaries(_collection_id text) RETURNS VOID AS $$
+    ALTER TABLE pgstac.collections DISABLE TRIGGER collections_trigger;
+    ALTER TABLE pgstac.collections DISABLE TRIGGER queryables_collection_trigger;
+
     WITH coll_item_cte AS (
         SELECT jsonb_build_object(
             'summaries',
             jsonb_build_object(
                 'datetime', (
                     CASE
-                    WHEN (collections."content"->>'dashboard:is_periodic')::boolean
+                    WHEN (pgstac.collections."content"->>'dashboard:is_periodic')::boolean
                     THEN (to_jsonb(array[
                         to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
                         to_char(max(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')]))
@@ -165,26 +170,31 @@ def create_update_default_summaries_function(cursor) -> None:
                 ),
                 'cog_default', (
                     CASE
-                    WHEN collections."content"->'item_assets' ? 'cog_default'
+                    WHEN pgstac.collections."content"->'item_assets' ? 'cog_default'
                     THEN jsonb_build_object(
-                        'min', min((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'minimum')::float),
-                        'max', max((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'maximum')::float)
+                        'min', min((pgstac.items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'minimum')::float),
+                        'max', max((pgstac.items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'maximum')::float)
                         )
                     ELSE NULL
                     END
                 )
             )
         ) summaries,
-        collections.id coll_id
-        FROM items
-        JOIN collections on items.collection = collections.id
+        pgstac.collections.id coll_id
+        FROM pgstac.items
+        JOIN pgstac.collections on pgstac.items.collection = pgstac.collections.id
         WHERE collections.id = _collection_id
-        GROUP BY collections."content" , collections.id
+        GROUP BY pgstac.collections."content" , pgstac.collections.id
     )
-    UPDATE collections SET "content" = "content" || coll_item_cte.summaries
+    UPDATE pgstac.collections SET "content" = "content" || coll_item_cte.summaries
     FROM coll_item_cte
-    WHERE collections.id = coll_item_cte.coll_id;
-    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;
+    WHERE pgstac.collections.id = coll_item_cte.coll_id;
+
+    ALTER TABLE pgstac.collections ENABLE TRIGGER collections_trigger;
+    ALTER TABLE pgstac.collections ENABLE TRIGGER queryables_collection_trigger;
+    $$ LANGUAGE SQL SET SEARCH_PATH TO pg_catalog, pg_temp SECURITY DEFINER;
+
+    UNSET ROLE;
     """
 
     cursor.execute(sql.SQL(update_default_summary_sql))
@@ -194,12 +204,21 @@ def create_update_all_default_summaries_function(cursor) -> None:
     """Create function to update default summaries for all collections with required properties"""
 
     update_all_default_summaries_sql = """
+    SET ROLE pgstac_admin;
+
     CREATE OR REPLACE FUNCTION dashboard.update_all_default_summaries() RETURNS VOID AS $$
+    ALTER TABLE pgstac.collections DISABLE TRIGGER collections_trigger;
+    ALTER TABLE pgstac.collections DISABLE TRIGGER queryables_collection_trigger;
+
     SELECT
-        update_default_summaries(id)
-    FROM collections
-    WHERE collections."content" ?| array['item_assets', 'dashboard:is_periodic'];
-    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;
+        dashboard.update_default_summaries(id)
+    FROM pgstac.collections
+    WHERE pgstac.collections."content" ?| array['item_assets', 'dashboard:is_periodic'];
+    ALTER TABLE pgstac.collections ENABLE TRIGGER collections_trigger;
+    ALTER TABLE pgstac.collections ENABLE TRIGGER queryables_collection_trigger;
+    $$ LANGUAGE SQL SET SEARCH_PATH TO pg_catalog, pg_temp SECURITY DEFINER;
+
+    UNSET ROLE;
     """
 
     cursor.execute(sql.SQL(update_all_default_summaries_sql))
