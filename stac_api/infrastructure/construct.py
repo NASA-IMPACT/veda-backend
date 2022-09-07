@@ -50,9 +50,9 @@ class StacApiLambdaConstruct(Construct):
             memory_size=delta_stac_settings.memory,
             timeout=Duration.seconds(delta_stac_settings.timeout),
             environment={
-                "db_min_conn_size": 0, 
-                "db_max_conn_size": 1,
-                **delta_stac_settings.env
+                "DB_MIN_CONN_SIZE": 0, 
+                "DB_MAX_CONN_SIZE": 1,
+                **{k.upper(): v for k, v in delta_stac_settings.env.items()}
             },
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
