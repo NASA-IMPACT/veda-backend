@@ -50,7 +50,7 @@ class StacApiLambdaConstruct(Construct):
             memory_size=delta_stac_settings.memory,
             timeout=Duration.seconds(delta_stac_settings.timeout),
             environment={
-                "db_min_conn_size": 1, 
+                "db_min_conn_size": 0, 
                 "db_max_conn_size": 1,
                 **delta_stac_settings.env
             },
