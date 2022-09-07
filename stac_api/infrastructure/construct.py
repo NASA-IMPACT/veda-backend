@@ -49,7 +49,11 @@ class StacApiLambdaConstruct(Construct):
             allow_public_subnet=True,
             memory_size=delta_stac_settings.memory,
             timeout=Duration.seconds(delta_stac_settings.timeout),
-            environment=delta_stac_settings.env or {},
+            environment={
+                "db_min_conn_size": 1, 
+                "db_max_conn_size": 1,
+                **delta_stac_settings.env
+            },
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
 
