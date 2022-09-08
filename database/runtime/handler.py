@@ -145,83 +145,125 @@ def create_dashboard_schema(cursor, username: str) -> None:
     )
 
 
-def create_update_default_summaries_function(cursor) -> None:
-    """Create function to update collection summary metadata about default item assets."""
+def create_collection_summaries_functions(cursor) -> None:
+    """
+    Functions to summarize datetimes and raster statistics for 'default' collections of items with single band COG assets
+    """
 
-    update_default_summary_sql = """
-    SET ROLE pgstac_admin;
+    periodic_datetime_summary_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.periodic_datetime_summary(id text) RETURNS jsonb
+    LANGUAGE sql
+    IMMUTABLE PARALLEL SAFE
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+        SELECT to_jsonb(
+            array[
+                to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+                to_char(max(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+            ])​
+        FROM items WHERE collection=$1;
+    ;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(periodic_datetime_summary_sql))
 
-    CREATE OR REPLACE FUNCTION dashboard.update_default_summaries(_collection_id text) RETURNS VOID AS $$
-    ALTER TABLE pgstac.collections DISABLE TRIGGER collections_trigger;
-    ALTER TABLE pgstac.collections DISABLE TRIGGER queryables_collection_trigger;
+    distinct_datetime_summary_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.discrete_datetime_summary(id text) RETURNS jsonb
+    LANGUAGE sql
+    IMMUTABLE PARALLEL SAFE
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+        SELECT jsonb_agg(distinct to_char(datetime at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
+        FROM items WHERE collection=$1;
+    ;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(distinct_datetime_summary_sql))
 
-    WITH coll_item_cte AS (
+    cog_default_summary_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.cog_default_summary(id text) RETURNS jsonb
+    LANGUAGE sql
+    IMMUTABLE PARALLEL SAFE
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
         SELECT jsonb_build_object(
-            'summaries',
-            jsonb_build_object(
+            'min', min((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'minimum')::float),
+            'max', max((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'maximum')::float)
+        )
+        FROM items WHERE collection=$1;
+    ;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(cog_default_summary_sql))
+
+    update_collection_default_summaries_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.update_collection_default_summaries(id text)
+    RETURNS void
+    LANGUAGE sql
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+    UPDATE collections SET
+        "content" = "content" ||
+        jsonb_build_object(
+            'summaries', jsonb_build_object(
                 'datetime', (
                     CASE
-                    WHEN (pgstac.collections."content"->>'dashboard:is_periodic')::boolean
-                    THEN (to_jsonb(array[
-                        to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
-                        to_char(max(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')]))
-                    ELSE jsonb_agg(distinct to_char(datetime at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
+                    WHEN (collections."content"->>'dashboard:is_periodic')::boolean
+                    THEN dashboard.periodic_datetime_summary(collections.id)
+                    ELSE dashboard.discrete_datetime_summary(collections.id)
                     END
                 ),
                 'cog_default', (
                     CASE
-                    WHEN pgstac.collections."content"->'item_assets' ? 'cog_default'
-                    THEN jsonb_build_object(
-                        'min', min((pgstac.items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'minimum')::float),
-                        'max', max((pgstac.items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'maximum')::float)
-                        )
+                    WHEN collections."content"->'item_assets' ? 'cog_default'
+                    THEN dashboard.cog_default_summary(collections.id)
                     ELSE NULL
                     END
                 )
             )
-        ) summaries,
-        pgstac.collections.id coll_id
-        FROM pgstac.items
-        JOIN pgstac.collections on pgstac.items.collection = pgstac.collections.id
-        WHERE collections.id = _collection_id
-        GROUP BY pgstac.collections."content" , pgstac.collections.id
-    )
-    UPDATE pgstac.collections SET "content" = "content" || coll_item_cte.summaries
-    FROM coll_item_cte
-    WHERE pgstac.collections.id = coll_item_cte.coll_id;
-
-    ALTER TABLE pgstac.collections ENABLE TRIGGER collections_trigger;
-    ALTER TABLE pgstac.collections ENABLE TRIGGER queryables_collection_trigger;
-    $$ LANGUAGE SQL SET SEARCH_PATH TO pg_catalog, pg_temp SECURITY DEFINER;
-
-    UNSET ROLE;
+        )
+        WHERE collections.id=$1
+    ;
+    $function$
+    ;
     """
+    cursor.execute(sql.SQL(update_collection_default_summaries_sql))
 
-    cursor.execute(sql.SQL(update_default_summary_sql))
-
-
-def create_update_all_default_summaries_function(cursor) -> None:
-    """Create function to update default summaries for all collections with required properties"""
-
-    update_all_default_summaries_sql = """
-    SET ROLE pgstac_admin;
-
-    CREATE OR REPLACE FUNCTION dashboard.update_all_default_summaries() RETURNS VOID AS $$
-    ALTER TABLE pgstac.collections DISABLE TRIGGER collections_trigger;
-    ALTER TABLE pgstac.collections DISABLE TRIGGER queryables_collection_trigger;
-
-    SELECT
-        dashboard.update_default_summaries(id)
-    FROM pgstac.collections
-    WHERE pgstac.collections."content" ?| array['item_assets', 'dashboard:is_periodic'];
-    ALTER TABLE pgstac.collections ENABLE TRIGGER collections_trigger;
-    ALTER TABLE pgstac.collections ENABLE TRIGGER queryables_collection_trigger;
-    $$ LANGUAGE SQL SET SEARCH_PATH TO pg_catalog, pg_temp SECURITY DEFINER;
-
-    UNSET ROLE;
+    update_all_collection_default_summaries_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.update_all_collection_default_summaries()
+    RETURNS void
+    LANGUAGE sql
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+    UPDATE collections SET
+        "content" = "content" ||
+        jsonb_build_object(
+            'summaries', jsonb_build_object(
+                'datetime', (
+                    CASE
+                    WHEN (collections."content"->>'dashboard:is_periodic')::boolean
+                    THEN dashboard.periodic_datetime_summary(collections.id)
+                    ELSE dashboard.discrete_datetime_summary(collections.id)
+                    END
+                ),
+                'cog_default', (
+                    CASE
+                    WHEN collections."content"->'item_assets' ? 'cog_default'
+                    THEN dashboard.cog_default_summary(collections.id)
+                    ELSE NULL
+                    END
+                )
+            )
+        )
+        WHERE collections."content" ?| array['item_assets', 'dashboard:is_periodic']
+    ;
+    $function$
+    ;
     """
-
-    cursor.execute(sql.SQL(update_all_default_summaries_sql))
+    cursor.execute(sql.SQL(update_all_collection_default_summaries_sql))
 
 
 def handler(event, context):
@@ -322,9 +364,10 @@ def handler(event, context):
                 print("Creating dashboard schema...")
                 create_dashboard_schema(cursor=cur, username=user_params["username"])
 
-                print("Creating update_default_summaries functions...")
-                create_update_default_summaries_function(cursor=cur)
-                create_update_all_default_summaries_function(cursor=cur)
+                print(
+                    "Creating functions for summarizing default collection datetimes and cog_default statistics..."
+                )
+                create_collection_summaries_functions(cursor=cur)
 
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")
