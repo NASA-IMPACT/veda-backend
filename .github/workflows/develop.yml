@@ -88,7 +88,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: us-west-2
 
       - uses: actions/cache@v2
         with:
@@ -109,7 +109,7 @@ jobs:
           python -m pip install -e .[dev,deploy,test] 
 
       - name: Get dev environment configuration for develop branch
-        run: ./scripts/get-env.sh "delta-backend/dev-env"
+        run: ./scripts/get-env.sh "veda-backend-uah-dev-env"
 
       - name: Deploy 
         run: |
