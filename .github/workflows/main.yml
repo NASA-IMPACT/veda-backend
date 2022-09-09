@@ -88,7 +88,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: us-west-2
 
       - uses: actions/cache@v2
         with:
@@ -108,11 +108,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .[dev,deploy,test] 
 
-      - name: Get staging environment configuration for main branch
-        run: ./scripts/get-env.sh "delta-backend/staging-env"
+      - name: Get dev environment configuration for staging branch
+        run: ./scripts/get-env.sh "veda-backend-uah-staging-env"
 
       - name: Deploy 
         run: |
           echo $STAGE
-          cdk diff delta-backend-$STAGE
+          cdk deploy veda-backend-uah-staging
           
