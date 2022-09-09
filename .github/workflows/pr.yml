@@ -110,4 +110,4 @@ jobs:
       - name: Pre deployment CDK diff 
         run: |
           echo $STAGE
-          cdk diff delta-backend-${{ env.STAGE }}
+          cdk diff veda-backend-uah-dev

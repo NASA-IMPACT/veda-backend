@@ -114,5 +114,5 @@ jobs:
       - name: Deploy 
         run: |
           echo $STAGE
-          cdk deploy delta-backend-${{ env.STAGE }}
+          cdk deploy veda-backend-uah-dev
           
