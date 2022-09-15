@@ -22,7 +22,7 @@ class baseSettings(BaseSettings):
 
     vpc_cidr: Optional[str] = "10.100.0.0/16"
     vpc_max_azs: Optional[int] = 2
-    vpc_nat_gateways: Optional[int] = 0
+    vpc_nat_gateways: Optional[int] = 1
 
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""
