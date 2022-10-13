@@ -134,3 +134,7 @@ Pipfile
 Pipfile.lock
 
 .pgdata
+.env*
+cdk.context.json
+node_modules/
+package-lock.json

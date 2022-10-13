@@ -2,7 +2,6 @@
 Custom resource lambda handler to bootstrap Postgres db.
 Source: https://github.com/developmentseed/eoAPI/blob/master/deployment/handlers/db_handler.py
 """
-import asyncio
 import json
 
 import boto3
@@ -10,7 +9,8 @@ import psycopg
 import requests
 from psycopg import sql
 from psycopg.conninfo import make_conninfo
-from pypgstac.migrate import run_migration
+from pypgstac.db import PgstacDB
+from pypgstac.migrate import Migrate
 
 
 def send(
@@ -67,9 +67,7 @@ def send(
 def get_secret(secret_name):
     """Get Secrets from secret manager."""
     print(f"Fetching {secret_name}")
-    client = boto3.client(
-        service_name="secretsmanager",
-    )
+    client = boto3.client(service_name="secretsmanager")
     response = client.get_secret_value(SecretId=secret_name)
     return json.loads(response["SecretString"])
 
@@ -121,6 +119,9 @@ def create_permissions(cursor, db_name: str, username: str) -> None:
             "GRANT ALL PRIVILEGES ON TABLES TO {username};"
             "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
             "GRANT ALL PRIVILEGES ON SEQUENCES TO {username};"
+            "GRANT pgstac_read TO {username};"
+            "GRANT pgstac_ingest TO {username};"
+            "GRANT pgstac_admin TO {username};"
         ).format(
             db_name=sql.Identifier(db_name),
             username=sql.Identifier(username),
@@ -144,63 +145,125 @@ def create_dashboard_schema(cursor, username: str) -> None:
     )
 
 
-def create_update_default_summaries_function(cursor) -> None:
-    """Create function to update collection summary metadata about default item assets."""
+def create_collection_summaries_functions(cursor) -> None:
+    """
+    Functions to summarize datetimes and raster statistics for 'default' collections of items with single band COG assets
+    """
 
-    update_default_summary_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.update_default_summaries(_collection_id text) RETURNS VOID AS $$
-    WITH coll_item_cte AS (
+    periodic_datetime_summary_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.periodic_datetime_summary(id text) RETURNS jsonb
+    LANGUAGE sql
+    IMMUTABLE PARALLEL SAFE
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+        SELECT to_jsonb(
+            array[
+                to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+                to_char(max(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+            ])​
+        FROM items WHERE collection=$1;
+    ;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(periodic_datetime_summary_sql))
+
+    distinct_datetime_summary_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.discrete_datetime_summary(id text) RETURNS jsonb
+    LANGUAGE sql
+    IMMUTABLE PARALLEL SAFE
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+        SELECT jsonb_agg(distinct to_char(datetime at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
+        FROM items WHERE collection=$1;
+    ;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(distinct_datetime_summary_sql))
+
+    cog_default_summary_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.cog_default_summary(id text) RETURNS jsonb
+    LANGUAGE sql
+    IMMUTABLE PARALLEL SAFE
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
         SELECT jsonb_build_object(
-            'summaries',
-            jsonb_build_object(
+            'min', min((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'minimum')::float),
+            'max', max((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'maximum')::float)
+        )
+        FROM items WHERE collection=$1;
+    ;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(cog_default_summary_sql))
+
+    update_collection_default_summaries_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.update_collection_default_summaries(id text)
+    RETURNS void
+    LANGUAGE sql
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+    UPDATE collections SET
+        "content" = "content" ||
+        jsonb_build_object(
+            'summaries', jsonb_build_object(
                 'datetime', (
                     CASE
                     WHEN (collections."content"->>'dashboard:is_periodic')::boolean
-                    THEN (to_jsonb(array[
-                        to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
-                        to_char(max(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')]))
-                    ELSE jsonb_agg(distinct to_char(datetime at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
+                    THEN dashboard.periodic_datetime_summary(collections.id)
+                    ELSE dashboard.discrete_datetime_summary(collections.id)
                     END
                 ),
                 'cog_default', (
                     CASE
                     WHEN collections."content"->'item_assets' ? 'cog_default'
-                    THEN jsonb_build_object(
-                        'min', min((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'minimum')::float),
-                        'max', max((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'maximum')::float)
-                        )
+                    THEN dashboard.cog_default_summary(collections.id)
                     ELSE NULL
                     END
                 )
             )
-        ) summaries,
-        collections.id coll_id
-        FROM items
-        JOIN collections on items.collection_id = collections.id
-        WHERE collections.id = _collection_id
-        GROUP BY collections."content" , collections.id
-    )
-    UPDATE collections SET "content" = "content" || coll_item_cte.summaries
-    FROM coll_item_cte
-    WHERE collections.id = coll_item_cte.coll_id;
-    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;"""
-
-    cursor.execute(sql.SQL(update_default_summary_sql))
-
-
-def create_update_all_default_summaries_function(cursor) -> None:
-    """Create function to update default summaries for all collections with required properties"""
-
-    update_all_default_summaries_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.update_all_default_summaries() RETURNS VOID AS $$
-    SELECT
-        update_default_summaries(id)
-    FROM collections
-    WHERE collections."content" ?| array['item_assets', 'dashboard:is_periodic'];
-    $$ LANGUAGE SQL SET SEARCH_PATH TO dashboard, pgstac, public;
+        )
+        WHERE collections.id=$1
+    ;
+    $function$
+    ;
     """
+    cursor.execute(sql.SQL(update_collection_default_summaries_sql))
 
-    cursor.execute(sql.SQL(update_all_default_summaries_sql))
+    update_all_collection_default_summaries_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.update_all_collection_default_summaries()
+    RETURNS void
+    LANGUAGE sql
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+    UPDATE collections SET
+        "content" = "content" ||
+        jsonb_build_object(
+            'summaries', jsonb_build_object(
+                'datetime', (
+                    CASE
+                    WHEN (collections."content"->>'dashboard:is_periodic')::boolean
+                    THEN dashboard.periodic_datetime_summary(collections.id)
+                    ELSE dashboard.discrete_datetime_summary(collections.id)
+                    END
+                ),
+                'cog_default', (
+                    CASE
+                    WHEN collections."content"->'item_assets' ? 'cog_default'
+                    THEN dashboard.cog_default_summary(collections.id)
+                    ELSE NULL
+                    END
+                )
+            )
+        )
+        WHERE collections."content" ?| array['item_assets', 'dashboard:is_periodic']
+    ;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(update_all_collection_default_summaries_sql))
 
 
 def handler(event, context):
@@ -215,15 +278,15 @@ def handler(event, context):
         connection_params = get_secret(params["conn_secret_arn"])
         user_params = get_secret(params["new_user_secret_arn"])
 
-        print("Connecting to DB...")
-        con_str = make_conninfo(
+        print("Connecting to admin DB...")
+        admin_db_conninfo = make_conninfo(
             dbname=connection_params.get("dbname", "postgres"),
             user=connection_params["username"],
             password=connection_params["password"],
             host=connection_params["host"],
             port=connection_params["port"],
         )
-        with psycopg.connect(con_str, autocommit=True) as conn:
+        with psycopg.connect(admin_db_conninfo, autocommit=True) as conn:
             with conn.cursor() as cur:
                 print("Creating database...")
                 create_db(
@@ -238,6 +301,44 @@ def handler(event, context):
                     password=user_params["password"],
                 )
 
+        # Install extensions on the user DB with
+        # superuser permissions, since they will
+        # otherwise fail to install when run as
+        # the non-superuser within the pgstac
+        # migrations.
+        print("Connecting to STAC DB...")
+        stac_db_conninfo = make_conninfo(
+            dbname=user_params["dbname"],
+            user=connection_params["username"],
+            password=connection_params["password"],
+            host=connection_params["host"],
+            port=connection_params["port"],
+        )
+        with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
+            with conn.cursor() as cur:
+                print("Registering PostGIS ...")
+                register_extensions(cursor=cur)
+
+        stac_db_admin_dsn = (
+            "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
+                dbname=user_params.get("dbname", "postgres"),
+                user=connection_params["username"],
+                password=connection_params["password"],
+                host=connection_params["host"],
+                port=connection_params["port"],
+            )
+        )
+
+        pgdb = PgstacDB(dsn=stac_db_admin_dsn, debug=True)
+        print(f"Current {pgdb.version=}")
+
+        # As admin, run migrations
+        print("Running migrations...")
+        Migrate(pgdb).run_migration(params["pgstac_version"])
+
+        # Assign appropriate permissions to user (requires pgSTAC migrations to have run)
+        with psycopg.connect(admin_db_conninfo, autocommit=True) as conn:
+            with conn.cursor() as cur:
                 print("Setting permissions...")
                 create_permissions(
                     cursor=cur,
@@ -245,37 +346,9 @@ def handler(event, context):
                     username=user_params["username"],
                 )
 
-        # Install extensions on the user DB with
-        # superuser permissions, since they will
-        # otherwise fail to install when run as
-        # the non-superuser within the pgstac
-        # migrations.
-        print("Connecting to DB...")
-        con_str = make_conninfo(
-            dbname=user_params["dbname"],
-            user=connection_params["username"],
-            password=connection_params["password"],
-            host=connection_params["host"],
-            port=connection_params["port"],
-        )
-        with psycopg.connect(con_str, autocommit=True) as conn:
-            with conn.cursor() as cur:
-                print("Registering PostGIS ...")
-                register_extensions(cursor=cur)
-
-        dsn = "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
-            dbname=user_params.get("dbname", "postgres"),
-            user=user_params["username"],
-            password=user_params["password"],
-            host=connection_params["host"],
-            port=connection_params["port"],
-        )
-
-        asyncio.run(run_migration(dsn))
-
         print("Adding mosaic index...")
         with psycopg.connect(
-            dsn,
+            stac_db_admin_dsn,
             autocommit=True,
             options="-c search_path=pgstac,public -c application_name=pgstac",
         ) as conn:
@@ -286,21 +359,15 @@ def handler(event, context):
             )
 
         # As admin, create custom dashboard schema and functions and grant privileges to bootstrapped user
-        con_str = make_conninfo(
-            dbname=user_params["dbname"],
-            user=connection_params["username"],
-            password=connection_params["password"],
-            host=connection_params["host"],
-            port=connection_params["port"],
-        )
-        with psycopg.connect(con_str, autocommit=True) as conn:
+        with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
             with conn.cursor() as cur:
-                print("Creating dashboard schema")
+                print("Creating dashboard schema...")
                 create_dashboard_schema(cursor=cur, username=user_params["username"])
 
-                print("Creating update_default_summaries functions")
-                create_update_default_summaries_function(cursor=cur)
-                create_update_all_default_summaries_function(cursor=cur)
+                print(
+                    "Creating functions for summarizing default collection datetimes and cog_default statistics..."
+                )
+                create_collection_summaries_functions(cursor=cur)
 
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")

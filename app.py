@@ -15,17 +15,17 @@ app = App()
 
 
 class DeltaStack(Stack):
-    """CDK stack for hte delta-backend stack."""
+    """CDK stack for the delta-backend stack."""
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         """."""
         super().__init__(scope, construct_id, **kwargs)
 
-        if delta_app_settings.permissions_boundary_policy:
-            permission_boundary_policy = (
-                aws_iam.ManagedPolicy.from_aws_managed_policy_name(
-                    delta_app_settings.permissions_boundary_policy,
-                )
+        if delta_app_settings.permissions_boundary_policy_name:
+            permission_boundary_policy = aws_iam.Policy.from_policy_name(
+                self,
+                "permission-boundary",
+                delta_app_settings.permissions_boundary_policy_name,
             )
             aws_iam.PermissionsBoundary.of(self).apply(permission_boundary_policy)
 
