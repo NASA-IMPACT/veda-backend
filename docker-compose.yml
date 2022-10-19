@@ -1,7 +1,46 @@
 version: '3'
 
 services:
-  
+  stac:
+    container_name: delta.stac
+    build:
+      context: .
+      dockerfile: local/Dockerfile.stac
+    ports:
+      - "8081:8081"
+    environment:
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8081
+      - HOST=0.0.0.0
+      - PORT=8081
+      - ENVIRONMENT=local
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#web_concurrency
+      - WEB_CONCURRENCY=10
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#workers_per_core
+      # - WORKERS_PER_CORE=1
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#max_workers
+      # - MAX_WORKERS=10
+      # Postgres connection
+      - POSTGRES_USER=username
+      - POSTGRES_PASS=password
+      - POSTGRES_DBNAME=postgis
+      - POSTGRES_HOST_READER=database
+      - POSTGRES_HOST_WRITER=database
+      - POSTGRES_PORT=5432
+      - DB_MIN_CONN_SIZE=1
+      - DB_MAX_CONN_SIZE=10
+      # https://github.com/developmentseed/eoAPI/issues/16
+      # - TITILER_ENDPOINT=raster
+      - TITILER_ENDPOINT=http://0.0.0.0:8082
+    depends_on:
+      - database
+      - raster
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 45 -h database -p 5432 && /start-reload.sh"
+    volumes:
+      - ./scripts:/tmp/scripts
+      - ./stac_api/runtime/src:/app/src
+
+
   raster:
     container_name: delta.raster
     platform: linux/amd64
@@ -50,11 +89,13 @@ services:
 
     depends_on:
       - database
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 25 -h database -p 5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 25 -h database -p 5432 && /start-reload.sh"
     volumes:
       - ./scripts:/tmp/scripts
+      - ./raster_api/runtime/src:/app/src
       - $HOME/.aws/credentials:/root/.aws/credentials
       - ./profiling-results:/tmp/profiling
+
 
   database:
     container_name: delta.db

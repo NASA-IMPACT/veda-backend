@@ -42,7 +42,6 @@ app = FastAPI(title=settings.name, version=delta_raster_version)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
-
 # Custom PgSTAC mosaic tiler
 mosaic = MosaicTilerFactory(
     router_prefix="/mosaic",
@@ -50,6 +49,7 @@ mosaic = MosaicTilerFactory(
     optional_headers=optional_headers,
     gdal_config=settings.get_gdal_config(),
     dataset_dependency=DatasetParams,
+    add_statistics=True,
 )
 app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
 
