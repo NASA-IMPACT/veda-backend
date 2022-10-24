@@ -52,7 +52,7 @@ class RasterApiLambdaConstruct(Construct):
             timeout=Duration.seconds(delta_raster_settings.timeout),
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
             environment=delta_raster_settings.env or {},
-            tracing=aws_lambda.Tracing.ACTIVE
+            tracing=aws_lambda.Tracing.ACTIVE,
         )
 
         database.pgstac.secret.grant_read(delta_raster_function)

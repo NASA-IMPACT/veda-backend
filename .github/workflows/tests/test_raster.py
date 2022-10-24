@@ -1,7 +1,8 @@
 """test delta-backend.raster."""
 
-import httpx
 import json
+
+import httpx
 
 raster_endpoint = "http://0.0.0.0:8082"
 
@@ -52,32 +53,32 @@ def test_mosaic_api():
     assert "content-encoding" not in resp.headers
 
     stats_body = {
-    "type": "FeatureCollection",
-    "features": [
-        {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "coordinates": [
-            [
-                [-85.6501, 36.1751],
-                [-85.6501, 36.1499],
-                [-85.6249, 36.1499],
-                [-85.6249, 36.1751],
-                [-85.6501, 36.1751]
-            ]
-            ],
-            "type": "Polygon"
-        }
-        }
-    ]
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "coordinates": [
+                        [
+                            [-85.6501, 36.1751],
+                            [-85.6501, 36.1499],
+                            [-85.6249, 36.1499],
+                            [-85.6249, 36.1751],
+                            [-85.6501, 36.1751],
+                        ]
+                    ],
+                    "type": "Polygon",
+                },
+            }
+        ],
     }
 
     resp = httpx.post(
         f"{raster_endpoint}/mosaic/{searchid}/statistics",
         json=stats_body,
         params={"assets": "cog"},
-        timeout=None # this response is slowwww
+        timeout=None,  # this response is slowwww
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/geo+json"
