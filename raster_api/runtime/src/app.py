@@ -9,6 +9,7 @@ from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
 from src.version import __version__ as delta_raster_version
 
 from fastapi import Depends, FastAPI, Query
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
@@ -23,6 +24,11 @@ from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
 from titiler.pgstac.dependencies import ItemPathParams
 from titiler.pgstac.reader import PgSTACReader
+from aws_xray_sdk.core import patch_all, xray_recorder
+from xraysink.asgi.middleware import xray_middleware
+
+import botocore
+
 
 from .profiling import ServerTimingMiddleware
 
@@ -32,15 +38,26 @@ logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
 
+
+
+
 if settings.debug:
     optional_headers = [OptionalHeader.server_timing, OptionalHeader.x_assets]
 else:
     optional_headers = []
 
+if settings.enable_xray: # xray config that must be performed before app init
+    xray_recorder.configure(service="veda-raster-api")
+    patch_all()
+
 
 app = FastAPI(title=settings.name, version=delta_raster_version)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
+
+if settings.enable_xray: # xray config that must be performed after app init
+    app.add_middleware(BaseHTTPMiddleware, dispatch=xray_middleware) 
+
 
 # Custom PgSTAC mosaic tiler
 mosaic = MosaicTilerFactory(
