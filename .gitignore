@@ -138,3 +138,5 @@ Pipfile.lock
 cdk.context.json
 node_modules/
 package-lock.json
+cdk-dev.out
+**/--no-binary/

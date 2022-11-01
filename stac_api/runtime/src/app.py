@@ -14,9 +14,12 @@ from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
+from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
+from aws_lambda_powertools.metrics import MetricUnit
+
+from .monitoring import logger, metrics, tracer, LoggerRouteHandler
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -72,6 +75,34 @@ async def viewer_page(request: Request):
         media_type="text/html",
     )
 
+# If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
+@app.middleware("http")
+async def add_correlation_id(request: Request, call_next):
+    # Get correlation id from X-Correlation-Id header
+    corr_id = request.headers.get("x-correlation-id")
+    if not corr_id:
+        try:
+            # If empty, use request id from aws context
+            corr_id = request.scope["aws.context"].aws_request_id
+        except KeyError:
+            # If empty, use uuid
+            corr_id = 'local'
+    # Add correlation id to logs
+    logger.set_correlation_id(corr_id)
+    # Add correlation id to traces
+    tracer.put_annotation(key="correlation_id", value=corr_id)
+
+    response = await tracer.capture_method(call_next)(request)
+    # Return correlation header in response
+    response.headers["X-Correlation-Id"] = corr_id
+    logger.info("Request completed")
+    return response
+
+@app.exception_handler(Exception)
+async def validation_exception_handler(request, err):
+    metrics.add_metric(name="UnhandledExceptions", unit=MetricUnit.Count, value=1)
+    logger.error("Unhandled exception")
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
 
 @app.on_event("startup")
 async def startup_event():
