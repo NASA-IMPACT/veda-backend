@@ -18,6 +18,8 @@ from titiler.core import factory as TitilerFactory
 from titiler.pgstac import factory as TitilerPgSTACFactory
 from titiler.pgstac import model
 
+from .monitoring import tracer
+
 try:
     from importlib.resources import files as resources_files  # type: ignore
 except ImportError:
@@ -188,7 +190,7 @@ class MosaicTilerFactory(TitilerPgSTACFactory.MosaicTilerFactory):
                         *order_by,
                         sql.SQL("LIMIT %(limit)s OFFSET %(offset)s"),
                     ]
-                    cursor.execute(
+                    tracer.capture_method(cursor.execute)(
                         sql.SQL(" ").join(query), {"limit": limit, "offset": offset}
                     )
 
