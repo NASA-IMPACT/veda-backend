@@ -55,6 +55,7 @@ class StacApiLambdaConstruct(Construct):
                 **{k.upper(): v for k, v in delta_stac_settings.env.items()},
             },
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
+            tracing=aws_lambda.Tracing.ACTIVE
         )
 
         # # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
