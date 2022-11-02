@@ -1,6 +1,7 @@
 """FastAPI application using PGStac.
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
+from aws_lambda_powertools.metrics import MetricUnit
 from src.config import ApiSettings, TilesApiSettings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
@@ -17,9 +18,8 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
-from aws_lambda_powertools.metrics import MetricUnit
 
-from .monitoring import logger, metrics, tracer, LoggerRouteHandler
+from .monitoring import logger, metrics, tracer
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -75,9 +75,11 @@ async def viewer_page(request: Request):
         media_type="text/html",
     )
 
+
 # If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
 @app.middleware("http")
 async def add_correlation_id(request: Request, call_next):
+    """Add correlation ids to all requests and subsequent logs/traces"""
     # Get correlation id from X-Correlation-Id header
     corr_id = request.headers.get("x-correlation-id")
     if not corr_id:
@@ -86,7 +88,7 @@ async def add_correlation_id(request: Request, call_next):
             corr_id = request.scope["aws.context"].aws_request_id
         except KeyError:
             # If empty, use uuid
-            corr_id = 'local'
+            corr_id = "local"
     # Add correlation id to logs
     logger.set_correlation_id(corr_id)
     # Add correlation id to traces
@@ -98,11 +100,14 @@ async def add_correlation_id(request: Request, call_next):
     logger.info("Request completed")
     return response
 
+
 @app.exception_handler(Exception)
 async def validation_exception_handler(request, err):
+    """Handle exceptions that aren't caught elsewhere"""
     metrics.add_metric(name="UnhandledExceptions", unit=MetricUnit.Count, value=1)
     logger.error("Unhandled exception")
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
 
 @app.on_event("startup")
 async def startup_event():

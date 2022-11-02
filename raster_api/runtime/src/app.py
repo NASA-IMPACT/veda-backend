@@ -1,6 +1,7 @@
 """TiTiler+PgSTAC FastAPI application."""
 import logging
 
+from aws_lambda_powertools.metrics import MetricUnit
 from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_cogeo.models import Info
 from src.config import ApiSettings
@@ -8,8 +9,7 @@ from src.datasetparams import DatasetParams
 from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
 from src.version import __version__ as delta_raster_version
 
-from fastapi import Depends, FastAPI, Query, APIRouter
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import APIRouter, Depends, FastAPI, Query
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -24,9 +24,8 @@ from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
 from titiler.pgstac.dependencies import ItemPathParams
 from titiler.pgstac.reader import PgSTACReader
-from aws_lambda_powertools.metrics import MetricUnit
 
-from .monitoring import logger, metrics, tracer, LoggerRouteHandler
+from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
@@ -52,7 +51,7 @@ mosaic = MosaicTilerFactory(
     optional_headers=optional_headers,
     gdal_config=settings.get_gdal_config(),
     dataset_dependency=DatasetParams,
-    router=router
+    router=router,
 )
 app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
 
@@ -63,7 +62,7 @@ stac = MultiBaseTilerFactory(
     optional_headers=optional_headers,
     router_prefix="/stac",
     gdal_config=settings.get_gdal_config(),
-    router=router
+    router=router,
 )
 app.include_router(stac.router, tags=["Items"], prefix="/stac")
 
@@ -71,8 +70,9 @@ cog = TilerFactory(
     router_prefix="/cog",
     optional_headers=optional_headers,
     gdal_config=settings.get_gdal_config(),
-    router=router
+    router=router,
 )
+
 
 @cog.router.get("/validate", response_model=Info)
 def cog_validate(
@@ -133,10 +133,12 @@ app.add_middleware(
     },
 )
 
+
 # If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
 @app.middleware("http")
 async def add_correlation_id(request: Request, call_next):
-    # Get correlation id from X-Correlation-Id header
+    """Add correlation ids to all requests and subsequent logs/traces"""
+    # Get correlation id from X-Correlation-Id header if provided
     corr_id = request.headers.get("x-correlation-id")
     if not corr_id:
         try:
@@ -144,7 +146,7 @@ async def add_correlation_id(request: Request, call_next):
             corr_id = request.scope["aws.context"].aws_request_id
         except KeyError:
             # If empty, use uuid
-            corr_id = 'local'
+            corr_id = "local"
     # Add correlation id to logs
     logger.set_correlation_id(corr_id)
     # Add correlation id to traces
@@ -156,11 +158,14 @@ async def add_correlation_id(request: Request, call_next):
     logger.info("Request completed")
     return response
 
+
 @app.exception_handler(Exception)
 async def validation_exception_handler(request, err):
+    """Handle exceptions that aren't caught elsewhere"""
     metrics.add_metric(name="UnhandledExceptions", unit=MetricUnit.Count, value=1)
     logger.exception("Unhandled exception")
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
 
 @app.on_event("startup")
 async def startup_event() -> None:
