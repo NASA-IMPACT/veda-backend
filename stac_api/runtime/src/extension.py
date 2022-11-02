@@ -10,7 +10,7 @@ from fastapi.responses import RedirectResponse
 from stac_fastapi.types.extension import ApiExtension
 from starlette.requests import Request
 
-from .monitoring import LoggerRouteHandler, logger, metrics, tracer
+from .monitoring import LoggerRouteHandler, tracer
 
 router = APIRouter(route_class=LoggerRouteHandler)
 

@@ -6,7 +6,6 @@ from mangum import Mangum
 from src.app import app
 from src.monitoring import logger, metrics, tracer
 
-
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
 logging.getLogger("mangum.http").setLevel(logging.ERROR)
 
