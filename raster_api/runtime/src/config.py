@@ -51,7 +51,7 @@ class ApiSettings(BaseSettings):
     name: str = "delta-raster"
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
-    debug: bool = False
+    debug: bool = True
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False

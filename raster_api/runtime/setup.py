@@ -10,6 +10,7 @@ inst_reqs = [
     "titiler.application>=0.5,<0.6",
     "starlette-cramjam>=0.1.0,<0.2",
     "importlib_resources>=1.1.0;python_version<'3.9'",
+    "yappi"
 ]
 
 extra_reqs = {

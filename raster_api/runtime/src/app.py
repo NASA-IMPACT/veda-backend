@@ -24,6 +24,8 @@ from titiler.pgstac.db import close_db_connection, connect_to_db
 from titiler.pgstac.dependencies import ItemPathParams
 from titiler.pgstac.reader import PgSTACReader
 
+from .profiling import ServerTimingMiddleware
+
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
@@ -126,6 +128,27 @@ app.add_middleware(
         "image/webp",
     },
 )
+
+if settings.debug:
+    import psycopg
+    import fastapi
+    import pydantic
+    app.add_middleware(
+        ServerTimingMiddleware,
+        calls_to_track={
+            "db_exec": (psycopg.Connection.execute,),
+            "db_fetch": (
+                psycopg.Cursor.fetchone,
+                psycopg.Cursor.fetchmany,
+                psycopg.Cursor.fetchall,
+            ),
+            "fastapi_deps": (fastapi.routing.solve_dependencies,),
+            "fastapi_main": (fastapi.routing.run_endpoint_function,),
+            "fastapi_valid": (pydantic.fields.ModelField.validate,),
+            "fastapi_encode": (fastapi.encoders.jsonable_encoder,),
+            "fastapi_render": (fastapi.responses.JSONResponse.render,),
+        }
+    )
 
 
 @app.on_event("startup")
