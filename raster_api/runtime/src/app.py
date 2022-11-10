@@ -51,7 +51,7 @@ mosaic = MosaicTilerFactory(
     optional_headers=optional_headers,
     gdal_config=settings.get_gdal_config(),
     dataset_dependency=DatasetParams,
-    router=router,
+    router=APIRouter(route_class=LoggerRouteHandler),
 )
 app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
 
@@ -62,7 +62,7 @@ stac = MultiBaseTilerFactory(
     optional_headers=optional_headers,
     router_prefix="/stac",
     gdal_config=settings.get_gdal_config(),
-    router=router,
+    router=APIRouter(route_class=LoggerRouteHandler),
 )
 app.include_router(stac.router, tags=["Items"], prefix="/stac")
 
@@ -70,7 +70,7 @@ cog = TilerFactory(
     router_prefix="/cog",
     optional_headers=optional_headers,
     gdal_config=settings.get_gdal_config(),
-    router=router,
+    router=APIRouter(route_class=LoggerRouteHandler),
 )
 
 
