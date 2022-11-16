@@ -187,3 +187,6 @@ https://github.com/NASA-IMPACT/veda-documentation
 
 ## STAC browser
 Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the delta-backend STAC catalog, paste the delta-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
+
+# License
+This project is licensed under **Apache 2**, see the [LICENSE](LICENSE) file for more details.
