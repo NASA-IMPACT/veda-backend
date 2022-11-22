@@ -50,7 +50,6 @@ class ServerTimingMiddleware:
 
         yappi.set_tag_callback(_get_context_tag)
         yappi.set_clock_type("wall")
-        print('here - init')
         yappi.start()
 
     async def __call__(self, scope, receive, send):
@@ -87,6 +86,5 @@ class ServerTimingMiddleware:
                     yappi.clear_stats()
 
             return send(response)
-        print('here - response')
 
         await self.app(scope, receive, wrapped_send)
