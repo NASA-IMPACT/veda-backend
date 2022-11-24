@@ -1,18 +1,14 @@
 """TiTiler+PgSTAC FastAPI application."""
 import logging
 
-import botocore  # noqa: F401 - need import for xray patch_all()
-from aws_xray_sdk.core import patch_all, xray_recorder
 from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_cogeo.models import Info
 from src.config import ApiSettings
 from src.datasetparams import DatasetParams
 from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
 from src.version import __version__ as delta_raster_version
-from xraysink.asgi.middleware import xray_middleware
 
 from fastapi import Depends, FastAPI, Query
-from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
@@ -42,18 +38,9 @@ if settings.debug:
 else:
     optional_headers = []
 
-if settings.enable_xray:  # xray config that must be performed before app init
-    xray_recorder.configure(service="veda-raster-api")
-    patch_all()
-
-
 app = FastAPI(title=settings.name, version=delta_raster_version)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
-
-if settings.enable_xray:  # xray config that must be performed after app init
-    app.add_middleware(BaseHTTPMiddleware, dispatch=xray_middleware)
-
 
 # Custom PgSTAC mosaic tiler
 mosaic = MosaicTilerFactory(
@@ -144,8 +131,10 @@ app.add_middleware(
 
 if settings.debug:
     import psycopg
-    import fastapi
     import pydantic
+
+    import fastapi
+
     app.add_middleware(
         ServerTimingMiddleware,
         calls_to_track={
@@ -160,7 +149,7 @@ if settings.debug:
             "fastapi_valid": (pydantic.fields.ModelField.validate,),
             "fastapi_encode": (fastapi.encoders.jsonable_encoder,),
             "fastapi_render": (fastapi.responses.JSONResponse.render,),
-        }
+        },
     )
 
 
