@@ -109,7 +109,7 @@ def create_user(cursor, username: str, password: str) -> None:
 
 
 def create_permissions(cursor, db_name: str, username: str) -> None:
-    """Add permissions."""
+    """Add permissions and user-specific pgstac configuration."""
     cursor.execute(
         sql.SQL(
             "GRANT CONNECT ON DATABASE {db_name} TO {username};"
@@ -122,6 +122,11 @@ def create_permissions(cursor, db_name: str, username: str) -> None:
             "GRANT pgstac_read TO {username};"
             "GRANT pgstac_ingest TO {username};"
             "GRANT pgstac_admin TO {username};"
+            "ALTER ROLE {username} SET SEARCH_PATH to pgstac, public;"
+            "ALTER ROLE {username} SET pgstac.context TO 'auto';"
+            "ALTER ROLE {username} SET pgstac.context_estimated_count TO '100000';"
+            "ALTER ROLE {username} SET pgstac.context_estimated_cost TO '100000';"
+            "ALTER ROLE {username} SET pgstac.context_stats_ttl TO '1 day';"
         ).format(
             db_name=sql.Identifier(db_name),
             username=sql.Identifier(username),
