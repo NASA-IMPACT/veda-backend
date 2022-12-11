@@ -2,7 +2,7 @@ version: '3'
 
 services:
   stac:
-    container_name: delta.stac
+    container_name: veda.stac
     build:
       context: .
       dockerfile: local/Dockerfile.stac
@@ -40,7 +40,7 @@ services:
       - ./scripts:/tmp/scripts
 
   raster:
-    container_name: delta.raster
+    container_name: veda.raster
     platform: linux/amd64
     build:
       context: .
@@ -83,7 +83,7 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       # API Config
-      - DELTA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
+      - VEDA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
 
     depends_on:
       - database
@@ -93,7 +93,7 @@ services:
       - $HOME/.aws/credentials:/root/.aws/credentials
 
   database:
-    container_name: delta.db
+    container_name: veda.db
     platform: linux/amd64
     image: ghcr.io/stac-utils/pgstac:v0.6.6
     environment:
@@ -112,4 +112,4 @@ services:
 
 networks:
   default:
-    name: delta-network
+    name: veda-network

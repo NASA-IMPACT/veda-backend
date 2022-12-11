@@ -194,7 +194,7 @@ admin_secret_dict = get_secret_dict(
 admin_dsn = get_dsn_string(admin_secret_dict)
 
 # Get pgstac user secret to update
-print(f"Loading pgstac delta user credentials from secret={args.pgstac_secret_name}")
+print(f"Loading pgstac veda user credentials from secret={args.pgstac_secret_name}")
 pgstac_secret_dict = get_secret_dict(
     args.pgstac_secret_name, profile_name=args.profile_name
 )

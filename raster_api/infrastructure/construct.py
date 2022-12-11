@@ -14,7 +14,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from .config import delta_raster_settings
+from .config import veda_raster_settings
 
 
 class RasterApiLambdaConstruct(Construct):
@@ -36,7 +36,7 @@ class RasterApiLambdaConstruct(Construct):
         # TODO config
         stack_name = Stack.of(self).stack_name
 
-        delta_raster_function = aws_lambda.Function(
+        veda_raster_function = aws_lambda.Function(
             self,
             "lambda",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
@@ -48,30 +48,30 @@ class RasterApiLambdaConstruct(Construct):
             vpc=vpc,
             allow_public_subnet=True,
             handler="handler.handler",
-            memory_size=delta_raster_settings.memory,
-            timeout=Duration.seconds(delta_raster_settings.timeout),
+            memory_size=veda_raster_settings.memory,
+            timeout=Duration.seconds(veda_raster_settings.timeout),
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
-            environment=delta_raster_settings.env or {},
+            environment=veda_raster_settings.env or {},
             tracing=aws_lambda.Tracing.ACTIVE,
         )
 
-        database.pgstac.secret.grant_read(delta_raster_function)
+        database.pgstac.secret.grant_read(veda_raster_function)
         database.pgstac.connections.allow_from(
-            delta_raster_function, port_range=aws_ec2.Port.tcp(5432)
+            veda_raster_function, port_range=aws_ec2.Port.tcp(5432)
         )
 
-        delta_raster_function.add_environment(
-            "DELTA_RASTER_ENABLE_MOSAIC_SEARCH",
-            str(delta_raster_settings.enable_mosaic_search),
+        veda_raster_function.add_environment(
+            "VEDA_RASTER_ENABLE_MOSAIC_SEARCH",
+            str(veda_raster_settings.enable_mosaic_search),
         )
 
-        delta_raster_function.add_environment(
-            "DELTA_RASTER_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
+        veda_raster_function.add_environment(
+            "VEDA_RASTER_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
         raster_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-                construct_id, delta_raster_function
+                construct_id, veda_raster_function
             )
         )
 
@@ -89,34 +89,34 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         CfnOutput(self, "raster-api", value=self.raster_api.url)
-        CfnOutput(self, "raster-api-arn", value=delta_raster_function.function_arn)
+        CfnOutput(self, "raster-api-arn", value=veda_raster_function.function_arn)
 
-        delta_raster_function.add_to_role_policy(
+        veda_raster_function.add_to_role_policy(
             aws_iam.PolicyStatement(
                 actions=["s3:GetObject"],
                 resources=[
-                    f"arn:aws:s3:::{bucket}/{delta_raster_settings.key}"
-                    for bucket in delta_raster_settings.buckets
+                    f"arn:aws:s3:::{bucket}/{veda_raster_settings.key}"
+                    for bucket in veda_raster_settings.buckets
                 ],
             )
         )
 
         # Optional use sts assume role with GetObject permissions for external S3 bucket(s)
-        if delta_raster_settings.data_access_role_arn:
+        if veda_raster_settings.data_access_role_arn:
             # Get the role for external data access
             data_access_role = aws_iam.Role.from_role_arn(
                 self,
                 "data-access-role",
-                delta_raster_settings.data_access_role_arn,
+                veda_raster_settings.data_access_role_arn,
             )
 
             # Allow this lambda to assume the data access role
             data_access_role.grant(
-                delta_raster_function.grant_principal,
+                veda_raster_function.grant_principal,
                 "sts:AssumeRole",
             )
 
-            delta_raster_function.add_environment(
-                "DELTA_RASTER_DATA_ACCESS_ROLE_ARN",
-                delta_raster_settings.data_access_role_arn,
+            veda_raster_function.add_environment(
+                "VEDA_RASTER_DATA_ACCESS_ROLE_ARN",
+                veda_raster_settings.data_access_role_arn,
             )

@@ -1,4 +1,4 @@
-"""delta.raster.dependencies."""
+"""veda.raster.dependencies."""
 
 import json
 from base64 import b64decode

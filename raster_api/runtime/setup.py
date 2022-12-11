@@ -1,4 +1,4 @@
-"""Setup delta.raster_api."""
+"""Setup veda.raster_api."""
 
 from setuptools import find_namespace_packages, setup
 
@@ -24,11 +24,11 @@ extra_reqs = {
 
 
 setup(
-    name="delta.raster_api",
+    name="veda.raster_api",
     description="",
     python_requires=">=3.7",
     packages=find_namespace_packages(exclude=["tests*"]),
-    package_data={"delta": ["raster/templates/*.html"]},
+    package_data={"veda": ["raster/templates/*.html"]},
     include_package_data=True,
     zip_safe=False,
     install_requires=inst_reqs,

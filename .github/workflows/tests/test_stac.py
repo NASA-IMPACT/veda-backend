@@ -1,4 +1,4 @@
-"""test Delta-backend STAC."""
+"""test veda-backend STAC."""
 
 import httpx
 

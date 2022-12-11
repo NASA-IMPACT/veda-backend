@@ -13,7 +13,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from .config import delta_stac_settings
+from .config import veda_stac_settings
 
 
 class StacApiLambdaConstruct(Construct):
@@ -47,12 +47,12 @@ class StacApiLambdaConstruct(Construct):
             ),
             vpc=vpc,
             allow_public_subnet=True,
-            memory_size=delta_stac_settings.memory,
-            timeout=Duration.seconds(delta_stac_settings.timeout),
+            memory_size=veda_stac_settings.memory,
+            timeout=Duration.seconds(veda_stac_settings.timeout),
             environment={
                 "DB_MIN_CONN_SIZE": "0",
                 "DB_MAX_CONN_SIZE": "1",
-                **{k.upper(): v for k, v in delta_stac_settings.env.items()},
+                **{k.upper(): v for k, v in veda_stac_settings.env.items()},
             },
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
             tracing=aws_lambda.Tracing.ACTIVE,
@@ -67,7 +67,7 @@ class StacApiLambdaConstruct(Construct):
         lambda_function.add_environment("TITILER_ENDPOINT", raster_api.raster_api.url)
 
         lambda_function.add_environment(
-            "DELTA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
+            "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
         stac_api_integration = (

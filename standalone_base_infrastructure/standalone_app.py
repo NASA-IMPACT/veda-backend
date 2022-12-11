@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" CDK Configuration for the delta-backend stack."""
+""" CDK Configuration for base deployment infrastructure fo the veda-backend stack."""
 
 from aws_cdk import App, Stack
 from constructs import Construct

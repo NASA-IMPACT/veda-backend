@@ -4,7 +4,7 @@ from typing import Dict, Optional
 from pydantic import BaseSettings, Field
 
 
-class deltaSTACSettings(BaseSettings):
+class vedaSTACSettings(BaseSettings):
     """Application settings"""
 
     env: Dict = {}
@@ -22,7 +22,7 @@ class deltaSTACSettings(BaseSettings):
         """model config"""
 
         env_file = ".env"
-        env_prefix = "DELTA_STAC_"
+        env_prefix = "VEDA_STAC_"
 
 
-delta_stac_settings = deltaSTACSettings()
+veda_stac_settings = vedaSTACSettings()

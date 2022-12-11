@@ -1,5 +1,5 @@
 """
-CDK construct for delta-backend VPC.
+CDK construct for veda-backend VPC.
 """
 from typing import Optional
 
@@ -12,7 +12,7 @@ from .config import dev_vpc_settings, prod_vpc_settings, staging_vpc_settings
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/new-vpc-alb-asg-mysql
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/docker-app-with-asg-alb
 class VpcConstruct(Construct):
-    """CDK construct for delta-backend VPC."""
+    """CDK construct for veda-backend VPC."""
 
     def __init__(
         self,
@@ -35,30 +35,30 @@ class VpcConstruct(Construct):
         else:
             # Union of pydantic base settings is unpredictable so set stage settings conditionally
             if stage == "prod":
-                delta_vpc_settings = prod_vpc_settings
+                veda_vpc_settings = prod_vpc_settings
             elif stage == "staging":
-                delta_vpc_settings = staging_vpc_settings
+                veda_vpc_settings = staging_vpc_settings
             else:
-                delta_vpc_settings = dev_vpc_settings
+                veda_vpc_settings = dev_vpc_settings
 
             public_subnet = aws_ec2.SubnetConfiguration(
                 name="public",
                 subnet_type=aws_ec2.SubnetType.PUBLIC,
-                cidr_mask=delta_vpc_settings.public_mask,
+                cidr_mask=veda_vpc_settings.public_mask,
             )
             private_subnet = aws_ec2.SubnetConfiguration(
                 name="private",
                 subnet_type=aws_ec2.SubnetType.PRIVATE_WITH_NAT,
-                cidr_mask=delta_vpc_settings.private_mask,
+                cidr_mask=veda_vpc_settings.private_mask,
             )
 
             self.vpc = aws_ec2.Vpc(
                 self,
                 "vpc",
-                max_azs=delta_vpc_settings.max_azs,
-                cidr=delta_vpc_settings.cidr,
+                max_azs=veda_vpc_settings.max_azs,
+                cidr=veda_vpc_settings.cidr,
                 subnet_configuration=[public_subnet, private_subnet],
-                nat_gateways=delta_vpc_settings.nat_gateways,
+                nat_gateways=veda_vpc_settings.nat_gateways,
             )
 
             vpc_endpoints = {

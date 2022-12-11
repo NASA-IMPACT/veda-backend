@@ -1,4 +1,4 @@
-"""CDK Construct for delta-backend RDS instance."""
+"""CDK Construct for veda-backend RDS instance."""
 import json
 import os
 from typing import Union
@@ -17,7 +17,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from .config import delta_db_settings
+from .config import veda_db_settings
 
 
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
@@ -39,8 +39,8 @@ class BootstrapPgStac(Construct):
         """."""
         super().__init__(scope, construct_id)
 
-        pgstac_version = delta_db_settings.pgstac_version
-        delta_schema_version = delta_db_settings.schema_version
+        pgstac_version = veda_db_settings.pgstac_version
+        veda_schema_version = veda_db_settings.schema_version
 
         handler = aws_lambda.Function(
             self,
@@ -97,7 +97,7 @@ class BootstrapPgStac(Construct):
                 "pgstac_version": pgstac_version,
                 "conn_secret_arn": database.secret.secret_arn,
                 "new_user_secret_arn": self.secret.secret_arn,
-                "delta_schema_version": delta_schema_version,
+                "veda_schema_version": veda_schema_version,
             },
             removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
         )
@@ -127,10 +127,10 @@ class RdsConstruct(Construct):
         stack_name = Stack.of(self).stack_name
 
         # Configure accessibility
-        publicly_accessible = False if delta_db_settings.private_subnets else True
+        publicly_accessible = False if veda_db_settings.private_subnets else True
         subnet_type = (
             aws_ec2.SubnetType.PRIVATE_ISOLATED
-            if delta_db_settings.private_subnets is True
+            if veda_db_settings.private_subnets is True
             else aws_ec2.SubnetType.PUBLIC
         )
 
@@ -143,23 +143,23 @@ class RdsConstruct(Construct):
             "parameter-group",
             engine=engine,
             parameters={
-                "max_locks_per_transaction": delta_db_settings.max_locks_per_transaction,
-                "work_mem": delta_db_settings.work_mem,
-                "temp_buffers": delta_db_settings.temp_buffers,
+                "max_locks_per_transaction": veda_db_settings.max_locks_per_transaction,
+                "work_mem": veda_db_settings.work_mem,
+                "temp_buffers": veda_db_settings.temp_buffers,
             },
         )
 
         # Create a new database instance from snapshot if provided
-        if delta_db_settings.snapshot_id:
+        if veda_db_settings.snapshot_id:
             # For the database from snapshot we will need a new master secret
             credentials = aws_rds.SnapshotCredentials.from_generated_secret(
-                username=delta_db_settings.admin_user
+                username=veda_db_settings.admin_user
             )
 
             database = aws_rds.DatabaseInstanceFromSnapshot(
                 self,
                 id="rds",
-                snapshot_identifier=delta_db_settings.snapshot_id,
+                snapshot_identifier=veda_db_settings.snapshot_id,
                 instance_identifier=f"{stack_name}-postgres",
                 vpc=vpc,
                 engine=engine,
@@ -197,8 +197,8 @@ class RdsConstruct(Construct):
             self,
             "pgstac",
             database=database,
-            new_dbname=delta_db_settings.dbname,
-            new_username=delta_db_settings.user,
+            new_dbname=veda_db_settings.dbname,
+            new_username=veda_db_settings.user,
             secrets_prefix=stack_name,
             stage=stage,
         )
