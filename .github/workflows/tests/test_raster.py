@@ -1,4 +1,4 @@
-"""test delta-backend.raster."""
+"""test veda-backend.raster."""
 
 import httpx
 

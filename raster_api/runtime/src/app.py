@@ -7,7 +7,7 @@ from rio_cogeo.models import Info
 from src.config import ApiSettings
 from src.datasetparams import DatasetParams
 from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
-from src.version import __version__ as delta_raster_version
+from src.version import __version__ as veda_raster_version
 
 from fastapi import APIRouter, Depends, FastAPI, Query
 from starlette.middleware.cors import CORSMiddleware
@@ -38,7 +38,7 @@ if settings.debug:
 else:
     optional_headers = []
 
-app = FastAPI(title=settings.name, version=delta_raster_version)
+app = FastAPI(title=settings.name, version=veda_raster_version)
 # router to be applied to all titiler route factories (improves logs with FastAPI context)
 router = APIRouter(route_class=LoggerRouteHandler)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)

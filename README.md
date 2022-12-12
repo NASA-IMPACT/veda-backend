@@ -1,5 +1,5 @@
-# delta-backend
-This project deploys a complete backend for a [SpatioTemporal Asset Catalog](https://stacspec.org/) including a postgres database, a metadata API, and raster tiling API. Delta-backend is a non-forked version of the [eoAPI](https://github.com/developmentseed/eoAPI) demo project. Delta-backend is decoupled from the demo project to selectively incorporate new stable functionality from the fast moving development in eoAPI while providing a continuous baseline for delta-backend users and to support project specific business and deployment logic.
+# veda-backend
+This project deploys a complete backend for a [SpatioTemporal Asset Catalog](https://stacspec.org/) including a postgres database, a metadata API, and raster tiling API. Veda-backend is a non-forked version of the [eoAPI](https://github.com/developmentseed/eoAPI) demo project. Veda-backend is decoupled from the demo project to selectively incorporate new stable functionality from the fast moving development in eoAPI while providing a continuous baseline for veda-backend users and to support project specific business and deployment logic.
 
 The primary tools employed in the [eoAPI demo](https://github.com/developmentseed/eoAPI) and this project are:
 - [stac-spec](https://github.com/radiantearth/stac-spec)
@@ -20,7 +20,7 @@ This repo includes CDK scripts to deploy a PgStac AWS RDS database and other res
 
 ### Enviroment variables
 
-An [.example.env](.example.env) template is supplied for for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `<app-name>-backend/<stage>-env`, for example `delta-backend/dev-env`.
+An [.example.env](.example.env) template is supplied for for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `<app-name>-backend/<stage>-env`, for example `veda-backend/dev-env`.
 
 ### Fetch environment variables using AWS CLI
 
@@ -35,23 +35,23 @@ aws secretsmanager get-secret-value --secret-id ${AWS_SECRET_ID} --query SecretS
 
 | Name | Explanation |
 | --- | --- |
-| `APP_NAME` | Optional app name used to name stack and resources, defaults to `delta` |
+| `APP_NAME` | Optional app name used to name stack and resources, defaults to `veda` |
 | `STAGE` | **REQUIRED** Deployment stage used to name stack and resources, i.e. `dev`, `staging`, `prod` |
 | `VPC_ID` | Optional resource identifier of VPC, if none a new VPC with public and private subnets will be provisioned. |
 | `PERMISSIONS_BOUNDARY_POLICY_NAME` | Optional name of IAM policy to define stack permissions boundary |
 | `CDK_DEFAULT_ACCOUNT` | When deploying from a local machine the AWS account id is required to deploy to an exiting VPC |
 | `CDK_DEFAULT_REGION` | When deploying from a local machine the AWS region id is required to deploy to an exiting VPC |
-| `DELTA_DB_PGSTAC_VERSION` | **REQUIRED** version of PgStac database, i.e. 0.5 |
-| `DELTA_DB_SCHEMA_VERSION` | **REQUIRED** The version of the custom delta-backend schema, i.e. 0.1.1 |
-| `DELTA_DB_SNAPSHOT_ID` | **Once used always REQUIRED** Optional RDS snapshot identifier to initialize RDS from a snapshot |
-| `DELTA_DB_PRIVATE_SUBNETS` | Optional boolean to deploy database to private subnet |
-| `DELTA_DOMAIN_HOSTED_ZONE_ID` | Optional Route53 zone identifier if using a custom domain name |
-| `DELTA_DOMAIN_HOSTED_ZONE_NAME` | Optional custom domain name, i.e. delta-backend.xyz |
-| `DELTA_DOMAIN_ALT_HOSTED_ZONE_ID` | Optional second Route53 zone identifier if using a custom domain name |
-| `DELTA_DOMAIN_ALT_HOSTED_ZONE_NAME` | Optional second custom domain name, i.e. alt-delta-backend.xyz |
-| `DELTA_DOMAIN_API_PREFIX` | Optional domain prefix override supports using a custom prefix instead of the STAGE variabe (an alternate version of the stack can be deployed with a unique STAGE=altprod and after testing prod API traffic can be cut over to the alternate version of the stack by setting the prefix to prod) |
-| `DELTA_RASTER_ENABLE_MOSAIC_SEARCH` | Optional deploy the raster API with the mosaic/list endpoint TRUE/FALSE |
-| `DELTA_RASTER_DATA_ACCESS_ROLE_ARN` | Optional arn of IAM Role to be assumed by raster-api for S3 bucket data access, if not provided default role for the lambda construct is used |
+| `VEDA_DB_PGSTAC_VERSION` | **REQUIRED** version of PgStac database, i.e. 0.5 |
+| `VEDA_DB_SCHEMA_VERSION` | **REQUIRED** The version of the custom veda-backend schema, i.e. 0.1.1 |
+| `VEDA_DB_SNAPSHOT_ID` | **Once used always REQUIRED** Optional RDS snapshot identifier to initialize RDS from a snapshot |
+| `VEDA_DB_PRIVATE_SUBNETS` | Optional boolean to deploy database to private subnet |
+| `VEDA_DOMAIN_HOSTED_ZONE_ID` | Optional Route53 zone identifier if using a custom domain name |
+| `VEDA_DOMAIN_HOSTED_ZONE_NAME` | Optional custom domain name, i.e. veda-backend.xyz |
+| `VEDA_DOMAIN_ALT_HOSTED_ZONE_ID` | Optional second Route53 zone identifier if using a custom domain name |
+| `VEDA_DOMAIN_ALT_HOSTED_ZONE_NAME` | Optional second custom domain name, i.e. alt-veda-backend.xyz |
+| `VEDA_DOMAIN_API_PREFIX` | Optional domain prefix override supports using a custom prefix instead of the STAGE variabe (an alternate version of the stack can be deployed with a unique STAGE=altprod and after testing prod API traffic can be cut over to the alternate version of the stack by setting the prefix to prod) |
+| `VEDA_RASTER_ENABLE_MOSAIC_SEARCH` | Optional deploy the raster API with the mosaic/list endpoint TRUE/FALSE |
+| `VEDA_RASTER_DATA_ACCESS_ROLE_ARN` | Optional arn of IAM Role to be assumed by raster-api for S3 bucket data access, if not provided default role for the lambda construct is used |
 
 ### Deploying to the cloud
 
@@ -69,15 +69,15 @@ python3 -m pip install -e ".[dev,deploy,test]"
 #### Run the deployment
 
 ```
-cdk synth
+# Review what infrastructure changes your deployment will cause
+cdk diff
+# Execute deployment, security changes will require approval for deployment
 cdk deploy
 ```
 
 #### Check CloudFormation deployment status
 
 After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
-
-The CloudFormation stack name is the combination of the app name and deployment stage environment variables https://github.com/NASA-IMPACT/delta-backend/blob/develop/config.py#L11
   
 ## Deleting the CloudFormation stack
 
@@ -186,7 +186,7 @@ https://github.com/NASA-IMPACT/veda-documentation
 # STAC community resources
 
 ## STAC browser
-Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the delta-backend STAC catalog, paste the delta-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
+Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the veda-backend STAC catalog, paste the veda-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
 
 # License
 This project is licensed under **Apache 2**, see the [LICENSE](LICENSE) file for more details.

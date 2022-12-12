@@ -1,4 +1,4 @@
-"""CDK Construct for a custom API domain (under the route 53 domain: delta-backend.xyz)."""
+"""CDK Construct for a custom API domain."""
 from typing import Optional
 
 from aws_cdk import (
@@ -10,11 +10,11 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from .config import delta_domain_settings
+from .config import veda_domain_settings
 
 
 class DomainConstruct(Construct):
-    """CDK Construct for a custom API domain (under the route 53 domain: delta-backend.xyz)."""
+    """CDK Construct for a custom API domain."""
 
     def __init__(
         self,
@@ -31,16 +31,16 @@ class DomainConstruct(Construct):
         self.raster_domain_name = None
 
         if (
-            delta_domain_settings.hosted_zone_id
-            and delta_domain_settings.hosted_zone_name
+            veda_domain_settings.hosted_zone_id
+            and veda_domain_settings.hosted_zone_name
         ):
             # If alternative custom domain provided, use it instead of the default
             if alt_domain is True:
-                hosted_zone_name = delta_domain_settings.alt_hosted_zone_name
-                hosted_zone_id = delta_domain_settings.alt_hosted_zone_id
+                hosted_zone_name = veda_domain_settings.alt_hosted_zone_name
+                hosted_zone_id = veda_domain_settings.alt_hosted_zone_id
             else:
-                hosted_zone_name = delta_domain_settings.hosted_zone_name
-                hosted_zone_id = delta_domain_settings.hosted_zone_id
+                hosted_zone_name = veda_domain_settings.hosted_zone_name
+                hosted_zone_id = veda_domain_settings.hosted_zone_id
 
             hosted_zone = aws_route53.HostedZone.from_hosted_zone_attributes(
                 self,
@@ -58,9 +58,9 @@ class DomainConstruct(Construct):
             )
 
             # Use custom api prefix if provided or deployment stage if not
-            if delta_domain_settings.api_prefix:
-                raster_url_prefix = f"{delta_domain_settings.api_prefix.lower()}-raster"
-                stac_url_prefix = f"{delta_domain_settings.api_prefix.lower()}-stac"
+            if veda_domain_settings.api_prefix:
+                raster_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-raster"
+                stac_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-stac"
             else:
                 raster_url_prefix = f"{stage.lower()}-raster"
                 stac_url_prefix = f"{stage.lower()}-stac"
@@ -84,7 +84,7 @@ class DomainConstruct(Construct):
                         regional_hosted_zone_id=self.raster_domain_name.regional_hosted_zone_id,
                     )
                 ),
-                # Note: CDK will append the hosted zone name (eg: `delta-backend.xyz` to this record name)
+                # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
                 record_name=raster_url_prefix,
             )
 
@@ -105,7 +105,7 @@ class DomainConstruct(Construct):
                         regional_hosted_zone_id=self.stac_domain_name.regional_hosted_zone_id,
                     )
                 ),
-                # Note: CDK will append the hosted zone name (eg: `delta-backend.xyz` to this record name)
+                # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
                 record_name=stac_url_prefix,
             )
 
