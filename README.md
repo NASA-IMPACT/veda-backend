@@ -9,7 +9,7 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 - [titiler](https://github.com/developmentseed/titiler)
 - [titiler-pgstac](https://github.com/stac-utils/titiler-pgstac)
 
-![architecture diagram](.readme/veda-backend.drawio.svgsvg)
+![architecture diagram](.readme/veda-backend.drawio.svg)
 
 ## Deployment
 
