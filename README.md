@@ -9,16 +9,9 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 - [titiler](https://github.com/developmentseed/titiler)
 - [titiler-pgstac](https://github.com/stac-utils/titiler-pgstac)
 
-## VEDA ecosystem
+## VEDA backend context
 ![architecture diagram](.readme/veda-backend.drawio.svg)
-Veda backend is is the central index of the VEDA ecosystem. This project provides the infrastructure for a PgSTAC database, STAC API, and TiTiler. This infrastructure is used to discover, access, and visualize the Analysis Ready Cloud Optimized (ARCO) assets of the VEDA Data Store.
-
-| Name | Explanation |
-| --- | --- |
-| [**veda-config**]() | Configuration for viewing VEDA assets in dashboard UI  |
-| [**veda-ui**]() | Dashboard UI for viewing and analysing VEDA assets |
-| [**veda-stac-ingestor**]() | Load records to PgSTAC |
-| [**veda-data-pipelines**]() | Cloud optimize data assets and submit records for publication to veda-stac-ingestor |
+Veda backend is is the central index of the [VEDA ecosystem](#veda-ecosystem). This project provides the infrastructure for a PgSTAC database, STAC API, and TiTiler. This infrastructure is used to discover, access, and visualize the Analysis Ready Cloud Optimized (ARCO) assets of the VEDA Data Store.
 
 ## Deployment
 
@@ -109,9 +102,21 @@ STAC records should be loaded using [pypgstac](https://github.com/stac-utils/pgs
 ## Support scripts
 Support scripts are provided for manual system operations.
 - [Rotate pgstac password](support_scripts/README.md#rotate-pgstac-password)
-## Usage examples: 
+
+## VEDA ecosystem
+
+| Name | Explanation |
+| --- | --- |
+| **veda-backend** | Central index (database) and APIs for recording, discovering, viewing, and using VEDA assets |
+| [**veda-config**](https://github.com/NASA-IMPACT/veda-config) | Configuration for viewing VEDA assets in dashboard UI  |
+| [**veda-ui**](https://github.com/NASA-IMPACT/veda-ui) | Dashboard UI for viewing and analysing VEDA assets |
+| [**veda-stac-ingestor**](https://github.com/NASA-IMPACT/veda-stac-ingestor) |  Entry-point for users/services to add new records to database |
+| [**veda-data-pipelines**](https://github.com/NASA-IMPACT/veda-data-pipelines) | Cloud optimize data assets and submit records for publication to veda-stac-ingestor |
+
+## Usage examples 
 
 https://github.com/NASA-IMPACT/veda-documentation
+
 # STAC community resources
 
 ## STAC browser
