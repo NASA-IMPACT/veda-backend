@@ -11,11 +11,12 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 
 ## VEDA backend context
 ![architecture diagram](.readme/veda-backend.drawio.svg)
+
 Veda backend is is the central index of the [VEDA ecosystem](#veda-ecosystem). This project provides the infrastructure for a PgSTAC database, STAC API, and TiTiler. This infrastructure is used to discover, access, and visualize the Analysis Ready Cloud Optimized (ARCO) assets of the VEDA Data Store.
 
 ## Deployment
 
-This repo includes CDK scripts to deploy a PgSTAC AWS RDS database and other resources to support APIs maintained by the VEDA backend development team.
+This project uses an AWS CDK [CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html) stack to deploy a full AWS virtual private cloud environment with a database and supporting lambda function APIs. The deployment constructs, database, and API services are highly configurable. This section provices basic deployment instructions as well as support for customization.
 
 ### Tooling & supporting documentation
 
@@ -62,13 +63,9 @@ python3 -m pip install -e ".[dev,deploy,test]"
 ```
 # Review what infrastructure changes your deployment will cause
 cdk diff
-# Execute deployment, security changes will require approval for deployment
+# Execute deployment and standby--security changes will require approval for deployment
 cdk deploy
 ```
-
-#### Check CloudFormation deployment status
-
-After logging in to the console at https://<account number>.signin.aws.amazon.com/console the status of the CloudFormation stack can be viewed here: https://<aws-region>.console.aws.amazon.com/cloudformation/home.
   
 ## Deleting the CloudFormation stack
 
@@ -79,6 +76,7 @@ If this is a development stack that is safe to delete, you can delete the stack 
 3. If this stack created a new VPC, delete the VPC (this should delete a subnet and security group too).
 
 ## Custom deployments
+
 The default settings for this project generate a complete AWS environment including a VPC and gateways for the stack. See this guidance for adjusting the veda-backend stack for existing managed and/or shared AWS environments.
 - [Deploy to an existing managed AWS environment](docs/deploying_to_existing_environments.md)
 - [Creating a shared base VPC and AWS environment](docs/deploying_to_existing_environments.md#optional-deploy-standalone-base-infrastructure)
@@ -96,8 +94,11 @@ docker compose down
 
 # Operations
 
-## Ingesting metadata
-STAC records should be loaded using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac). The [cloud-optimized-data-pipelines](https://github.com/NASA-IMPACT/cloud-optimized-data-pipelines) project provides examples of cloud pipelines that use pypgstac to load data into a STAC catalog, as well as examples of transforming data to cloud optimized formats.
+## Adding new data to veda-backend 
+
+> **Warning** PgSTAC records should be loaded in the database using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac) for proper indexing and partitioning.
+
+The VEDA ecosystem includes tools specifially created for loading PgSTAC records and optimizing data assets. The [veda-data-pipelines](https://github.com/NASA-IMPACT/veda-data-pipelines) project provides examples of cloud pipelines that transform data to cloud optimized formats, generate STAC metadata, and submit records for publication to the veda-backend database using the [veda-stac-ingestor](https://github.com/NASA-IMPACT/veda-stac-ingestor).
 
 ## Support scripts
 Support scripts are provided for manual system operations.
