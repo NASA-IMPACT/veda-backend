@@ -9,6 +9,8 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 - [titiler](https://github.com/developmentseed/titiler)
 - [titiler-pgstac](https://github.com/stac-utils/titiler-pgstac)
 
+![architecture diagram](.readme/veda-backend.svg)
+
 ## Deployment
 
 This repo includes CDK scripts to deploy a PgStac AWS RDS database and other resources to support APIs maintained by the VEDA backend development team.
