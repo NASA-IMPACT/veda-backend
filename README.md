@@ -117,8 +117,9 @@ Support scripts are provided for manual system operations.
 
 ## VEDA usage examples
 
-[VEDA documentation](https://nasa-impact.github.io/veda-documentation/)
-[VEDA dashboard](https://www.earthdata.nasa.gov/dashboard)
+### [VEDA documentation](https://nasa-impact.github.io/veda-documentation/)
+
+### [VEDA dashboard](https://www.earthdata.nasa.gov/dashboard)
 
 # STAC community resources
 
