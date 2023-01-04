@@ -183,6 +183,60 @@ def create_collection_summaries_functions(cursor) -> None:
     """
     cursor.execute(sql.SQL(periodic_datetime_summary_sql))
 
+    search_collections_sql = """
+    CREATE OR REPLACE FUNCTION collectionsearch(_search jsonb) RETURNS setof text AS $$
+        DECLARE
+            where_segments text[];
+            _where text;
+            geom geometry;
+            dtrange tstzrange;
+            sdate timestamptz;
+            edate timestamptz;
+        BEGIN
+            IF j ? 'datetime' THEN
+                dtrange := parse_dtrange(j->'datetime');
+                sdate := lower(dtrange);
+                edate := upper(dtrange);
+
+                where_segments := where_segments || format(' temporalmin <= %L::timestamptz AND temporalmax >= %L::timestamptz ',
+                    edate,
+                    sdate
+                );
+            END IF;
+
+            geom := stac_geom(j);
+            IF geom IS NOT NULL THEN
+                where_segments := where_segments || format('st_intersects(geometry, %L)',geom);
+            END IF;
+
+            _where := array_to_string(array_remove(where_segments, NULL), ' AND ');
+
+        RETURN QUERY
+        SELECT
+            id
+        FROM
+            (SELECT
+                id as id,
+                ST_MakeEnvelope(
+                    (inner.spatial->0)::INTEGER, (inner.spatial->1)::INTEGER, (inner.spatial->2)::INTEGER, (inner.spatial->3)::INTEGER, 4326
+                ) as geometry,
+                inner.temporalmin as temporalmin,
+                inner.temporalmax as temporalmax
+            FROM
+                (SELECT
+                    id,
+                    (content::jsonb->'extent'->'spatial'->'bbox'->0) as spatial,
+                    (content::jsonb->'extent'->'temporal'->'interval'->0->0)::text::timestamptz as temporalmin,
+                    (content::jsonb->'extent'->'temporal'->'interval'->0->1)::text::timestamptz as temporalmax
+                FROM collections
+                ) as inner
+            ) as outer
+        WHERE _where;
+    END;
+    $$ LANGUAGE PLPGSQL STABLE;
+    """
+    cursor.execute(sql.SQL(search_collections_sql))
+
     distinct_datetime_summary_sql = """
     CREATE OR REPLACE FUNCTION dashboard.discrete_datetime_summary(id text) RETURNS jsonb
     LANGUAGE sql
