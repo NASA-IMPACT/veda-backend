@@ -184,7 +184,7 @@ def create_collection_summaries_functions(cursor) -> None:
     cursor.execute(sql.SQL(periodic_datetime_summary_sql))
 
     search_collections_sql = """
-    CREATE OR REPLACE FUNCTION collectionsearch(_search jsonb) RETURNS setof text AS $$
+    CREATE OR REPLACE FUNCTION collectionsearch(_search jsonb = '{}'::jsonb) RETURNS setof text AS $$
         DECLARE
             where_segments text[];
             _where text;
@@ -193,8 +193,8 @@ def create_collection_summaries_functions(cursor) -> None:
             sdate timestamptz;
             edate timestamptz;
         BEGIN
-            IF j ? 'datetime' THEN
-                dtrange := parse_dtrange(j->'datetime');
+            IF _search ? 'datetime' THEN
+                dtrange := parse_dtrange(_search->'datetime');
                 sdate := lower(dtrange);
                 edate := upper(dtrange);
 
@@ -204,34 +204,37 @@ def create_collection_summaries_functions(cursor) -> None:
                 );
             END IF;
 
-            geom := stac_geom(j);
+            geom := stac_geom(_search);
             IF geom IS NOT NULL THEN
                 where_segments := where_segments || format('st_intersects(geometry, %L)',geom);
             END IF;
 
             _where := array_to_string(array_remove(where_segments, NULL), ' AND ');
+            IF _where IS NULL THEN
+                _where := 'TRUE';
+            END IF;
 
         RETURN QUERY
-        SELECT
-            id
+        EXECUTE format('SELECT
+            oq.id
         FROM
             (SELECT
-                id as id,
+                iq.id as id,
                 ST_MakeEnvelope(
-                    (inner.spatial->0)::INTEGER, (inner.spatial->1)::INTEGER, (inner.spatial->2)::INTEGER, (inner.spatial->3)::INTEGER, 4326
+                    (iq.spatial->0)::INTEGER, (iq.spatial->1)::INTEGER, (iq.spatial->2)::INTEGER, (iq.spatial->3)::INTEGER, 4326
                 ) as geometry,
-                inner.temporalmin as temporalmin,
-                inner.temporalmax as temporalmax
+                iq.temporalmin as temporalmin,
+                iq.temporalmax as temporalmax
             FROM
                 (SELECT
                     id,
-                    (content::jsonb->'extent'->'spatial'->'bbox'->0) as spatial,
-                    (content::jsonb->'extent'->'temporal'->'interval'->0->0)::text::timestamptz as temporalmin,
-                    (content::jsonb->'extent'->'temporal'->'interval'->0->1)::text::timestamptz as temporalmax
+                    (content::jsonb->''extent''->''spatial''->''bbox''->0) as spatial,
+                    (content::jsonb->''extent''->''temporal''->''interval''->0->>0)::timestamptz as temporalmin,
+                    (content::jsonb->''extent''->''temporal''->''interval''->0->>1)::timestamptz as temporalmax
                 FROM collections
-                ) as inner
-            ) as outer
-        WHERE _where;
+                ) as iq
+            ) as oq
+        WHERE %s;', _where);
     END;
     $$ LANGUAGE PLPGSQL STABLE;
     """
