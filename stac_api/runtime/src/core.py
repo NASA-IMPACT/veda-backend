@@ -1,21 +1,23 @@
+"""CoreCrudClient extensions for the VEDA STAC API."""
 from datetime import datetime
 from typing import Any, List, Optional, Union
 
+import orjson
 from asyncpg.exceptions import InvalidDatetimeFormatError
 from buildpg import render
-from fastapi import HTTPException
 from pydantic import ValidationError
 from pygeofilter.backends.cql2_json import to_cql2
 from pygeofilter.parsers.cql2_text import parse as parse_cql2_text
-import orjson
-from starlette.requests import Request
-from stac_fastapi.pgstac.config import Settings
+
+from fastapi import HTTPException
 from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 from stac_fastapi.types.errors import InvalidQueryParameter
+from starlette.requests import Request
 
 
 class VedaCrudClient(CoreCrudClient):
+    """Veda STAC API Client."""
 
     async def _collection_search_base(
         self,

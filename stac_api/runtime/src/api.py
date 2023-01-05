@@ -1,12 +1,16 @@
-from typing import List, Union
+"""FastAPI extensions for the VEDA STAC API."""
+from typing import List
 
 import attr
+
 from stac_fastapi.api.app import StacApi
 from stac_fastapi.api.routes import create_async_endpoint
 
 from .core import VedaCrudClient
 
+
 class VedaStacApi(StacApi):
+    """Veda STAC API."""
 
     client: VedaCrudClient = attr.ib()
 
@@ -19,15 +23,15 @@ class VedaStacApi(StacApi):
         self.router.add_api_route(
             name="Search",
             path="/collection-search",
-            response_model=List[str]
-            if self.settings.enable_response_models
-            else None,
+            response_model=List[str] if self.settings.enable_response_models else None,
             response_class=self.response_class,
             response_model_exclude_unset=True,
             response_model_exclude_none=True,
             methods=["POST"],
             endpoint=create_async_endpoint(
-                self.client.collection_post_search, self.search_post_request_model, self.response_class
+                self.client.collection_post_search,
+                self.search_post_request_model,
+                self.response_class,
             ),
         )
 
@@ -40,14 +44,14 @@ class VedaStacApi(StacApi):
         self.router.add_api_route(
             name="Search",
             path="/collection-search",
-            response_model=List[str]
-            if self.settings.enable_response_models
-            else None,
+            response_model=List[str] if self.settings.enable_response_models else None,
             response_class=self.response_class,
             response_model_exclude_unset=True,
             response_model_exclude_none=True,
             methods=["GET"],
             endpoint=create_async_endpoint(
-                self.client.collection_get_search, self.search_get_request_model, self.response_class
+                self.client.collection_get_search,
+                self.search_get_request_model,
+                self.response_class,
             ),
         )
