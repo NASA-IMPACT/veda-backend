@@ -184,7 +184,7 @@ def create_collection_summaries_functions(cursor) -> None:
     cursor.execute(sql.SQL(periodic_datetime_summary_sql))
 
     search_collections_sql = """
-    CREATE OR REPLACE FUNCTION collectionsearch(_search jsonb = '{}'::jsonb) RETURNS setof text AS $$
+    CREATE OR REPLACE FUNCTION dashboard.collection_search(_search jsonb = '{}'::jsonb) RETURNS setof text AS $$
         DECLARE
             where_segments text[];
             _where text;

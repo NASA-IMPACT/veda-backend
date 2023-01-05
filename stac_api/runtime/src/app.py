@@ -10,8 +10,6 @@ from src.extension import TiTilerExtension
 
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from stac_fastapi.api.app import StacApi
-from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -19,6 +17,8 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
+from .api import VedaStacApi
+from .core import VedaCrudClient
 from .monitoring import logger, metrics, tracer
 
 try:
@@ -33,13 +33,13 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 api_settings = ApiSettings()
 tiles_settings = TilesApiSettings()
 
-api = StacApi(
+api = VedaStacApi(
     app=FastAPI(title=api_settings.name),
     title=api_settings.name,
     description=api_settings.name,
     settings=api_settings.load_postgres_settings(),
     extensions=PgStacExtensions,
-    client=CoreCrudClient(post_request_model=POSTModel),
+    client=VedaCrudClient(post_request_model=POSTModel),
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
     response_class=ORJSONResponse,
