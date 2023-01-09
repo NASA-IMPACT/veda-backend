@@ -41,7 +41,7 @@ class VedaCrudClient(CoreCrudClient):
             async with pool.acquire() as conn:
                 q, p = render(
                     """
-                    SELECT * FROM dashboard.collection_search(:req::text::jsonb);
+                    SELECT * FROM dashboard.collection_id_search(:req::text::jsonb);
                     """,
                     req=req,
                 )

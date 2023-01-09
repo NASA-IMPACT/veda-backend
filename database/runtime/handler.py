@@ -160,11 +160,11 @@ def create_dashboard_schema(cursor, username: str) -> None:
     )
 
 
-def create_search_collections_functions(cursor) -> None:
+def create_collection_search_functions(cursor) -> None:
     """Create custom functions for collection-level search."""
 
-    search_collections_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.collection_search(_search jsonb = '{}'::jsonb) RETURNS setof text AS $$
+    search_collection_ids_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.collection_id_search(_search jsonb = '{}'::jsonb) RETURNS setof text AS $$
         DECLARE
             where_segments text[];
             _where text;
@@ -218,7 +218,7 @@ def create_search_collections_functions(cursor) -> None:
     END;
     $$ LANGUAGE PLPGSQL STABLE;
     """
-    cursor.execute(sql.SQL(search_collections_sql))
+    cursor.execute(sql.SQL(search_collection_ids_sql))
 
 
 def create_collection_summaries_functions(cursor) -> None:
@@ -446,8 +446,8 @@ def handler(event, context):
         # As admin, create custom search functions
         with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
             with conn.cursor() as cur:
-                print("Creating custom STAC functions...")
-                create_search_collections_functions(cursor=cur)
+                print("Creating custom STAC search functions...")
+                create_collection_search_functions(cursor=cur)
 
         with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
             with conn.cursor() as cur:
