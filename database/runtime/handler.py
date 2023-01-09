@@ -160,28 +160,8 @@ def create_dashboard_schema(cursor, username: str) -> None:
     )
 
 
-def create_collection_summaries_functions(cursor) -> None:
-    """
-    Functions to summarize datetimes and raster statistics for 'default' collections of items with single band COG assets
-    """
-
-    periodic_datetime_summary_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.periodic_datetime_summary(id text) RETURNS jsonb
-    LANGUAGE sql
-    IMMUTABLE PARALLEL SAFE
-    SET search_path TO 'pgstac', 'public'
-    AS $function$
-        SELECT to_jsonb(
-            array[
-                to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
-                to_char(max(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
-            ])​
-        FROM items WHERE collection=$1;
-    ;
-    $function$
-    ;
-    """
-    cursor.execute(sql.SQL(periodic_datetime_summary_sql))
+def create_search_collections_functions(cursor) -> None:
+    """Create custom functions for collection-level search."""
 
     search_collections_sql = """
     CREATE OR REPLACE FUNCTION dashboard.collection_search(_search jsonb = '{}'::jsonb) RETURNS setof text AS $$
@@ -239,6 +219,30 @@ def create_collection_summaries_functions(cursor) -> None:
     $$ LANGUAGE PLPGSQL STABLE;
     """
     cursor.execute(sql.SQL(search_collections_sql))
+
+
+def create_collection_summaries_functions(cursor) -> None:
+    """
+    Functions to summarize datetimes and raster statistics for 'default' collections of items with single band COG assets
+    """
+
+    periodic_datetime_summary_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.periodic_datetime_summary(id text) RETURNS jsonb
+    LANGUAGE sql
+    IMMUTABLE PARALLEL SAFE
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+        SELECT to_jsonb(
+            array[
+                to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+                to_char(max(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+            ])​
+        FROM items WHERE collection=$1;
+    ;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(periodic_datetime_summary_sql))
 
     distinct_datetime_summary_sql = """
     CREATE OR REPLACE FUNCTION dashboard.discrete_datetime_summary(id text) RETURNS jsonb
@@ -439,7 +443,12 @@ def handler(event, context):
                 )
             )
 
-        # As admin, create custom dashboard schema and functions and grant privileges to bootstrapped user
+        # As admin, create custom search functions
+        with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
+            with conn.cursor() as cur:
+                print("Creating custom STAC functions...")
+                create_search_collections_functions(cursor=cur)
+
         with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
             with conn.cursor() as cur:
                 print("Creating dashboard schema...")
