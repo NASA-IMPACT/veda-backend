@@ -45,13 +45,13 @@ class VedaCrudClient(CoreCrudClient):
                     """,
                     req=req,
                 )
-                collection_ids = await conn.fetchval(q, *p)
+                collections = await conn.fetch(q, *p)
         except InvalidDatetimeFormatError:
             raise InvalidQueryParameter(
                 f"Datetime parameter {search_request.datetime} is invalid."
             )
 
-        return collection_ids
+        return [collection["id"] for collection in collections]
 
     async def collection_post_search(
         self, search_request: PgstacSearch, **kwargs
@@ -101,4 +101,4 @@ class VedaCrudClient(CoreCrudClient):
             raise HTTPException(
                 status_code=400, detail=f"Invalid parameters provided {e}"
             )
-        return await self.post_search(search_request, request=kwargs["request"])
+        return await self.collection_post_search(search_request, request=kwargs["request"])
