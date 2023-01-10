@@ -18,6 +18,7 @@ from .search import CollectionSearchPost
 
 NumType = Union[float, int]
 
+
 class VedaCrudClient(CoreCrudClient):
     """Veda STAC API Client."""
 
@@ -81,15 +82,15 @@ class VedaCrudClient(CoreCrudClient):
             ItemCollection containing items which match the search criteria.
         """
         # Parse request parameters
-        base_args = { "bbox": bbox }
+        base_args = {"bbox": bbox}
 
         if filter:
             ast = parse_cql2_text(filter)
             base_args["filter"] = orjson.loads(to_cql2(ast))
-            base_args["filter-lang"] = "cql2-json"
+            base_args["filter-lang"] = "cql2-json"  # type: ignore
 
         if datetime:
-            base_args["datetime"] = datetime
+            base_args["datetime"] = datetime  # type: ignore
 
         # Remove None values from dict
         clean = {}
@@ -104,4 +105,6 @@ class VedaCrudClient(CoreCrudClient):
             raise HTTPException(
                 status_code=400, detail=f"Invalid parameters provided {e}"
             )
-        return await self.collection_id_post_search(search_request, request=kwargs["request"])
+        return await self.collection_id_post_search(
+            search_request, request=kwargs["request"]
+        )

@@ -1,5 +1,6 @@
+"""Custom search models"""
 from datetime import datetime as dt
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import attr
 from geojson_pydantic.geometries import (  # type: ignore
@@ -14,8 +15,9 @@ from geojson_pydantic.geometries import (  # type: ignore
 )
 from pydantic import BaseModel, validator
 from pydantic.datetime_parse import parse_datetime
-from stac_fastapi.types.search import APIRequest, str2list
 from stac_pydantic.shared import BBox
+
+from stac_fastapi.types.search import APIRequest, str2list
 
 Intersection = Union[
     Point,
@@ -26,6 +28,7 @@ Intersection = Union[
     MultiPolygon,
     GeometryCollection,
 ]
+
 
 class CollectionSearchPost(BaseModel):
     """
@@ -39,6 +42,7 @@ class CollectionSearchPost(BaseModel):
 
     @property
     def start_date(self) -> Optional[dt]:
+        """start date validation"""
         values = (self.datetime or "").split("/")
         if len(values) == 1:
             return None
@@ -48,6 +52,7 @@ class CollectionSearchPost(BaseModel):
 
     @property
     def end_date(self) -> Optional[dt]:
+        """end date validation"""
         values = (self.datetime or "").split("/")
         if len(values) == 1:
             return parse_datetime(values[0])
@@ -61,12 +66,14 @@ class CollectionSearchPost(BaseModel):
         v: Intersection,
         values: Dict[str, Any],
     ) -> Intersection:
+        """spatial validation"""
         if v and values["bbox"] is not None:
             raise ValueError("intersects and bbox parameters are mutually exclusive")
         return v
 
     @validator("bbox")
     def validate_bbox(cls, v: BBox) -> BBox:
+        """bbox validation"""
         if v:
             # Validate order
             if len(v) == 4:
@@ -98,6 +105,7 @@ class CollectionSearchPost(BaseModel):
 
     @validator("datetime")
     def validate_datetime(cls, v: str) -> str:
+        """datetime validation"""
         if "/" in v:
             values = v.split("/")
         else:
@@ -133,10 +141,11 @@ class CollectionSearchPost(BaseModel):
         else:
             return None
 
+
 @attr.s
 class CollectionSearchGet(APIRequest):
     """Base arguments for GET Request."""
 
-    bbox: Optional[str] = attr.ib(default=None, converter=str2list)
-    intersects: Optional[str] = attr.ib(default=None, converter=str2list)
+    bbox: Optional[str] = attr.ib(default=None, converter=str2list)  # type: ignore
+    intersects: Optional[str] = attr.ib(default=None, converter=str2list)  # type: ignore
     datetime: Optional[str] = attr.ib(default=None)
