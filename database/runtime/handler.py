@@ -164,7 +164,7 @@ def create_collection_search_functions(cursor) -> None:
     """Create custom functions for collection-level search."""
 
     search_collection_ids_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.collection_id_search(_search jsonb = '{}'::jsonb) RETURNS setof text AS $$
+    CREATE OR REPLACE FUNCTION pgstac.collection_id_search(_search jsonb = '{}'::jsonb) RETURNS setof text AS $$
         DECLARE
             where_segments text[];
             _where text;
