@@ -7,6 +7,7 @@ from stac_fastapi.api.app import StacApi
 from stac_fastapi.api.routes import create_async_endpoint
 
 from .core import VedaCrudClient
+from .search import CollectionSearchGet, CollectionSearchPost
 
 
 class VedaStacApi(StacApi):
@@ -22,15 +23,15 @@ class VedaStacApi(StacApi):
         super().register_post_search()
         self.router.add_api_route(
             name="Search",
-            path="/collection-search",
+            path="/collection-id-search",
             response_model=List[str] if self.settings.enable_response_models else None,
             response_class=self.response_class,
             response_model_exclude_unset=True,
             response_model_exclude_none=True,
             methods=["POST"],
             endpoint=create_async_endpoint(
-                self.client.collection_post_search,
-                self.search_post_request_model,
+                self.client.collection_id_post_search,
+                CollectionSearchPost,
                 self.response_class,
             ),
         )
@@ -43,15 +44,15 @@ class VedaStacApi(StacApi):
         super().register_get_search()
         self.router.add_api_route(
             name="Search",
-            path="/collection-search",
+            path="/collection-id-search",
             response_model=List[str] if self.settings.enable_response_models else None,
             response_class=self.response_class,
             response_model_exclude_unset=True,
             response_model_exclude_none=True,
             methods=["GET"],
             endpoint=create_async_endpoint(
-                self.client.collection_get_search,
-                self.search_get_request_model,
+                self.client.collection_id_get_search,
+                CollectionSearchGet,
                 self.response_class,
             ),
         )

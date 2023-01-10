@@ -11,17 +11,19 @@ from pygeofilter.parsers.cql2_text import parse as parse_cql2_text
 
 from fastapi import HTTPException
 from stac_fastapi.pgstac.core import CoreCrudClient
-from stac_fastapi.pgstac.types.search import PgstacSearch
 from stac_fastapi.types.errors import InvalidQueryParameter
 from starlette.requests import Request
 
+from .search import CollectionSearchPost
+
+NumType = Union[float, int]
 
 class VedaCrudClient(CoreCrudClient):
     """Veda STAC API Client."""
 
-    async def _collection_search_base(
+    async def _collection_id_search_base(
         self,
-        search_request: PgstacSearch,
+        search_request: CollectionSearchPost,
         **kwargs: Any,
     ) -> List[str]:
         """Cross catalog search (POST).
@@ -53,8 +55,8 @@ class VedaCrudClient(CoreCrudClient):
 
         return [collection["id"] for collection in collections]
 
-    async def collection_post_search(
-        self, search_request: PgstacSearch, **kwargs
+    async def collection_id_post_search(
+        self, search_request: CollectionSearchPost, **kwargs
     ) -> List[str]:
         """Cross catalog search (POST).
         Called with `POST /search`.
@@ -63,11 +65,12 @@ class VedaCrudClient(CoreCrudClient):
         Returns:
             ItemCollection containing items which match the search criteria.
         """
-        collection_ids = await self._collection_search_base(search_request, **kwargs)
+        collection_ids = await self._collection_id_search_base(search_request, **kwargs)
         return collection_ids
 
-    async def collection_get_search(
+    async def collection_id_get_search(
         self,
+        bbox: Optional[List[NumType]] = None,
         datetime: Optional[Union[str, datetime]] = None,
         filter: Optional[str] = None,
         **kwargs,
@@ -78,7 +81,7 @@ class VedaCrudClient(CoreCrudClient):
             ItemCollection containing items which match the search criteria.
         """
         # Parse request parameters
-        base_args = {}
+        base_args = { "bbox": bbox }
 
         if filter:
             ast = parse_cql2_text(filter)
@@ -96,9 +99,9 @@ class VedaCrudClient(CoreCrudClient):
 
         # Do the request
         try:
-            search_request = self.post_request_model(**clean)
+            search_request = CollectionSearchPost(**clean)
         except ValidationError as e:
             raise HTTPException(
                 status_code=400, detail=f"Invalid parameters provided {e}"
             )
-        return await self.collection_post_search(search_request, request=kwargs["request"])
+        return await self.collection_id_post_search(search_request, request=kwargs["request"])
