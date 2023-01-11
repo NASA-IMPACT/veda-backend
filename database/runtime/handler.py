@@ -196,21 +196,24 @@ def create_collection_search_functions(cursor) -> None:
 
         RETURN QUERY
         EXECUTE format('SELECT
-            oq.id
+            oq.id as id
         FROM
             (SELECT
                 iq.id as id,
                 ST_MakeEnvelope(
                     (iq.spatial->0)::INTEGER, (iq.spatial->1)::INTEGER, (iq.spatial->2)::INTEGER, (iq.spatial->3)::INTEGER, 4326
                 ) as geometry,
-                iq.temporalmin as temporalmin,
-                iq.temporalmax as temporalmax
+                lower(iq.temporalrange) as temporalmin,
+                upper(iq.temporalrange) as temporalmax
             FROM
                 (SELECT
                     id,
                     (content::jsonb->''extent''->''spatial''->''bbox''->0) as spatial,
-                    (content::jsonb->''extent''->''temporal''->''interval''->0->>0)::timestamptz as temporalmin,
-                    (content::jsonb->''extent''->''temporal''->''interval''->0->>1)::timestamptz as temporalmax
+                    parse_dtrange(
+                        coalesce((content::jsonb->''extent''->''temporal''->''interval''->0->>0), ''..'')
+                        || ''/'' ||
+                        coalesce((content::jsonb->''extent''->''temporal''->''interval''->0->>1), ''..'')
+                    ) as temporalrange
                 FROM collections
                 ) as iq
             ) as oq
