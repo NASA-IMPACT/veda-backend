@@ -6,13 +6,13 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'
     
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -29,13 +29,13 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'
     
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -68,9 +68,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'
       
@@ -86,7 +86,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.npm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
@@ -94,7 +94,7 @@ jobs:
       - name: Install CDK
         run: npm install -g aws-cdk@2
       
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
