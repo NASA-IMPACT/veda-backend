@@ -15,6 +15,7 @@ from geojson_pydantic.geometries import (  # type: ignore
 )
 from pydantic import BaseModel, validator
 from pydantic.datetime_parse import parse_datetime
+from stac_fastapi.types.rfc3339 import rfc3339_str_to_datetime, str_to_interval
 from stac_pydantic.shared import BBox
 
 from stac_fastapi.types.search import APIRequest, str2list
@@ -71,17 +72,34 @@ class CollectionSearchPost(BaseModel):
             raise ValueError("intersects and bbox parameters are mutually exclusive")
         return v
 
+    @property
+    def start_date(self) -> Optional[datetime]:
+        """Extract the start date from the datetime string."""
+        interval = str_to_interval(self.datetime)
+        return interval[0] if interval else None
+
+    @property
+    def end_date(self) -> Optional[datetime]:
+        """Extract the end date from the datetime string."""
+        interval = str_to_interval(self.datetime)
+        return interval[1] if interval else None
+
+    @validator("intersects")
+    def validate_spatial(cls, v, values):
+        """Check bbox and intersects are not both supplied."""
+        if v and values["bbox"]:
+            raise ValueError("intersects and bbox parameters are mutually exclusive")
+        return v
+
     @validator("bbox")
-    def validate_bbox(cls, v: BBox) -> BBox:
-        """bbox validation"""
+    def validate_bbox(cls, v: BBox):
+        """Check order of supplied bbox coordinates."""
         if v:
             # Validate order
             if len(v) == 4:
-                xmin, ymin, xmax, ymax = cast(Tuple[int, int, int, int], v)
+                xmin, ymin, xmax, ymax = v
             else:
-                xmin, ymin, min_elev, xmax, ymax, max_elev = cast(
-                    Tuple[int, int, int, int, int, int], v
-                )
+                xmin, ymin, min_elev, xmax, ymax, max_elev = v
                 if max_elev < min_elev:
                     raise ValueError(
                         "Maximum elevation must greater than minimum elevation"
@@ -104,8 +122,8 @@ class CollectionSearchPost(BaseModel):
         return v
 
     @validator("datetime")
-    def validate_datetime(cls, v: str) -> str:
-        """datetime validation"""
+    def validate_datetime(cls, v):
+        """Validate datetime."""
         if "/" in v:
             values = v.split("/")
         else:
@@ -118,14 +136,18 @@ class CollectionSearchPost(BaseModel):
                 dates.append("..")
                 continue
 
-            parse_datetime(value)
-            dates.append(value)
+            # throws ValueError if invalid RFC 3339 string
+            dates.append(rfc3339_str_to_datetime(value))
 
-        if ".." not in dates:
-            if parse_datetime(dates[0]) > parse_datetime(dates[1]):
-                raise ValueError(
-                    "Invalid datetime range, must match format (begin_date, end_date)"
-                )
+        if dates[0] == ".." and dates[1] == "..":
+            raise ValueError(
+                "Invalid datetime range, both ends of range may not be open"
+            )
+
+        if ".." not in dates and dates[0] > dates[1]:
+            raise ValueError(
+                "Invalid datetime range, must match format (begin_date, end_date)"
+            )
 
         return v
 
@@ -135,11 +157,20 @@ class CollectionSearchPost(BaseModel):
         Check for both because the ``bbox`` and ``intersects`` parameters are mutually exclusive.
         """
         if self.bbox:
-            return Polygon.from_bounds(*self.bbox)
+            return Polygon(
+                coordinates=[
+                    [
+                        [self.bbox[0], self.bbox[3]],
+                        [self.bbox[2], self.bbox[3]],
+                        [self.bbox[2], self.bbox[1]],
+                        [self.bbox[0], self.bbox[1]],
+                        [self.bbox[0], self.bbox[3]],
+                    ]
+                ]
+            )
         if self.intersects:
             return self.intersects
-        else:
-            return None
+        return
 
 
 @attr.s
