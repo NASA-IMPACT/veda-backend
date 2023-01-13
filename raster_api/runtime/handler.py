@@ -1,6 +1,8 @@
 """AWS Lambda handler."""
 
 import logging
+import os
+import asyncio
 
 from mangum import Mangum
 from src.app import app
@@ -10,7 +12,11 @@ logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
 logging.getLogger("mangum.http").setLevel(logging.ERROR)
 
 
-handler = Mangum(app, lifespan="auto")
+handler = Mangum(app, lifespan="off")
+
+if "AWS_EXECUTION_ENV" in os.environ:
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(app.router.startup())
 
 # Add tracing
 handler.__name__ = "handler"  # tracer requires __name__ to be set
