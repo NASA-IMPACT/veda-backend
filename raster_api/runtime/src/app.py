@@ -80,7 +80,7 @@ def cog_validate(
     strict: bool = Query(False, description="Treat warnings as errors"),
 ):
     """Validate a COG"""
-    return rio_cogeo_info(src_path, strict=strict)
+    return rio_cogeo_info(src_path, strict=strict, config=settings.get_gdal_config())
 
 
 @cog.router.get("/viewer", response_class=HTMLResponse)
