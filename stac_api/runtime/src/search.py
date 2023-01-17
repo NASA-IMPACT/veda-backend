@@ -1,6 +1,6 @@
 """Custom search models"""
 from datetime import datetime as dt
-from typing import Any, Dict, Optional, Tuple, Union, cast
+from typing import Dict, Optional, Union
 
 import attr
 from geojson_pydantic.geometries import (  # type: ignore
@@ -14,10 +14,9 @@ from geojson_pydantic.geometries import (  # type: ignore
     _GeometryBase,
 )
 from pydantic import BaseModel, validator
-from pydantic.datetime_parse import parse_datetime
-from stac_fastapi.types.rfc3339 import rfc3339_str_to_datetime, str_to_interval
 from stac_pydantic.shared import BBox
 
+from stac_fastapi.types.rfc3339 import rfc3339_str_to_datetime, str_to_interval
 from stac_fastapi.types.search import APIRequest, str2list
 
 Intersection = Union[
@@ -43,43 +42,12 @@ class CollectionSearchPost(BaseModel):
 
     @property
     def start_date(self) -> Optional[dt]:
-        """start date validation"""
-        values = (self.datetime or "").split("/")
-        if len(values) == 1:
-            return None
-        if values[0] == ".." or values[0] == "":
-            return None
-        return parse_datetime(values[0])
-
-    @property
-    def end_date(self) -> Optional[dt]:
-        """end date validation"""
-        values = (self.datetime or "").split("/")
-        if len(values) == 1:
-            return parse_datetime(values[0])
-        if values[1] == ".." or values[1] == "":
-            return None
-        return parse_datetime(values[1])
-
-    @validator("intersects")
-    def validate_spatial(
-        cls,
-        v: Intersection,
-        values: Dict[str, Any],
-    ) -> Intersection:
-        """spatial validation"""
-        if v and values["bbox"] is not None:
-            raise ValueError("intersects and bbox parameters are mutually exclusive")
-        return v
-
-    @property
-    def start_date(self) -> Optional[datetime]:
         """Extract the start date from the datetime string."""
         interval = str_to_interval(self.datetime)
         return interval[0] if interval else None
 
     @property
-    def end_date(self) -> Optional[datetime]:
+    def end_date(self) -> Optional[dt]:
         """Extract the end date from the datetime string."""
         interval = str_to_interval(self.datetime)
         return interval[1] if interval else None
@@ -170,7 +138,7 @@ class CollectionSearchPost(BaseModel):
             )
         if self.intersects:
             return self.intersects
-        return
+        return None
 
 
 @attr.s
