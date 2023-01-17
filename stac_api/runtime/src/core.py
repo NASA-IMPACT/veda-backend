@@ -11,9 +11,12 @@ from pygeofilter.parsers.cql2_text import parse as parse_cql2_text
 
 from fastapi import HTTPException
 from stac_fastapi.pgstac.core import CoreCrudClient
+from stac_fastapi.pgstac.types.search import PgstacSearch
 from stac_fastapi.types.errors import InvalidQueryParameter
+from stac_fastapi.types.stac import Item, ItemCollection
 from starlette.requests import Request
 
+from .links import LinkInjector
 from .search import CollectionSearchPost
 
 NumType = Union[float, int]
@@ -27,6 +30,14 @@ class VedaCrudClient(CoreCrudClient):
         search_request: CollectionSearchPost,
         **kwargs: Any,
     ) -> List[str]:
+        """Cross catalog search (POST).
+        Called with `POST /search`.
+        Args:
+            search_request: search request parameters.
+        Returns:
+            ItemCollection containing items which match the search criteria.
+        """
+
         """Cross catalog search (POST).
         Called with `POST /search`.
         Args:
@@ -108,3 +119,45 @@ class VedaCrudClient(CoreCrudClient):
         return await self.collection_id_post_search(
             search_request, request=kwargs["request"]
         )
+
+    def inject_item_links(self, item: Item, request: Request) -> Item:
+        """Add extra/non-mandatory links to an Item"""
+        collection_id = item.get("collection", "")
+        if collection_id:
+            LinkInjector(collection_id, request).inject_item(item)
+
+        return item
+
+    async def get_item(self, item_id: str, collection_id: str, **kwargs: Any) -> Item:
+        """Inject links into returned item."""
+        _super: CoreCrudClient = super()
+        _request = kwargs["request"]
+
+        item = await _super.get_item(item_id, collection_id, **kwargs)
+        return self.inject_item_links(item, _request)
+
+    async def _search_base(
+        self, search_request: PgstacSearch, **kwargs: Any
+    ) -> ItemCollection:
+        """Cross catalog search (POST).
+        Called with `POST /search`.
+        Args:
+            search_request: search request parameters.
+        Returns:
+            ItemCollection containing items which match the search criteria.
+        """
+        _super: CoreCrudClient = super()
+        request = kwargs["request"]
+
+        result = await _super._search_base(search_request, **kwargs)
+
+        item_collection = ItemCollection(
+            **{
+                **result,
+                "features": [
+                    self.inject_item_links(i, request)
+                    for i in result.get("features", [])
+                ],
+            }
+        )
+        return item_collection

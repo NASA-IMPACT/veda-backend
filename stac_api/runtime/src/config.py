@@ -129,3 +129,5 @@ extensions = [
 ]
 post_request_model = create_post_request_model(extensions, base_model=PgstacSearch)
 get_request_model = create_get_request_model(extensions)
+api_settings = ApiSettings()
+tiles_settings = TilesApiSettings()
