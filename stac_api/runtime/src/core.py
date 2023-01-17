@@ -60,11 +60,11 @@ class VedaCrudClient(CoreCrudClient):
         self, search_request: CollectionSearchPost, **kwargs
     ) -> List[str]:
         """Cross catalog search (POST).
-        Called with `POST /search`.
+        Called with `POST /collection-id-search`.
         Args:
             search_request: search request parameters.
         Returns:
-            ItemCollection containing items which match the search criteria.
+            A list of collection IDs which match the search criteria.
         """
         collection_ids = await self._collection_id_search_base(search_request, **kwargs)
         return collection_ids
@@ -77,9 +77,9 @@ class VedaCrudClient(CoreCrudClient):
         **kwargs,
     ) -> List[str]:
         """Cross catalog search (GET).
-        Called with `GET /search`.
+        Called with `GET /collection-id-search`.
         Returns:
-            ItemCollection containing items which match the search criteria.
+            A list of collection IDs which match the search criteria.
         """
         # Parse request parameters
         base_args = {"bbox": bbox}
