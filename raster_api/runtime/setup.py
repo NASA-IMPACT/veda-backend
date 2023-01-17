@@ -1,4 +1,4 @@
-"""Setup delta.raster_api."""
+"""Setup veda.raster_api."""
 
 from setuptools import find_namespace_packages, setup
 
@@ -10,6 +10,8 @@ inst_reqs = [
     "titiler.application>=0.5,<0.6",
     "starlette-cramjam>=0.1.0,<0.2",
     "importlib_resources>=1.1.0;python_version<'3.9'",
+    "aws_xray_sdk>=2.6.0,<3",
+    "aws-lambda-powertools>=1.18.0",
 ]
 
 extra_reqs = {
@@ -22,11 +24,11 @@ extra_reqs = {
 
 
 setup(
-    name="delta.raster_api",
+    name="veda.raster_api",
     description="",
     python_requires=">=3.7",
     packages=find_namespace_packages(exclude=["tests*"]),
-    package_data={"delta": ["raster/templates/*.html"]},
+    package_data={"veda": ["raster/templates/*.html"]},
     include_package_data=True,
     zip_safe=False,
     install_requires=inst_reqs,

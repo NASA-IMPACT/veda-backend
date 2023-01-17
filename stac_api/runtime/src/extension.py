@@ -10,7 +10,9 @@ from fastapi.responses import RedirectResponse
 from stac_fastapi.types.extension import ApiExtension
 from starlette.requests import Request
 
-router = APIRouter()
+from .monitoring import LoggerRouteHandler, tracer
+
+router = APIRouter(route_class=LoggerRouteHandler)
 
 MAX_B64_ITEM_SIZE = 2000
 
@@ -27,8 +29,9 @@ class TiTilerExtension(ApiExtension):
             None
 
         """
-        router = APIRouter()
+        router = APIRouter(route_class=LoggerRouteHandler)
 
+        @tracer.capture_method
         @router.get(
             "/collections/{collectionId}/items/{itemId}/tilejson.json",
         )
@@ -90,6 +93,7 @@ class TiTilerExtension(ApiExtension):
                 f"{titiler_endpoint}/stac/tilejson.json?{urlencode(qs)}"
             )
 
+        @tracer.capture_method
         @router.get(
             "/collections/{collectionId}/items/{itemId}/viewer",
             responses={

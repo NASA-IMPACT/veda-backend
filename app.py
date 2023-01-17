@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-""" CDK Configuration for the delta-backend stack."""
+""" CDK Configuration for the veda-backend stack."""
 
 from aws_cdk import App, Stack, Tags, aws_iam
 from constructs import Construct
 
-from config import delta_app_settings
+from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
@@ -14,46 +14,46 @@ from stac_api.infrastructure.construct import StacApiLambdaConstruct
 app = App()
 
 
-class DeltaStack(Stack):
-    """CDK stack for the delta-backend stack."""
+class VedaStack(Stack):
+    """CDK stack for the veda-backend stack."""
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         """."""
         super().__init__(scope, construct_id, **kwargs)
 
-        if delta_app_settings.permissions_boundary_policy_name:
+        if veda_app_settings.permissions_boundary_policy_name:
             permission_boundary_policy = aws_iam.Policy.from_policy_name(
                 self,
                 "permission-boundary",
-                delta_app_settings.permissions_boundary_policy_name,
+                veda_app_settings.permissions_boundary_policy_name,
             )
             aws_iam.PermissionsBoundary.of(self).apply(permission_boundary_policy)
 
 
-delta_stack = DeltaStack(
+veda_stack = VedaStack(
     app,
-    f"{delta_app_settings.app_name}-{delta_app_settings.stage_name()}",
-    env=delta_app_settings.cdk_env(),
+    f"{veda_app_settings.app_name}-{veda_app_settings.stage_name()}",
+    env=veda_app_settings.cdk_env(),
 )
 
-if delta_app_settings.vpc_id:
+if veda_app_settings.vpc_id:
     vpc = VpcConstruct(
-        delta_stack,
+        veda_stack,
         "network",
-        vpc_id=delta_app_settings.vpc_id,
-        stage=delta_app_settings.stage_name(),
+        vpc_id=veda_app_settings.vpc_id,
+        stage=veda_app_settings.stage_name(),
     )
 else:
-    vpc = VpcConstruct(delta_stack, "network", stage=delta_app_settings.stage_name())
+    vpc = VpcConstruct(veda_stack, "network", stage=veda_app_settings.stage_name())
 
 database = RdsConstruct(
-    delta_stack, "database", vpc.vpc, stage=delta_app_settings.stage_name()
+    veda_stack, "database", vpc.vpc, stage=veda_app_settings.stage_name()
 )
 
-domain = DomainConstruct(delta_stack, "domain", stage=delta_app_settings.stage_name())
+domain = DomainConstruct(veda_stack, "domain", stage=veda_app_settings.stage_name())
 
 raster_api = RasterApiLambdaConstruct(
-    delta_stack,
+    veda_stack,
     "raster-api",
     vpc=vpc.vpc,
     database=database,
@@ -61,7 +61,7 @@ raster_api = RasterApiLambdaConstruct(
 )
 
 stac_api = StacApiLambdaConstruct(
-    delta_stack,
+    veda_stack,
     "stac-api",
     vpc=vpc.vpc,
     database=database,
@@ -70,17 +70,17 @@ stac_api = StacApiLambdaConstruct(
 )
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
-if delta_app_settings.alt_domain():
+if veda_app_settings.alt_domain():
 
     alt_domain = DomainConstruct(
-        delta_stack,
+        veda_stack,
         "alt-domain",
-        stage=delta_app_settings.stage_name(),
+        stage=veda_app_settings.stage_name(),
         alt_domain=True,
     )
 
     alt_raster_api = RasterApiLambdaConstruct(
-        delta_stack,
+        veda_stack,
         "alt-raster-api",
         vpc=vpc.vpc,
         database=database,
@@ -88,7 +88,7 @@ if delta_app_settings.alt_domain():
     )
 
     alt_stac_api = StacApiLambdaConstruct(
-        delta_stack,
+        veda_stack,
         "alt-stac-api",
         vpc=vpc.vpc,
         database=database,
@@ -97,8 +97,8 @@ if delta_app_settings.alt_domain():
     )
 
 for key, value in {
-    "Project": delta_app_settings.app_name,
-    "Stack": delta_app_settings.stage_name(),
+    "Project": veda_app_settings.app_name,
+    "Stack": veda_app_settings.stage_name(),
     "Client": "nasa-impact",
     "Owner": "ds",
 }.items():

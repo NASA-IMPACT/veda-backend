@@ -1,1 +1,1 @@
-## delta.stac_api
+## veda.stac_api
