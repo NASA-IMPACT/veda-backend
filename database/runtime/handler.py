@@ -164,7 +164,7 @@ def create_collection_search_functions(cursor) -> None:
     """Create custom functions for collection-level search."""
 
     search_collection_ids_sql = """
-    CREATE OR REPLACE FUNCTION sch(_search jsonb = '{}'::jsonb) RETURNS SETOF text AS $$
+    CREATE OR REPLACE FUNCTION pgstac.collection_id_search(_search jsonb = '{}'::jsonb) RETURNS SETOF text AS $$
     DECLARE
         searches searches%ROWTYPE;
         _where text;
