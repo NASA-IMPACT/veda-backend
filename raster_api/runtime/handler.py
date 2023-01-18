@@ -1,8 +1,8 @@
 """AWS Lambda handler."""
 
+import asyncio
 import logging
 import os
-import asyncio
 
 from mangum import Mangum
 from src.app import app
