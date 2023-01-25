@@ -6,8 +6,8 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "titiler.pgstac==0.1.0.a9",
-    "titiler.application>=0.5,<0.6",
+    "titiler.pgstac==0.2.0",
+    "titiler.application>=0.10,<0.11",
     "starlette-cramjam>=0.1.0,<0.2",
     "fastapi==0.93.0",
     "importlib_resources>=1.1.0;python_version<='3.9'",  # https://github.com/cogeotiff/rio-tiler/pull/379

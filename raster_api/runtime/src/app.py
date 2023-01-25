@@ -13,8 +13,8 @@ from fastapi import APIRouter, Depends, FastAPI, Query
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
+from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
-from titiler.application.custom import templates
 from titiler.core.dependencies import DatasetPathParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import TilerFactory
@@ -25,6 +25,12 @@ from titiler.pgstac.db import close_db_connection, connect_to_db
 from titiler.pgstac.dependencies import ItemPathParams
 from titiler.pgstac.reader import PgSTACReader
 
+try:
+    from importlib.resources import files as resources_files  # type: ignore
+except ImportError:
+    # Try backported to PY<39 `importlib_resources`.
+    from importlib_resources import files as resources_files  # type: ignore
+
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 
 logging.getLogger("botocore.credentials").disabled = True
@@ -32,6 +38,8 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
+
+templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 if settings.debug:
     optional_headers = [OptionalHeader.server_timing, OptionalHeader.x_assets]
@@ -49,7 +57,7 @@ mosaic = MosaicTilerFactory(
     router_prefix="/mosaic",
     enable_mosaic_search=settings.enable_mosaic_search,
     optional_headers=optional_headers,
-    gdal_config=settings.get_gdal_config(),
+    environment_dependency=settings.get_gdal_config,
     dataset_dependency=DatasetParams,
     router=APIRouter(route_class=LoggerRouteHandler),
 )
@@ -61,7 +69,7 @@ stac = MultiBaseTilerFactory(
     path_dependency=ItemPathParams,
     optional_headers=optional_headers,
     router_prefix="/stac",
-    gdal_config=settings.get_gdal_config(),
+    environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 app.include_router(stac.router, tags=["Items"], prefix="/stac")
@@ -69,7 +77,7 @@ app.include_router(stac.router, tags=["Items"], prefix="/stac")
 cog = TilerFactory(
     router_prefix="/cog",
     optional_headers=optional_headers,
-    gdal_config=settings.get_gdal_config(),
+    environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 
