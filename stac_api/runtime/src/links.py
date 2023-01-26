@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 import pystac
 
 from fastapi import Request
-from stac_fastapi.types.stac import Collection, Item
+from stac_fastapi.types.stac import Item
 
 from .config import tiles_settings
 from .render import get_render_config
