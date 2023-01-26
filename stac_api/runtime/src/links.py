@@ -33,16 +33,9 @@ class LinkInjector:
         """Initialize a LinkInjector"""
         self.collection_id = collection_id
         # The collection_id should be suitable for getting a RenderConfig with more details
+        # TODO: create customized render configurations so collections can differ is needed
         self.render_config = get_render_config()
         self.tiler_href = tiles_settings.titiler_endpoint or ""
-
-    def inject_collection(self, collection: Collection) -> None:
-        """Inject rendering links to a collection"""
-        collection.get("links", []).append(self._get_collection_map_link())
-
-        collection["links"] = collection.get("links", [])
-        if tiles_settings.titiler_endpoint:
-            collection["links"].append(self._get_collection_tilejson_link())
 
     def inject_item(self, item: Item) -> None:
         """Inject rendering links to an item"""
@@ -53,30 +46,6 @@ class LinkInjector:
             item["links"].append(self._get_item_wmts_link(item_id))
             item["links"].append(self._get_item_tilejson_link(item_id))
             item["links"].append(self._get_item_preview_link(item_id))
-
-    def _get_collection_tilejson_link(self) -> Dict[str, Any]:
-        qs = self.render_config.get_full_render_qs(self.collection_id)
-        href = urljoin(self.tiler_href, f"collection/tilejson.json?{qs}")
-
-        return {
-            "title": "Mosaic TileJSON with default rendering",
-            "href": href,
-            "type": pystac.MediaType.JSON,
-            "roles": ["tiles"],
-        }
-
-    def _get_collection_map_link(self) -> Dict[str, Any]:
-        href = urljoin(
-            self.tiler_href,
-            f"collection/map?collection={self.collection_id}",
-        )
-
-        return {
-            "title": "Map of collection mosaic",
-            "href": href,
-            "type": "text/html",
-            "rel": pystac.RelType.PREVIEW,
-        }
 
     def _get_item_preview_link(self, item_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs(self.collection_id, item_id)
