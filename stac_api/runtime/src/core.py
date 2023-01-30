@@ -54,7 +54,7 @@ class VedaCrudClient(CoreCrudClient):
                 f"Datetime parameter {search_request.datetime} is invalid."
             )
 
-        return [collection["id"] for collection in collections]
+        return [collection["collection_id_search"] for collection in collections]
 
     async def collection_id_post_search(
         self, search_request: CollectionSearchPost, **kwargs
