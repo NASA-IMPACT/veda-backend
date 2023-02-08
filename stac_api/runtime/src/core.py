@@ -37,14 +37,6 @@ class VedaCrudClient(CoreCrudClient):
         Returns:
             ItemCollection containing items which match the search criteria.
         """
-
-        """Cross catalog search (POST).
-        Called with `POST /search`.
-        Args:
-            search_request: search request parameters.
-        Returns:
-            ItemCollection containing items which match the search criteria.
-        """
         request: Request = kwargs["request"]
         pool = request.app.state.readpool
 

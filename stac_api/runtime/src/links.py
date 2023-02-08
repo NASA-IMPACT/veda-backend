@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 import pystac
 
 from fastapi import Request
-from stac_fastapi.types.stac import Item
+from stac_fastapi.types.stac import Collection, Item
 
 from .config import tiles_settings
 from .render import get_render_config
@@ -35,13 +35,13 @@ class LinkInjector:
         # The collection_id should be suitable for getting a RenderConfig with more details
         # TODO: create customized render configurations so collections can differ is needed
         self.render_config = get_render_config()
-        self.tiler_href = tiles_settings.titiler_endpoint or ""
+        self.tiler_href = tiles_settings.titiler_endpoint
 
     def inject_item(self, item: Item) -> None:
         """Inject rendering links to an item"""
         item_id = item.get("id", "")
         item["links"] = item.get("links", [])
-        if tiles_settings.titiler_endpoint:
+        if self.tiler_href:
             item["links"].append(self._get_item_map_link(item_id))
             item["links"].append(self._get_item_wmts_link(item_id))
             item["links"].append(self._get_item_tilejson_link(item_id))
