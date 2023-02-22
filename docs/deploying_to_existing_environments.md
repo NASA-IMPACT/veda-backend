@@ -72,4 +72,4 @@ aws ec2 create-vpc-endpoint \
 ```
 
 ## [OPTIONAL] Deploy standalone base infrastructure
-For convenience, [standalone base infrastructure](standalone_base_infrastructure/README.md#standalone-base-infrastructure) scripts are provided to deploy base infrastructure to simulate deployment in a controlled environment.
+For convenience, [standalone base infrastructure](../standalone_base_infrastructure/README.md#standalone-base-infrastructure) scripts are provided to deploy base infrastructure to simulate deployment in a controlled environment.
