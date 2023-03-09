@@ -1,4 +1,4 @@
-FROM lambci/lambda:build-python3.8
+FROM lambci/lambda:build-python3.9
 
 ARG PGSTAC_VERSION
 RUN echo "Using PGSTAC Version ${PGSTAC_VERSION}"
