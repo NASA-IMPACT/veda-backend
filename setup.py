@@ -19,7 +19,7 @@ extra_reqs = {
         "pytest",
         "pytest-asyncio",
         "httpx",
-        "pypgstac==0.6.6",
+        "pypgstac==0.7.1",
         "psycopg[binary, pool]",
         "pydantic[dotenv]==1.9,<1.10",
     ],
