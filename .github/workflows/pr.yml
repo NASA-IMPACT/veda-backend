@@ -20,7 +20,7 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --use-pep517 -e  .[dev,deploy,test]
+          python -m pip install -e  .[dev,deploy,test]
 
       - name: Run pre-commit
         run: pre-commit run --all-files
@@ -43,7 +43,7 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --use-pep517 -e .[dev,deploy,test]
+          python -m pip install -e .[dev,deploy,test]
       - name: Launch services
         run: AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} docker-compose up --build -d stac raster 
 
@@ -102,7 +102,7 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --use-pep517 -e .[dev,deploy,test]
+          python -m pip install -e .[dev,deploy,test]
 
       - name: Get dev environment configuration for develop branch
         run: ./scripts/get-env.sh "veda-backend-uah-dev-env"
