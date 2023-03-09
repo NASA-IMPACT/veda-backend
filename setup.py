@@ -21,6 +21,7 @@ extra_reqs = {
         "httpx",
         "pypgstac==0.6.6",
         "psycopg[binary, pool]",
+        "pydantic[dotenv]==1.9,<1.10",
     ],
 }
 
