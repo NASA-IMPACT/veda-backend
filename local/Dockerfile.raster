@@ -5,10 +5,10 @@ FROM ghcr.io/vincentsarago/uvicorn-gunicorn:${PYTHON_VERSION}
 ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 
 # Speed up dev cycle by pre-installing titiler
-RUN pip install psycopg[binary,pool]
+RUN pip install --use-pep517 psycopg[binary,pool]
 
 COPY raster_api/runtime /tmp/raster
-RUN pip install /tmp/raster
+RUN pip install --use-pep517 /tmp/raster
 RUN rm -rf /tmp/raster
 
 ENV MODULE_NAME src.app

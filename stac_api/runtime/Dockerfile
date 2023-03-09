@@ -3,7 +3,7 @@ FROM lambci/lambda:build-python3.8
 WORKDIR /tmp
 
 COPY stac_api/runtime /tmp/stac
-RUN pip install "mangum>=0.14,<0.15" /tmp/stac -t /asset --no-binary pydantic
+RUN pip install --use-pep517 "mangum>=0.14,<0.15" /tmp/stac -t /asset --no-binary pydantic
 RUN rm -rf /tmp/stac
 
 # Reduce package size and remove useless files
