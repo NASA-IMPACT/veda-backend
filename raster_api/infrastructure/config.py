@@ -61,7 +61,7 @@ class vedaRasterSettings(BaseSettings):
 
     aws_request_payer: Optional[str] = Field(
         None,
-        description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs"
+        description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs",
     )
 
     class Config:
