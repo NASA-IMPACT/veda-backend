@@ -35,7 +35,7 @@ services:
     depends_on:
       - database
       - raster
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 45 -h database -p 5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
 
