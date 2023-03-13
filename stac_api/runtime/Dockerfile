@@ -3,7 +3,7 @@ FROM lambci/lambda:build-python3.8
 WORKDIR /tmp
 
 COPY stac_api/runtime /tmp/stac
-RUN pip install "mangum>=0.14,<0.15" "git+https://github.com/vincentsarago/plpygis/@0521b961519087ef6ca8a96fabcdfa06222a9706#egg=plpygis" /tmp/stac -t /asset --no-binary pydantic
+RUN pip install "mangum>=0.14,<0.15" "plpygis>=0.2.1" /tmp/stac -t /asset --no-binary pydantic
 RUN rm -rf /tmp/stac
 
 # Reduce package size and remove useless files
