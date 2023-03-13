@@ -87,7 +87,7 @@ services:
 
     depends_on:
       - database
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 25 -h database -p 5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
       - $HOME/.aws/credentials:/root/.aws/credentials
