@@ -6,7 +6,7 @@ repos:
         language_version: python
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.4.2
+    rev: 5.12.0
     hooks:
       - id: isort
         language_version: python
@@ -18,7 +18,7 @@ repos:
         language_version: python
 
   - repo: https://github.com/PyCQA/pydocstyle
-    rev: 5.12.0
+    rev: 5.1.1
     hooks:
       - id: pydocstyle
         language_version: python
