@@ -35,7 +35,7 @@ services:
     depends_on:
       - database
       - raster
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 45 -h database -p 5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
 
@@ -87,7 +87,7 @@ services:
 
     depends_on:
       - database
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 25 -h database -p 5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
       - $HOME/.aws/credentials:/root/.aws/credentials
@@ -95,14 +95,13 @@ services:
   database:
     container_name: veda.db
     platform: linux/amd64
-    image: ghcr.io/stac-utils/pgstac:v0.6.6
+    image: ghcr.io/stac-utils/pgstac:v0.7.1
     environment:
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgis
       - PGUSER=username
       - PGPASSWORD=password
-      - PGHOST=localhost
       - PGDATABASE=postgis
     ports:
       - "5432:5432"

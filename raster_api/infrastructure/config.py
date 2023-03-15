@@ -59,6 +59,11 @@ class vedaRasterSettings(BaseSettings):
         description="Resource name of role permitting access to specified external S3 buckets",
     )
 
+    aws_request_payer: Optional[str] = Field(
+        None,
+        description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs",
+    )
+
     class Config:
         """model config"""
 
