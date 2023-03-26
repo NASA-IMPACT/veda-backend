@@ -84,12 +84,15 @@ The default settings for this project generate a complete AWS environment includ
 ## Local Docker deployment
 
 Start up a local stack
-```
-docker compose up
+
+```sh
+docker-compose build --build-arg PGSTAC_VERSION=0.6.6
+docker-compose up
 ```
 Clean up after running locally
-```
-docker compose down
+
+```sh
+docker-compose down
 ```
 
 # Operations

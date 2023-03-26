@@ -5,6 +5,7 @@ Source: https://github.com/developmentseed/eoAPI/blob/master/deployment/handlers
 import json
 
 import boto3
+import os
 import psycopg
 import requests
 from psycopg import sql
@@ -159,6 +160,23 @@ def create_dashboard_schema(cursor, username: str) -> None:
         ).format(username=sql.Identifier(username))
     )
 
+def create_collection_search_function(cursor) -> None:
+    """
+    Function to search across collections
+    """
+    collection_keyword_search_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.collection_keyword_search(keyword text) RETURNS jsonb
+    LANGUAGE sql
+    IMMUTABLE PARALLEL SAFE
+    RETURNS jsonb
+    AS $function$
+        SELECT content from collections
+        WHERE content::text ~ '.*$1.*';
+    ;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(collection_keyword_search_sql))
 
 def create_collection_search_functions(cursor) -> None:
     """Create custom functions for collection-level search."""
@@ -380,8 +398,12 @@ def handler(event, context):
 
     try:
         params = event["ResourceProperties"]
-        connection_params = get_secret(params["conn_secret_arn"])
-        user_params = get_secret(params["new_user_secret_arn"])
+        if os.environ['ENV'] == 'local':
+            connection_params = params["conn_secret_arn"]
+            user_params = params["new_user_secret_arn"]
+        else:
+            connection_params = get_secret(params["conn_secret_arn"])
+            user_params = get_secret(params["new_user_secret_arn"])
 
         print("Connecting to admin DB...")
         admin_db_conninfo = make_conninfo(
@@ -487,6 +509,10 @@ def handler(event, context):
                     "Creating functions for summarizing default collection datetimes and cog_default statistics..."
                 )
                 create_collection_summaries_functions(cursor=cur)
+                print(
+                    "Creating functions for searching collection by keywords..."
+                )
+                create_collection_search_function(cursor=cur)
 
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")
@@ -494,3 +520,24 @@ def handler(event, context):
 
     print("Complete.")
     return send(event, context, "SUCCESS", {})
+
+if os.environ['ENV'] == 'local':
+    event = {
+        'RequestType': 'Create',
+        'ResourceProperties': {
+            'pgstac_version': '0.6.6',
+            'conn_secret_arn': {
+                'username': 'username',
+                'password': 'password',
+                'host': 'database',
+                'port': 5432,
+                'dbname': 'postgis'
+            },
+            'new_user_secret_arn': {
+                'username': 'username',
+                'password': 'password',
+                'dbname': 'postgis'
+            }
+        }
+    }
+    handler(event, {})

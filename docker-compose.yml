@@ -95,8 +95,11 @@ services:
   database:
     container_name: veda.db
     platform: linux/amd64
-    image: ghcr.io/stac-utils/pgstac:v0.7.1
+    build:
+      context: .
+      dockerfile: database/runtime/Dockerfile
     environment:
+      - ENV=local
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgis
