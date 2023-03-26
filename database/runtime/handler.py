@@ -516,10 +516,12 @@ def handler(event, context):
 
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")
-        return send(event, context, "FAILED", {"message": str(e)})
+        if os.environ['ENV'] != 'local':
+            return send(event, context, "FAILED", {"message": str(e)})
 
     print("Complete.")
-    return send(event, context, "SUCCESS", {})
+    if os.environ['ENV'] != 'local':
+        return send(event, context, "SUCCESS", {})
 
 if os.environ['ENV'] == 'local':
     event = {

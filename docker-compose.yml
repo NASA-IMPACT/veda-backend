@@ -32,6 +32,7 @@ services:
       # https://github.com/developmentseed/eoAPI/issues/16
       # - TITILER_ENDPOINT=raster
       - TITILER_ENDPOINT=http://0.0.0.0:8082
+      - PGSTAC_VERSION=0.6.6
     depends_on:
       - database
       - raster
@@ -99,7 +100,6 @@ services:
       context: .
       dockerfile: database/runtime/Dockerfile
     environment:
-      - ENV=local
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgis

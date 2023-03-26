@@ -1,8 +1,10 @@
 FROM ghcr.io/stac-utils/pgstac:v0.6.6
 
 ARG PGSTAC_VERSION
+ARG ENV
 RUN echo "Using PGSTAC Version ${PGSTAC_VERSION}"
 
+ENV ENV=${ENV}
 WORKDIR /tmp
 
 RUN apt-get install python3
