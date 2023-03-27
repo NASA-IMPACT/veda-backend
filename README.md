@@ -86,9 +86,16 @@ The default settings for this project generate a complete AWS environment includ
 Start up a local stack
 
 ```sh
-docker-compose build --build-arg PGSTAC_VERSION=0.6.6 --build-arg ENV=local
-docker-compose up --build-arg PGSTAC_VERSION=0.6.6 --build-arg ENV=local
+docker-compose build --build-arg PGSTAC_VERSION=0.7.2 --build-arg ENV=local
+docker-compose up
 ```
+
+to run custom migrations for custom functions, one must be logged into the database container and then run 
+
+```
+python3 /assets/handler.py
+```
+
 Clean up after running locally
 
 ```sh
