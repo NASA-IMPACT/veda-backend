@@ -527,7 +527,7 @@ if os.environ['ENV'] == 'local':
     event = {
         'RequestType': 'Create',
         'ResourceProperties': {
-            'pgstac_version': '0.6.6',
+            'pgstac_version': '0.7.2',
             'conn_secret_arn': {
                 'username': 'username',
                 'password': 'password',
