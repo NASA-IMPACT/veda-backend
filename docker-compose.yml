@@ -99,6 +99,7 @@ services:
       context: .
       dockerfile: database/runtime/Dockerfile
     environment:
+      - ENV=local
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgis
