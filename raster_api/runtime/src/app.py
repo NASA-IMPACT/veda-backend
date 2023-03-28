@@ -6,7 +6,7 @@ from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_cogeo.models import Info
 from src.config import ApiSettings
 from src.datasetparams import DatasetParams
-from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
+from src.factory import MultiBaseTilerFactory
 from src.version import __version__ as veda_raster_version
 
 from fastapi import APIRouter, Depends, FastAPI, Query
@@ -23,6 +23,7 @@ from titiler.core.resources.enums import OptionalHeader
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
 from titiler.pgstac.dependencies import ItemPathParams
+from titiler.pgstac.factory import MosaicTilerFactory
 from titiler.pgstac.reader import PgSTACReader
 
 try:
@@ -56,6 +57,7 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 mosaic = MosaicTilerFactory(
     router_prefix="/mosaic",
     enable_mosaic_search=settings.enable_mosaic_search,
+    add_mosaic_list=True,
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     dataset_dependency=DatasetParams,
