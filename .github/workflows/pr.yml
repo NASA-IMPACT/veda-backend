@@ -29,11 +29,11 @@ jobs:
           python -m pip install -e .[dev,deploy,test] 
 
       - name: Launch services
-        run: AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} docker-compose up --build -d 
+        run: AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} docker-compose up --build -d stac raster
 
       - name: Ingest Stac Items/Collection
         run: |
-          ./scripts/load-data-container.sh
+          ./scripts/bin/load-data.sh
 
       - name: Sleep for 10 seconds
         run: sleep 10s
