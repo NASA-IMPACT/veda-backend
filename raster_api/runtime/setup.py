@@ -6,9 +6,8 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "titiler.pgstac==0.2.0",
+    "titiler.pgstac==0.2.3",
     "titiler.application>=0.10,<0.11",
-    "fastapi==0.93.0",
     "importlib_resources>=1.1.0;python_version<='3.9'",  # https://github.com/cogeotiff/rio-tiler/pull/379
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",

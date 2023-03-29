@@ -56,8 +56,7 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 # Custom PgSTAC mosaic tiler
 mosaic = MosaicTilerFactory(
     router_prefix="/mosaic",
-    enable_mosaic_search=settings.enable_mosaic_search,
-    add_mosaic_list=True,
+    add_mosaic_list=settings.enable_mosaic_search,
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     dataset_dependency=DatasetParams,
