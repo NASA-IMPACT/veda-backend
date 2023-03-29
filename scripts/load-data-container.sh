@@ -3,4 +3,4 @@
 DOCKER_CONTAINER_NAME="veda.db"
 SCRIPT_PATH="/tmp/scripts/bin/load-data.sh"
 
-docker exec -it "$DOCKER_CONTAINER_NAME" "$SCRIPT_PATH"
+docker exec "$DOCKER_CONTAINER_NAME" "$SCRIPT_PATH"
