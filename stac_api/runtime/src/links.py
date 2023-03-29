@@ -42,14 +42,26 @@ class LinkInjector:
         item_id = item.get("id", "")
         item["links"] = item.get("links", [])
         if self.tiler_href:
-            item["links"].append(self._get_item_map_link(item_id))
+            item["links"].append(self._get_item_zxy_template(item_id))
             item["links"].append(self._get_item_wmts_link(item_id))
             item["links"].append(self._get_item_tilejson_link(item_id))
             item["links"].append(self._get_item_preview_link(item_id))
 
+    def _get_item_zxy_template(self, item_id: str) -> Dict[str, Any]:
+        qs = self.render_config.get_full_render_qs(self.collection_id, item_id)
+        href = urljoin(self.tiler_href, "stac/WebMercatorQuad/{z}/{x}/{y}" + f"?{qs}")
+
+        return {
+            "title": "ZXY template for webmap tiles",
+            "href": href,
+            "rel": "preview",
+            "roles": ["overview"],
+            "type": pystac.MediaType.PNG,
+        }
+
     def _get_item_preview_link(self, item_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs(self.collection_id, item_id)
-        href = urljoin(self.tiler_href, f"item/preview.png?{qs}")
+        href = urljoin(self.tiler_href, f"stac/preview.png?{qs}")
 
         return {
             "title": "Rendered preview",
@@ -61,7 +73,7 @@ class LinkInjector:
 
     def _get_item_tilejson_link(self, item_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs(self.collection_id, item_id)
-        href = urljoin(self.tiler_href, f"item/tilejson.json?{qs}")
+        href = urljoin(self.tiler_href, f"stac/tilejson.json?{qs}")
 
         return {
             "title": "TileJSON with default rendering",
@@ -70,24 +82,11 @@ class LinkInjector:
             "roles": ["tiles"],
         }
 
-    def _get_item_map_link(self, item_id: str) -> Dict[str, Any]:
-        href = urljoin(
-            self.tiler_href,
-            f"item/map?collection={self.collection_id}&item={item_id}",
-        )
-
-        return {
-            "title": "Map of item",
-            "href": href,
-            "rel": pystac.RelType.PREVIEW,
-            "type": "text/html",
-        }
-
     def _get_item_wmts_link(self, item_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs_raw(self.collection_id, item_id)
         href = urljoin(
             self.tiler_href,
-            f"item/WebMercatorQuad/WMTSCapabilities.xml?{qs}",
+            f"stac/WebMercatorQuad/WMTSCapabilities.xml?{qs}",
         )
 
         return {
