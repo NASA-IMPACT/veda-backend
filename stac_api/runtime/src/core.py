@@ -120,14 +120,6 @@ class VedaCrudClient(CoreCrudClient):
 
         return item
 
-    async def get_item(self, item_id: str, collection_id: str, **kwargs: Any) -> Item:
-        """Inject links into returned item."""
-        _super: CoreCrudClient = super()
-        _request = kwargs["request"]
-
-        item = await _super.get_item(item_id, collection_id, **kwargs)
-        return self.inject_item_links(item, _request)
-
     async def _search_base(
         self, search_request: PgstacSearch, **kwargs: Any
     ) -> ItemCollection:
