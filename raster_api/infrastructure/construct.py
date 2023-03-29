@@ -39,7 +39,7 @@ class RasterApiLambdaConstruct(Construct):
         veda_raster_function = aws_lambda.Function(
             self,
             "lambda",
-            runtime=aws_lambda.Runtime.PYTHON_3_8,
+            runtime=aws_lambda.Runtime.PYTHON_3_9,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
                 file="raster_api/runtime/Dockerfile",
