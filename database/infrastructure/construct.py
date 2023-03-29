@@ -46,7 +46,7 @@ class BootstrapPgStac(Construct):
             self,
             "lambda",
             handler="handler.handler",
-            runtime=aws_lambda.Runtime.PYTHON_3_8,
+            runtime=aws_lambda.Runtime.PYTHON_3_9,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath("./"),
                 file="database/runtime/Dockerfile",
