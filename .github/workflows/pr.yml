@@ -35,12 +35,6 @@ jobs:
         with:
           python-version: '3.9'
 
-      - uses: KengoTODA/actions-setup-docker-compose@v1
-        if: ${{ env.ACT }}
-        name: Install `docker-compose` for local simulations
-        with:
-          version: '1.29.2'
-
       - uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
@@ -52,7 +46,7 @@ jobs:
           python -m pip install -e .[dev,deploy,test] 
 
       - name: Launch services
-        run: AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} docker-compose up --build -d
+        run: AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} docker compose up --build -d
 
       - name: Ingest Stac Items/Collection
         run: |
@@ -66,7 +60,7 @@ jobs:
         run: python -m pytest .github/workflows/tests/ -vv -s
 
       - name: Stop services
-        run: docker-compose stop
+        run: docker compose stop
 
   predeploy:
     needs: [test]
