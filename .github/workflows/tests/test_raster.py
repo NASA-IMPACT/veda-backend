@@ -42,7 +42,7 @@ def test_mosaic_api():
     z, x, y = 15, 8589, 12849
     resp = httpx.get(
         f"{raster_endpoint}/mosaic/tiles/{searchid}/{z}/{x}/{y}",
-        params={"assets": "cog"},
+        params={"assets": "cog_default"},
         headers={"Accept-Encoding": "br, gzip"},
         timeout=10.0,
     )
@@ -178,14 +178,14 @@ def test_item():
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
-    assert resp.json() == ["cog"]
+    assert resp.json() == ["cog_default"]
 
     resp = httpx.get(
         f"{raster_endpoint}/stac/tilejson.json",
         params={
             "collection": "noaa-emergency-response",
             "item": "20200307aC0853300w361200",
-            "assets": "cog",
+            "assets": "cog_default",
         },
     )
     assert resp.status_code == 200
