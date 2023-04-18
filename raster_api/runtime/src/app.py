@@ -96,7 +96,7 @@ def cog_validate(
 def cog_demo(request: Request):
     """COG Viewer."""
     return templates.TemplateResponse(
-        name="cog_index.html",
+        name="viewer.html",
         context={
             "request": request,
             "tilejson_endpoint": cog.url_for(request, "tilejson"),
