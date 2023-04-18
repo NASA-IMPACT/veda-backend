@@ -27,7 +27,7 @@ setup(
     description="",
     python_requires=">=3.7",
     packages=find_namespace_packages(exclude=["tests*"]),
-    package_data={"veda": ["raster/templates/*.html"]},
+    package_data={"src": ["templates/*.html"]},
     include_package_data=True,
     zip_safe=False,
     install_requires=inst_reqs,
