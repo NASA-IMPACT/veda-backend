@@ -114,11 +114,11 @@ Support scripts are provided for manual system operations.
 | [**veda-ui**](https://github.com/NASA-IMPACT/veda-ui) | Dashboard UI for viewing and analysing VEDA assets |
 | [**veda-stac-ingestor**](https://github.com/NASA-IMPACT/veda-stac-ingestor) |  Entry-point for users/services to add new records to database |
 | [**veda-data-pipelines**](https://github.com/NASA-IMPACT/veda-data-pipelines) | Cloud optimize data assets and submit records for publication to veda-stac-ingestor |
-| [**veda-documentation**](https://github.com/NASA-IMPACT/veda-documentation) | Documentation repository for end users of VEDA ecosystem data and tools |
+| [**veda-docs**](https://github.com/NASA-IMPACT/veda-docs) | Documentation repository for end users of VEDA ecosystem data and tools |
 
 ## VEDA usage examples
 
-### [VEDA documentation](https://nasa-impact.github.io/veda-documentation/)
+### [VEDA documentation](https://nasa-impact.github.io/veda-docs)
 
 ### [VEDA dashboard](https://www.earthdata.nasa.gov/dashboard)
 
