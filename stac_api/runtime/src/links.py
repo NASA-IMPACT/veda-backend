@@ -49,7 +49,7 @@ class LinkInjector:
 
     def _get_item_zxy_template(self, item_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs(self.collection_id, item_id)
-        href = urljoin(self.tiler_href, "stac/WebMercatorQuad/{z}/{x}/{y}" + f"?{qs}")
+        href = urljoin(self.tiler_href, "stac/tiles/WebMercatorQuad/{z}/{x}/{y}" + f"?{qs}")
 
         return {
             "title": "ZXY template for webmap tiles",
