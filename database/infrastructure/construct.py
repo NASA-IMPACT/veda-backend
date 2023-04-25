@@ -127,7 +127,7 @@ class RdsConstruct(Construct):
         stack_name = Stack.of(self).stack_name
 
         # Configure accessibility
-        publicly_accessible = False if veda_db_settings.private_subnets else True
+        publicly_accessible = True if veda_db_settings.publicly_accessible else False
         subnet_type = (
             aws_ec2.SubnetType.PRIVATE_ISOLATED
             if veda_db_settings.private_subnets is True
