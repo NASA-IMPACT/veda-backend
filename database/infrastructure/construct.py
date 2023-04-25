@@ -130,7 +130,7 @@ class RdsConstruct(Construct):
         publicly_accessible = True if veda_db_settings.publicly_accessible else False
         subnet_type = (
             aws_ec2.SubnetType.PRIVATE_ISOLATED
-            if veda_db_settings.private_subnets is True
+            if veda_db_settings.publicly_accessible is False
             else aws_ec2.SubnetType.PUBLIC
         )
 

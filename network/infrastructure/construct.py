@@ -48,7 +48,7 @@ class VpcConstruct(Construct):
             )
             private_subnet = aws_ec2.SubnetConfiguration(
                 name="private",
-                subnet_type=aws_ec2.SubnetType.PRIVATE_WITH_NAT,
+                subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED,
                 cidr_mask=veda_vpc_settings.private_mask,
             )
 
