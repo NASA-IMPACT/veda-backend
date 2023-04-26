@@ -39,8 +39,7 @@ class vedaDBSettings(BaseSettings):
     #     description="Boolean deploy database to private subnets",
     # )
     publicly_accessible: Optional[bool] = Field(
-        False,
-        description="Boolean if the RDS should be publicly accessible"
+        False, description="Boolean if the RDS should be publicly accessible"
     )
     # RDS custom postgres parameters
     max_locks_per_transaction: Optional[str] = Field(

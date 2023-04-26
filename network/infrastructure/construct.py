@@ -68,7 +68,7 @@ class VpcConstruct(Construct):
                 "dynamodb": aws_ec2.GatewayVpcEndpointAwsService.DYNAMODB,
             }
 
-            for (id, service) in vpc_endpoints.items():
+            for id, service in vpc_endpoints.items():
                 if isinstance(service, aws_ec2.InterfaceVpcEndpointAwsService):
                     self.vpc.add_interface_endpoint(id, service=service)
                 elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):
