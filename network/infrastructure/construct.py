@@ -48,7 +48,7 @@ class VpcConstruct(Construct):
             )
             private_subnet = aws_ec2.SubnetConfiguration(
                 name="private",
-                subnet_type=aws_ec2.SubnetType.PRIVATE_WITH_NAT,
+                subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED,
                 cidr_mask=veda_vpc_settings.private_mask,
             )
 
@@ -68,7 +68,7 @@ class VpcConstruct(Construct):
                 "dynamodb": aws_ec2.GatewayVpcEndpointAwsService.DYNAMODB,
             }
 
-            for (id, service) in vpc_endpoints.items():
+            for id, service in vpc_endpoints.items():
                 if isinstance(service, aws_ec2.InterfaceVpcEndpointAwsService):
                     self.vpc.add_interface_endpoint(id, service=service)
                 elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):

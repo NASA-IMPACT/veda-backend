@@ -71,7 +71,6 @@ stac_api = StacApiLambdaConstruct(
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
 if veda_app_settings.alt_domain():
-
     alt_domain = DomainConstruct(
         veda_stack,
         "alt-domain",
