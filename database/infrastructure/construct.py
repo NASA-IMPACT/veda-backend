@@ -127,7 +127,6 @@ class RdsConstruct(Construct):
         stack_name = Stack.of(self).stack_name
 
         # Configure accessibility
-        publicly_accessible = True if veda_db_settings.publicly_accessible else False
         subnet_type = (
             aws_ec2.SubnetType.PRIVATE_ISOLATED
             if veda_db_settings.publicly_accessible is False
@@ -169,7 +168,7 @@ class RdsConstruct(Construct):
                 vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
-                publicly_accessible=publicly_accessible,
+                publicly_accessible=veda_db_settings.publicly_accessible,
                 credentials=credentials,
                 parameter_group=parameter_group,
             )
@@ -188,7 +187,7 @@ class RdsConstruct(Construct):
                 vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
-                publicly_accessible=publicly_accessible,
+                publicly_accessible=veda_db_settings.publicly_accessible,
                 parameter_group=parameter_group,
             )
 

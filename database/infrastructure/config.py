@@ -34,10 +34,6 @@ class vedaDBSettings(BaseSettings):
             "**Once used always REQUIRED**"
         ),
     )
-    # private_subnets: Optional[bool] = Field(
-    #     True,
-    #     description="Boolean deploy database to private subnets",
-    # )
     publicly_accessible: Optional[bool] = Field(
         True, description="Boolean if the RDS should be publicly accessible"
     )
