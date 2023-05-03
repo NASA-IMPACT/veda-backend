@@ -28,7 +28,7 @@ jobs:
       - name: Run pre-commit
         run: pre-commit run --all-files
     
-  test:
+  test-dev:
     needs: [lint]
     runs-on: ubuntu-latest
     steps:
@@ -61,12 +61,15 @@ jobs:
   
       - name: Integrations tests
         run: python -m pytest .github/workflows/tests/ -vv -s
+      
+      - name: Ingest unit tests
+        run: python -m pytest ingest_api/tests/ -vv -s
 
       - name: Stop services
         run: docker compose stop
 
   deploy: 
-    needs: [test]
+    needs: [test-dev]
 
     runs-on: ubuntu-latest
     steps:

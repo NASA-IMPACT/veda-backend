@@ -105,11 +105,45 @@ services:
       - PGDATABASE=postgis
     ports:
       - "5432:5432"
-    command: "postgres -N 500"
+    command: postgres -N 500
     volumes:
-      - ./.pgdata:/var/lib/postgresql/data
       - ./scripts:/tmp/scripts
       - ./.github/workflows/data:/tmp/data
+    # broken in github actions (definitely when run in act, possibly in tests involving ingest-api)? re-enable to persist local database
+    #  - ./.pgdata:/var/lib/postgresql/data
+
+  ingestor:
+    container_name: veda.ingestor
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: local/Dockerfile.ingest
+    environment:
+      - POSTGRES_USER=username
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgis
+      - PGUSER=username
+      - PGPASSWORD=password
+      - PGDATABASE=postgis
+      - DYNAMODB_ENDPOINT=http://localhost:8084
+    ports:
+      - "8083:8083"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && python /asset/local.py"
+    volumes:
+      - ./scripts:/tmp/scripts
+      - $HOME/.aws/credentials:/root/.aws/credentials
+
+  dynamodb:
+    image:  amazon/dynamodb-local
+    container_name: veda.dynamodb
+    hostname: dynamodb
+    restart: always
+    volumes:
+      -  ./dynamodb-data:/home/dynamodblocal/data
+    ports:
+      - 8084:8084
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
+
 
 networks:
   default:
