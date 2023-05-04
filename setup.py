@@ -24,8 +24,6 @@ extra_reqs = {
         "boto3",
         "fastapi",
         "moto",
-        "stac_pydantic",
-        "pydantic_ssm_settings",
     ],
 }
 

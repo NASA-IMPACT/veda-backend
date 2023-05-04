@@ -8,11 +8,6 @@ from stac_pydantic.collection import Extent, TimeInterval
 # Smaller utility models to support the larger models in schemas.py
 
 
-class DiscoveryEnum(str, enum.Enum):
-    s3 = "s3"
-    cmr = "cmr"
-
-
 class DatetimeInterval(TimeInterval):
     # reimplement stac_pydantic's TimeInterval to leverage datetime types
     interval: List[List[Union[datetime, None]]]

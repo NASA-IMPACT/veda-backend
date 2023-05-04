@@ -100,32 +100,4 @@ Following is a sample input for collection API:
 
 To delete a collection, the user must provide the collection id to the `collections/
 collection_id` API.
-
-
-## Workflow Executions
-The workflow execution API is used to start a new workflow execution. The workflow
- execution API accepts discovery from s3 or cmr.
-To run a workflow execution, the user must provide the following information:
-
-**For s3 discovery:**
-We use inputs for the workflow from the veda-data-pipelines repository.
- `https://github.com/NASA-IMPACT/veda-data-pipelines/tree/main/data/step_function_inputs`.
-
-Following is a sample input for s3 discovery:
-```
-{
-    "collection": "EPA-annual-emissions_1A_Combustion_Mobile",
-    "prefix": "EIS/cog/EPA-inventory-2012/annual/",
-    "bucket": "veda-data-store-staging",
-    "filename_regex": "^(.*)Combustion_Mobile.tif$",
-    "discovery": "s3",
-    "upload": False,
-    "start_datetime": "2012-01-01T00:00:00Z",
-    "end_datetime": "2012-12-31T23:59:59Z",
-    "cogify": False,
-}
-```
-
-We can use `workflow_executions/workflow_execution_id` to get the status of the
- workflow execution.
 """

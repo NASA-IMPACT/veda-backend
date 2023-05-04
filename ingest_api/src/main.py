@@ -6,8 +6,7 @@ import requests
 import src.auth as auth
 import src.config as config
 import src.dependencies as dependencies
-import src.helpers as helpers
-import src.publisher as collection_loader
+from src.collection_publisher import CollectionPublisher
 import src.schemas as schemas
 import src.services as services
 from src.doc import DESCRIPTION
@@ -39,7 +38,7 @@ app = FastAPI(
     contact={"url": "https://github.com/NASA-IMPACT/veda-stac-ingestor"},
 )
 
-publisher = collection_loader.Publisher()
+collection_publisher = CollectionPublisher()
 
 
 @app.get(
@@ -63,13 +62,13 @@ async def list_ingestions(
     tags=["Ingestion"],
     status_code=201,
 )
-async def create_ingestion(
+async def enqueue_ingestion(
     item: schemas.AccessibleItem,
     username: str = Depends(auth.get_username),
     db: services.Database = Depends(dependencies.get_db),
 ) -> schemas.Ingestion:
     """
-    Ingests a STAC item.
+    Queues a STAC item for ingestion.
     """
     return schemas.Ingestion(
         id=item.id,
@@ -144,7 +143,7 @@ def publish_collection(collection: schemas.DashboardCollection):
     """
     # pgstac create collection
     try:
-        publisher.ingest(collection)
+        collection_publisher.ingest(collection)
         return {f"Successfully published: {collection.id}"}
     except Exception as e:
         raise HTTPException(
@@ -163,7 +162,7 @@ def delete_collection(collection_id: str):
     Delete a collection from the STAC database.
     """
     try:
-        publisher.delete(collection_id=collection_id)
+        collection_publisher.delete(collection_id=collection_id)
         return {f"Successfully deleted: {collection_id}"}
     except Exception as e:
         print(e)
@@ -182,7 +181,7 @@ def publish_item(item: schemas.Item):
     """
     # pgstac create collection
     try:
-        publisher.ingest(item)
+        collection_publisher.ingest(item)
         return {f"Successfully published: {item.id}"}
     except Exception as e:
         raise HTTPException(
