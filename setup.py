@@ -21,7 +21,6 @@ extra_reqs = {
         "httpx==0.23.3",
         "pypgstac==0.7.4",
         "psycopg[binary, pool]",
-        "boto3",
         "fastapi",
         "moto",
     ],

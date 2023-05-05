@@ -10,6 +10,8 @@ from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
+from ingest_api.infra.stack import StacIngestionApi
+from ingest_api.infra.config import Deployment as ingest_config
 
 app = App()
 
@@ -33,6 +35,13 @@ class VedaStack(Stack):
 veda_stack = VedaStack(
     app,
     f"{veda_app_settings.app_name}-{veda_app_settings.stage_name()}",
+    env=veda_app_settings.cdk_env(),
+)
+
+ingest_stack = StacIngestionApi(
+    app,
+    f"{veda_app_settings.app_name}-ingest-{veda_app_settings.stage_name()}",
+    config=ingest_config(),
     env=veda_app_settings.cdk_env(),
 )
 
