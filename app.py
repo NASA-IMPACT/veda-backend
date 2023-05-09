@@ -35,6 +35,8 @@ class VedaStack(Stack):
             )
             aws_iam.PermissionsBoundary.of(self).apply(permission_boundary_policy)
 
+    # Core infrastructure, including secrets, OIDC (if enabled)
+
     def build_oidc(
         self, oidc_provider_arn: str, oidc_repo_id: str, secret_arn: str, stage: str
     ):
