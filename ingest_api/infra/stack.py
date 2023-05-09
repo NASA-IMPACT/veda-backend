@@ -2,23 +2,19 @@ import json
 import os
 from typing import Dict
 
-from aws_cdk import (
-    Duration,
-    RemovalPolicy,
-    Stack,
-    aws_apigateway as apigateway,
-    aws_cognito as cognito,
-    aws_dynamodb as dynamodb,
-    aws_ec2 as ec2,
-    aws_iam as iam,
-    aws_lambda,
-    aws_lambda_event_sources as events,
-    aws_secretsmanager as secretsmanager,
-    aws_ssm as ssm,
-)
+from aws_cdk import Duration, RemovalPolicy, Stack
+from aws_cdk import aws_apigateway as apigateway
+from aws_cdk import aws_cognito as cognito
+from aws_cdk import aws_dynamodb as dynamodb
+from aws_cdk import aws_ec2 as ec2
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_lambda
+from aws_cdk import aws_lambda_event_sources as events
+from aws_cdk import aws_secretsmanager as secretsmanager
+from aws_cdk import aws_ssm as ssm
 from constructs import Construct
 
-from .config import Deployment
+from .config import IngestorConfig
 
 
 class StacIngestionApi(Stack):
@@ -26,7 +22,9 @@ class StacIngestionApi(Stack):
         self,
         scope: Construct,
         construct_id: str,
-        config: Deployment,
+        config: IngestorConfig,
+        stac_url: str,
+        raster_url: str,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -62,13 +60,13 @@ class StacIngestionApi(Stack):
             "JWKS_URL": jwks_url,
             "ROOT_PATH": f"/{config.stage}",
             "NO_PYDANTIC_SSM_SETTINGS": "1",
-            "STAC_URL": config.stac_url,
+            "STAC_URL": stac_url,
             "DATA_ACCESS_ROLE": data_access_role.role_arn,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
             "MWAA_ENV": config.mwaa_env,
-            "RASTER_URL": config.raster_url,
+            "RASTER_URL": raster_url,
             "OIDC_PROVIDER_ARN": config.oidc_provider_arn,
             "OIDC_PROVIDER_REPO_ID": config.oidc_repo_id,
             "STAC_DB_SECRET_NAME": config.stac_db_secret_name,
@@ -122,75 +120,6 @@ class StacIngestionApi(Stack):
             name="dynamodb_table",
             value=table.table_name,
             description="Name of table used to store ingestions",
-        )
-
-        env_secret = self.build_env_secret(config.stage, env)
-        secret_arn: str = env_secret.secret_arn
-
-        if config.oidc_provider_arn:
-            self.build_oidc(
-                oidc_provider_arn=config.oidc_provider_arn,
-                oidc_repo_id=config.oidc_repo_id,
-                secret_arn=secret_arn,
-                stage=config.stage,
-            )
-
-    def build_oidc(
-        self, oidc_provider_arn: str, oidc_repo_id: str, secret_arn: str, stage: str
-    ):
-        # Create an IAM OIDC provider for the specified provider ARN
-        oidc_provider = iam.OpenIdConnectProvider.from_open_id_connect_provider_arn(
-            self, "OIDCProvider", oidc_provider_arn
-        )
-        # create IAM role for provider access from specified repo
-        # the role should allow a github action in that repo
-        # to deploy resources (TODO) and read a secret
-        oidc_role = iam.Role(
-            self,
-            f"stac-ingestor-oidc-role-{stage}",
-            assumed_by=iam.WebIdentityPrincipal(
-                oidc_provider.open_id_connect_provider_arn,
-                conditions={
-                    "StringEquals": {
-                        f"{oidc_provider.open_id_connect_provider_issuer}:sub": f"repo:{oidc_repo_id}"
-                    }
-                },
-            ),
-        )
-        oidc_role.add_to_policy(
-            iam.PolicyStatement(
-                actions=["sts:AssumeRoleWithWebIdentity"],
-                resources=[oidc_provider_arn],
-            )
-        )
-        # Create an IAM policy statement that allows getting the secret value
-        get_secret_statement = iam.PolicyStatement(
-            effect=iam.Effect.ALLOW,
-            actions=["secretsmanager:GetSecretValue"],
-            resources=[secret_arn],
-        )
-
-        oidc_policy = iam.Policy(
-            self,
-            f"stac-ingestor-oidc-policy-{stage}",
-            policy_name=f"stac-ingestor-oidc-policy-{stage}",
-            roles=[oidc_role],
-            statements=[get_secret_statement],
-        )
-        return oidc_role, oidc_policy, oidc_provider
-
-    def build_env_secret(self, stage: str, env_config: dict) -> secretsmanager.ISecret:
-        # create secret to store environment variables
-        return secretsmanager.Secret(
-            self,
-            f"stac-ingestor-env-secret-{stage}",
-            secret_name=f"stac-ingestor-env-secret-{stage}",
-            description="Contains env vars used for deployment of veda-stac-ingestor",
-            generate_secret_string=secretsmanager.SecretStringGenerator(
-                secret_string_template=json.dumps(env_config),
-                generate_string_key="password",
-                exclude_punctuation=True,
-            ),
         )
 
     def build_jwks_url(self, userpool_id: str) -> str:

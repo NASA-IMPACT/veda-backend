@@ -16,4 +16,4 @@ stac-pydantic @ git+https://github.com/ividito/stac-pydantic.git@3f4cb381c85749b
 xarray==2023.1.0
 xstac==1.1.0
 zarr==2.13.6
-boto3>=1.24.0
+boto3==1.24.59

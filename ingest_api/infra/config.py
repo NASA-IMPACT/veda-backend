@@ -9,7 +9,7 @@ AwsStepArn = constr(regex=r"^arn:aws:states:.+:\d{12}:stateMachine:.+")
 AwsOidcArn = constr(regex=r"^arn:aws:iam::\d{12}:oidc-provider/.+")
 
 
-class Deployment(BaseSettings):
+class IngestorConfig(BaseSettings):
     stage: str = Field(
         description=" ".join(
             [
@@ -33,10 +33,12 @@ class Deployment(BaseSettings):
 
     aws_account: str = Field(
         description="AWS account used for deployment",
+        alias="CDK_DEFAULT_ACCOUNT",
     )
     aws_region: str = Field(
         default="us-west-2",
         description="AWS region used for deployment",
+        alias="CDK_DEFAULT_REGION",
     )
 
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")

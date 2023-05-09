@@ -194,6 +194,10 @@ class RdsConstruct(Construct):
             )
 
         hostname = database.instance_endpoint.hostname
+        self.db_security_group = database.connections.security_groups[
+            0
+        ].security_group_id
+        self.db_is_private = veda_db_settings.private_subnets
 
         # Use custom resource to bootstrap PgSTAC database
         self.pgstac = BootstrapPgStac(
