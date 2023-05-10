@@ -6,7 +6,7 @@ on:
     - develop
 
 jobs:
-  lint:
+  lint-dev:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -29,7 +29,7 @@ jobs:
         run: pre-commit run --all-files
     
   test-dev:
-    # needs: [lint]
+    needs: [lint-dev]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -71,7 +71,7 @@ jobs:
       - name: Stop services
         run: docker compose stop
 
-  deploy: 
+  deploy-dev: 
     needs: [test-dev]
 
     runs-on: ubuntu-latest

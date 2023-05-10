@@ -56,11 +56,6 @@ class IngestorConfig(BaseSettings):
         description="Boolean indicating whether or not pgSTAC DB is in a public subnet",
         default=True,
     )
-    stac_url: HttpUrl = Field(
-        description="URL of STAC API",
-    )
-
-    raster_url: AnyHttpUrl = Field(description="URL of Raster API")
 
     data_access_role: AwsArn = Field(
         description="ARN of AWS Role used to validate access to S3 data"
@@ -70,14 +65,6 @@ class IngestorConfig(BaseSettings):
         description="Environment of Airflow deployment",
     )
 
-    oidc_provider_arn: Optional[AwsOidcArn] = Field(
-        description="ARN of AWS OIDC provider used for authentication"
-    )
-
-    oidc_repo_id: str = Field(
-        "NASA-IMPACT/veda-stac-ingestor",
-        description="ID of AWS ECR repository used for OIDC provider",
-    )
 
     class Config:
         env_prefix = ""

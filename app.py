@@ -35,8 +35,6 @@ class VedaStack(Stack):
             )
             aws_iam.PermissionsBoundary.of(self).apply(permission_boundary_policy)
 
-    # Core infrastructure, including secrets, OIDC (if enabled)
-
     def build_oidc(
         self, oidc_provider_arn: str, oidc_repo_id: str, secret_arn: str, stage: str
     ):
@@ -165,7 +163,7 @@ env_secret = veda_stack.build_env_secret(
 
 if veda_app_settings.oidc_provider_arn:
     oidc_resources = veda_stack.build_oidc(
-        oidc_provider_arn=veda_app_settings.oidc_provider_arn,  # TODO rewrite veda-app-settings to include ingest-api env vars, including OIDC
+        oidc_provider_arn=veda_app_settings.oidc_provider_arn,
         oidc_repo_id=veda_app_settings.oidc_repo_id,
         secret_arn=env_secret.secret_arn,
         stage=veda_app_settings.stage_name(),

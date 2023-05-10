@@ -67,8 +67,6 @@ class StacIngestionApi(Stack):
             "CLIENT_SECRET": config.client_secret,
             "MWAA_ENV": config.mwaa_env,
             "RASTER_URL": raster_url,
-            "OIDC_PROVIDER_ARN": config.oidc_provider_arn,
-            "OIDC_PROVIDER_REPO_ID": config.oidc_repo_id,
             "STAC_DB_SECRET_NAME": config.stac_db_secret_name,
             "STAC_DB_VPC_ID": config.stac_db_vpc_id,
             "STAC_DB_SECURITY_GROUP_ID": config.stac_db_security_group_id,
