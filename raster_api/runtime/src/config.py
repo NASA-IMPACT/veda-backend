@@ -109,6 +109,8 @@ class ApiSettings(BaseSettings):
             # Use the default role of this lambda
             return {}
 
+    path_prefix: str = ""
+
     class Config:
         """model config"""
 

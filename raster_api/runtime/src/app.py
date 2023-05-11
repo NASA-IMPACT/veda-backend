@@ -38,7 +38,13 @@ if settings.debug:
 else:
     optional_headers = []
 
-app = FastAPI(title=settings.name, version=veda_raster_version)
+path_prefix = settings.path_prefix
+app = FastAPI(
+    title=settings.name,
+    version=veda_raster_version,
+    openapi_url=f"{path_prefix}/openapi.json",
+    docs_url=f"{path_prefix}/docs",
+)
 # router to be applied to all titiler route factories (improves logs with FastAPI context)
 router = APIRouter(route_class=LoggerRouteHandler)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
@@ -46,28 +52,28 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 # Custom PgSTAC mosaic tiler
 mosaic = MosaicTilerFactory(
-    router_prefix="/mosaic",
+    router_prefix=f"{path_prefix}/mosaic",
     enable_mosaic_search=settings.enable_mosaic_search,
     optional_headers=optional_headers,
     gdal_config=settings.get_gdal_config(),
     dataset_dependency=DatasetParams,
     router=APIRouter(route_class=LoggerRouteHandler),
 )
-app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
+app.include_router(mosaic.router, prefix=f"{path_prefix}/mosaic", tags=["Mosaic"])
 
 # Custom STAC titiler endpoint (not added to the openapi docs)
 stac = MultiBaseTilerFactory(
     reader=PgSTACReader,
     path_dependency=ItemPathParams,
     optional_headers=optional_headers,
-    router_prefix="/stac",
+    router_prefix=f"{path_prefix}/stac",
     gdal_config=settings.get_gdal_config(),
     router=APIRouter(route_class=LoggerRouteHandler),
 )
-app.include_router(stac.router, tags=["Items"], prefix="/stac")
+app.include_router(stac.router, tags=["Items"], prefix=f"{path_prefix}/stac")
 
 cog = TilerFactory(
-    router_prefix="/cog",
+    router_prefix=f"{path_prefix}/cog",
     optional_headers=optional_headers,
     gdal_config=settings.get_gdal_config(),
     router=APIRouter(route_class=LoggerRouteHandler),
@@ -98,7 +104,9 @@ def cog_demo(request: Request):
     )
 
 
-app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
+app.include_router(
+    cog.router, tags=["Cloud Optimized GeoTIFF"], prefix=f"{path_prefix}/cog"
+)
 
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])

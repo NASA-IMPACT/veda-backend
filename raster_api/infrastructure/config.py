@@ -63,6 +63,10 @@ class vedaRasterSettings(BaseSettings):
         None,
         description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs",
     )
+    path_prefix: Optional[str] = Field(
+        "",
+        description="Optional path prefix to add to all api endpoints",
+    )
 
     class Config:
         """model config"""

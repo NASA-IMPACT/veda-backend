@@ -69,6 +69,10 @@ class RasterApiLambdaConstruct(Construct):
             "VEDA_RASTER_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
+        veda_raster_function.add_environment(
+            "VEDA_RASTER_PATH_PREFIX", veda_raster_settings.path_prefix
+        )
+
         # Optional AWS S3 requester pays global setting
         if veda_raster_settings.aws_request_payer:
             veda_raster_function.add_environment(

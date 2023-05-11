@@ -9,7 +9,7 @@ class vedaAppSettings(BaseSettings):
 
     # App name and deployment stage
     app_name: Optional[str] = Field(
-        "veda-backend",
+        "ghgc-backend",
         description="Optional app name used to name stack and resources",
     )
     stage: str = Field(

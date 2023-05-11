@@ -4,6 +4,7 @@ from typing import Optional
 from urllib.parse import urlencode
 
 import attr
+from src.config import ApiSettings
 
 from fastapi import APIRouter, FastAPI, HTTPException, Path, Query
 from fastapi.responses import RedirectResponse
@@ -12,7 +13,8 @@ from starlette.requests import Request
 
 from .monitoring import LoggerRouteHandler, tracer
 
-router = APIRouter(route_class=LoggerRouteHandler)
+api_settings = ApiSettings()
+path_prefix = api_settings.path_prefix
 
 MAX_B64_ITEM_SIZE = 2000
 
@@ -29,7 +31,7 @@ class TiTilerExtension(ApiExtension):
             None
 
         """
-        router = APIRouter(route_class=LoggerRouteHandler)
+        router = APIRouter(route_class=LoggerRouteHandler, prefix=path_prefix)
 
         @tracer.capture_method
         @router.get(

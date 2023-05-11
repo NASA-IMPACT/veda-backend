@@ -1,11 +1,16 @@
-FROM public.ecr.aws/sam/build-python3.9:latest
+FROM --platform=linux/amd64 public.ecr.aws/sam/build-python3.9:latest
 
 ARG PGSTAC_VERSION
 RUN echo "Using PGSTAC Version ${PGSTAC_VERSION}"
 
 WORKDIR /tmp
 
-RUN pip install requests psycopg[binary,pool] pypgstac==${PGSTAC_VERSION} -t /asset
+COPY database/runtime/requirements.txt /tmp/requirements.txt
+
+RUN pip install --upgrade pip
+RUN pip install -r /tmp/requirements.txt -t /asset
+
+RUN pip install pypgstac==${PGSTAC_VERSION} -t /asset
 
 COPY database/runtime/handler.py /asset/handler.py
 
