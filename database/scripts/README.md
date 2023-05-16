@@ -51,4 +51,9 @@ This will read the user-provided connection string provided with the `--connecti
 
 #### ProjExtensionFloatIntFix
 
-`ProjExtensionFloatIntFix` is a subclass of `PostgreSQLCommandRunner` specifically designed to update floating point values for the projection extension of STAC (Spatio-Temporal Asset Catalog) to integers in a PostgreSQL database.
+`ProjExtensionFloatIntFix` updates floating point values for the projection extension of STAC (Spatio-Temporal Asset Catalog) to integers in a PostgreSQL database.
+
+#### DeleteNullStacExtensions
+
+`DeleteNullStacExtensions` provides functionality to delete the stac_extensions field from collections in a PostgreSQL database where it is currently marked as null. This class helps maintain data integrity and consistency within the STAC (Spatio-Temporal Asset Catalog) schema.
+
