@@ -1,3 +1,7 @@
+"""
+This module provides a base class for running PostgreSQL commands.
+"""
+
 import abc
 import argparse
 from typing import List
@@ -6,7 +10,10 @@ import psycopg2
 
 
 class PostgreSQLCommandRunner(metaclass=abc.ABCMeta):
+    """This class provides a base class for running PostgreSQL commands."""
+
     def __init__(self, host, port, database, user, password):
+        """Initialize PostgreSQLCommandRunner."""
         self.host = host
         self.port = port
         self.database = database
@@ -14,12 +21,13 @@ class PostgreSQLCommandRunner(metaclass=abc.ABCMeta):
         self.password = password
 
     def execute(self):
+        """Execute SQL commands."""
         conn = psycopg2.connect(
             host=self.host,
             port=self.port,
             database=self.database,
             user=self.user,
-            password=self.password
+            password=self.password,
         )
         cursor = conn.cursor()
         for command in self.sql_commands:
@@ -36,10 +44,14 @@ class PostgreSQLCommandRunner(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def sql_commands(self) -> List[str]:
-        raise NotImplementedError("sql_command attribute must be implemented in the child class")
+        """A list of SQL commands to execute."""
+        raise NotImplementedError(
+            "sql_command attribute must be implemented in the child class"
+        )
 
     @classmethod
     def from_args(cls) -> "PostgreSQLCommandRunner":
+        """Create a PostgreSQLCommandRunner from command line arguments."""
         parser = argparse.ArgumentParser(description="Run PostgreSQL command")
         parser.add_argument("--host", type=str, help="PostgreSQL host")
         parser.add_argument("--port", type=str, help="PostgreSQL port")
@@ -53,13 +65,18 @@ class PostgreSQLCommandRunner(metaclass=abc.ABCMeta):
             port=args.port,
             database=args.database,
             user=args.user,
-            password=args.password
+            password=args.password,
         )
-    
+
     @classmethod
     def from_conn_string(cls) -> "PostgreSQLCommandRunner":
-        parser = argparse.ArgumentParser(description="Parse PostgreSQL connection string")
-        parser.add_argument("--connection_string", type=str, help="PostgreSQL connection string")
+        """Create a PostgreSQLCommandRunner from a connection string."""
+        parser = argparse.ArgumentParser(
+            description="Parse PostgreSQL connection string"
+        )
+        parser.add_argument(
+            "--connection_string", type=str, help="PostgreSQL connection string"
+        )
         args = parser.parse_args()
         connection_string = args.connection_string
         parts = connection_string.split("://")
@@ -74,9 +91,5 @@ class PostgreSQLCommandRunner(metaclass=abc.ABCMeta):
         database = host_parts[1]
 
         return cls(
-            host=host,
-            port=port,
-            database=database,
-            user=username,
-            password=password
+            host=host, port=port, database=database, user=username, password=password
         )
