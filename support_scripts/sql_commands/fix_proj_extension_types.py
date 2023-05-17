@@ -2,7 +2,7 @@
 This script fixes the projection extension properties proj:epsg and proj:shape.
 """
 
-from PostgreSQLCommandRunner import PostgreSQLCommandRunner
+from postgres_runner import PostgreSQLCommandRunner
 
 
 class ProjExtensionFloatIntFix(PostgreSQLCommandRunner):

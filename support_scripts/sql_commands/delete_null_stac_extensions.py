@@ -2,11 +2,11 @@
 This script deletes the stac_extensions field from collections that have a null value for it.
 """
 
-from PostgreSQLCommandRunner import PostgreSQLCommandRunner
+from postgres_runner import PostgreSQLCommandRunner
 
 
 class DeleteNullStacExtensions(PostgreSQLCommandRunner):
-    """This class fixes the floating point values in proj:epsg and proj:shape properties (they should be int)."""
+    """This class deletes the stac_extensions field from collections that have a null value for it."""
 
     @property
     def sql_commands(self):
