@@ -2,7 +2,7 @@ from getpass import getuser
 from typing import Optional
 
 import aws_cdk
-from pydantic import AnyHttpUrl, BaseSettings, Field, HttpUrl, constr
+from pydantic import BaseSettings, Field, constr
 
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
 AwsStepArn = constr(regex=r"^arn:aws:states:.+:\d{12}:stateMachine:.+")
@@ -57,14 +57,13 @@ class IngestorConfig(BaseSettings):
         default=True,
     )
 
-    data_access_role: AwsArn = Field(
+    data_access_role: AwsArn = Field(  # type: ignore
         description="ARN of AWS Role used to validate access to S3 data"
     )
 
     mwaa_env: Optional[str] = Field(
         description="Environment of Airflow deployment",
     )
-
 
     class Config:
         env_prefix = ""

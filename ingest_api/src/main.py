@@ -1,17 +1,16 @@
 import os
 from getpass import getuser
-from typing import Dict, Union
+from typing import Dict
 
-import requests
 import src.auth as auth
 import src.config as config
 import src.dependencies as dependencies
-from src.collection_publisher import CollectionPublisher
 import src.schemas as schemas
 import src.services as services
+from src.collection_publisher import CollectionPublisher
 from src.doc import DESCRIPTION
 
-from fastapi import Body, Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
