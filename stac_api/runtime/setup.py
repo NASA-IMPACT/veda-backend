@@ -21,7 +21,7 @@ inst_reqs = [
 ]
 
 extra_reqs = {
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests", "urllib3<2"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
 }
 
 
