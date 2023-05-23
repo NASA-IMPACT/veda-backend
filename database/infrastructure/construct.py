@@ -193,32 +193,7 @@ class RdsConstruct(Construct):
                 parameter_group=parameter_group,
             )
 
-        self.proxy = None
-        if veda_db_settings.use_rds_proxy:
-            proxy_role = aws_iam.Role(
-                self,
-                "RDSProxyRole",
-                assumed_by=aws_iam.ServicePrincipal("rds.amazonaws.com"),
-            )
-            self.proxy = aws_rds.DatabaseProxy(
-                self,
-                proxy_target=aws_rds.ProxyTarget.from_instance(database),
-                id="RdsProxy",
-                vpc=vpc,
-                secrets=[database.secret],
-                db_proxy_name=f"veda-backend-{stage}-proxy",
-                role=proxy_role,
-                require_tls=False,
-                debug_logging=False,
-            )
-
-            # Allow connections to the proxy from the same security groups as the DB
-            for sg in database.connections.security_groups:
-                self.proxy.connections.add_security_group(sg)
-
-        hostname = (
-            self.proxy.endpoint if self.proxy else database.instance_endpoint.hostname
-        )
+        hostname = database.instance_endpoint.hostname
 
         # Use custom resource to bootstrap PgSTAC database
         self.pgstac = BootstrapPgStac(
@@ -231,6 +206,32 @@ class RdsConstruct(Construct):
             stage=stage,
             host=hostname,
         )
+
+        self.proxy = None
+        if veda_db_settings.use_rds_proxy:
+            # secret for non-admin user
+            proxy_secret = self.pgstac.secret
+
+            proxy_role = aws_iam.Role(
+                self,
+                "RDSProxyRole",
+                assumed_by=aws_iam.ServicePrincipal("rds.amazonaws.com"),
+            )
+            self.proxy = aws_rds.DatabaseProxy(
+                self,
+                proxy_target=aws_rds.ProxyTarget.from_instance(database),
+                id="RdsProxy",
+                vpc=vpc,
+                secrets=[database.secret, proxy_secret],
+                db_proxy_name=f"veda-backend-{stage}-proxy",
+                role=proxy_role,
+                require_tls=False,
+                debug_logging=False,
+            )
+
+            # Allow connections to the proxy from the same security groups as the DB
+            for sg in database.connections.security_groups:
+                self.proxy.connections.add_security_group(sg)
 
         CfnOutput(
             self,
