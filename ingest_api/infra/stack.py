@@ -50,7 +50,6 @@ class StacIngestionApi(Stack):
             "USERPOOL_ID",
             "CLIENT_ID",
             "CLIENT_SECRET",
-            "MWAA_ENV",
             "RASTER_URL",
         ]
 
@@ -64,7 +63,6 @@ class StacIngestionApi(Stack):
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
-            "MWAA_ENV": config.mwaa_env,
             "RASTER_URL": raster_url,
             "STAC_DB_SECRET_NAME": config.stac_db_secret_name,
             "STAC_DB_VPC_ID": config.stac_db_vpc_id,
@@ -206,16 +204,6 @@ class StacIngestionApi(Stack):
                 resources=[user_pool.user_pool_arn],
             )
         )
-
-        if mwaa_env := env.get("MWAA_ENV"):
-            handler.add_to_role_policy(
-                iam.PolicyStatement(
-                    actions=["airflow:CreateCliToken"],
-                    resources=[
-                        f"arn:aws:airflow:{self.region}:{self.account}:environment/{mwaa_env}"
-                    ],
-                )
-            )
 
         # Allow handler to read DB secret
         db_secret.grant_read(handler)

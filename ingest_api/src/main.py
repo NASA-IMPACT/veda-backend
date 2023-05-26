@@ -7,7 +7,7 @@ import src.config as config
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
-from src.collection_publisher import CollectionPublisher
+from src.collection_publisher import CollectionPublisher, ItemPublisher
 from src.doc import DESCRIPTION
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -28,16 +28,17 @@ settings = (
 
 app = FastAPI(
     root_path=settings.root_path,
-    title="VEDA STAC Ingestor API Documentation",
+    title="VEDA Ingestion API Documentation",
     description=DESCRIPTION,
     license_info={
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     },
-    contact={"url": "https://github.com/NASA-IMPACT/veda-stac-ingestor"},
+    contact={"url": "https://github.com/NASA-IMPACT/veda-backend"},
 )
 
 collection_publisher = CollectionPublisher()
+item_publisher = ItemPublisher()
 
 
 @app.get(
@@ -180,7 +181,7 @@ def publish_item(item: schemas.Item):
     """
     # pgstac create collection
     try:
-        collection_publisher.ingest(item)
+        item_publisher.ingest(item)
         return {f"Successfully published: {item.id}"}
     except Exception as e:
         raise HTTPException(

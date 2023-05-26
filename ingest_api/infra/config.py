@@ -61,10 +61,6 @@ class IngestorConfig(BaseSettings):
         description="ARN of AWS Role used to validate access to S3 data"
     )
 
-    mwaa_env: Optional[str] = Field(
-        description="Environment of Airflow deployment",
-    )
-
     class Config:
         env_prefix = ""
         case_sentive = False
