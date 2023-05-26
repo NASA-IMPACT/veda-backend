@@ -128,13 +128,6 @@ class WhoAmIResponse(BaseModel):
     aud: str = Field(..., description="The audience of the token")
 
 
-class WorkflowExecutionResponse(BaseModel):
-    id: str = Field(
-        ..., description="ID of the workflow execution in discover step function."
-    )
-    status: Status = Field(
-        ..., description="Status of the workflow execution in discover step function."
-    )
 
 
 class Ingestion(BaseModel):
