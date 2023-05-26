@@ -89,18 +89,6 @@ class Status(str, enum.Enum):
     cancelled = "cancelled"
 
 
-class BaseResponse(BaseModel):
-    id: str = Field(
-        ..., description="ID of the workflow execution in discover step function."
-    )
-    status: Status = Field(
-        ..., description="Status of the workflow execution in discover step function."
-    )
-
-
-class ExecutionResponse(BaseResponse):
-    message: str = Field(..., description="Message returned from the step function.")
-    discovered_files: List[str] = Field(..., description="List of discovered files.")
 
 
 class AuthResponse(BaseModel):
