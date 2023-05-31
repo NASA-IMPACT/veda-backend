@@ -40,7 +40,7 @@ To retrieve the variables for a stage that has been previously deployed, the sec
 | --- | --- |
 | `APP_NAME` | Optional app name used to name stack and resources, defaults to `veda-backend` |
 | `STAGE` | **REQUIRED** Deployment stage used to name stack and resources, i.e. `dev`, `staging`, `prod` |
-| `VEDA_DB_PGSTAC_VERSION` | **REQUIRED** version of PgStac database, i.e. 0.7.6 |
+| `VEDA_DB_PGSTAC_VERSION` | **REQUIRED** version of PgStac database, i.e. 0.7.9 |
 | `VEDA_DB_SCHEMA_VERSION` | **REQUIRED** The version of the custom veda-backend schema, i.e. 0.1.1 |
 | `VEDA_DB_SNAPSHOT_ID` | **Once used always REQUIRED** Optional RDS snapshot identifier to initialize RDS from a snapshot |
 > **Note** See [Advanced Configuration](docs/advanced_configuration.md) for details about custom configuration options.
