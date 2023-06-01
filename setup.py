@@ -18,8 +18,8 @@ extra_reqs = {
     "test": [
         "pytest",
         "pytest-asyncio",
-        "httpx",
-        "pypgstac==0.7.1",
+        "httpx==0.23.3",
+        "pypgstac==0.7.4",
         "psycopg[binary, pool]",
     ],
 }
