@@ -34,9 +34,11 @@ class vedaDBSettings(BaseSettings):
             "**Once used always REQUIRED**"
         ),
     )
-    publicly_accessible: Optional[bool] = Field(
-        True, description="Boolean if the RDS should be publicly accessible"
+    private_subnets: Optional[bool] = Field(
+        False,
+        description="Boolean deploy database to private subnets",
     )
+
     # RDS custom postgres parameters
     max_locks_per_transaction: Optional[str] = Field(
         "1024",
@@ -52,10 +54,6 @@ class vedaDBSettings(BaseSettings):
         "32000",
         description="maximum number of temporary buffers used by each session",
         regex=r"^[1-9]\d*$",
-    )
-    use_rds_proxy: Optional[bool] = Field(
-        False,
-        description="Boolean if the RDS should be accessed through a proxy",
     )
 
     class Config:

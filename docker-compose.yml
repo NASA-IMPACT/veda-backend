@@ -95,7 +95,7 @@ services:
   database:
     container_name: veda.db
     platform: linux/amd64
-    image: ghcr.io/stac-utils/pgstac:v0.7.6
+    image: ghcr.io/stac-utils/pgstac:v0.7.1
     environment:
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
@@ -105,11 +105,9 @@ services:
       - PGDATABASE=postgis
     ports:
       - "5432:5432"
-    command: "postgres -N 500"
+    command: postgres -N 500
     volumes:
       - ./.pgdata:/var/lib/postgresql/data
-      - ./scripts:/tmp/scripts
-      - ./.github/workflows/data:/tmp/data
 
 networks:
   default:

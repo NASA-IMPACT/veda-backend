@@ -40,7 +40,7 @@ To retrieve the variables for a stage that has been previously deployed, the sec
 | --- | --- |
 | `APP_NAME` | Optional app name used to name stack and resources, defaults to `veda-backend` |
 | `STAGE` | **REQUIRED** Deployment stage used to name stack and resources, i.e. `dev`, `staging`, `prod` |
-| `VEDA_DB_PGSTAC_VERSION` | **REQUIRED** version of PgStac database, i.e. 0.7.6 |
+| `VEDA_DB_PGSTAC_VERSION` | **REQUIRED** version of PgStac database, i.e. 0.5 |
 | `VEDA_DB_SCHEMA_VERSION` | **REQUIRED** The version of the custom veda-backend schema, i.e. 0.1.1 |
 | `VEDA_DB_SNAPSHOT_ID` | **Once used always REQUIRED** Optional RDS snapshot identifier to initialize RDS from a snapshot |
 > **Note** See [Advanced Configuration](docs/advanced_configuration.md) for details about custom configuration options.
@@ -114,11 +114,11 @@ Support scripts are provided for manual system operations.
 | [**veda-ui**](https://github.com/NASA-IMPACT/veda-ui) | Dashboard UI for viewing and analysing VEDA assets |
 | [**veda-stac-ingestor**](https://github.com/NASA-IMPACT/veda-stac-ingestor) |  Entry-point for users/services to add new records to database |
 | [**veda-data-pipelines**](https://github.com/NASA-IMPACT/veda-data-pipelines) | Cloud optimize data assets and submit records for publication to veda-stac-ingestor |
-| [**veda-docs**](https://github.com/NASA-IMPACT/veda-docs) | Documentation repository for end users of VEDA ecosystem data and tools |
+| [**veda-documentation**](https://github.com/NASA-IMPACT/veda-documentation) | Documentation repository for end users of VEDA ecosystem data and tools |
 
 ## VEDA usage examples
 
-### [VEDA documentation](https://nasa-impact.github.io/veda-docs)
+### [VEDA documentation](https://nasa-impact.github.io/veda-documentation/)
 
 ### [VEDA dashboard](https://www.earthdata.nasa.gov/dashboard)
 

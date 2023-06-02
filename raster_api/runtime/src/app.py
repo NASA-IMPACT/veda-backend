@@ -6,15 +6,15 @@ from rio_cogeo.cogeo import cog_info as rio_cogeo_info
 from rio_cogeo.models import Info
 from src.config import ApiSettings
 from src.datasetparams import DatasetParams
-from src.factory import MultiBaseTilerFactory
+from src.factory import MosaicTilerFactory, MultiBaseTilerFactory
 from src.version import __version__ as veda_raster_version
 
 from fastapi import APIRouter, Depends, FastAPI, Query
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
-from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
+from titiler.application.custom import templates
 from titiler.core.dependencies import DatasetPathParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import TilerFactory
@@ -23,14 +23,7 @@ from titiler.core.resources.enums import OptionalHeader
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
 from titiler.pgstac.dependencies import ItemPathParams
-from titiler.pgstac.factory import MosaicTilerFactory
 from titiler.pgstac.reader import PgSTACReader
-
-try:
-    from importlib.resources import files as resources_files  # type: ignore
-except ImportError:
-    # Try backported to PY<39 `importlib_resources`.
-    from importlib_resources import files as resources_files  # type: ignore
 
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 
@@ -39,8 +32,6 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
-
-templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 if settings.debug:
     optional_headers = [OptionalHeader.server_timing, OptionalHeader.x_assets]
@@ -61,10 +52,10 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 # Custom PgSTAC mosaic tiler
 mosaic = MosaicTilerFactory(
-    add_mosaic_list=settings.enable_mosaic_search,
     router_prefix=f"{path_prefix}/mosaic",
+    enable_mosaic_search=settings.enable_mosaic_search,
     optional_headers=optional_headers,
-    environment_dependency=settings.get_gdal_config,
+    gdal_config=settings.get_gdal_config(),
     dataset_dependency=DatasetParams,
     router=APIRouter(route_class=LoggerRouteHandler),
 )
@@ -75,8 +66,8 @@ stac = MultiBaseTilerFactory(
     reader=PgSTACReader,
     path_dependency=ItemPathParams,
     optional_headers=optional_headers,
-    environment_dependency=settings.get_gdal_config,
     router_prefix=f"{path_prefix}/stac",
+    gdal_config=settings.get_gdal_config(),
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 app.include_router(stac.router, tags=["Items"], prefix=f"{path_prefix}/stac")
@@ -84,7 +75,7 @@ app.include_router(stac.router, tags=["Items"], prefix=f"{path_prefix}/stac")
 cog = TilerFactory(
     router_prefix=f"{path_prefix}/cog",
     optional_headers=optional_headers,
-    environment_dependency=settings.get_gdal_config,
+    gdal_config=settings.get_gdal_config(),
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 
@@ -102,7 +93,7 @@ def cog_validate(
 def cog_demo(request: Request):
     """COG Viewer."""
     return templates.TemplateResponse(
-        name="viewer.html",
+        name="cog_index.html",
         context={
             "request": request,
             "tilejson_endpoint": cog.url_for(request, "tilejson"),
