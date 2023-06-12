@@ -12,7 +12,7 @@ from src.version import __version__ as veda_raster_version
 from fastapi import APIRouter, Depends, FastAPI, Query
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 from titiler.core.dependencies import DatasetPathParams
@@ -20,6 +20,7 @@ from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from titiler.core.factory import TilerFactory
 from titiler.core.middleware import CacheControlMiddleware
 from titiler.core.resources.enums import OptionalHeader
+from titiler.core.resources.responses import JSONResponse
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
 from titiler.pgstac.dependencies import ItemPathParams
@@ -83,7 +84,11 @@ cog = TilerFactory(
 )
 
 
-@cog.router.get("/validate", response_model=Info)
+@cog.router.get(
+    "/validate",
+    response_model=Info,
+    response_class=JSONResponse,
+)
 def cog_validate(
     src_path: str = Depends(DatasetPathParams),
     strict: bool = Query(False, description="Treat warnings as errors"),
