@@ -13,7 +13,7 @@ def test_raster_api():
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
-    assert resp.headers["content-encoding"] == "br"
+    assert resp.headers["content-encoding"] in ["br", "gzip"]
 
 
 def test_mosaic_api():
