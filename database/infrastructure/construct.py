@@ -56,7 +56,7 @@ class BootstrapPgStac(Construct):
                 build_args={"PGSTAC_VERSION": pgstac_version},
                 platform="linux/amd64",
             ),
-            timeout=Duration.minutes(2),
+            timeout=Duration.minutes(15),
             vpc=database.vpc,
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
