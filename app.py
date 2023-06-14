@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ CDK Configuration for the veda-backend stack."""
 
-from aws_cdk import App, Stack, Tags, aws_iam
+from aws_cdk import App, Aspects, Stack, Tags, aws_iam
 from constructs import Construct
 
 from config import veda_app_settings
@@ -22,12 +22,16 @@ class VedaStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         if veda_app_settings.permissions_boundary_policy_name:
-            permission_boundary_policy = aws_iam.Policy.from_policy_name(
+            permission_boundary_policy = aws_iam.ManagedPolicy.from_managed_policy_name(
                 self,
                 "permission-boundary",
                 veda_app_settings.permissions_boundary_policy_name,
             )
             aws_iam.PermissionsBoundary.of(self).apply(permission_boundary_policy)
+
+            from permission_boundary import PermissionBoundaryAspect
+
+            Aspects.of(self).add(PermissionBoundaryAspect(permission_boundary_policy))
 
 
 veda_stack = VedaStack(
@@ -71,7 +75,6 @@ stac_api = StacApiLambdaConstruct(
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
 if veda_app_settings.alt_domain():
-
     alt_domain = DomainConstruct(
         veda_stack,
         "alt-domain",
