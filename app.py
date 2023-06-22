@@ -11,8 +11,9 @@ from constructs import Construct
 from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
-from ingest_api.infra.config import IngestorConfig as ingest_config
-from ingest_api.infra.stack import StacIngestionApi
+from ingest_api.infrastructure.config import IngestorConfig as ingest_config
+from ingest_api.infrastructure.constructs import ApiConstruct as ingest_api_construct
+from ingest_api.infrastructure.constructs import IngestorConstruct as ingestor_construct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
@@ -148,15 +149,6 @@ ingestor_config = ingest_config(
     stac_db_public_subnet=db_public_subnet,
 )
 
-ingest_stack = StacIngestionApi(
-    app,
-    f"{veda_app_settings.app_name}-ingest-{veda_app_settings.stage_name()}",
-    config=ingestor_config,
-    env=veda_app_settings.cdk_env(),
-    stac_url=stac_api.stac_api.url,
-    raster_url=raster_api.raster_api.url,
-)
-
 env_secret = veda_stack.build_env_secret(
     stage=veda_app_settings.stage_name(),
     env_config=veda_app_settings.dict(),
@@ -171,6 +163,51 @@ if veda_app_settings.oidc_provider_arn:
         stage=veda_app_settings.stage_name(),
     )
 
+
+
+# TODO api urls go to ingestor config
+ingest_api = ingest_api_construct(
+    veda_stack,
+    "ApiConstruct",
+    config=ingestor_config,
+    stac_url=stac_api.stac_api.url,
+    raster_url=raster_api.raster_api.url,
+    db_secret=db_secret,
+    db_vpc=vpc.vpc,
+    db_security_group=db_security_group,
+    lambda_env=lambda_env,
+)
+
+ingestor = ingestor_construct(
+    veda_stack,
+    "IngestorConstruct",
+    config=ingestor_config,
+    table=ingest_api.table,
+    db_secret=db_secret,
+    db_vpc=vpc.vpc,
+    db_security_group=db_security_group,
+    lambda_env=lambda_env,
+)
+
+def register_ssm_parameter(
+        ctx: Construct, # context for param init
+        name: str,
+        value: str,
+        description: str,
+    ) -> ssm.IStringParameter:
+        parameter_namespace = Stack.of(ctx).stack_name
+        return ssm.StringParameter(
+            ctx,
+            f"{name.replace('_', '-')}-parameter",
+            description=description,
+            parameter_name=f"/{parameter_namespace}/{name}",
+            string_value=value,
+        )
+
+def get_db_secret(ctx: Construct, secret_name: str, stage: str) -> secretsmanager.ISecret:
+        return secretsmanager.Secret.from_secret_name_v2(
+            ctx, f"pgstac-db-secret-{stage}", secret_name
+        )
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
 if veda_app_settings.alt_domain():
@@ -197,6 +234,7 @@ if veda_app_settings.alt_domain():
         raster_api=raster_api,
         domain_name=alt_domain.stac_domain_name,
     )
+    # TODO alternate ingestors?
 
 git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
 try:

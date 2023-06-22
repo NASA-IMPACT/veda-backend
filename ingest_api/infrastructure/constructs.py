@@ -22,12 +22,6 @@ class ApiConstruct(Construct):
         scope: Construct,
         construct_id: str,
         config: IngestorConfig,
-        stac_url: str,
-        raster_url: str,
-        table: dynamodb.ITable,
-        jwks_url: str,
-        data_access_role: iam.IRole,
-        user_pool: cognito.IUserPool,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
@@ -36,12 +30,21 @@ class ApiConstruct(Construct):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        self.table = self.build_table()
+        self.data_access_role = iam.Role.from_role_arn(
+            self, "data-access-role", config.data_access_role
+        )
+
+        self.user_pool = cognito.UserPool.from_user_pool_id(
+            self, "cognito-user-pool", config.userpool_id
+        )
+
         # create lambda
         self.api_lambda = self.build_api_lambda(
-            table=table,
+            table=self.table,
             env=lambda_env,
-            data_access_role=data_access_role,
-            user_pool=user_pool,
+            data_access_role=self.data_access_role,
+            user_pool=self.user_pool,
             stage=config.stage,
             db_secret=db_secret,
             db_vpc=db_vpc,
@@ -51,8 +54,20 @@ class ApiConstruct(Construct):
 
         # create API
         self.api = self.build_api(
-            handler=api_lambda,
+            handler=self.api_lambda,
             stage=config.stage,
+        )
+        self.jwks_url = self.build_jwks_url(config.userpool_id)
+
+        register_ssm_parameter(
+            name="jwks_url",
+            value=jwks_url,
+            description="JWKS URL for Cognito user pool",
+        )
+        register_ssm_parameter(
+            name="dynamodb_table",
+            value=table.table_name,
+            description="Name of table used to store ingestions",
         )
 
     def build_api_lambda(
@@ -144,6 +159,30 @@ class ApiConstruct(Construct):
             deploy_options=apigateway.StageOptions(stage_name=stage),
         )
 
+    def build_jwks_url(self, userpool_id: str) -> str:
+        region = userpool_id.split("_")[0]
+        return (
+            f"https://cognito-idp.{region}.amazonaws.com"
+            f"/{userpool_id}/.well-known/jwks.json"
+        )
+
+    # item ingest table, comsumed by ingestor
+    def build_table(self) -> dynamodb.ITable:
+        table = dynamodb.Table(
+            self,
+            "ingestions-table",
+            partition_key={"name": "created_by", "type": dynamodb.AttributeType.STRING},
+            sort_key={"name": "id", "type": dynamodb.AttributeType.STRING},
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=RemovalPolicy.DESTROY,
+            stream=dynamodb.StreamViewType.NEW_IMAGE,
+        )
+        table.add_global_secondary_index(
+            index_name="status",
+            partition_key={"name": "status", "type": dynamodb.AttributeType.STRING},
+            sort_key={"name": "created_at", "type": dynamodb.AttributeType.STRING},
+        )
+        return table
         
 
 
@@ -162,64 +201,78 @@ class IngestorConstruct(Construct):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         # continue with ingestor-related methods (build_ingestor, etc.)
-        # ...
+        
+        self.ingest_lambda = self.build_ingestor(
+            table=table,
+            env=lambda_env,
+            db_secret=db_secret,
+            db_vpc=db_vpc,
+            db_security_group=db_security_group,
+            db_subnet_public=config.db_subnet_public,
+            code_dir='/.', # TODO this isn't right
+        )
 
-
-class StacIngestionApi(Stack):
-    def __init__(
+    def build_ingestor(
         self,
-        scope: Construct,
-        construct_id: str,
-        config: IngestorConfig,
-        stac_url: str,
-        raster_url: str,
-        **kwargs,
-    ) -> None:
-        super().__init__(scope, construct_id, **kwargs)
-        # setup shared resources like table, jwks_url, data_access_role, user_pool, env, db_secret, db_vpc, db_security_group
-        # ...
-
-        # Instantiate the constructs
-        api = ApiConstruct(
+        *,
+        table: dynamodb.ITable,
+        env: Dict[str, str],
+        db_secret: secretsmanager.ISecret,
+        db_vpc: ec2.IVpc,
+        db_security_group: ec2.ISecurityGroup,
+        db_subnet_public: bool,
+        code_dir: str = "./",
+    ) -> aws_lambda.Function:
+        handler = aws_lambda.Function(
             self,
-            "ApiConstruct",
-            config=config,
-            stac_url=stac_url,
-            raster_url=raster_url,
-            table=table,
-            jwks_url=jwks_url,
-            data_access_role=data_access_role,
-            user_pool=user_pool,
-            db_secret=db_secret,
-            db_vpc=db_vpc,
-            db_security_group=db_security_group,
-            lambda_env=lambda_env,
+            "stac-ingestor",
+            code=aws_lambda.Code.from_docker_build(
+                path=os.path.abspath(code_dir),
+                file="ingest_api/Dockerfile",
+                platform="linux/amd64",
+            ),
+            handler="ingestor.handler",
+            runtime=aws_lambda.Runtime.PYTHON_3_9,
+            timeout=Duration.seconds(180),
+            environment={"DB_SECRET_ARN": db_secret.secret_arn, **env},
+            vpc=db_vpc,
+            vpc_subnets=ec2.SubnetSelection(
+                subnet_type=ec2.SubnetType.PUBLIC
+                if db_subnet_public
+                else ec2.SubnetType.PRIVATE_ISOLATED
+            ),
+            allow_public_subnet=True,
+            memory_size=2048,
         )
 
-        ingestor = IngestorConstruct(
-            self,
-            "IngestorConstruct",
-            config=config,
-            table=table,
-            db_secret=db_secret,
-            db_vpc=db_vpc,
-            db_security_group=db_security_group,
-            lambda_env=lambda_env,
+        # Allow handler to read DB secret
+        db_secret.grant_read(handler)
+
+        # Allow handler to connect to DB
+        db_security_group.add_ingress_rule(
+            peer=handler.connections.security_groups[0],
+            connection=ec2.Port.tcp(5432),
+            description="Allow connections from STAC Ingestor",
         )
 
-        self.jwks_param = register_ssm_parameter(
-            self,
-            "jwks-url",
-            jwks_url,
-            "URL of the JWKS endpoint for the user pool",
+        # Allow handler to write results back to DBƒ
+        table.grant_write_data(handler)
+
+        # Trigger handler from writes to DynamoDB table
+        handler.add_event_source(
+            events.DynamoEventSource(
+                table=table,
+                # Read when batches reach size...
+                batch_size=1000,
+                # ... or when window is reached.
+                max_batching_window=Duration.seconds(10),
+                # Read oldest data first.
+                starting_position=aws_lambda.StartingPosition.TRIM_HORIZON,
+                retry_attempts=1,
+            )
         )
 
-        self.dynamo_param = register_ssm_parameter(
-            self,
-            "dynamo-table",
-            table.table_name,
-            "Name of the DynamoDB table",
-        )
+        return handler
 
 
 def register_ssm_parameter(
