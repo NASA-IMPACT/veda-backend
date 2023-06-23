@@ -61,6 +61,12 @@ class IngestorConfig(BaseSettings):
         description="ARN of AWS Role used to validate access to S3 data"
     )
 
+    stac_api_url: str = Field(description="URL of STAC API used to serve STAC Items")
+
+    raster_api_url: str = Field(
+        description="URL of Raster API used to serve asset tiles"
+    )
+
     class Config:
         env_prefix = ""
         case_sentive = False

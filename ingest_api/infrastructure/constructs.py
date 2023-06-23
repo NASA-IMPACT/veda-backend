@@ -25,7 +25,6 @@ class ApiConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
-        lambda_env: Dict[str, str],
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -38,6 +37,20 @@ class ApiConstruct(Construct):
         self.user_pool = cognito.UserPool.from_user_pool_id(
             self, "cognito-user-pool", config.userpool_id
         )
+        self.jwks_url = self.build_jwks_url(config.userpool_id)
+
+        lambda_env={
+            "DYNAMODB_TABLE":self.table.table_name,
+            "JWKS_URL":self.jwks_url,
+            "ROOT_PATH":f"/{config.stage}",
+            "NO_PYDANTIC_SSM_SETTINGS": "1",
+            "STAC_URL":config.stac_api_url,
+            "DATA_ACCESS_ROLE":config.data_access_role,
+            "USERPOOL_ID":config.userpool_id,
+            "CLIENT_ID":config.client_id,
+            "CLIENT_SECRET":config.client_secret,
+            "RASTER_URL":config.raster_api_url
+        }
 
         # create lambda
         self.api_lambda = self.build_api_lambda(
@@ -57,16 +70,15 @@ class ApiConstruct(Construct):
             handler=self.api_lambda,
             stage=config.stage,
         )
-        self.jwks_url = self.build_jwks_url(config.userpool_id)
 
         register_ssm_parameter(
             name="jwks_url",
-            value=jwks_url,
+            value=self.jwks_url,
             description="JWKS URL for Cognito user pool",
         )
         register_ssm_parameter(
             name="dynamodb_table",
-            value=table.table_name,
+            value=self.table.table_name,
             description="Name of table used to store ingestions",
         )
 
@@ -196,11 +208,22 @@ class IngestorConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
-        lambda_env: Dict[str, str],
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         # continue with ingestor-related methods (build_ingestor, etc.)
+        lambda_env={
+            "DYNAMODB_TABLE":self.table.table_name,
+            "JWKS_URL":self.jwks_url,
+            "ROOT_PATH":f"/{config.stage}",
+            "NO_PYDANTIC_SSM_SETTINGS": "1",
+            "STAC_URL":config.stac_api_url,
+            "DATA_ACCESS_ROLE":config.data_access_role,
+            "USERPOOL_ID":config.userpool_id,
+            "CLIENT_ID":config.client_id,
+            "CLIENT_SECRET":config.client_secret,
+            "RASTER_URL":config.raster_api_url
+        }
         
         self.ingest_lambda = self.build_ingestor(
             table=table,

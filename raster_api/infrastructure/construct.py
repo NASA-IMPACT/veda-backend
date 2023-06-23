@@ -18,7 +18,7 @@ from .config import veda_raster_settings
 
 
 class RasterApiLambdaConstruct(Construct):
-    """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
+    """CDK Construct for a Lambda based TiTiler API with pgstac extension."""
 
     def __init__(
         self,

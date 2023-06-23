@@ -4,8 +4,9 @@
 import json
 import subprocess
 
-from aws_cdk import App, Stack, Tags, aws_iam
+from aws_cdk import App, Stack, Tags, aws_ec2, aws_iam
 from aws_cdk import aws_secretsmanager as secretsmanager
+from aws_cdk import aws_ssm as ssm
 from constructs import Construct
 
 from config import veda_app_settings
@@ -139,14 +140,16 @@ stac_api = StacApiLambdaConstruct(
 
 db_secret = database.pgstac.secret.secret_name
 db_security_group = database.db_security_group
-db_public_subnet = database.db_is_private
-print(stac_api.stac_api.url, raster_api.raster_api.url, db_secret)
+db_public_subnet = aws_ec2.SubnetSelection(subnet_type=database.subnet_type)
 
+# ingestor config requires references to other resources, but can be shared between ingest api and bulk ingestor
 ingestor_config = ingest_config(
     stac_db_vpc_id=vpc.vpc.vpc_id,
     stac_db_secret_name=db_secret,
     stac_db_security_group_id=db_security_group,
     stac_db_public_subnet=db_public_subnet,
+    stac_api_url=stac_api.stac_api.url,
+    raster_api_url=raster_api.raster_api.url,
 )
 
 env_secret = veda_stack.build_env_secret(
@@ -164,18 +167,14 @@ if veda_app_settings.oidc_provider_arn:
     )
 
 
-
 # TODO api urls go to ingestor config
 ingest_api = ingest_api_construct(
     veda_stack,
     "ApiConstruct",
     config=ingestor_config,
-    stac_url=stac_api.stac_api.url,
-    raster_url=raster_api.raster_api.url,
     db_secret=db_secret,
     db_vpc=vpc.vpc,
     db_security_group=db_security_group,
-    lambda_env=lambda_env,
 )
 
 ingestor = ingestor_construct(
@@ -186,28 +185,32 @@ ingestor = ingestor_construct(
     db_secret=db_secret,
     db_vpc=vpc.vpc,
     db_security_group=db_security_group,
-    lambda_env=lambda_env,
 )
 
-def register_ssm_parameter(
-        ctx: Construct, # context for param init
-        name: str,
-        value: str,
-        description: str,
-    ) -> ssm.IStringParameter:
-        parameter_namespace = Stack.of(ctx).stack_name
-        return ssm.StringParameter(
-            ctx,
-            f"{name.replace('_', '-')}-parameter",
-            description=description,
-            parameter_name=f"/{parameter_namespace}/{name}",
-            string_value=value,
-        )
 
-def get_db_secret(ctx: Construct, secret_name: str, stage: str) -> secretsmanager.ISecret:
-        return secretsmanager.Secret.from_secret_name_v2(
-            ctx, f"pgstac-db-secret-{stage}", secret_name
-        )
+def register_ssm_parameter(
+    ctx: Construct,  # context for param init
+    name: str,
+    value: str,
+    description: str,
+) -> ssm.IStringParameter:
+    parameter_namespace = Stack.of(ctx).stack_name
+    return ssm.StringParameter(
+        ctx,
+        f"{name.replace('_', '-')}-parameter",
+        description=description,
+        parameter_name=f"/{parameter_namespace}/{name}",
+        string_value=value,
+    )
+
+
+def get_db_secret(
+    ctx: Construct, secret_name: str, stage: str
+) -> secretsmanager.ISecret:
+    return secretsmanager.Secret.from_secret_name_v2(
+        ctx, f"pgstac-db-secret-{stage}", secret_name
+    )
+
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
 if veda_app_settings.alt_domain():
