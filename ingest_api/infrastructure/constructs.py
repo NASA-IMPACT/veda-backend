@@ -24,7 +24,6 @@ class ApiConstruct(Construct):
         config: IngestorConfig,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
-        db_security_group: ec2.ISecurityGroup,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -38,18 +37,23 @@ class ApiConstruct(Construct):
             self, "cognito-user-pool", config.userpool_id
         )
         self.jwks_url = self.build_jwks_url(config.userpool_id)
+        db_security_group = ec2.SecurityGroup.from_security_group_id(
+            self,
+            "db-security-group",
+            security_group_id=config.stac_db_security_group_id,
+        )
 
-        lambda_env={
-            "DYNAMODB_TABLE":self.table.table_name,
-            "JWKS_URL":self.jwks_url,
-            "ROOT_PATH":f"/{config.stage}",
+        lambda_env = {
+            "DYNAMODB_TABLE": self.table.table_name,
+            "JWKS_URL": self.jwks_url,
+            "ROOT_PATH": f"/{config.stage}",
             "NO_PYDANTIC_SSM_SETTINGS": "1",
-            "STAC_URL":config.stac_api_url,
-            "DATA_ACCESS_ROLE":config.data_access_role,
-            "USERPOOL_ID":config.userpool_id,
-            "CLIENT_ID":config.client_id,
-            "CLIENT_SECRET":config.client_secret,
-            "RASTER_URL":config.raster_api_url
+            "STAC_URL": config.stac_api_url,
+            "DATA_ACCESS_ROLE": config.data_access_role,
+            "USERPOOL_ID": config.userpool_id,
+            "CLIENT_ID": config.client_id,
+            "CLIENT_SECRET": config.client_secret,
+            "RASTER_URL": config.raster_api_url,
         }
 
         # create lambda
@@ -62,7 +66,7 @@ class ApiConstruct(Construct):
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
-            db_subnet_public=config.db_subnet_public,
+            db_subnet_public=config.stac_db_public_subnet,
         )
 
         # create API
@@ -72,11 +76,13 @@ class ApiConstruct(Construct):
         )
 
         register_ssm_parameter(
+            self,
             name="jwks_url",
             value=self.jwks_url,
             description="JWKS URL for Cognito user pool",
         )
         register_ssm_parameter(
+            self,
             name="dynamodb_table",
             value=self.table.table_name,
             description="Name of table used to store ingestions",
@@ -116,7 +122,7 @@ class ApiConstruct(Construct):
             "api-handler",
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
-                file="ingest_api/Dockerfile",
+                file="ingest_api/runtime/Dockerfile",
                 platform="linux/amd64",
             ),
             runtime=aws_lambda.Runtime.PYTHON_3_9,
@@ -195,7 +201,6 @@ class ApiConstruct(Construct):
             sort_key={"name": "created_at", "type": dynamodb.AttributeType.STRING},
         )
         return table
-        
 
 
 class IngestorConstruct(Construct):
@@ -207,32 +212,35 @@ class IngestorConstruct(Construct):
         table: dynamodb.ITable,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
-        db_security_group: ec2.ISecurityGroup,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         # continue with ingestor-related methods (build_ingestor, etc.)
-        lambda_env={
-            "DYNAMODB_TABLE":self.table.table_name,
-            "JWKS_URL":self.jwks_url,
-            "ROOT_PATH":f"/{config.stage}",
+        lambda_env = {
+            "DYNAMODB_TABLE": table.table_name,
+            "ROOT_PATH": f"/{config.stage}",
             "NO_PYDANTIC_SSM_SETTINGS": "1",
-            "STAC_URL":config.stac_api_url,
-            "DATA_ACCESS_ROLE":config.data_access_role,
-            "USERPOOL_ID":config.userpool_id,
-            "CLIENT_ID":config.client_id,
-            "CLIENT_SECRET":config.client_secret,
-            "RASTER_URL":config.raster_api_url
+            "STAC_URL": config.stac_api_url,
+            "DATA_ACCESS_ROLE": config.data_access_role,
+            "USERPOOL_ID": config.userpool_id,
+            "CLIENT_ID": config.client_id,
+            "CLIENT_SECRET": config.client_secret,
+            "RASTER_URL": config.raster_api_url,
         }
-        
+
+        db_security_group = ec2.SecurityGroup.from_security_group_id(
+            self,
+            "db-security-group",
+            security_group_id=config.stac_db_security_group_id,
+        )
+
         self.ingest_lambda = self.build_ingestor(
             table=table,
             env=lambda_env,
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
-            db_subnet_public=config.db_subnet_public,
-            code_dir='/.', # TODO this isn't right
+            db_subnet_public=config.stac_db_public_subnet,
         )
 
     def build_ingestor(
@@ -251,7 +259,7 @@ class IngestorConstruct(Construct):
             "stac-ingestor",
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
-                file="ingest_api/Dockerfile",
+                file="ingest_api/runtime/Dockerfile",
                 platform="linux/amd64",
             ),
             handler="ingestor.handler",
@@ -299,21 +307,24 @@ class IngestorConstruct(Construct):
 
 
 def register_ssm_parameter(
-        ctx: Construct, # context for param init
-        name: str,
-        value: str,
-        description: str,
-    ) -> ssm.IStringParameter:
-        parameter_namespace = Stack.of(ctx).stack_name
-        return ssm.StringParameter(
-            ctx,
-            f"{name.replace('_', '-')}-parameter",
-            description=description,
-            parameter_name=f"/{parameter_namespace}/{name}",
-            string_value=value,
-        )
+    ctx: Construct,  # context for param init
+    name: str,
+    value: str,
+    description: str,
+) -> ssm.IStringParameter:
+    parameter_namespace = Stack.of(ctx).stack_name
+    return ssm.StringParameter(
+        ctx,
+        f"{name.replace('_', '-')}-parameter",
+        description=description,
+        parameter_name=f"/{parameter_namespace}/{name}",
+        string_value=value,
+    )
 
-def get_db_secret(ctx: Construct, secret_name: str, stage: str) -> secretsmanager.ISecret:
-        return secretsmanager.Secret.from_secret_name_v2(
-            ctx, f"pgstac-db-secret-{stage}", secret_name
-        )
+
+def get_db_secret(
+    ctx: Construct, secret_name: str, stage: str
+) -> secretsmanager.ISecret:
+    return secretsmanager.Secret.from_secret_name_v2(
+        ctx, f"pgstac-db-secret-{stage}", secret_name
+    )
