@@ -90,7 +90,6 @@ jobs:
 
   predeploy:
     needs: [test]
-    environment: development
     runs-on: ubuntu-latest
     steps:
 
