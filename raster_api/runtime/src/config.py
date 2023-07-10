@@ -1,5 +1,6 @@
 """API settings."""
 
+import os
 import base64
 import json
 from typing import Optional
@@ -83,7 +84,7 @@ class ApiSettings(BaseSettings):
         description="Resource name of role permitting access to specified external S3 buckets",
     )
 
-    def get_gdal_config(self):
+    def get_gdal_config(self, export_os_envs=False):
         """return default aws session config or assume role data_access_role_arn credentials session"""
         # STS assume data access role for session credentials
         if self.data_access_role_arn:
@@ -91,6 +92,17 @@ class ApiSettings(BaseSettings):
                 data_access_credentials = get_role_credentials(
                     self.data_access_role_arn
                 )
+
+                # hack for issue veda-backend#192 which forces any nested `rasterio.Env`
+                # context manager to pick up the os env vars to handle this via
+                # https://github.com/rasterio/rasterio/blob/main/rasterio/env.py#L204-L205
+                if export_os_envs:
+                    os.environ["AWS_ACCESS_KEY_ID"] = data_access_credentials["AccessKeyId"]
+                    os.environ["AWS_SECRET_ACCESS_KEY"] = data_access_credentials[
+                        "SecretAccessKey"
+                    ]
+                    os.environ["AWS_SESSION_TOKEN"] = data_access_credentials["SessionToken"]
+
                 return {
                     "session": AWSSession(
                         aws_access_key_id=data_access_credentials["AccessKeyId"],
