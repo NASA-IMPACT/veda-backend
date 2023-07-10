@@ -1,8 +1,8 @@
 """API settings."""
 
-import os
 import base64
 import json
+import os
 from typing import Optional
 
 import boto3
@@ -97,11 +97,15 @@ class ApiSettings(BaseSettings):
                 # context manager to pick up the os env vars to handle this via
                 # https://github.com/rasterio/rasterio/blob/main/rasterio/env.py#L204-L205
                 if export_os_envs:
-                    os.environ["AWS_ACCESS_KEY_ID"] = data_access_credentials["AccessKeyId"]
+                    os.environ["AWS_ACCESS_KEY_ID"] = data_access_credentials[
+                        "AccessKeyId"
+                    ]
                     os.environ["AWS_SECRET_ACCESS_KEY"] = data_access_credentials[
                         "SecretAccessKey"
                     ]
-                    os.environ["AWS_SESSION_TOKEN"] = data_access_credentials["SessionToken"]
+                    os.environ["AWS_SESSION_TOKEN"] = data_access_credentials[
+                        "SessionToken"
+                    ]
 
                 return {
                     "session": AWSSession(
