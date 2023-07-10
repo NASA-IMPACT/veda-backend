@@ -3,7 +3,7 @@ name: Pull Request - Lint and Test Workflow
 on: [pull_request]
 
 jobs:
-  lint:
+  lint-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -25,8 +25,8 @@ jobs:
       - name: Run pre-commit
         run: pre-commit run --all-files
 
-  test:
-    needs: [lint]
+  test-pr:
+    needs: [lint-pr]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -63,7 +63,7 @@ jobs:
         run: docker compose stop
 
   predeploy:
-    needs: [test]
+    needs: [test-pr]
 
     runs-on: ubuntu-latest
     steps:

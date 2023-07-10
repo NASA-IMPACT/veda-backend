@@ -1,7 +1,10 @@
 """App settings."""
+from getpass import getuser
 from typing import Optional
 
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings, Field, constr
+
+AwsOidcArn = constr(regex=r"^arn:aws:iam::\d{12}:oidc-provider/.+")
 
 
 class vedaAppSettings(BaseSettings):
@@ -18,6 +21,16 @@ class vedaAppSettings(BaseSettings):
             "Deployment stage used to name stack and resources, "
             "i.e. `dev`, `staging`, `prod`"
         ),
+    )
+    owner: str = Field(
+        description=" ".join(
+            [
+                "Name of primary contact for Cloudformation Stack.",
+                "Used to tag generated resources",
+                "Defaults to current username.",
+            ]
+        ),
+        default_factory=getuser,
     )
     vpc_id: Optional[str] = Field(
         None,
@@ -45,6 +58,15 @@ class vedaAppSettings(BaseSettings):
     veda_domain_alt_hosted_zone_name: Optional[str] = Field(
         None,
         description="Custom domain name, i.e. veda-backend.xyz",
+    )
+
+    oidc_provider_arn: Optional[AwsOidcArn] = Field(  # type: ignore
+        description="ARN of AWS OIDC provider used for authentication"
+    )
+
+    oidc_repo_id: str = Field(
+        "NASA-IMPACT/veda-backend",
+        description="ID of AWS ECR repository used for OIDC provider",
     )
 
     def cdk_env(self) -> dict:
