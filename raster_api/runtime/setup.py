@@ -6,7 +6,8 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "titiler.pgstac==0.2.3",
+    "titiler.pgstac @ git+https://github.com/ranchodeluxe/titiler-pgstac.git@1331d7ad2f3099050f3e5a431a4e32c5d12d0ba6",
+    #"titiler.pgstac==0.2.3",
     "titiler.application>=0.10,<0.11",
     "importlib_resources>=1.1.0;python_version<='3.9'",  # https://github.com/cogeotiff/rio-tiler/pull/379
     "aws_xray_sdk>=2.6.0,<3",
