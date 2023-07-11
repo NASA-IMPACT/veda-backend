@@ -61,7 +61,7 @@ class vedaRasterSettings(BaseSettings):
 
     export_assume_role_creds_as_envs: Optional[bool] = Field(
         False,
-        description="enables 'get_gdal_config' flow to export AWS credentials as os env vars"
+        description="enables 'get_gdal_config' flow to export AWS credentials as os env vars",
     )
 
     aws_request_payer: Optional[str] = Field(
