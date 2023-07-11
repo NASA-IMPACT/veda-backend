@@ -84,6 +84,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       # API Config
       - VEDA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
+      - VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS=TRUE
+
 
     depends_on:
       - database

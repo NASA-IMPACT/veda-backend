@@ -40,7 +40,6 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
-
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 if settings.debug:
@@ -53,6 +52,7 @@ app = FastAPI(title=settings.name, version=veda_raster_version)
 router = APIRouter(route_class=LoggerRouteHandler)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
+
 
 # Custom PgSTAC mosaic tiler
 mosaic = MosaicTilerFactory(
