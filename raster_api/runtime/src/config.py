@@ -84,7 +84,12 @@ class ApiSettings(BaseSettings):
         description="Resource name of role permitting access to specified external S3 buckets",
     )
 
-    def get_gdal_config(self, export_os_envs=False):
+    export_assume_role_creds_as_envs: Optional[bool] = Field(
+        False,
+        description="enables 'get_gdal_config' flow to export AWS credentials as os env vars"
+    )
+
+    def get_gdal_config(self):
         """return default aws session config or assume role data_access_role_arn credentials session"""
         # STS assume data access role for session credentials
         if self.data_access_role_arn:
@@ -93,10 +98,11 @@ class ApiSettings(BaseSettings):
                     self.data_access_role_arn
                 )
 
-                # hack for issue veda-backend#192 which forces any nested `rasterio.Env`
-                # context manager to pick up the os env vars to handle this via
+                # hack for issue https://github.com/NASA-IMPACT/veda-backend/issues/192
+                # which forces any nested `rasterio.Env` context managers (which run in separate threads)
+                # to pick up the assume-role `AWS_*` os env vars and re-init from there via:
                 # https://github.com/rasterio/rasterio/blob/main/rasterio/env.py#L204-L205
-                if export_os_envs:
+                if self.export_assume_role_creds_as_envs:
                     os.environ["AWS_ACCESS_KEY_ID"] = data_access_credentials[
                         "AccessKeyId"
                     ]

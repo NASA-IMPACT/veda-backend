@@ -40,8 +40,6 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 settings = ApiSettings()
-# do this as soon as possible(hack for issue veda-backend#192)
-settings.get_gdal_config(export_os_envs=True)
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 if settings.debug:
