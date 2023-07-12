@@ -39,7 +39,7 @@ def test_mosaic_api_blackmarble():
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
     assert resp.json()[0]["id"] == "VNP46A2_V011_Beijing_2020_01_02_cog"
 
-    z, x, y = 2, 1, 1
+    z, x, y = 3, 1, 1
     resp = httpx.get(
         f"{raster_endpoint}/mosaic/tiles/{searchid}/{z}/{x}/{y}",
         params={"assets": "cog"},
