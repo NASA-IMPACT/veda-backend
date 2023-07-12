@@ -27,7 +27,7 @@ def test_mosaic_api_blackmarble():
 
     searchid = resp.json()["searchid"]
 
-    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/-85.6358,36.1624/assets")
+    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/39.908638,116.370438/assets")
     assert resp.status_code == 200
     assert len(resp.json()) == 1
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
