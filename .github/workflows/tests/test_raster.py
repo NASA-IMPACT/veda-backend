@@ -27,19 +27,19 @@ def test_mosaic_api_blackmarble():
 
     searchid = resp.json()["searchid"]
 
-    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/39.908638,116.370438/assets")
+    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/116.370438,39.908638/assets")
     assert resp.status_code == 200
     assert len(resp.json()) == 1
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
     assert resp.json()[0]["id"] == "VNP46A2_V011_Beijing_2020_01_02_cog"
 
-    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/15/8589/12849/assets")
+    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/2/1/1/assets")
     assert resp.status_code == 200
     assert len(resp.json()) == 1
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
     assert resp.json()[0]["id"] == "VNP46A2_V011_Beijing_2020_01_02_cog"
 
-    z, x, y = 15, 8589, 12849
+    z, x, y = 2, 1, 1
     resp = httpx.get(
         f"{raster_endpoint}/mosaic/tiles/{searchid}/{z}/{x}/{y}",
         params={"assets": "cog"},
