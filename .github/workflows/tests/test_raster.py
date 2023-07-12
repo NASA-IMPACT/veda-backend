@@ -46,6 +46,7 @@ def test_mosaic_api_blackmarble():
         headers={"Accept-Encoding": "br, gzip"},
         timeout=10.0,
     )
+    print(resp.json())
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "image/jpeg"
     assert "content-encoding" not in resp.headers
