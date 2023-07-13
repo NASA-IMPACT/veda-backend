@@ -1,5 +1,5 @@
 import decimal
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 import src.schemas as schemas
 from boto3.dynamodb import conditions
@@ -30,7 +30,7 @@ class Database:
             raise NotInDb("Record not found")
 
     def fetch_many(
-        self, status: str, next: dict = None, limit: int = None
+        self, status: str, next: Optional[dict] = None, limit: Optional[int] = None
     ) -> schemas.ListIngestionResponse:
         response = self.table.query(
             IndexName="status",

@@ -103,5 +103,5 @@ def load_into_pgstac(
     loader = VEDALoader(db=db)
     loading_function = load_items
     if table == IngestionType.collections:
-        loading_function = load_collection
+        loading_function = load_collection  # type: ignore
     return loading_function(ingestions, loader)

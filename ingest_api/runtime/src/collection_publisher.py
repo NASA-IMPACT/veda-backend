@@ -1,7 +1,6 @@
 import os
 
 from pypgstac.db import PgstacDB
-from stac_pydantic import Item
 from src.schemas import DashboardCollection
 from src.utils import (
     IngestionType,
@@ -10,10 +9,10 @@ from src.utils import (
     load_into_pgstac,
 )
 from src.vedaloader import VEDALoader
+from stac_pydantic import Item
 
 
 class CollectionPublisher:
-
     def ingest(self, collection: DashboardCollection):
         """
         Takes a collection model,
@@ -35,6 +34,7 @@ class CollectionPublisher:
         with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
             loader = VEDALoader(db=db)
             loader.delete_collection(collection_id)
+
 
 class ItemPublisher:
     def ingest(self, item: Item):

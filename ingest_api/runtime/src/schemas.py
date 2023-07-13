@@ -89,8 +89,6 @@ class Status(str, enum.Enum):
     cancelled = "cancelled"
 
 
-
-
 class AuthResponse(BaseModel):
     AccessToken: str = Field(..., description="Token used to authenticate the user.")
     ExpiresIn: int = Field(
@@ -126,8 +124,6 @@ class WhoAmIResponse(BaseModel):
     jti: str = Field(..., description="A unique identifier for the token")
     username: str = Field(..., description="The username of the user")
     aud: str = Field(..., description="The audience of the token")
-
-
 
 
 class Ingestion(BaseModel):
