@@ -30,7 +30,7 @@ class ApiConstruct(Construct):
 
         self.table = self.build_table()
         self.data_access_role = iam.Role.from_role_arn(
-            self, "data-access-role", config.data_access_role
+            self, "data-access-role", config.data_access_role_arn
         )
 
         self.user_pool = cognito.UserPool.from_user_pool_id(
@@ -49,7 +49,7 @@ class ApiConstruct(Construct):
             "ROOT_PATH": f"/{config.stage}",
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.stac_api_url,
-            "DATA_ACCESS_ROLE": config.data_access_role,
+            "DATA_ACCESS_ROLE": config.data_access_role_arn,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
@@ -221,7 +221,7 @@ class IngestorConstruct(Construct):
             "ROOT_PATH": f"/{config.stage}",
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.stac_api_url,
-            "DATA_ACCESS_ROLE": config.data_access_role,
+            "DATA_ACCESS_ROLE": config.data_access_role_arn,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,

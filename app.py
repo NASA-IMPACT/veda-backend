@@ -4,7 +4,7 @@
 import json
 import subprocess
 
-from aws_cdk import App, Stack, Tags, aws_ec2, aws_iam
+from aws_cdk import App, Stack, Tags, aws_iam
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_ssm as ssm
 from constructs import Construct
@@ -42,6 +42,8 @@ class VedaStack(Stack):
     def build_oidc(
         self, oidc_provider_arn: str, oidc_repo_id: str, secret_arn: str, stage: str
     ):
+        """Create OIDC role and policy"""
+
         # Locate an IAM OIDC provider for the specified provider ARN
         oidc_provider = aws_iam.OpenIdConnectProvider.from_open_id_connect_provider_arn(
             self, "OIDCProvider", oidc_provider_arn
@@ -85,7 +87,7 @@ class VedaStack(Stack):
         return oidc_role, oidc_policy, oidc_provider
 
     def build_env_secret(self, stage: str, env_config: dict) -> secretsmanager.ISecret:
-        # create secret to store environment variables
+        """create secret to store environment variables"""
         return secretsmanager.Secret(
             self,
             f"veda-backend-env-secret-{stage}",
@@ -166,10 +168,9 @@ if veda_app_settings.oidc_provider_arn:
     )
 
 
-# TODO api urls go to ingestor config
 ingest_api = ingest_api_construct(
     veda_stack,
-    "ApiConstruct",
+    "ingest-api",
     config=ingestor_config,
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
@@ -191,6 +192,7 @@ def register_ssm_parameter(
     value: str,
     description: str,
 ) -> ssm.IStringParameter:
+    """Register SSM parameter"""
     parameter_namespace = Stack.of(ctx).stack_name
     return ssm.StringParameter(
         ctx,
@@ -204,6 +206,7 @@ def register_ssm_parameter(
 def get_db_secret(
     ctx: Construct, secret_name: str, stage: str
 ) -> secretsmanager.ISecret:
+    """Get pgstac DB secret from Secrets Manager"""
     return secretsmanager.Secret.from_secret_name_v2(
         ctx, f"pgstac-db-secret-{stage}", secret_name
     )
@@ -234,7 +237,15 @@ if veda_app_settings.alt_domain():
         raster_api=raster_api,
         domain_name=alt_domain.stac_domain_name,
     )
-    # TODO alternate ingestors?
+
+    alt_ingest_api = ingest_api_construct(
+        veda_stack,
+        "alt-ingest-api",
+        config=ingestor_config,
+        db_secret=database.pgstac.secret,
+        db_vpc=vpc.vpc,
+        domain_name=alt_domain.ingest_domain_name,
+    )
 
 git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
 try:

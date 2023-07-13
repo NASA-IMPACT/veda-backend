@@ -1,5 +1,4 @@
 from getpass import getuser
-from typing import Optional
 
 import aws_cdk
 from pydantic import BaseSettings, Field, constr
@@ -31,16 +30,6 @@ class IngestorConfig(BaseSettings):
         default_factory=getuser,
     )
 
-    aws_account: str = Field(
-        description="AWS account used for deployment",
-        alias="CDK_DEFAULT_ACCOUNT",
-    )
-    aws_region: str = Field(
-        default="us-west-2",
-        description="AWS region used for deployment",
-        alias="CDK_DEFAULT_REGION",
-    )
-
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
     client_id: str = Field(description="The Cognito APP client ID")
     client_secret: str = Field(description="The Cognito APP client secret")
@@ -57,7 +46,7 @@ class IngestorConfig(BaseSettings):
         default=True,
     )
 
-    data_access_role: AwsArn = Field(  # type: ignore
+    data_access_role_arn: AwsArn = Field(  # type: ignore
         description="ARN of AWS Role used to validate access to S3 data"
     )
 
@@ -68,8 +57,7 @@ class IngestorConfig(BaseSettings):
     )
 
     class Config:
-        env_prefix = ""
-        case_sentive = False
+        case_sensitive = False
         env_file = ".env"
 
     @property

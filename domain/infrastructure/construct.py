@@ -29,6 +29,7 @@ class DomainConstruct(Construct):
 
         self.stac_domain_name = None
         self.raster_domain_name = None
+        self.ingest_domain_name = None
 
         if (
             veda_domain_settings.hosted_zone_id
@@ -61,11 +62,14 @@ class DomainConstruct(Construct):
             if veda_domain_settings.api_prefix:
                 raster_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-raster"
                 stac_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-stac"
+                ingest_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-ingest"
             else:
                 raster_url_prefix = f"{stage.lower()}-raster"
                 stac_url_prefix = f"{stage.lower()}-stac"
+                ingest_url_prefix = f"{stage.lower()}-ingest"
             raster_domain_name = f"{raster_url_prefix}.{hosted_zone_name}"
             stac_domain_name = f"{stac_url_prefix}.{hosted_zone_name}"
+            ingest_domain_name = f"{ingest_url_prefix}.{hosted_zone_name}"
 
             self.raster_domain_name = aws_apigatewayv2_alpha.DomainName(
                 self,
@@ -109,6 +113,27 @@ class DomainConstruct(Construct):
                 record_name=stac_url_prefix,
             )
 
+            self.ingest_domain_name = aws_apigatewayv2_alpha.DomainName(
+                self,
+                "ingestApiCustomDomain",
+                domain_name=ingest_domain_name,
+                certificate=certificate,
+            )
+
+            aws_route53.ARecord(
+                self,
+                "ingest-api-dns-record",
+                zone=hosted_zone,
+                target=aws_route53.RecordTarget.from_alias(
+                    aws_route53_targets.ApiGatewayv2DomainProperties(
+                        regional_domain_name=self.ingest_domain_name.regional_domain_name,
+                        regional_hosted_zone_id=self.ingest_domain_name.regional_hosted_zone_id,
+                    )
+                ),
+                # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
+                record_name=ingest_url_prefix,
+            )
+
             CfnOutput(
                 self,
                 "raster-api",
@@ -116,4 +141,9 @@ class DomainConstruct(Construct):
             )
             CfnOutput(
                 self, "stac-api", value=f"https://{stac_url_prefix}.{hosted_zone_name}/"
+            )
+            CfnOutput(
+                self,
+                "ingest-api",
+                value=f"https://{ingest_url_prefix}.{hosted_zone_name}/",
             )
