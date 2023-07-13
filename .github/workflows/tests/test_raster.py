@@ -31,13 +31,13 @@ def test_mosaic_api_blackmarble():
     assert resp.status_code == 200
     assert len(resp.json()) == 1
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
-    assert resp.json()[0]["id"] == "VNP46A2_V011_Beijing_2020_01_02_cog"
+    assert resp.json()[0]["id"] == "20200307aC0852700w361200"
 
     resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/0/0/0/assets")
     assert resp.status_code == 200
     assert len(resp.json()) == 1
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
-    assert resp.json()[0]["id"] == "VNP46A2_V011_Beijing_2020_01_02_cog"
+    assert resp.json()[0]["id"] == "20200307aC0852700w361200"
 
     z, x, y = 0, 0, 0
     resp = httpx.get(

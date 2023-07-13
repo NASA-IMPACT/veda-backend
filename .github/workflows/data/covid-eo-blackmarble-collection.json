@@ -1,1 +1,1 @@
-{"id":"covid-eo-blackmarble", "title": "COVID Blackmarble", "description":"","stac_version":"1.0.0","license":"public-domain","links":[],"extent":{"spatial":{"bbox":[[110.00208333333333,29.99791666666667,120.00208333333333,49.99791666666667]]},"temporal":{"interval":[["2005-01-01T00:00:00Z","null"]]}}}
+{"id":"covid-eo-blackmarble", "title": "COVID Blackmarble", "description":"","stac_version":"1.0.0","license":"public-domain","links":[],"extent":{"spatial":{"bbox":[[-85.4501,36.1749,-85.4249,36.2001]]},"temporal":{"interval":[["2005-01-01T00:00:00Z","null"]]}}}
