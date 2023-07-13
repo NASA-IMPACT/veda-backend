@@ -52,7 +52,7 @@ jobs:
         run: |
           export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}}
-          export DATA_ACCESS_ROLE_ARN=arn:aws:iam::444055461661:role/veda-backend-gh-actions-unit-test-assum-role
+          export DATA_ACCESS_ROLE_ARN=arn:aws:iam::853558080719:role/veda-backend-gh-actions-unit-test-assum-role
           docker compose up --build -d
 
       - name: Ingest Stac Items/Collection
