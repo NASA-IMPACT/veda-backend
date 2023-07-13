@@ -33,24 +33,23 @@ def test_mosaic_api_blackmarble():
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
     assert resp.json()[0]["id"] == "VNP46A2_V011_Beijing_2020_01_02_cog"
 
-    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/2/1/1/assets")
+    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/0/0/0/assets")
     assert resp.status_code == 200
     assert len(resp.json()) == 1
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
     assert resp.json()[0]["id"] == "VNP46A2_V011_Beijing_2020_01_02_cog"
 
-    # z, x, y = 3, 1, 1
-    # resp = httpx.get(
-    #     f"{raster_endpoint}/mosaic/tiles/{searchid}/{z}/{x}/{y}",
-    #     params={"assets": "cog"},
-    #     headers={"Accept-Encoding": "br, gzip"},
-    #     timeout=10.0,
-    # )
-    # print(resp.json())
-    # assert resp.status_code == 200
-    # assert resp.headers["content-type"] == "image/jpeg"
-    # assert "content-encoding" not in resp.headers
-
+    z, x, y = 0, 0, 0
+    resp = httpx.get(
+        f"{raster_endpoint}/mosaic/tiles/{searchid}/{z}/{x}/{y}",
+        params={"assets": "cog"},
+        headers={"Accept-Encoding": "br, gzip"},
+        timeout=10.0,
+    )
+    print(resp.json())
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "image/jpeg"
+    assert "content-encoding" not in resp.headers
 
 def test_mosaic_api_noaa():
     """test mosaic."""
