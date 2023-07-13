@@ -59,6 +59,9 @@ jobs:
       - name: Sleep for 10 seconds
         run: sleep 10s
         shell: bash
+
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
   
       - name: Integrations tests
         run: python -m pytest .github/workflows/tests/ -vv -s
