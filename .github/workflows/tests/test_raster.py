@@ -51,6 +51,7 @@ def test_mosaic_api_blackmarble():
     assert resp.headers["content-type"] == "image/jpeg"
     assert "content-encoding" not in resp.headers
 
+
 def test_mosaic_api_noaa():
     """test mosaic."""
     query = {"collections": ["noaa-emergency-response"], "filter-lang": "cql-json"}
