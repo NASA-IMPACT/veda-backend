@@ -12,6 +12,7 @@ inst_reqs = [
     "importlib_resources>=1.1.0;python_version<'3.9'",
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
+    "pydantic<2",
 ]
 
 extra_reqs = {
