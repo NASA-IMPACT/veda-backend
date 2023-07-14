@@ -74,6 +74,7 @@ class _ApiSettings(pydantic.BaseSettings):
                 postgres_user=secret["username"],
                 postgres_pass=secret["password"],
                 postgres_port=secret["port"],
+                use_api_hydrate=True,
             )
         else:
             return Settings()
