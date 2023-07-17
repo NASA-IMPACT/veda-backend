@@ -60,11 +60,11 @@ jobs:
         run: sleep 10s
         shell: bash
 
-      - name: Integrations tests
-        run: python -m pytest .github/workflows/tests/ -vv -s
-
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
+
+      - name: Integrations tests
+        run: python -m pytest .github/workflows/tests/ -vv -s
 
       - name: Stop services
         run: docker compose stop
