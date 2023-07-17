@@ -39,7 +39,7 @@ class RasterApiLambdaConstruct(Construct):
         veda_raster_function = aws_lambda.Function(
             self,
             "lambda",
-            runtime=aws_lambda.Runtime.PYTHON_3_8,
+            runtime=aws_lambda.Runtime.PYTHON_3_9,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
                 file="raster_api/runtime/Dockerfile",
@@ -68,6 +68,12 @@ class RasterApiLambdaConstruct(Construct):
         veda_raster_function.add_environment(
             "VEDA_RASTER_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
+
+        # Optional AWS S3 requester pays global setting
+        if veda_raster_settings.aws_request_payer:
+            veda_raster_function.add_environment(
+                "AWS_REQUEST_PAYER", veda_raster_settings.aws_request_payer
+            )
 
         raster_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
@@ -119,4 +125,11 @@ class RasterApiLambdaConstruct(Construct):
             veda_raster_function.add_environment(
                 "VEDA_RASTER_DATA_ACCESS_ROLE_ARN",
                 veda_raster_settings.data_access_role_arn,
+            )
+
+        # Optional configuration to export assume role session into lambda function environment
+        if veda_raster_settings.export_assume_role_creds_as_envs:
+            veda_raster_function.add_environment(
+                "VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS",
+                str(veda_raster_settings.export_assume_role_creds_as_envs),
             )

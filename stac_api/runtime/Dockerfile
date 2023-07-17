@@ -1,9 +1,9 @@
-FROM lambci/lambda:build-python3.8
+FROM public.ecr.aws/sam/build-python3.9:latest
 
 WORKDIR /tmp
 
 COPY stac_api/runtime /tmp/stac
-RUN pip install "mangum>=0.14,<0.15" /tmp/stac -t /asset --no-binary pydantic
+RUN pip install "mangum>=0.14,<0.15" "plpygis>=0.2.1" /tmp/stac -t /asset --no-binary pydantic
 RUN rm -rf /tmp/stac
 
 # Reduce package size and remove useless files

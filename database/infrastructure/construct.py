@@ -10,6 +10,7 @@ from aws_cdk import (
     RemovalPolicy,
     Stack,
     aws_ec2,
+    aws_iam,
     aws_lambda,
     aws_logs,
     aws_rds,
@@ -35,6 +36,7 @@ class BootstrapPgStac(Construct):
         new_username: str,
         secrets_prefix: str,
         stage: str,
+        host: str,
     ) -> None:
         """."""
         super().__init__(scope, construct_id)
@@ -46,7 +48,7 @@ class BootstrapPgStac(Construct):
             self,
             "lambda",
             handler="handler.handler",
-            runtime=aws_lambda.Runtime.PYTHON_3_8,
+            runtime=aws_lambda.Runtime.PYTHON_3_9,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath("./"),
                 file="database/runtime/Dockerfile",
@@ -67,7 +69,7 @@ class BootstrapPgStac(Construct):
                         "dbname": new_dbname,
                         "engine": "postgres",
                         "port": 5432,
-                        "host": database.instance_endpoint.hostname,
+                        "host": host,
                         "username": new_username,
                     }
                 ),
@@ -127,10 +129,9 @@ class RdsConstruct(Construct):
         stack_name = Stack.of(self).stack_name
 
         # Configure accessibility
-        publicly_accessible = False if veda_db_settings.private_subnets else True
         subnet_type = (
             aws_ec2.SubnetType.PRIVATE_ISOLATED
-            if veda_db_settings.private_subnets is True
+            if veda_db_settings.publicly_accessible is False
             else aws_ec2.SubnetType.PUBLIC
         )
 
@@ -169,7 +170,7 @@ class RdsConstruct(Construct):
                 vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
-                publicly_accessible=publicly_accessible,
+                publicly_accessible=veda_db_settings.publicly_accessible,
                 credentials=credentials,
                 parameter_group=parameter_group,
             )
@@ -188,9 +189,11 @@ class RdsConstruct(Construct):
                 vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
-                publicly_accessible=publicly_accessible,
+                publicly_accessible=veda_db_settings.publicly_accessible,
                 parameter_group=parameter_group,
             )
+
+        hostname = database.instance_endpoint.hostname
 
         # Use custom resource to bootstrap PgSTAC database
         self.pgstac = BootstrapPgStac(
@@ -201,7 +204,34 @@ class RdsConstruct(Construct):
             new_username=veda_db_settings.user,
             secrets_prefix=stack_name,
             stage=stage,
+            host=hostname,
         )
+
+        self.proxy = None
+        if veda_db_settings.use_rds_proxy:
+            # secret for non-admin user
+            proxy_secret = self.pgstac.secret
+
+            proxy_role = aws_iam.Role(
+                self,
+                "RDSProxyRole",
+                assumed_by=aws_iam.ServicePrincipal("rds.amazonaws.com"),
+            )
+            self.proxy = aws_rds.DatabaseProxy(
+                self,
+                proxy_target=aws_rds.ProxyTarget.from_instance(database),
+                id="RdsProxy",
+                vpc=vpc,
+                secrets=[database.secret, proxy_secret],
+                db_proxy_name=f"veda-backend-{stage}-proxy",
+                role=proxy_role,
+                require_tls=False,
+                debug_logging=False,
+            )
+
+            # Allow connections to the proxy from the same security groups as the DB
+            for sg in database.connections.security_groups:
+                self.proxy.connections.add_security_group(sg)
 
         CfnOutput(
             self,

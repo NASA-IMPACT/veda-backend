@@ -35,7 +35,7 @@ services:
     depends_on:
       - database
       - raster
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 45 -h database -p 5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
 
@@ -84,10 +84,12 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       # API Config
       - VEDA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
+      - VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS=TRUE
+
 
     depends_on:
       - database
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 25 -h database -p 5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
       - $HOME/.aws/credentials:/root/.aws/credentials
@@ -95,20 +97,21 @@ services:
   database:
     container_name: veda.db
     platform: linux/amd64
-    image: ghcr.io/stac-utils/pgstac:v0.6.6
+    image: ghcr.io/stac-utils/pgstac:v0.7.6
     environment:
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgis
       - PGUSER=username
       - PGPASSWORD=password
-      - PGHOST=localhost
       - PGDATABASE=postgis
     ports:
       - "5432:5432"
-    command: postgres -N 500
+    command: "postgres -N 500"
     volumes:
       - ./.pgdata:/var/lib/postgresql/data
+      - ./scripts:/tmp/scripts
+      - ./.github/workflows/data:/tmp/data
 
 networks:
   default:

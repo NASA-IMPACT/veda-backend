@@ -18,8 +18,8 @@ extra_reqs = {
     "test": [
         "pytest",
         "pytest-asyncio",
-        "httpx",
-        "pypgstac==0.6.6",
+        "httpx==0.23.3",
+        "pypgstac==0.7.4",
         "psycopg[binary, pool]",
     ],
 }
@@ -37,7 +37,7 @@ setup(
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     keywords="",
     author="Development Seed",
