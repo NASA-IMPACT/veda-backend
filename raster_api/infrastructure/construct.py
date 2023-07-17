@@ -126,3 +126,10 @@ class RasterApiLambdaConstruct(Construct):
                 "VEDA_RASTER_DATA_ACCESS_ROLE_ARN",
                 veda_raster_settings.data_access_role_arn,
             )
+
+        # Optional configuration to export assume role session into lambda function environment
+        if veda_raster_settings.export_assume_role_creds_as_envs:
+            veda_raster_function.add_environment(
+                "VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS",
+                str(veda_raster_settings.export_assume_role_creds_as_envs),
+            )
