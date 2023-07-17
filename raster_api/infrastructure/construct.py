@@ -131,5 +131,5 @@ class RasterApiLambdaConstruct(Construct):
         if veda_raster_settings.export_assume_role_creds_as_envs:
             veda_raster_function.add_environment(
                 "VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS",
-                veda_raster_settings.export_assume_role_creds_as_envs,
+                str(veda_raster_settings.export_assume_role_creds_as_envs),
             )
