@@ -46,14 +46,14 @@ class BaseVpcConstruct(Construct):
         nat_sg.add_egress_rule(
             aws_ec2.Peer.any_ipv4(),
             aws_ec2.Port.all_traffic(),
-            "Allow all outbound traffic"
+            "Allow all outbound traffic",
         )
 
         # Allow inbound traffic from the VPC's CIDR
         nat_sg.add_ingress_rule(
             aws_ec2.Peer.ipv4(self.vpc.vpc_cidr_block),
             aws_ec2.Port.all_traffic(),
-            "Allow inbound traffic from the VPC's CIDR block"
+            "Allow inbound traffic from the VPC's CIDR block",
         )
 
         vpc_endpoints = {
