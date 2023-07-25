@@ -28,7 +28,6 @@ class BaseVpcConstruct(Construct):
 
         nat_provider_instance = aws_ec2.NatProvider.instance(
             instance_type=aws_ec2.InstanceType("t3.nano"),
-            security_groups=[nat_sg],
         )
 
         vpc = aws_ec2.Vpc(
