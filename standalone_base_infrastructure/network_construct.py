@@ -26,8 +26,30 @@ class BaseVpcConstruct(Construct):
             subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED,
         )
 
+        nat_sg = aws_ec2.SecurityGroup(
+            self,
+            "NatInstanceSG",
+            vpc=self.vpc,
+            description="Security group for NAT Instance",
+        )
+
+        # Allow all outbound traffic
+        nat_sg.add_egress_rule(
+            aws_ec2.Peer.any_ipv4(),
+            aws_ec2.Port.all_traffic(),
+            "Allow all outbound traffic"
+        )
+
+        # Allow inbound traffic from the VPC's CIDR
+        nat_sg.add_ingress_rule(
+            aws_ec2.Peer.ipv4(self.vpc.vpc_cidr_block),
+            aws_ec2.Port.all_traffic(),
+            "Allow inbound traffic from the VPC's CIDR block"
+        )
+
         nat_provider_instance = aws_ec2.NatProvider.instance(
-            instance_type=aws_ec2.InstanceType("t3.nano")
+            instance_type=aws_ec2.InstanceType("t3.nano"),
+            security_groups = [nat_sg],
         )
 
         vpc = aws_ec2.Vpc(
