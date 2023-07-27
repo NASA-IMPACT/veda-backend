@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ CDK Configuration for the veda-backend stack."""
 
-from aws_cdk import App, Stack, Tags, aws_iam
+from aws_cdk import App, Stack, Tags, aws_iam, aws_ec2
 from constructs import Construct
 
 from config import veda_app_settings
@@ -10,6 +10,8 @@ from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
+
+from eoapi_cdk import PgStacApiLambda, StacIngestor, TitilerPgstacApiLambda
 
 app = App()
 
@@ -67,6 +69,40 @@ stac_api = StacApiLambdaConstruct(
     database=database,
     raster_api=raster_api,
     domain_name=domain.stac_domain_name,
+)
+
+eostac_api = PgStacApiLambda(
+    veda_stack,
+    "eostac",
+    db=database.dbinstance,
+    db_secret=database.pgstac.secret,
+    vpc=vpc.vpc,
+    subnet_selection=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED),
+)
+
+eoraster_api = TitilerPgstacApiLambda(
+    veda_stack,
+    "eoraster",
+    db=database.dbinstance,
+    db_secret=database.pgstac.secret,
+    subnet_selection=aws_ec2.SubnetSelection(subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED),
+    vpc=vpc.vpc,
+)
+
+eoingest_api = StacIngestor(
+    veda_stack,
+    "eoingest",
+    data_access_role=aws_iam.Role.from_role_arn(
+        veda_stack,
+        "data-access-role",
+        role_arn=veda_app_settings.veda_raster_data_access_role_arn),
+    stac_db_secret=database.pgstac.secret,
+    stac_db_security_group=database.dbinstance.connections.security_groups[0],
+    stac_url=eostac_api.url,
+    stage=veda_app_settings.stage_name(),
+    subnet_selection=aws_ec2.SubnetSelection(
+        subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED),
+    vpc=vpc.vpc,
 )
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary

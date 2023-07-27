@@ -195,6 +195,9 @@ class RdsConstruct(Construct):
 
         hostname = database.instance_endpoint.hostname
 
+        # eoapi-cdk construct uses the rds database construct directly
+        self.dbinstance = database
+
         # Use custom resource to bootstrap PgSTAC database
         self.pgstac = BootstrapPgStac(
             self,

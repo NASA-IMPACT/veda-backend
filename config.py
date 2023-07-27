@@ -47,6 +47,11 @@ class vedaAppSettings(BaseSettings):
         description="Custom domain name, i.e. veda-backend.xyz",
     )
 
+    veda_raster_data_access_role_arn: Optional[str] = Field(
+        None,
+        description="ARN of data access role assumed by titiler and stac ingestor to validate data accessibility"
+    )
+
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""
 
