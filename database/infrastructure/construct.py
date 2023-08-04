@@ -166,8 +166,8 @@ class RdsConstruct(Construct):
                 instance_identifier=f"{stack_name}-postgres",
                 vpc=vpc,
                 engine=engine,
-                instance_type=aws_ec2.InstanceType.of(
-                    aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
+                instance_type=aws_ec2.InstanceType(
+                    instance_type_identifier=veda_db_settings.rds_type
                 ),
                 vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
                 deletion_protection=True,
@@ -176,7 +176,6 @@ class RdsConstruct(Construct):
                 credentials=credentials,
                 parameter_group=parameter_group,
             )
-
         # Or create/update RDS Resource
         else:
             database = aws_rds.DatabaseInstance(
