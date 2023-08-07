@@ -155,7 +155,7 @@ def create_dashboard_schema(cursor, username: str) -> None:
         sql.SQL(
             "CREATE SCHEMA IF NOT EXISTS dashboard;"
             "GRANT ALL ON SCHEMA dashboard TO {username};"
-            "ALTER ROLE {username} SET SEARCH_PATH TO dashboard, pgstac, public;"
+            "ALTER ROLE {username} SET SEARCH_PATH TO pgstac, dashboard, public;"
         ).format(username=sql.Identifier(username))
     )
 
