@@ -137,7 +137,7 @@ class RdsConstruct(Construct):
 
         # Custom parameter group
         engine = aws_rds.DatabaseInstanceEngine.postgres(
-            version=aws_rds.PostgresEngineVersion.VER_14
+            version=veda_db_settings.rds_engine_version
         )
         parameter_group = aws_rds.ParameterGroup(
             self,
@@ -165,7 +165,7 @@ class RdsConstruct(Construct):
                 vpc=vpc,
                 engine=engine,
                 instance_type=aws_ec2.InstanceType.of(
-                    aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
+                    veda_db_settings.rds_instance_class, veda_db_settings.rds_instance_size
                 ),
                 vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
                 deletion_protection=True,
@@ -173,6 +173,7 @@ class RdsConstruct(Construct):
                 publicly_accessible=veda_db_settings.publicly_accessible,
                 credentials=credentials,
                 parameter_group=parameter_group,
+                storage_encrypted=veda_db_settings.rds_encryption,
             )
 
         # Or create/update RDS Resource
@@ -184,13 +185,14 @@ class RdsConstruct(Construct):
                 vpc=vpc,
                 engine=engine,
                 instance_type=aws_ec2.InstanceType.of(
-                    aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.SMALL
+                    veda_db_settings.rds_instance_class, veda_db_settings.rds_instance_size
                 ),
                 vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
                 deletion_protection=True,
                 removal_policy=RemovalPolicy.RETAIN,
                 publicly_accessible=veda_db_settings.publicly_accessible,
                 parameter_group=parameter_group,
+                storage_encrypted=veda_db_settings.rds_encryption,
             )
 
         hostname = database.instance_endpoint.hostname

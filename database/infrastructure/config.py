@@ -2,7 +2,10 @@
 from typing import Optional
 
 from pydantic import BaseSettings, Field
-
+from aws_cdk import (
+    aws_rds,
+    aws_ec2
+)
 
 class vedaDBSettings(BaseSettings):
     """Application settings."""
@@ -57,6 +60,32 @@ class vedaDBSettings(BaseSettings):
         False,
         description="Boolean if the RDS should be accessed through a proxy",
     )
+    rds_instance_class: Optional[str] = Field(
+        aws_ec2.InstanceClass.BURSTABLE3,
+        description=(
+            "The instance class of the RDS instance "
+            "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_ec2/InstanceClass.html"
+        ),
+    )
+    rds_instance_size: Optional[str] = Field(
+        aws_ec2.InstanceSize.SMALL,
+        description=(
+            "The size of the RDS instance "
+            "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_ec2/InstanceSize.html"
+        ),
+    )
+    rds_engine_version: Optional[str] = Field(
+        aws_rds.PostgresEngineVersion.VER_14,
+        description=(
+            "The version of the RDS Postgres engine "
+            "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/PostgresEngineVersion.html"
+        ),
+    )
+    rds_encryption: Optional[bool] = Field(
+        False,
+        description="Boolean if the RDS should be encrypted",
+    )
+
 
     class Config:
         """model config."""
