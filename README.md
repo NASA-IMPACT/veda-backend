@@ -47,12 +47,27 @@ To retrieve the variables for a stage that has been previously deployed, the sec
 
 ### Deploying to the cloud
 
-#### Install pre-requisites
+#### Install deployment pre-requisites
+- [Node](https://nodejs.org/)
+- [NVM](https://github.com/nvm-sh/nvm#node-version-manager---)
+- [jq](https://jqlang.github.io/jq/) (used for exporting environment variable secrets to `.env` in [scripts/sync-env-local.sh](/scripts/sync-env-local.sh))
 
+These can be installed with [homebrew](https://brew.sh/) on MacOS
+```
+brew install node
+brew install nvm
+brew install jq
+```
+
+#### Virtual environment example
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+#### Install requirements
 ```bash
-nvm install 17
-nvm use 17
-node --version
+nvm use --lts
 npm install --location=global aws-cdk
 python3 -m pip install --upgrade pip
 python3 -m pip install -e ".[dev,deploy,test]"
