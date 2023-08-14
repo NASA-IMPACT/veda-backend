@@ -264,7 +264,7 @@ def create_collection_summaries_functions(cursor) -> None:
         SELECT to_jsonb(
             array[
                 to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
-                to_char(max(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                to_char(max(end_datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             ])​
         FROM items WHERE collection=$1;
     ;
