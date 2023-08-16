@@ -54,7 +54,7 @@ jobs:
 
       - name: Launch services
         run: |
-          docker-compose up --build -d stac raster
+          docker compose up --build -d stac raster
 
       - name: Set up Python
         uses: actions/setup-python@v4
