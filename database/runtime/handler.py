@@ -252,7 +252,7 @@ def create_collection_search_functions(cursor) -> None:
 
 def create_collection_summaries_functions(cursor) -> None:
     """
-    Functions to summarize datetimes and raster statistics for 'default' collections of items with single band COG assets
+    Functions to summarize datetimes and raster statistics for 'default' collections of items
     """
 
     periodic_datetime_summary_sql = """
@@ -264,7 +264,7 @@ def create_collection_summaries_functions(cursor) -> None:
         SELECT to_jsonb(
             array[
                 to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
-                to_char(max(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                to_char(max(end_datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             ])​
         FROM items WHERE collection=$1;
     ;
@@ -287,23 +287,6 @@ def create_collection_summaries_functions(cursor) -> None:
     """
     cursor.execute(sql.SQL(distinct_datetime_summary_sql))
 
-    cog_default_summary_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.cog_default_summary(id text) RETURNS jsonb
-    LANGUAGE sql
-    IMMUTABLE PARALLEL SAFE
-    SET search_path TO 'pgstac', 'public'
-    AS $function$
-        SELECT jsonb_build_object(
-            'min', min((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'minimum')::float),
-            'max', max((items."content"->'assets'->'cog_default'->'raster:bands'-> 0 ->'statistics'->>'maximum')::float)
-        )
-        FROM items WHERE collection=$1;
-    ;
-    $function$
-    ;
-    """
-    cursor.execute(sql.SQL(cog_default_summary_sql))
-
     update_collection_default_summaries_sql = """
     CREATE OR REPLACE FUNCTION dashboard.update_collection_default_summaries(id text)
     RETURNS void
@@ -319,13 +302,6 @@ def create_collection_summaries_functions(cursor) -> None:
                     WHEN (collections."content"->>'dashboard:is_periodic')::boolean
                     THEN dashboard.periodic_datetime_summary(collections.id)
                     ELSE dashboard.discrete_datetime_summary(collections.id)
-                    END
-                ),
-                'cog_default', (
-                    CASE
-                    WHEN collections."content"->'item_assets' ? 'cog_default'
-                    THEN dashboard.cog_default_summary(collections.id)
-                    ELSE NULL
                     END
                 )
             )
@@ -343,27 +319,9 @@ def create_collection_summaries_functions(cursor) -> None:
     LANGUAGE sql
     SET search_path TO 'pgstac', 'public'
     AS $function$
-    UPDATE collections SET
-        "content" = "content" ||
-        jsonb_build_object(
-            'summaries', jsonb_build_object(
-                'datetime', (
-                    CASE
-                    WHEN (collections."content"->>'dashboard:is_periodic')::boolean
-                    THEN dashboard.periodic_datetime_summary(collections.id)
-                    ELSE dashboard.discrete_datetime_summary(collections.id)
-                    END
-                ),
-                'cog_default', (
-                    CASE
-                    WHEN collections."content"->'item_assets' ? 'cog_default'
-                    THEN dashboard.cog_default_summary(collections.id)
-                    ELSE NULL
-                    END
-                )
-            )
-        )
-        WHERE collections."content" ?| array['item_assets', 'dashboard:is_periodic']
+    SELECT dashboard.update_collection_default_summaries(collections.id)
+    FROM collections
+    WHERE collections."content" ?| array['dashboard:is_periodic']
     ;
     $function$
     ;
