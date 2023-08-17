@@ -61,6 +61,9 @@ class vedaDBSettings(BaseSettings):
         "t3.small",
         description="Postgres database type",
     )
+    storage_encrypted: bool = Field(
+        False, description="Boolean if the RDS should be storage encrypted"
+    )
 
     class Config:
         """model config."""
