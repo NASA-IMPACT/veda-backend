@@ -152,6 +152,22 @@ class RdsConstruct(Construct):
             },
         )
 
+        database_config = {
+            "id": "rds",
+            "instance_identifier": f"{stack_name}-postgres",
+            "vpc": vpc,
+            "engine": engine,
+            "instance_type": aws_ec2.InstanceType(
+                instance_type_identifier=veda_db_settings.rds_type
+            ),
+            "vpc_subnets": aws_ec2.SubnetSelection(subnet_type=subnet_type),
+            "deletion_protection": True,
+            "removal_policy": RemovalPolicy.RETAIN,
+            "publicly_accessible": veda_db_settings.publicly_accessible,
+            "parameter_group": parameter_group,
+            "storage_encrypted": veda_db_settings.storage_encrypted,
+        }
+
         # Create a new database instance from snapshot if provided
         if veda_db_settings.snapshot_id:
             # For the database from snapshot we will need a new master secret
@@ -161,38 +177,13 @@ class RdsConstruct(Construct):
 
             database = aws_rds.DatabaseInstanceFromSnapshot(
                 self,
-                id="rds",
                 snapshot_identifier=veda_db_settings.snapshot_id,
-                instance_identifier=f"{stack_name}-postgres",
-                vpc=vpc,
-                engine=engine,
-                instance_type=aws_ec2.InstanceType(
-                    instance_type_identifier=veda_db_settings.rds_type
-                ),
-                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
-                deletion_protection=True,
-                removal_policy=RemovalPolicy.RETAIN,
-                publicly_accessible=veda_db_settings.publicly_accessible,
                 credentials=credentials,
-                parameter_group=parameter_group,
+                **database_config,
             )
         # Or create/update RDS Resource
         else:
-            database = aws_rds.DatabaseInstance(
-                self,
-                id="rds",
-                instance_identifier=f"{stack_name}-postgres",
-                vpc=vpc,
-                engine=engine,
-                instance_type=aws_ec2.InstanceType(
-                    instance_type_identifier=veda_db_settings.rds_type
-                ),
-                vpc_subnets=aws_ec2.SubnetSelection(subnet_type=subnet_type),
-                deletion_protection=True,
-                removal_policy=RemovalPolicy.RETAIN,
-                publicly_accessible=veda_db_settings.publicly_accessible,
-                parameter_group=parameter_group,
-            )
+            database = aws_rds.DatabaseInstance(self, **database_config)
 
         hostname = database.instance_endpoint.hostname
 
