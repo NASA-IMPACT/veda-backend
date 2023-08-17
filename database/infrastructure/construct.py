@@ -165,8 +165,10 @@ class RdsConstruct(Construct):
             "removal_policy": RemovalPolicy.RETAIN,
             "publicly_accessible": veda_db_settings.publicly_accessible,
             "parameter_group": parameter_group,
-            "storage_encrypted": veda_db_settings.storage_encrypted,
         }
+
+        if storage_encrypted := veda_db_settings.storage_encrypted:
+            database_config["storage_encrypted"] = storage_encrypted
 
         # Create a new database instance from snapshot if provided
         if veda_db_settings.snapshot_id:
