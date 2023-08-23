@@ -87,8 +87,9 @@ cdk deploy
 If this is a development stack that is safe to delete, you can delete the stack in CloudFormation console or via `cdk destroy`, however, the additional manual steps were required to completely delete the stack resources:
 
 1. You will need to disable deletion protection of the RDS database and delete the database.
-2. Detach the Internet Gateway (IGW) from the VPC and delete it.
-3. If this stack created a new VPC, delete the VPC (this should delete a subnet and security group too).
+2. Identify and delete the RDS subnet group associated with the RDS database you just deleted (it will not be automatically removed because of the RDS deletion protection in place when the group was created).
+3. If this stack created a new VPC, detach the Internet Gateway (IGW) from the VPC and delete it.
+4. If this stack created a new VPC, delete the VPC (this should delete a subnet and security group too).
 
 ## Custom deployments
 
