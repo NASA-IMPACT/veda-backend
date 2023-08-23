@@ -17,7 +17,7 @@ from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 from titiler.core.dependencies import DatasetPathParams
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
-from titiler.core.factory import TilerFactory
+from titiler.core.factory import TilerFactory, TMSFactory
 from titiler.core.middleware import CacheControlMiddleware
 from titiler.core.resources.enums import OptionalHeader
 from titiler.core.resources.responses import JSONResponse
@@ -120,6 +120,10 @@ def ping():
     """Health check."""
     return {"ping": "pong!!"}
 
+
+# Add support for non-default projections
+tms = TMSFactory()
+app.include_router(tms.router, tags=["Tiling Schemes"])
 
 # Set all CORS enabled origins
 if settings.cors_origins:
