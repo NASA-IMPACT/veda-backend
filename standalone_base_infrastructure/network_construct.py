@@ -25,7 +25,7 @@ class BaseVpcConstruct(Construct):
             name="private",
             # NOTE: this line automatically creates a NAT Gateway for each AZ
             # and binds the route table in the private subnet
-            subnet_type=aws_ec2.SubnetType.PRIVATE_WITH_NAT,
+            subnet_type=aws_ec2.SubnetType.PRIVATE_WITH_EGRESS,
         )
 
         vpc = aws_ec2.Vpc(
