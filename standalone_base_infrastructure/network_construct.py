@@ -34,6 +34,7 @@ class BaseVpcConstruct(Construct):
             max_azs=base_settings.vpc_max_azs,
             cidr=base_settings.vpc_cidr,
             subnet_configuration=[public_subnet, private_subnet],
+            nat_gateways=base_settings.vpc_nat_gateways,
         )
 
         vpc_endpoints = {
