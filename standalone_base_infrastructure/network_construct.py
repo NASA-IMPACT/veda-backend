@@ -23,11 +23,9 @@ class BaseVpcConstruct(Construct):
         )
         private_subnet = aws_ec2.SubnetConfiguration(
             name="private",
-            subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED,
-        )
-
-        nat_provider_instance = aws_ec2.NatProvider.instance(
-            instance_type=aws_ec2.InstanceType("t3.nano"),
+            # NOTE: this line automatically creates a NAT Gateway for each AZ
+            # and binds the route table in the private subnet
+            subnet_type=aws_ec2.SubnetType.PRIVATE_WITH_EGRESS,
         )
 
         vpc = aws_ec2.Vpc(
@@ -36,24 +34,7 @@ class BaseVpcConstruct(Construct):
             max_azs=base_settings.vpc_max_azs,
             cidr=base_settings.vpc_cidr,
             subnet_configuration=[public_subnet, private_subnet],
-            nat_gateway_provider=nat_provider_instance,
             nat_gateways=base_settings.vpc_nat_gateways,
-        )
-
-        nat_sg = nat_provider_instance.security_group
-
-        # Allow all outbound traffic
-        nat_sg.add_egress_rule(
-            aws_ec2.Peer.any_ipv4(),
-            aws_ec2.Port.all_traffic(),
-            "Allow all outbound traffic",
-        )
-
-        # Allow inbound traffic from the VPC's CIDR
-        nat_sg.add_ingress_rule(
-            aws_ec2.Peer.ipv4(vpc.vpc_cidr_block),
-            aws_ec2.Port.all_traffic(),
-            "Allow inbound traffic from the VPCs CIDR block",
         )
 
         vpc_endpoints = {
@@ -68,11 +49,5 @@ class BaseVpcConstruct(Construct):
                 vpc.add_interface_endpoint(id, service=service)
             elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):
                 vpc.add_gateway_endpoint(id, service=service)
-
-        # This config step associates the NAT instance EIP with the private subnet and should happen in VPC construct but does not
-        for private_subnet in vpc.select_subnets(
-            subnet_type=aws_ec2.SubnetType.PRIVATE_ISOLATED
-        ).subnets:
-            nat_provider_instance.configure_subnet(subnet=private_subnet)
 
         CfnOutput(self, "vpc-id", value=vpc.vpc_id)
