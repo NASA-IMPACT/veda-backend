@@ -74,8 +74,15 @@ class vedaDBSettings(BaseSettings):
             "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_ec2/InstanceSize.html"
         ),
     )
-    rds_engine_version: Optional[str] = Field(
+    rds_engine_full_version: Optional[str] = Field(
         aws_rds.PostgresEngineVersion.VER_14.postgres_full_version,
+        description=(
+            "The version of the RDS Postgres engine "
+            "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/PostgresEngineVersion.html"
+        ),
+    )
+    rds_engine_major_version: Optional[str] = Field(
+        aws_rds.PostgresEngineVersion.VER_14.postgres_major_version,
         description=(
             "The version of the RDS Postgres engine "
             "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/PostgresEngineVersion.html"
