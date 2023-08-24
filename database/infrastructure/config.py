@@ -1,11 +1,9 @@
 """Veda-backend database construct configuration."""
 from typing import Optional
 
+from aws_cdk import aws_ec2, aws_rds
 from pydantic import BaseSettings, Field
-from aws_cdk import (
-    aws_rds,
-    aws_ec2
-)
+
 
 class vedaDBSettings(BaseSettings):
     """Application settings."""
@@ -92,7 +90,6 @@ class vedaDBSettings(BaseSettings):
         False,
         description="Boolean if the RDS should be encrypted",
     )
-
 
     class Config:
         """model config."""

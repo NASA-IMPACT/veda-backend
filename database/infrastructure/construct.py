@@ -137,16 +137,16 @@ class RdsConstruct(Construct):
 
         # Custom parameter group
         engine = aws_rds.DatabaseInstanceEngine.postgres(
-            version=aws_rds.PostgresEngineVersion.of( 
+            version=aws_rds.PostgresEngineVersion.of(
                 veda_db_settings.rds_engine_full_version,
-                veda_db_settings.rds_engine_major_version
+                veda_db_settings.rds_engine_major_version,
             )
         )
 
         # RDS Instance Type
         rds_instance_type = aws_ec2.InstanceType.of(
-            aws_ec2.InstanceClass[veda_db_settings.rds_instance_class], 
-            aws_ec2.InstanceSize[veda_db_settings.rds_instance_size]
+            aws_ec2.InstanceClass[veda_db_settings.rds_instance_class],
+            aws_ec2.InstanceSize[veda_db_settings.rds_instance_size],
         )
 
         #  version=aws_rds.PostgresEngineVersion.postgres_major_version(veda_db_settings.rds_engine_version)
@@ -188,15 +188,12 @@ class RdsConstruct(Construct):
                 self,
                 snapshot_identifier=veda_db_settings.snapshot_id,
                 credentials=snapshot_credentials,
-                **database_config
+                **database_config,
             )
 
         # Or create/update RDS Resource
         else:
-            database = aws_rds.DatabaseInstance(
-                self,
-                **database_config
-            )
+            database = aws_rds.DatabaseInstance(self, **database_config)
 
         hostname = database.instance_endpoint.hostname
 
