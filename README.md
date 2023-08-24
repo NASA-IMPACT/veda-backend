@@ -43,7 +43,17 @@ To retrieve the variables for a stage that has been previously deployed, the sec
 | `VEDA_DB_PGSTAC_VERSION` | **REQUIRED** version of PgStac database, i.e. 0.7.6 |
 | `VEDA_DB_SCHEMA_VERSION` | **REQUIRED** The version of the custom veda-backend schema, i.e. 0.1.1 |
 | `VEDA_DB_SNAPSHOT_ID` | **Once used always REQUIRED** Optional RDS snapshot identifier to initialize RDS from a snapshot |
-> **Note** See [Advanced Configuration](docs/advanced_configuration.md) for details about custom configuration options.
+
+### Advanced configuration
+The constructs and applications in this project are configured using pydantic. The settings are defined in config.py files stored alongside the associated construct or application--for example the settings for the RDS PostgreSQL construct are defined in database/infrastructure/config.py. For custom configuration, use environment variables to override the pydantic defaults.
+
+| Construct | Env Prefix | Configuration |
+| --- | --- | --- |
+| Database | `VEDA_DB` | [database/infrastructure/config.py](database/infrastructure/config.py) |
+| Domain | `VEDA_DOMAIN` | [domain/infrastructure/config.py](domain/infrastructure/config.py) |
+| Network | `N/A` | [network/infrastructure/config.py](network/infrastructure/config.py) |
+| Raster API (TiTiler) | `VEDA_RASTER` | [raster_api/infrastructure/config.py](raster_-_api/infrastructure/config.py) |
+| STAC API | `VEDA_STAC` | [stac_api/infrastructure/config.py](stac_api/infrastructure/config.py) |
 
 ### Deploying to the cloud
 
