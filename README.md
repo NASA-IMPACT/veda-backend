@@ -47,7 +47,7 @@ To retrieve the variables for a stage that has been previously deployed, the sec
 ### Advanced configuration
 The constructs and applications in this project are configured using pydantic. The settings are defined in config.py files stored alongside the associated construct or application--for example the settings for the RDS PostgreSQL construct are defined in database/infrastructure/config.py. For custom configuration, use environment variables to override the pydantic defaults.
 
-| Construct | Env Prefix | Explanation |
+| Construct | Env Prefix | Configuration |
 | --- | --- | --- |
 | Database | `VEDA_DB` | [database/infrastructure/config.py](database/infrastructure/config.py) |
 | Domain | `VEDA_DOMAIN` | [domain/infrastructure/config.py](domain/infrastructure/config.py) |
