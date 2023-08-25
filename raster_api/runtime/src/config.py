@@ -53,6 +53,7 @@ class ApiSettings(BaseSettings):
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
+    path_prefix: str = ""
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False
