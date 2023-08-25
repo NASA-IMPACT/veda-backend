@@ -73,7 +73,7 @@ class vedaRasterSettings(BaseSettings):
         "",
         description="Optional path prefix to add to all api endpoints",
     )
-    
+
     class Config:
         """model config"""
 
