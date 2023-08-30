@@ -53,7 +53,10 @@ class ApiSettings(BaseSettings):
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
-    path_prefix: str = ""
+    path_prefix: Optional[str] = Field(
+        None,
+        description="Optional path prefix to add to raster api endpoint",
+    )
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False
@@ -132,6 +135,12 @@ class ApiSettings(BaseSettings):
             # Use the default role of this lambda
             return {}
 
+    def router_prefix(self):
+        if self.path_prefix:
+            return self.path_prefix
+        else:
+            return ""
+    
     class Config:
         """model config"""
 

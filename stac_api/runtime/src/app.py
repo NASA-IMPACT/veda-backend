@@ -32,13 +32,13 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 
 api_settings = ApiSettings()
 tiles_settings = TilesApiSettings()
-path_prefix = api_settings.path_prefix
+
 
 api = VedaStacApi(
     app=FastAPI(
         title=api_settings.name,
-        openapi_url=f"{path_prefix}/openapi.json",
-        docs_url=f"{path_prefix}/docs",
+        openapi_url=f"{api_settings.router_prefix()}/openapi.json",
+        docs_url=f"{api_settings.router_prefix()}/docs",
     ),
     title=api_settings.name,
     description=api_settings.name,
@@ -49,7 +49,7 @@ api = VedaStacApi(
     search_post_request_model=POSTModel,
     response_class=ORJSONResponse,
     middlewares=[CompressionMiddleware],
-    router=APIRouter(prefix=f"{path_prefix}"),
+    router=APIRouter(prefix=f"{api_settings.router_prefix()}"),
 )
 app = api.app
 
