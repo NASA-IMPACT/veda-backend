@@ -69,9 +69,7 @@ mosaic = MosaicTilerFactory(
     dataset_dependency=DatasetParams,
     router=APIRouter(route_class=LoggerRouteHandler),
 )
-app.include_router(
-    mosaic.router, prefix=f"{settings.router_prefix()}/mosaic", tags=["Mosaic"]
-)
+app.include_router(mosaic.router, prefix=f"{settings.router_prefix()}/mosaic", tags=["Mosaic"])
 
 # Custom STAC titiler endpoint (not added to the openapi docs)
 stac = MultiBaseTilerFactory(
@@ -82,9 +80,7 @@ stac = MultiBaseTilerFactory(
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
 )
-app.include_router(
-    stac.router, tags=["Items"], prefix=f"{settings.router_prefix()}/stac"
-)
+app.include_router(stac.router, tags=["Items"], prefix=f"{settings.router_prefix()}/stac")
 
 cog = TilerFactory(
     router_prefix=f"{settings.router_prefix()}/cog",
@@ -123,9 +119,7 @@ def cog_demo(request: Request):
 
 
 app.include_router(
-    cog.router,
-    tags=["Cloud Optimized GeoTIFF"],
-    prefix=f"{settings.router_prefix()}/cog",
+    cog.router, tags=["Cloud Optimized GeoTIFF"], prefix=f"{settings.router_prefix()}/cog"
 )
 
 

@@ -136,12 +136,11 @@ class ApiSettings(BaseSettings):
             return {}
 
     def router_prefix(self):
-        """Conditional to set path prefix"""
         if self.path_prefix:
             return self.path_prefix
         else:
             return ""
-
+    
     class Config:
         """model config"""
 

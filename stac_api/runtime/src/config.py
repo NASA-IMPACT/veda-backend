@@ -84,7 +84,6 @@ class _ApiSettings(pydantic.BaseSettings):
             return Settings()
 
     def router_prefix(self):
-        """Conditional to set path prefix"""
         if self.path_prefix:
             return self.path_prefix
         else:
