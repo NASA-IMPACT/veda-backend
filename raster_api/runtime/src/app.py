@@ -47,11 +47,12 @@ if settings.debug:
 else:
     optional_headers = []
 
+path_prefix = settings.path_prefix
 app = FastAPI(
     title=settings.name,
     version=veda_raster_version,
-    openapi_url=f"{settings.router_prefix()}/openapi.json",
-    docs_url=f"{settings.router_prefix()}/docs",
+    openapi_url=f"{path_prefix}/openapi.json",
+    docs_url=f"{path_prefix}/docs",
 )
 
 # router to be applied to all titiler route factories (improves logs with FastAPI context)
@@ -62,28 +63,28 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 # Custom PgSTAC mosaic tiler
 mosaic = MosaicTilerFactory(
-    router_prefix=f"{settings.router_prefix()}/mosaic",
+    router_prefix=f"{path_prefix}/mosaic",
     add_mosaic_list=settings.enable_mosaic_search,
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     dataset_dependency=DatasetParams,
     router=APIRouter(route_class=LoggerRouteHandler),
 )
-app.include_router(mosaic.router, prefix=f"{settings.router_prefix()}/mosaic", tags=["Mosaic"])
+app.include_router(mosaic.router, prefix=f"{path_prefix}/mosaic", tags=["Mosaic"])
 
 # Custom STAC titiler endpoint (not added to the openapi docs)
 stac = MultiBaseTilerFactory(
     reader=PgSTACReader,
     path_dependency=ItemPathParams,
     optional_headers=optional_headers,
-    router_prefix=f"{settings.router_prefix()}/stac",
+    router_prefix=f"{path_prefix}/stac",
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
 )
-app.include_router(stac.router, tags=["Items"], prefix=f"{settings.router_prefix()}/stac")
+app.include_router(stac.router, tags=["Items"], prefix=f"{path_prefix}/stac")
 
 cog = TilerFactory(
-    router_prefix=f"{settings.router_prefix()}/cog",
+    router_prefix=f"{path_prefix}/cog",
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
@@ -119,7 +120,7 @@ def cog_demo(request: Request):
 
 
 app.include_router(
-    cog.router, tags=["Cloud Optimized GeoTIFF"], prefix=f"{settings.router_prefix()}/cog"
+    cog.router, tags=["Cloud Optimized GeoTIFF"], prefix=f"{path_prefix}/cog"
 )
 
 

@@ -19,7 +19,7 @@ class vedaSTACSettings(BaseSettings):
     )
 
     path_prefix: Optional[str] = Field(
-        None,
+        "",
         description="Optional path prefix to add to all api endpoints",
     )
 
