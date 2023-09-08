@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ CDK Configuration for the veda-backend stack."""
 
-from aws_cdk import App, Stack, Tags, aws_iam
+from aws_cdk import App, Fn, Stack, Tags, aws_iam
 from constructs import Construct
 
 from config import veda_app_settings
@@ -10,8 +10,6 @@ from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
-
-from eoapi_cdk import StacBrowser
 
 app = App()
 
@@ -71,14 +69,6 @@ stac_api = StacApiLambdaConstruct(
     domain_name=domain.stac_domain_name,
 )
 
-stac_browser = StacBrowser(
-    veda_stack,
-    "stac-browser",
-    github_repo_tag="v3.1.0",  # hard coded to the latest for now.
-    stac_catalog_url=stac_api.stac_api_url,  # using the non-custom-domain for now.
-    website_index_document="index.html",  # using simple static website hosting for now without a CloudFront distribution.
-)
-stac_browser.bucket.grant_public_access()  # make it publicly accessible for the static website hosting to work.
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
 if veda_app_settings.alt_domain():

@@ -14,7 +14,6 @@ extra_reqs = {
         "aws-cdk.aws_apigatewayv2_alpha~=2.47.0.a0",
         "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.47.0.a0",
         "pydantic==1.10.12",
-        "eoapi-cdk==5.4.0",
     ],
     "test": [
         "pytest",
