@@ -93,6 +93,7 @@ class StacApiLambdaConstruct(Construct):
             default_domain_mapping=domain_mapping,
         )
         
-        self.stac_api_url = stac_api.url
+        # in case the default of path_prefix becomes `None`, so that we don't end up with e.g. "https://mydomain.orgNone"
+        self.stac_api_url = f"{stac_api.url}{'' if veda_stac_settings.path_prefix is None else veda_stac_settings.path_prefix}"
 
         CfnOutput(self, "stac-api", value=stac_api.url)
