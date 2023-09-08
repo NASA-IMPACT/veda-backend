@@ -13,7 +13,7 @@ extra_reqs = {
         "constructs>=10.0.0,<11.0.0",
         "aws-cdk.aws_apigatewayv2_alpha~=2.47.0.a0",
         "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.47.0.a0",
-        "pydantic",
+        "pydantic==1.10.12",
         "eoapi-cdk==5.4.0"
     ],
     "test": [
