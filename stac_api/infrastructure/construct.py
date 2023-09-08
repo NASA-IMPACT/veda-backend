@@ -92,5 +92,7 @@ class StacApiLambdaConstruct(Construct):
             default_integration=stac_api_integration,
             default_domain_mapping=domain_mapping,
         )
+        
+        self.stac_api_url = stac_api.url
 
         CfnOutput(self, "stac-api", value=stac_api.url)
