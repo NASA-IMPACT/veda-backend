@@ -117,7 +117,7 @@ jobs:
 
   release:
     needs: [deploy]
-    runs-on: ubuuntu-latest
+    runs-on: ubuntu-latest
     concurrency: release
     permissions:
       id-token: write
