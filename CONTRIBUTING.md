@@ -16,7 +16,7 @@ This project generally follows the [git-flow branching model](https://nvie.com/p
   
 - Pull request *titles* must adhere to the [conventional commits specification]([#conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/)). This is enforced using the  [conventional-pull-request-action](https://github.com/CondeNast/conventional-pull-request-action).  
 
-- Successfull automated pull request linting, testing, and deployment checks are required.
+- Successful automated pull request linting, testing, and deployment checks are required.
 
 - Deleting the feature branch after merging is recommended but not enforced.
 
