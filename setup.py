@@ -5,6 +5,7 @@ from setuptools import find_packages, setup
 with open("README.md") as f:
     long_description = f.read()
 
+# For now, version is defined here to start up automated python-semantic-release versioning with this existing setup.py
 __version__ = "0.0.0"
 
 extra_reqs = {
