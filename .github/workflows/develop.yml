@@ -130,4 +130,6 @@ jobs:
     - name: Python Semantic Release
       uses: python-semantic-release/python-semantic-release@master
       with:
+        changelog: "false"
+        vcs-release: "true"
         github_token: ${{ secrets.GITHUB_TOKEN }}
