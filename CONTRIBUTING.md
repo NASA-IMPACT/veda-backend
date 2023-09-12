@@ -29,7 +29,7 @@ This project generally follows the [git-flow branching model](https://nvie.com/p
 
 This project currently implements python-semantic-release defaults in [pyproject.toml](pyproject.toml) where custom versioning strategy [configuration](https://python-semantic-release.readthedocs.io/en/latest/configuration.html) can be added. Local installation of python-semantic-release is [optional](https://python-semantic-release.readthedocs.io/en/latest/#installation).
 
-- Major version increments are required when breaking changes are introduced. Breaking changes are indicated with a **`!`** in a conventional commit message such as `!feat(database):` ([example](https://www.conventionalcommits.org/en/v1.0.0/#commit-message-with--to-draw-attention-to-breaking-change)).
+- Major version increments are required when breaking changes are introduced. Breaking changes are indicated with a **`!`** in a conventional commit message such as `feat(database)!:` ([example](https://www.conventionalcommits.org/en/v1.0.0/#commit-message-with--to-draw-attention-to-breaking-change)).
 
 - Minor version increments are applied on feature changes, these commit messages are prefixed with `feat:` or `feat(scope):`.
 
@@ -49,7 +49,7 @@ A command line tool with prompts for formatted conventional commit messages.
 
 ### Fix missed conventional commit messages
 
-Empty commit messages are an easy way to add to the conventional commit history used for semantic versioning. `git commit --allow-empty -m '!feat(api): introduced breaking path change in xyz endpoint'`
+Empty commit messages are an easy way to add to the conventional commit history used for semantic versioning. `git commit --allow-empty -m 'feat(api)!: introduced breaking path change in xyz endpoint'`
 
 ### Squased merges (if you must)
 
