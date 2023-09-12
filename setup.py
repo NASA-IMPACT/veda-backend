@@ -5,6 +5,8 @@ from setuptools import find_packages, setup
 with open("README.md") as f:
     long_description = f.read()
 
+# This version is managed by python-semantic-release using github release tags; manual changes will be overwritten
+__version__ = "0.0.0"
 
 extra_reqs = {
     "dev": ["pre-commit", "python-dotenv"],
@@ -27,7 +29,7 @@ extra_reqs = {
 
 setup(
     name="veda-backend",
-    version="0.6.2",
+    version=__version__,
     description="",
     long_description=long_description,
     long_description_content_type="text/markdown",

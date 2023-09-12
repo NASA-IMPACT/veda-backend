@@ -25,8 +25,20 @@ jobs:
       - name: Run pre-commit
         run: pre-commit run --all-files
 
+  lint-conventional-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: CondeNast/conventional-pull-request-action@v0.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # if the PR contains a single commit, fail if the commit message and the PR title do not match
+          commitTitleMatch: "true"
+          ignoreCommits: "true"
+
   test:
-    needs: [lint]
+    needs: [lint, lint-conventional-pr]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
