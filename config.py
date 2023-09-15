@@ -47,6 +47,11 @@ class vedaAppSettings(BaseSettings):
         description="Custom domain name, i.e. veda-backend.xyz",
     )
 
+    veda_stac_path_prefix: Optional[str] = Field(
+        "",
+        description="Optional path prefix to add to all api endpoints",
+    )
+
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""
 

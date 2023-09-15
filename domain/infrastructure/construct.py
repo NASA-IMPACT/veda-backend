@@ -109,6 +109,9 @@ class DomainConstruct(Construct):
                 record_name=stac_url_prefix,
             )
 
+            self.stac_api_url = f"https://{stac_domain_name}"
+            self.raster_api_url = f"https://{raster_domain_name}"
+
             CfnOutput(
                 self,
                 "raster-api",
