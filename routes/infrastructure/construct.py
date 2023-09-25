@@ -1,3 +1,4 @@
+"""CDK Construct for a Cloudfront Distribution."""
 from urllib.parse import urlparse
 from typing import Optional
 
@@ -15,6 +16,7 @@ from constructs import Construct
 from .config import veda_route_settings
 
 class CloudfrontDistributionConstruct(Construct):
+    """CDK Construct for a Cloudfront Distribution."""
     def __init__(
         self,
         scope: Construct,
@@ -24,7 +26,7 @@ class CloudfrontDistributionConstruct(Construct):
         region: Optional[str],
         **kwargs,
     ) -> None:
-        """CDK Construct for a Cloudfront Distribution."""
+        """."""
         super().__init__(scope, construct_id)
 
         stack_name = Stack.of(self).stack_name

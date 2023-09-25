@@ -1,3 +1,7 @@
+"""Settings for Cloudfront distribution - any environment variables starting with
+`VEDA_` will overwrite the values of variables in this file
+"""
+
 from pydantic import BaseSettings, Field, AnyHttpUrl
 from typing import Optional
 
