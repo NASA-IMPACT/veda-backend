@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+from typing import Optional
 
 from aws_cdk import (
     aws_cloudfront as cf,
@@ -13,7 +14,6 @@ from constructs import Construct
 
 from .config import veda_route_settings
 
-
 class CloudfrontDistributionConstruct(Construct):
     def __init__(
         self,
@@ -21,7 +21,7 @@ class CloudfrontDistributionConstruct(Construct):
         construct_id: str,
         raster_api_id: str,
         stac_api_id: str,
-        region: str,
+        region: Optional[str],
         **kwargs,
     ) -> None:
         """CDK Construct for a Cloudfront Distribution."""
