@@ -9,8 +9,8 @@ from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
-from stac_api.infrastructure.construct import StacApiLambdaConstruct
 from routes.infrastructure.construct import CloudfrontDistributionConstruct
+from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
 app = App()
 

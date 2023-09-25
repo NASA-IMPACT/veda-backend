@@ -1,13 +1,13 @@
 """Settings for Cloudfront distribution - any environment variables starting with
 `VEDA_` will overwrite the values of variables in this file
 """
-
-from pydantic import BaseSettings, Field, AnyHttpUrl
+from pydantic import AnyHttpUrl, BaseSettings, Field
 from typing import Optional
 
 
 class vedaRouteSettings(BaseSettings):
     """Veda Route settings"""
+
     # S3 URLs
     stac_browser_bucket: str = Field(description="URL of the STAC browser")
 
@@ -34,6 +34,7 @@ class vedaRouteSettings(BaseSettings):
 
     class Config:
         """model config"""
+
         env_prefix = "veda_"
         case_sentive = False
         env_file = ".env"
