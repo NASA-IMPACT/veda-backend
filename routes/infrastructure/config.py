@@ -1,13 +1,27 @@
-from pydantic import BaseSettings, Field, AnyHttpUrl
+"""Settings for Cloudfront distribution - any environment variables starting with
+`VEDA_` will overwrite the values of variables in this file
+"""
 from typing import Optional
+
+from pydantic import BaseSettings, Field
 
 
 class vedaRouteSettings(BaseSettings):
-    # S3 URLs
-    stac_browser_bucket: str = Field(description="URL of the STAC browser")
+    """Veda Route settings"""
+
+    cloudfront: Optional[bool] = Field(
+        False,
+        description="Boolean if Cloudfront Distribution should be deployed",
+    )
+
+    # STAC S#3 browser bucket name
+    stac_browser_bucket: Optional[str] = Field(
+        "", description="STAC browser S3 bucket name"
+    )
 
     # API Gateway URLs
-    ingest_url: AnyHttpUrl = Field(
+    ingest_url: Optional[str] = Field(
+        "",
         description="URL of ingest API",
     )
 
@@ -28,6 +42,8 @@ class vedaRouteSettings(BaseSettings):
     using_mcp_acct: Optional[bool] = False
 
     class Config:
+        """model config"""
+
         env_prefix = "veda_"
         case_sentive = False
         env_file = ".env"
