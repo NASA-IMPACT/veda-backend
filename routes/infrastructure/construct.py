@@ -2,15 +2,11 @@
 from typing import Optional
 from urllib.parse import urlparse
 
-from aws_cdk import (
-    aws_cloudfront as cf,
-    aws_s3 as s3,
-    aws_certificatemanager as certificatemanager,
-    aws_cloudfront_origins as origins,
-    Stack,
-    Duration,
-    CfnOutput,
-)
+from aws_cdk import CfnOutput, Duration, Stack
+from aws_cdk import aws_certificatemanager as certificatemanager
+from aws_cdk import aws_cloudfront as cf
+from aws_cdk import aws_cloudfront_origins as origins
+from aws_cdk import aws_s3 as s3
 from constructs import Construct
 
 from .config import veda_route_settings
