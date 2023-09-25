@@ -10,6 +10,7 @@ from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
+from routes.infrastructure.construct import CloudfrontDistributionConstruct
 
 app = App()
 
@@ -67,6 +68,14 @@ stac_api = StacApiLambdaConstruct(
     database=database,
     raster_api=raster_api,
     domain_name=domain.stac_domain_name,
+)
+
+veda_routes = CloudfrontDistributionConstruct(
+    veda_stack,
+    "routes",
+    raster_api_id=raster_api.raster_api.api_id,
+    stac_api_id=stac_api.stac_api.api_id,
+    region=veda_app_settings.cdk_default_region
 )
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
