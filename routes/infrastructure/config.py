@@ -3,7 +3,6 @@ from typing import Optional
 
 
 class vedaRouteSettings(BaseSettings):
-
     # S3 URLs
     stac_browser_bucket: str = Field(description="URL of the STAC browser")
 
@@ -18,8 +17,7 @@ class vedaRouteSettings(BaseSettings):
     )
 
     domain_hosted_zone_id: Optional[str] = Field(
-        None,
-        description="Domain ID for the cloudfront distribution"
+        None, description="Domain ID for the cloudfront distribution"
     )
 
     cert_arn: Optional[str] = Field(
@@ -33,5 +31,6 @@ class vedaRouteSettings(BaseSettings):
         env_prefix = "veda_"
         case_sentive = False
         env_file = ".env"
+
 
 veda_route_settings = vedaRouteSettings()

@@ -75,7 +75,7 @@ veda_routes = CloudfrontDistributionConstruct(
     "routes",
     raster_api_id=raster_api.raster_api.api_id,
     stac_api_id=stac_api.stac_api.api_id,
-    region=veda_app_settings.cdk_default_region
+    region=veda_app_settings.cdk_default_region,
 )
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
