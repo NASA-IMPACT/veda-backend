@@ -52,44 +52,45 @@ class CloudfrontDistributionConstruct(Construct):
             else None
         )
 
-        self.distribution = cf.Distribution(
-            self,
-            stack_name,
-            comment=stack_name,
-            default_behavior=cf.BehaviorOptions(
-                origin=origins.HttpOrigin(
-                    s3Bucket.bucket_website_domain_name,
-                    protocol_policy=cf.OriginProtocolPolicy.HTTP_ONLY,
-                ),
-                cache_policy=no_cache_policy,
-            ),
-            certificate=domain_cert,
-            domain_names=[veda_route_settings.domain_hosted_zone_name]
-            if veda_route_settings.domain_hosted_zone_name
-            else None,
-            additional_behaviors={
-                "/api/stac*": cf.BehaviorOptions(
+        if veda_route_settings.cloudfront:
+            self.distribution = cf.Distribution(
+                self,
+                stack_name,
+                comment=stack_name,
+                default_behavior=cf.BehaviorOptions(
                     origin=origins.HttpOrigin(
-                        f"{stac_api_id}.execute-api.{region}.amazonaws.com"
+                        s3Bucket.bucket_website_domain_name,
+                        protocol_policy=cf.OriginProtocolPolicy.HTTP_ONLY,
                     ),
                     cache_policy=no_cache_policy,
-                    allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                 ),
-                "/api/raster*": cf.BehaviorOptions(
-                    origin=origins.HttpOrigin(
-                        f"{raster_api_id}.execute-api.{region}.amazonaws.com"
+                certificate=domain_cert,
+                domain_names=[veda_route_settings.domain_hosted_zone_name]
+                if veda_route_settings.domain_hosted_zone_name
+                else None,
+                additional_behaviors={
+                    "/api/stac*": cf.BehaviorOptions(
+                        origin=origins.HttpOrigin(
+                            f"{stac_api_id}.execute-api.{region}.amazonaws.com"
+                        ),
+                        cache_policy=no_cache_policy,
+                        allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                     ),
-                    cache_policy=no_cache_policy,
-                    allowed_methods=cf.AllowedMethods.ALLOW_ALL,
-                ),
-                "/api/ingest*": cf.BehaviorOptions(
-                    origin=origins.HttpOrigin(
-                        urlparse(veda_route_settings.ingest_url).hostname
+                    "/api/raster*": cf.BehaviorOptions(
+                        origin=origins.HttpOrigin(
+                            f"{raster_api_id}.execute-api.{region}.amazonaws.com"
+                        ),
+                        cache_policy=no_cache_policy,
+                        allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                     ),
-                    cache_policy=no_cache_policy,
-                    allowed_methods=cf.AllowedMethods.ALLOW_ALL,
-                ),
-            },
-        )
+                    "/api/ingest*": cf.BehaviorOptions(
+                        origin=origins.HttpOrigin(
+                            urlparse(veda_route_settings.ingest_url).hostname
+                        ),
+                        cache_policy=no_cache_policy,
+                        allowed_methods=cf.AllowedMethods.ALLOW_ALL,
+                    ),
+                },
+            )
 
         CfnOutput(self, "Endpoint", value=self.distribution.domain_name)

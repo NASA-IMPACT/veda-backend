@@ -9,11 +9,16 @@ from pydantic import AnyHttpUrl, BaseSettings, Field
 class vedaRouteSettings(BaseSettings):
     """Veda Route settings"""
 
-    # S3 URLs
-    stac_browser_bucket: str = Field(description="URL of the STAC browser")
+    cloudfront: Optional[bool] = Field(
+        False,
+        description="Boolean if Cloudfront Distribution should be deployed",
+    )
+
+    # STAC S#3 browser bucket name 
+    stac_browser_bucket: Optional[str] = Field(description="STAC browser S3 bucket name")
 
     # API Gateway URLs
-    ingest_url: AnyHttpUrl = Field(
+    ingest_url: Optional[AnyHttpUrl] = Field(
         description="URL of ingest API",
     )
 
