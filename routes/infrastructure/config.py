@@ -3,7 +3,7 @@
 """
 from typing import Optional
 
-from pydantic import AnyHttpUrl, BaseSettings, Field
+from pydantic import BaseSettings, Field
 
 
 class vedaRouteSettings(BaseSettings):
@@ -16,12 +16,12 @@ class vedaRouteSettings(BaseSettings):
 
     # STAC S#3 browser bucket name
     stac_browser_bucket: Optional[str] = Field(
-        None, description="STAC browser S3 bucket name"
+        "", description="STAC browser S3 bucket name"
     )
 
     # API Gateway URLs
-    ingest_url: Optional[AnyHttpUrl] = Field(
-        None,
+    ingest_url: Optional[str] = Field(
+        "",
         description="URL of ingest API",
     )
 
