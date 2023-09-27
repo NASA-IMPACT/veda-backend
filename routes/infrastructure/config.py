@@ -16,8 +16,7 @@ class vedaRouteSettings(BaseSettings):
 
     # STAC S#3 browser bucket name
     stac_browser_bucket: Optional[str] = Field(
-        None,
-        description="STAC browser S3 bucket name"
+        None, description="STAC browser S3 bucket name"
     )
 
     # API Gateway URLs
