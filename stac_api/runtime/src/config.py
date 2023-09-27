@@ -33,6 +33,10 @@ def get_secret_dict(secret_name: str):
     Returns:
         secrets (dict): decrypted secrets in dict
     """
+    # Use lambda env vars if VEDA_STAC_PGSTAC_CREDS is defined
+    rds_creds = os.getenv("VEDA_STAC_PGSTAC_CREDS")
+    if rds_creds:
+        return json.loads(rds_creds)
 
     # Create a Secrets Manager client
     session = boto3.session.Session()
