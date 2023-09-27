@@ -14,8 +14,10 @@ class vedaRouteSettings(BaseSettings):
         description="Boolean if Cloudfront Distribution should be deployed",
     )
 
-    # STAC S#3 browser bucket name 
-    stac_browser_bucket: Optional[str] = Field(description="STAC browser S3 bucket name")
+    # STAC S#3 browser bucket name
+    stac_browser_bucket: Optional[str] = Field(
+        description="STAC browser S3 bucket name"
+    )
 
     # API Gateway URLs
     ingest_url: Optional[AnyHttpUrl] = Field(
