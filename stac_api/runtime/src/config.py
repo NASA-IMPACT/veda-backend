@@ -2,9 +2,10 @@
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac"""
 import base64
 import json
+import os
 from functools import lru_cache
 from typing import Optional
-import os
+
 import boto3
 import pydantic
 
