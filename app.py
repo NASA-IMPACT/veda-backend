@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """ CDK Configuration for the veda-backend stack."""
 
-from aws_cdk import App, Stack, Tags, aws_iam
+from aws_cdk import App, Aspects, Stack, Tags, aws_iam
 from constructs import Construct
 
 from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
+from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
@@ -22,12 +23,13 @@ class VedaStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         if veda_app_settings.permissions_boundary_policy_name:
-            permission_boundary_policy = aws_iam.Policy.from_policy_name(
+            permissions_boundary_policy = aws_iam.Policy.from_policy_name(
                 self,
-                "permission-boundary",
+                "permissions-boundary",
                 veda_app_settings.permissions_boundary_policy_name,
             )
-            aws_iam.PermissionsBoundary.of(self).apply(permission_boundary_policy)
+            aws_iam.PermissionsBoundary.of(self).apply(permissions_boundary_policy)
+            Aspects.of(self).add(PermissionsBoundaryAspect(permissions_boundary_policy))
 
 
 veda_stack = VedaStack(
