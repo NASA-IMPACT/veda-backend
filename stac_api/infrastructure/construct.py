@@ -74,10 +74,17 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_PATH_PREFIX", veda_stac_settings.path_prefix
         )
 
-        stac_api_integration = (
-            aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-                construct_id, handler=lambda_function
+        stac_api_integration = aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
+            construct_id,
+            handler=lambda_function,
+            parameter_mapping=aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                "host",
+                aws_apigatewayv2_alpha.MappingValue.request_header(
+                    veda_stac_settings.host
+                ),
             )
+            if veda_stac_settings.host
+            else None,
         )
 
         domain_mapping = None

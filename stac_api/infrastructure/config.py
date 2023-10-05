@@ -23,6 +23,11 @@ class vedaSTACSettings(BaseSettings):
         description="Optional path prefix to add to all api endpoints",
     )
 
+    host: Optional[str] = Field(
+        "",
+        description="Optional host to send to stac api",  # stac api populates the urls in the catalog based on this
+    )
+
     class Config:
         """model config"""
 
