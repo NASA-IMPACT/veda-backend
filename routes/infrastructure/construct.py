@@ -2,7 +2,7 @@
 from typing import Optional
 from urllib.parse import urlparse
 
-from aws_cdk import CfnOutput, Duration, Stack
+from aws_cdk import CfnOutput, Stack
 from aws_cdk import aws_certificatemanager as certificatemanager
 from aws_cdk import aws_cloudfront as cf
 from aws_cdk import aws_cloudfront_origins as origins
