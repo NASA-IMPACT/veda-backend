@@ -39,8 +39,6 @@ class vedaRouteSettings(BaseSettings):
         description="Certificate’s ARN",
     )
 
-    using_mcp_acct: Optional[bool] = False
-
     class Config:
         """model config"""
 
