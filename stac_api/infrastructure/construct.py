@@ -79,9 +79,7 @@ class StacApiLambdaConstruct(Construct):
             handler=lambda_function,
             parameter_mapping=aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
                 "host",
-                aws_apigatewayv2_alpha.MappingValue.request_header(
-                    veda_stac_settings.host
-                ),
+                aws_apigatewayv2_alpha.MappingValue.custom(veda_stac_settings.host),
             )
             if veda_stac_settings.host
             else None,
