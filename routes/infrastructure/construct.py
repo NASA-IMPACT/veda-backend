@@ -36,14 +36,6 @@ class CloudfrontDistributionConstruct(Construct):
                 bucket_name=veda_route_settings.stac_browser_bucket,
             )
 
-            no_cache_policy = cf.CachePolicy(
-                self,
-                "no-cache-policy",
-                default_ttl=Duration.seconds(0),
-                min_ttl=Duration.seconds(0),
-                max_ttl=Duration.seconds(0),
-            )
-
             # Certificate must be in zone us-east-1
             domain_cert = (
                 certificatemanager.Certificate.from_certificate_arn(
@@ -62,7 +54,7 @@ class CloudfrontDistributionConstruct(Construct):
                         s3Bucket.bucket_website_domain_name,
                         protocol_policy=cf.OriginProtocolPolicy.HTTP_ONLY,
                     ),
-                    cache_policy=no_cache_policy,
+                    cache_policy=cf.CachePolicy.CACHING_DISABLED,
                 ),
                 certificate=domain_cert,
                 domain_names=[veda_route_settings.domain_hosted_zone_name]
@@ -73,24 +65,24 @@ class CloudfrontDistributionConstruct(Construct):
                         origin=origins.HttpOrigin(
                             f"{stac_api_id}.execute-api.{region}.amazonaws.com"
                         ),
-                        cache_policy=no_cache_policy,
+                        cache_policy=cf.CachePolicy.CACHING_DISABLED,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                     ),
                     "/api/raster*": cf.BehaviorOptions(
                         origin=origins.HttpOrigin(
                             f"{raster_api_id}.execute-api.{region}.amazonaws.com"
                         ),
-                        cache_policy=no_cache_policy,
+                        cache_policy=cf.CachePolicy.CACHING_DISABLED,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                     ),
                     "/api/ingest*": cf.BehaviorOptions(
                         origin=origins.HttpOrigin(
                             urlparse(veda_route_settings.ingest_url).hostname
                         ),
-                        cache_policy=no_cache_policy,
+                        cache_policy=cf.CachePolicy.CACHING_DISABLED,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                     ),
                 },
             )
 
-        CfnOutput(self, "Endpoint", value=self.distribution.domain_name)
+            CfnOutput(self, "Endpoint", value=self.distribution.domain_name)
