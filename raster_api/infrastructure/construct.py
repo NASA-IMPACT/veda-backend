@@ -36,7 +36,7 @@ class RasterApiLambdaConstruct(Construct):
         # TODO config
         stack_name = Stack.of(self).stack_name
 
-        veda_raster_function = aws_lambda.Function(
+        self.veda_raster_function = aws_lambda.Function(
             self,
             "lambda",
             runtime=aws_lambda.Runtime.PYTHON_3_9,
@@ -55,33 +55,33 @@ class RasterApiLambdaConstruct(Construct):
             tracing=aws_lambda.Tracing.ACTIVE,
         )
 
-        database.pgstac.secret.grant_read(veda_raster_function)
+        database.pgstac.secret.grant_read(self.veda_raster_function)
         database.pgstac.connections.allow_from(
-            veda_raster_function, port_range=aws_ec2.Port.tcp(5432)
+            self.veda_raster_function, port_range=aws_ec2.Port.tcp(5432)
         )
 
-        veda_raster_function.add_environment(
+        self.veda_raster_function.add_environment(
             "VEDA_RASTER_ENABLE_MOSAIC_SEARCH",
             str(veda_raster_settings.enable_mosaic_search),
         )
 
-        veda_raster_function.add_environment(
+        self.veda_raster_function.add_environment(
             "VEDA_RASTER_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
-        veda_raster_function.add_environment(
+        self.veda_raster_function.add_environment(
             "VEDA_RASTER_PATH_PREFIX", veda_raster_settings.path_prefix
         )
 
         # Optional AWS S3 requester pays global setting
         if veda_raster_settings.aws_request_payer:
-            veda_raster_function.add_environment(
+            self.veda_raster_function.add_environment(
                 "AWS_REQUEST_PAYER", veda_raster_settings.aws_request_payer
             )
 
         raster_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-                construct_id, veda_raster_function
+                construct_id, self.veda_raster_function
             )
         )
 
@@ -99,9 +99,9 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         CfnOutput(self, "raster-api", value=self.raster_api.url)
-        CfnOutput(self, "raster-api-arn", value=veda_raster_function.function_arn)
+        CfnOutput(self, "raster-api-arn", value=self.veda_raster_function.function_arn)
 
-        veda_raster_function.add_to_role_policy(
+        self.veda_raster_function.add_to_role_policy(
             aws_iam.PolicyStatement(
                 actions=["s3:GetObject"],
                 resources=[
@@ -122,18 +122,18 @@ class RasterApiLambdaConstruct(Construct):
 
             # Allow this lambda to assume the data access role
             data_access_role.grant(
-                veda_raster_function.grant_principal,
+                self.veda_raster_function.grant_principal,
                 "sts:AssumeRole",
             )
 
-            veda_raster_function.add_environment(
+            self.veda_raster_function.add_environment(
                 "VEDA_RASTER_DATA_ACCESS_ROLE_ARN",
                 veda_raster_settings.data_access_role_arn,
             )
 
         # Optional configuration to export assume role session into lambda function environment
         if veda_raster_settings.export_assume_role_creds_as_envs:
-            veda_raster_function.add_environment(
+            self.veda_raster_function.add_environment(
                 "VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS",
                 str(veda_raster_settings.export_assume_role_creds_as_envs),
             )

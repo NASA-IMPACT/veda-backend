@@ -8,11 +8,21 @@ from pydantic import BaseSettings, Field
 class vedaDomainSettings(BaseSettings):
     """Application settings"""
 
-    hosted_zone_id: Optional[str] = Field(
+    domain_hosted_zone_id: Optional[str] = Field(
         None, description="Route53 hosted zone identifier if using a custom domain name"
     )
-    hosted_zone_name: Optional[str] = Field(
+    domain_hosted_zone_name: Optional[str] = Field(
         None, description="Custom domain name, i.e. veda-backend.xyz"
+    )
+
+    stac_path_prefix: Optional[str] = Field(
+        "",
+        description="Optional path prefix to add to all api endpoints",
+    )
+
+    raster_path_prefix: Optional[str] = Field(
+        "",
+        description="Optional path prefix to add to all api endpoints",
     )
     api_prefix: Optional[str] = Field(
         None,
@@ -24,19 +34,11 @@ class vedaDomainSettings(BaseSettings):
         ),
     )
 
-    # Temporary support for deploying APIs to a second custom domain
-    alt_hosted_zone_id: Optional[str] = Field(
-        None, description="Second Route53 zone identifier if using a custom domain name"
-    )
-    alt_hosted_zone_name: Optional[str] = Field(
-        None, description="Second custom domain name, i.e. alt-veda-backend.xyz"
-    )
-
     class Config:
         """model config"""
 
         env_file = ".env"
-        env_prefix = "VEDA_DOMAIN_"
+        env_prefix = "VEDA_"
 
 
 veda_domain_settings = vedaDomainSettings()

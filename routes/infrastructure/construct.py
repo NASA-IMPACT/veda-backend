@@ -44,6 +44,14 @@ class CloudfrontDistributionConstruct(Construct):
                 max_ttl=Duration.seconds(0),
             )
 
+            stac_cache_policy = cf.CachePolicy(
+                self,
+                "stac-cache-policy",
+                min_ttl=Duration.minutes(1),
+                max_ttl=Duration.days(1),
+                header_behavior=cf.CacheHeaderBehavior.allow_list("host"),
+            )
+
             # Certificate must be in zone us-east-1
             domain_cert = (
                 certificatemanager.Certificate.from_certificate_arn(
@@ -61,6 +69,7 @@ class CloudfrontDistributionConstruct(Construct):
                     origin=origins.HttpOrigin(
                         s3Bucket.bucket_website_domain_name,
                         protocol_policy=cf.OriginProtocolPolicy.HTTP_ONLY,
+                        origin_id="stac-browser",
                     ),
                     cache_policy=no_cache_policy,
                 ),
@@ -71,21 +80,26 @@ class CloudfrontDistributionConstruct(Construct):
                 additional_behaviors={
                     "/api/stac*": cf.BehaviorOptions(
                         origin=origins.HttpOrigin(
-                            f"{stac_api_id}.execute-api.{region}.amazonaws.com"
+                            stac_api_id,
+                            origin_id="stac-api",
+                            protocol_policy=cf.OriginProtocolPolicy.HTTP_ONLY,
                         ),
-                        cache_policy=no_cache_policy,
+                        cache_policy=stac_cache_policy,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                     ),
                     "/api/raster*": cf.BehaviorOptions(
                         origin=origins.HttpOrigin(
-                            f"{raster_api_id}.execute-api.{region}.amazonaws.com"
+                            stac_api_id,
+                            origin_id="raster-api",
+                            protocol_policy=cf.OriginProtocolPolicy.HTTP_ONLY,
                         ),
                         cache_policy=no_cache_policy,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                     ),
                     "/api/ingest*": cf.BehaviorOptions(
                         origin=origins.HttpOrigin(
-                            urlparse(veda_route_settings.ingest_url).hostname
+                            urlparse(veda_route_settings.ingest_url).hostname,
+                            origin_id="ingest-api",
                         ),
                         cache_policy=no_cache_policy,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
@@ -93,4 +107,4 @@ class CloudfrontDistributionConstruct(Construct):
                 },
             )
 
-        CfnOutput(self, "Endpoint", value=self.distribution.domain_name)
+            CfnOutput(self, "Endpoint", value=self.distribution.domain_name)
