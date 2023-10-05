@@ -44,7 +44,7 @@ class vedaRouteSettings(BaseSettings):
     class Config:
         """model config"""
 
-        env_prefix = "veda_"
+        env_prefix = "VEDA_"
         case_sentive = False
         env_file = ".env"
 
