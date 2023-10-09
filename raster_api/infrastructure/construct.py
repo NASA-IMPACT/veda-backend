@@ -79,10 +79,15 @@ class RasterApiLambdaConstruct(Construct):
                 "AWS_REQUEST_PAYER", veda_raster_settings.aws_request_payer
             )
 
-        raster_api_integration = (
-            aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-                construct_id, veda_raster_function
+        raster_api_integration = aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
+            construct_id,
+            handler=veda_raster_function,
+            parameter_mapping=aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                "host",
+                aws_apigatewayv2_alpha.MappingValue.custom(veda_raster_settings.host),
             )
+            if veda_raster_settings.host
+            else None,
         )
 
         domain_mapping = None
