@@ -38,7 +38,7 @@ class vedaSTACSettings(BaseSettings):
         """model config"""
 
         env_file = ".env"
-        env_prefix = "VEDA_STAC"
+        env_prefix = "VEDA_STAC_"
 
 
 class Settings(vedaSTACSettings):
@@ -55,3 +55,4 @@ class Settings(vedaSTACSettings):
 
 
 veda_stac_settings = Settings()
+print(veda_stac_settings)
