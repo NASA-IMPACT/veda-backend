@@ -55,4 +55,3 @@ class Settings(vedaSTACSettings):
 
 
 veda_stac_settings = Settings()
-print(veda_stac_settings)
