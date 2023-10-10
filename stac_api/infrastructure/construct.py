@@ -70,6 +70,10 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
+        lambda_function.add_environment(
+            "VEDA_STAC_PATH_PREFIX", veda_stac_settings.path_prefix
+        )
+
         stac_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
                 construct_id, handler=lambda_function

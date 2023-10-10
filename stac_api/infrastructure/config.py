@@ -18,6 +18,11 @@ class vedaSTACSettings(BaseSettings):
         description="Name or ARN of the AWS Secret containing database connection parameters",
     )
 
+    path_prefix: Optional[str] = Field(
+        "",
+        description="Optional path prefix to add to all api endpoints",
+    )
+
     class Config:
         """model config"""
 
