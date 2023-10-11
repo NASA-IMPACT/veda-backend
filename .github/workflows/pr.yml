@@ -123,7 +123,8 @@ jobs:
           elif [ "${{ github.ref_name }}" == "develop" ]; then
             ./scripts/get-env.sh "veda-backend-uah-dev-env"
           else
-            echo "No environment associated with ${GITHUB_REF##*/} branch"
+            echo "No environment associated with ${GITHUB_REF##*/} branch. Test changes against dev stack"
+            ./scripts/get-env.sh "veda-backend-uah-dev-env"
       - name: Pre deployment CDK diff
         run: |
           echo $STAGE
