@@ -125,6 +125,7 @@ jobs:
           else
             echo "No environment associated with ${GITHUB_REF##*/} branch. Test changes against dev stack"
             ./scripts/get-env.sh "veda-backend-uah-dev-env"
+          fi
       - name: Pre deployment CDK diff
         run: |
           echo $STAGE
