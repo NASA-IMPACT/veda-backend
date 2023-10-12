@@ -71,12 +71,24 @@ class StacApiLambdaConstruct(Construct):
         )
 
         lambda_function.add_environment(
-            "VEDA_STAC_PATH_PREFIX", veda_stac_settings.path_prefix
+            "VEDA_STAC_PATH_PREFIX", veda_stac_settings.stac_path_prefix
         )
+
+        integration_kwargs = dict(handler=lambda_function)
+        if veda_stac_settings.domain_hosted_zone_name and veda_stac_settings.cloudfront:
+            integration_kwargs[
+                "parameter_mapping"
+            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                "host",
+                aws_apigatewayv2_alpha.MappingValue(
+                    veda_stac_settings.domain_hosted_zone_name
+                ),
+            )
 
         stac_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
-                construct_id, handler=lambda_function
+                construct_id,
+                **integration_kwargs,
             )
         )
 
@@ -86,11 +98,11 @@ class StacApiLambdaConstruct(Construct):
                 domain_name=domain_name
             )
 
-        stac_api = aws_apigatewayv2_alpha.HttpApi(
+        self.stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",
             default_integration=stac_api_integration,
             default_domain_mapping=domain_mapping,
         )
 
-        CfnOutput(self, "stac-api", value=stac_api.url)
+        CfnOutput(self, "stac-api", value=self.stac_api.url)
