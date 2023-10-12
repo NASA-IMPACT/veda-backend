@@ -95,6 +95,7 @@ if veda_app_settings.alt_domain():
     alt_raster_api = RasterApiLambdaConstruct(
         veda_stack,
         "alt-raster-api",
+        stage=veda_app_settings.stage_name(),
         vpc=vpc.vpc,
         database=database,
         domain_name=alt_domain.raster_domain_name,
@@ -103,6 +104,7 @@ if veda_app_settings.alt_domain():
     alt_stac_api = StacApiLambdaConstruct(
         veda_stack,
         "alt-stac-api",
+        stage=veda_app_settings.stage_name(),
         vpc=vpc.vpc,
         database=database,
         raster_api=raster_api,
