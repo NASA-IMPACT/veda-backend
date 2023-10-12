@@ -8,7 +8,6 @@ from aws_cdk import aws_cloudfront as cf
 from aws_cdk import aws_cloudfront_origins as origins
 from aws_cdk import aws_route53, aws_route53_targets
 from aws_cdk import aws_s3 as s3
-
 from constructs import Construct
 
 from .config import veda_route_settings
