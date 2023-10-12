@@ -85,6 +85,7 @@ class StacApiLambdaConstruct(Construct):
                             veda_stac_settings.domain_hosted_zone_name
                         )
                         if veda_stac_settings.domain_hosted_zone_name
+                        and veda_stac_settings.cloudfront
                         else None,
                     )
                 ),

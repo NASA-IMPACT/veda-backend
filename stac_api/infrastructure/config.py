@@ -28,6 +28,11 @@ class vedaSTACSettings(BaseSettings):
         description="Domain name for the cloudfront distribution",
     )
 
+    cloudfront: Optional[bool] = Field(
+        False,
+        description="Boolean if Cloudfront Distribution should be deployed",
+    )
+
     class Config:
         """model config"""
 

@@ -90,6 +90,7 @@ class RasterApiLambdaConstruct(Construct):
                             veda_raster_settings.domain_hosted_zone_name
                         )
                         if veda_raster_settings.domain_hosted_zone_name
+                        and veda_raster_settings.cloudfront
                         else None,
                     )
                 ),
