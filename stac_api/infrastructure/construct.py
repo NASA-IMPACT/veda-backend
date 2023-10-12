@@ -23,6 +23,7 @@ class StacApiLambdaConstruct(Construct):
         self,
         scope: Construct,
         construct_id: str,
+        stage: str,
         vpc,
         database,
         raster_api,  # TODO: typing!
@@ -81,7 +82,7 @@ class StacApiLambdaConstruct(Construct):
             ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
                 "host",
                 aws_apigatewayv2_alpha.MappingValue(
-                    veda_stac_settings.domain_hosted_zone_name
+                    f"{stage}.{veda_stac_settings.domain_hosted_zone_name}"
                 ),
             )
 

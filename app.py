@@ -58,6 +58,7 @@ domain = DomainConstruct(veda_stack, "domain", stage=veda_app_settings.stage_nam
 raster_api = RasterApiLambdaConstruct(
     veda_stack,
     "raster-api",
+    stage=veda_app_settings.stage_name(),
     vpc=vpc.vpc,
     database=database,
     domain_name=domain.raster_domain_name,
@@ -66,6 +67,7 @@ raster_api = RasterApiLambdaConstruct(
 stac_api = StacApiLambdaConstruct(
     veda_stack,
     "stac-api",
+    stage=veda_app_settings.stage_name(),
     vpc=vpc.vpc,
     database=database,
     raster_api=raster_api,
@@ -75,6 +77,7 @@ stac_api = StacApiLambdaConstruct(
 veda_routes = CloudfrontDistributionConstruct(
     veda_stack,
     "routes",
+    stage=veda_app_settings.stage_name(),
     raster_api_id=raster_api.raster_api.api_id,
     stac_api_id=stac_api.stac_api.api_id,
     region=veda_app_settings.cdk_default_region,
