@@ -24,6 +24,7 @@ class RasterApiLambdaConstruct(Construct):
         self,
         scope: Construct,
         construct_id: str,
+        stage: str,
         vpc,
         database,
         code_dir: str = "./",
@@ -89,7 +90,7 @@ class RasterApiLambdaConstruct(Construct):
             ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
                 "host",
                 aws_apigatewayv2_alpha.MappingValue(
-                    veda_raster_settings.domain_hosted_zone_name
+                    f"{stage}.{veda_raster_settings.domain_hosted_zone_name}"
                 ),
             )
 
