@@ -1,9 +1,9 @@
-FROM public.ecr.aws/sam/build-python3.9:latest
+FROM public.ecr.aws/sam/build-python3.11:latest
 
 WORKDIR /tmp
 
 COPY raster_api/runtime /tmp/raster
-RUN pip install "mangum>=0.14,<0.15" /tmp/raster["psycopg-binary"] -t /asset --no-binary pydantic 
+RUN pip install "mangum>=0.14,<0.15" /tmp/raster["psycopg-binary"] -t /asset --no-binary pydantic
 RUN rm -rf /tmp/raster
 
 # # Reduce package size and remove useless files

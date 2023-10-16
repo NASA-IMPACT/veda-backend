@@ -6,12 +6,10 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "titiler.pgstac==0.2.3",
-    "titiler.application>=0.10,<0.11",
-    "importlib_resources>=1.1.0;python_version<='3.9'",  # https://github.com/cogeotiff/rio-tiler/pull/379
+    "titiler.pgstac==0.8.0",
+    "titiler.extensions[cogeo]>=0.15.0,<0.16",
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
-    "pydantic<2",
 ]
 
 extra_reqs = {
@@ -26,7 +24,7 @@ extra_reqs = {
 setup(
     name="veda.raster_api",
     description="",
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     packages=find_namespace_packages(exclude=["tests*"]),
     package_data={"src": ["templates/*.html"]},
     include_package_data=True,
