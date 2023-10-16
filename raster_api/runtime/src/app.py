@@ -148,6 +148,7 @@ app.add_middleware(
 )
 app.add_middleware(
     CompressionMiddleware,
+    minimum_size=0,
     exclude_mediatype={
         "image/jpeg",
         "image/jpg",

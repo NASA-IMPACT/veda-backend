@@ -19,7 +19,7 @@ extra_reqs = {
     "psycopg": ["psycopg[pool]"],  # pure python implementation
     "psycopg-c": ["psycopg[c,pool]"],  # C implementation of the libpq wrapper
     "psycopg-binary": ["psycopg[binary,pool]"],  # pre-compiled C implementation
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests", "brotlipy"],
 }
 
 
