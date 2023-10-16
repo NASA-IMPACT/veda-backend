@@ -67,11 +67,18 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 ###############################################################################
 mosaic = MosaicTilerFactory(
     router_prefix=f"{path_prefix}/mosaic",
-    add_mosaic_list=settings.enable_mosaic_search,
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
-    post_process=PostProcessParams,
+    process_dependency=PostProcessParams,
     router=APIRouter(route_class=LoggerRouteHandler),
+    # add /list (default to False)
+    add_mosaic_list=settings.enable_mosaic_search,
+    # add /statistics [POST] (default to False)
+    add_statistics=True,
+    # add /map viewer (default to False)
+    add_viewer=False,
+    # add /bbox [GET] and /feature  [POST] (default to False)
+    add_part=True,
 )
 app.include_router(mosaic.router, prefix=f"{path_prefix}/mosaic", tags=["Mosaic"])
 # TODO

@@ -6,8 +6,10 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
+    "boto3",
     "titiler.pgstac==0.8.0",
     "titiler.extensions[cogeo]>=0.15.0,<0.16",
+    "starlette-cramjam>=0.3,<0.4",
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
 ]
