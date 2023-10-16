@@ -41,7 +41,7 @@ def test_mosaic_api():
 
     z, x, y = 15, 8589, 12849
     resp = httpx.get(
-        f"{raster_endpoint}/mosaic/tiles/{searchid}/{z}/{x}/{y}",
+        f"{raster_endpoint}/mosaic/{searchid}/tiles/{z}/{x}/{y}",
         params={"assets": "cog"},
         headers={"Accept-Encoding": "br, gzip"},
         timeout=10.0,
