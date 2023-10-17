@@ -33,7 +33,7 @@ def test_mosaic_api():
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
     assert resp.json()[0]["id"] == "20200307aC0853900w361030"
 
-    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/15/8589/12849/assets")
+    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/tiles/15/8589/12849/assets")
     assert resp.status_code == 200
     assert len(resp.json()) == 1
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
@@ -41,7 +41,7 @@ def test_mosaic_api():
 
     z, x, y = 15, 8589, 12849
     resp = httpx.get(
-        f"{raster_endpoint}/mosaic/tiles/{searchid}/{z}/{x}/{y}",
+        f"{raster_endpoint}/mosaic/{searchid}/tiles/{z}/{x}/{y}",
         params={"assets": "cog"},
         headers={"Accept-Encoding": "br, gzip"},
         timeout=10.0,

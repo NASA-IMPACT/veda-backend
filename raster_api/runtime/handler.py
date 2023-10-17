@@ -6,10 +6,21 @@ import os
 
 from mangum import Mangum
 from src.app import app
+from src.config import ApiSettings
 from src.monitoring import logger, metrics, tracer
+
+from titiler.pgstac.db import connect_to_db
+
+settings = ApiSettings()
 
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
 logging.getLogger("mangum.http").setLevel(logging.ERROR)
+
+
+@app.on_event("startup")
+async def startup_event() -> None:
+    """Connect to database on startup."""
+    await connect_to_db(app, settings=settings.load_postgres_settings())
 
 
 handler = Mangum(app, lifespan="off")
