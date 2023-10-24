@@ -65,8 +65,6 @@ runs:
             ./scripts/sync-env-local.sh ${{ inputs.env_aws_secret_name }}
           else
             python ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }}
-            echo "PROJECT_PREFIX=${{ inputs.project_prefix }}" >> .env
-            echo "STAGE=${{ inputs.stage }}" >> .env
         fi
         
 
