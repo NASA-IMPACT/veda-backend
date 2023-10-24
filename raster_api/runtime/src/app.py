@@ -54,6 +54,7 @@ app = FastAPI(
     openapi_url="/openapi.json",
     docs_url="/docs",
     lifespan=lifespan,
+    root_path=settings.root_path,
 )
 
 # router to be applied to all titiler route factories (improves logs with FastAPI context)

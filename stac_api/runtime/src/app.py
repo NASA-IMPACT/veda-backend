@@ -38,6 +38,7 @@ api = VedaStacApi(
         title=api_settings.name,
         openapi_url="/openapi.json",
         docs_url="/docs",
+        root_path=api_settings.root_path,
     ),
     title=api_settings.name,
     description=api_settings.name,
