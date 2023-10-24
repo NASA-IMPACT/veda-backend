@@ -72,7 +72,7 @@ class StacApiLambdaConstruct(Construct):
         )
 
         lambda_function.add_environment(
-            "VEDA_STAC_PATH_PREFIX", veda_stac_settings.stac_path_prefix
+            "VEDA_STAC_ROOT_PATH", veda_stac_settings.stac_root_path
         )
 
         integration_kwargs = dict(handler=lambda_function)

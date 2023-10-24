@@ -53,7 +53,7 @@ class _ApiSettings(pydantic.BaseSettings):
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
-    path_prefix: str = ""
+    root_path: str = ""
     pgstac_secret_arn: Optional[str]
 
     @pydantic.validator("cors_origins")
