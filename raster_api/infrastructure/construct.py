@@ -71,7 +71,7 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         veda_raster_function.add_environment(
-            "VEDA_RASTER_PATH_PREFIX", veda_raster_settings.raster_path_prefix
+            "VEDA_RASTER_ROOT_PATH", veda_raster_settings.raster_root_path
         )
 
         # Optional AWS S3 requester pays global setting

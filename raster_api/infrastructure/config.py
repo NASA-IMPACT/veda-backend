@@ -69,9 +69,9 @@ class vedaRasterSettings(BaseSettings):
         description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs",
     )
 
-    raster_path_prefix: Optional[str] = Field(
+    raster_root_path: str = Field(
         "",
-        description="Optional path prefix to add to all api endpoints",
+        description="Optional root path for all api endpoints",
     )
 
     domain_hosted_zone_name: Optional[str] = Field(
