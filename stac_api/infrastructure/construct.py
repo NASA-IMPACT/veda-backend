@@ -99,7 +99,7 @@ class StacApiLambdaConstruct(Construct):
                 domain_name=domain_name
             )
 
-        self.stac_api = aws_apigatewayv2_alpha.HttpApi(
+        stac_api = self.stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",
             default_integration=stac_api_integration,
