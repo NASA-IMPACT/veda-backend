@@ -3,7 +3,7 @@ CDK construct for veda-backend VPC.
 """
 from typing import Optional
 
-from aws_cdk import CfnOutput, aws_ec2
+from aws_cdk import CfnOutput, aws_ec2, Stack
 from constructs import Construct
 
 from .config import dev_vpc_settings, prod_vpc_settings, staging_vpc_settings
