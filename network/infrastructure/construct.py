@@ -24,6 +24,8 @@ class VpcConstruct(Construct):
         """Initialized construct."""
         super().__init__(scope, construct_id)
 
+        stack_name = Stack.of(self).stack_name
+
         # Get existing VPC if provided
         if vpc_id:
             self.vpc = aws_ec2.Vpc.from_lookup(
@@ -74,4 +76,4 @@ class VpcConstruct(Construct):
                 elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):
                     self.vpc.add_gateway_endpoint(id, service=service)
 
-        CfnOutput(self, "vpc-id", export_name="stac-db-vpc-id", value=self.vpc.vpc_id)
+        CfnOutput(self, "vpc-id", export_name=f"{stack_name}-stac-db-vpc-id", value=self.vpc.vpc_id)
