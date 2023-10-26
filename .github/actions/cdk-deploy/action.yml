@@ -15,7 +15,10 @@ inputs:
   script_path:
     type: string
 
-
+outputs:
+  backend_stackname:
+    description: "Backend Stack name"
+    value: ${{ steps.deploy_backend_stack.outputs.backend_stackname }}
 
 runs:
   using: "composite"
@@ -70,6 +73,9 @@ runs:
 
     - name: Deploy 
       shell: bash
+      id: deploy_backend_stack
       working-directory: ${{ inputs.dir }}
       run: |
         cdk deploy --all --require-approval never --outputs-file ${HOME}/cdk-outputs.json
+        stack=$(cat ${HOME}/cdk-outputs.json | jq -r 'keys_unsorted[0]')
+        echo "backend_stackname=$stack" >> $GITHUB_OUTPUT
