@@ -74,4 +74,4 @@ class VpcConstruct(Construct):
                 elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):
                     self.vpc.add_gateway_endpoint(id, service=service)
 
-        CfnOutput(self, "vpc-id", value=self.vpc.vpc_id)
+        CfnOutput(self, "vpc-id", export_name="stac-db-vpc-id", value=self.vpc.vpc_id)
