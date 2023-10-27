@@ -20,6 +20,7 @@ from starlette_cramjam.middleware import CompressionMiddleware
 from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import logger, metrics, tracer
+
 print("REBUILD ME")
 try:
     from importlib.resources import files as resources_files  # type: ignore

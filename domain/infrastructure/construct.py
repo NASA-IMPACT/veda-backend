@@ -62,7 +62,9 @@ class DomainConstruct(Construct):
             if not veda_domain_settings.create_shared_subdomain:
                 # Use custom api prefix if provided or deployment stage if not
                 if veda_domain_settings.api_prefix:
-                    raster_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-raster"
+                    raster_url_prefix = (
+                        f"{veda_domain_settings.api_prefix.lower()}-raster"
+                    )
                     stac_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-stac"
                 else:
                     raster_url_prefix = f"{stage.lower()}-raster"
@@ -118,7 +120,9 @@ class DomainConstruct(Construct):
                     value=f"https://{raster_url_prefix}.{hosted_zone_name}/docs",
                 )
                 CfnOutput(
-                    self, "stac-api", value=f"https://{stac_url_prefix}.{hosted_zone_name}/"
+                    self,
+                    "stac-api",
+                    value=f"https://{stac_url_prefix}.{hosted_zone_name}/",
                 )
 
             if veda_domain_settings.create_shared_subdomain:
@@ -144,7 +148,9 @@ class DomainConstruct(Construct):
                 #     # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
                 #     record_name=stage,
                 # )
-                
+
                 CfnOutput(
-                    self, "shared-sub-domain-name", value=f"https://{stage}.{hosted_zone_name}/"
+                    self,
+                    "shared-sub-domain-name",
+                    value=f"https://{stage}.{hosted_zone_name}/",
                 )
