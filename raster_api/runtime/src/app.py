@@ -54,7 +54,10 @@ app = FastAPI(
     openapi_url="/openapi.json",
     docs_url="/docs",
     lifespan=lifespan,
-    root_path=settings.root_path,
+    servers=[
+        {"url": settings.root_path}
+    ],  # for openapi+reverse-proxy+prefix https://github.com/tiangolo/fastapi/discussions/9018#discussioncomment-5155534
+    root_path=f"/{settings.root_path}",
 )
 
 # router to be applied to all titiler route factories (improves logs with FastAPI context)

@@ -8,11 +8,11 @@ from src.config import ApiSettings
 from src.monitoring import logger, metrics, tracer
 
 settings = ApiSettings()
-
+print("REBUILD ME")
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
 logging.getLogger("mangum.http").setLevel(logging.ERROR)
 
-handler = Mangum(app, lifespan="auto", api_gateway_base_path=settings.root_path)
+handler = Mangum(app, lifespan="auto", api_gateway_base_path=f"/{settings.root_path}")
 
 # Add tracing
 handler.__name__ = "handler"  # tracer requires __name__ to be set

@@ -23,7 +23,7 @@ async def startup_event() -> None:
     await connect_to_db(app, settings=settings.load_postgres_settings())
 
 
-handler = Mangum(app, lifespan="off", api_gateway_base_path=settings.root_path)
+handler = Mangum(app, lifespan="off", api_gateway_base_path=f"/{settings.root_path}")
 
 if "AWS_EXECUTION_ENV" in os.environ:
     loop = asyncio.get_event_loop()

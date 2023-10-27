@@ -1,5 +1,7 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
 import os
+import typing
+from typing import Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -15,6 +17,9 @@ from constructs import Construct
 
 from .config import veda_stac_settings
 
+if typing.TYPE_CHECKING:
+    from domain.infrastructure.construct import DomainConstruct
+
 
 class StacApiLambdaConstruct(Construct):
     """CDK Construct for a Lambda backed API implementing stac-fastapi."""
@@ -28,7 +33,7 @@ class StacApiLambdaConstruct(Construct):
         database,
         raster_api,  # TODO: typing!
         code_dir: str = "./",
-        domain_name: aws_apigatewayv2_alpha.DomainName = None,
+        domain: Optional["DomainConstruct"] = None,
         **kwargs,
     ) -> None:
         """."""
@@ -76,16 +81,6 @@ class StacApiLambdaConstruct(Construct):
         )
 
         integration_kwargs = dict(handler=lambda_function)
-        if veda_stac_settings.domain_hosted_zone_name and veda_stac_settings.cloudfront:
-            integration_kwargs[
-                "parameter_mapping"
-            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
-                "host",
-                aws_apigatewayv2_alpha.MappingValue(
-                    f"{stage}.{veda_stac_settings.domain_hosted_zone_name}"
-                ),
-            )
-
         stac_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
                 construct_id,
@@ -94,9 +89,12 @@ class StacApiLambdaConstruct(Construct):
         )
 
         domain_mapping = None
-        if domain_name:
+        # Legacy method to use a custom subdomain for this api (i.e. <stage>-stac.<domain-name>.com)
+        # If using a custom root path and/or a proxy server, do not use a custom subdomain
+        # TODO we could also add support a shared custom subdomain with custom root path
+        if domain and domain.stac_domain_name and not veda_stac_settings.cloudfront:
             domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
-                domain_name=domain_name
+                domain_name=domain.stac_domain_name
             )
 
         self.stac_api = aws_apigatewayv2_alpha.HttpApi(

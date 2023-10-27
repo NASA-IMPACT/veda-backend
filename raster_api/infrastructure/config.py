@@ -74,11 +74,6 @@ class vedaRasterSettings(BaseSettings):
         description="Optional root path for all api endpoints",
     )
 
-    domain_hosted_zone_name: Optional[str] = Field(
-        None,
-        description="Domain name for the cloudfront distribution",
-    )
-
     cloudfront: Optional[bool] = Field(
         False,
         description="Boolean if Cloudfront Distribution should be deployed",

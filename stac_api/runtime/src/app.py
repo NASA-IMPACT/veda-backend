@@ -20,7 +20,7 @@ from starlette_cramjam.middleware import CompressionMiddleware
 from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import logger, metrics, tracer
-
+print("REBUILD ME")
 try:
     from importlib.resources import files as resources_files  # type: ignore
 except ImportError:
@@ -38,7 +38,10 @@ api = VedaStacApi(
         title=api_settings.name,
         openapi_url="/openapi.json",
         docs_url="/docs",
-        root_path=api_settings.root_path,
+        servers=[
+            {"url": api_settings.root_path}
+        ],  # needed for openapi+reverse-proxy+prefix https://github.com/tiangolo/fastapi/discussions/9018#discussioncomment-5155534
+        root_path=f"/{api_settings.root_path}",
     ),
     title=api_settings.name,
     description=api_settings.name,

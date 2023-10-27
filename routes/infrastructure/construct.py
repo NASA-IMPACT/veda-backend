@@ -71,6 +71,7 @@ class CloudfrontDistributionConstruct(Construct):
                         ),
                         cache_policy=cf.CachePolicy.CACHING_DISABLED,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
+                        origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
                     ),
                     "/api/raster*": cf.BehaviorOptions(
                         origin=origins.HttpOrigin(
@@ -79,6 +80,7 @@ class CloudfrontDistributionConstruct(Construct):
                         ),
                         cache_policy=cf.CachePolicy.CACHING_DISABLED,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
+                        origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
                     ),
                     "/api/ingest*": cf.BehaviorOptions(
                         origin=origins.HttpOrigin(
@@ -90,7 +92,7 @@ class CloudfrontDistributionConstruct(Construct):
                     ),
                 },
             )
-
+            # TODO does this belong in domain? or should we keep it here
             hosted_zone = aws_route53.HostedZone.from_hosted_zone_attributes(
                 self,
                 "hosted-zone",
