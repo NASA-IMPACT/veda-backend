@@ -34,15 +34,17 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 api_settings = ApiSettings()
 tiles_settings = TilesApiSettings()
 
+# needed for openapi+reverse-proxy+prefix https://github.com/tiangolo/fastapi/discussions/9018#discussioncomment-5155534
+servers = None
+if api_settings.root_path:
+    servers = [{"url": api_settings.root_path}]
 api = VedaStacApi(
     app=FastAPI(
         title=api_settings.name,
         openapi_url="/openapi.json",
         docs_url="/docs",
-        servers=[
-            {"url": api_settings.root_path}
-        ],  # needed for openapi+reverse-proxy+prefix https://github.com/tiangolo/fastapi/discussions/9018#discussioncomment-5155534
-        root_path=f"/{api_settings.root_path}",
+        servers=servers,
+        root_path=api_settings.root_path,
     ),
     title=api_settings.name,
     description=api_settings.name,
