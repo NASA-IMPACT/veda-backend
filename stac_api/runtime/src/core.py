@@ -1,6 +1,6 @@
 """CoreCrudClient extensions for the VEDA STAC API."""
 from datetime import datetime
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import orjson
 from asyncpg.exceptions import InvalidDatetimeFormatError
@@ -112,11 +112,13 @@ class VedaCrudClient(CoreCrudClient):
             search_request, request=kwargs["request"]
         )
 
-    def inject_item_links(self, item: Item, request: Request) -> Item:
+    def inject_item_links(
+        self, item: Item, render_params: Dict[str, Any], request: Request
+    ) -> Item:
         """Add extra/non-mandatory links to an Item"""
         collection_id = item.get("collection", "")
         if collection_id:
-            LinkInjector(collection_id, request).inject_item(item)
+            LinkInjector(collection_id, render_params, request).inject_item(item)
 
         return item
 
@@ -134,14 +136,22 @@ class VedaCrudClient(CoreCrudClient):
         request = kwargs["request"]
 
         result = await _super._search_base(search_request, **kwargs)
+        render_params = {}
+
+        if len(result["features"]) > 0:
+            collection_id = result["features"][0]["collection"]
+            collection = await _super.get_collection(collection_id, request=request)
+
+            render_params = collection.get("renders", {})
 
         item_collection = ItemCollection(
             **{
                 **result,
                 "features": [
-                    self.inject_item_links(i, request)
+                    self.inject_item_links(i, render_params, request)
                     for i in result.get("features", [])
                 ],
             }
         )
+
         return item_collection

@@ -1,7 +1,7 @@
 """This module contains functions and classes for defining titiler rendering query parameters STAC items."""
-import urllib
+from urllib.parse import urlencode
 from typing import Any, Dict, List, Optional
-
+import json
 import orjson
 from pydantic import BaseModel
 
@@ -13,15 +13,10 @@ def orjson_dumps(v: Dict[str, Any], *args: Any, default: Any) -> str:
 
 def get_param_str(params: Dict[str, Any]) -> str:
     """Get parameter string from a dictionary of parameters."""
-    parts = []
     for k, v in params.items():
-        if isinstance(v, list):
-            for v2 in v:
-                parts.append(f"{k}={urllib.parse.quote_plus(str(v2))}")
-        else:
-            parts.append(f"{k}={urllib.parse.quote_plus(str(v))}")
-
-    return "&".join(parts)
+        if isinstance(v, (dict, list)):
+            params[k] = json.dumps(v)  # colormap needs to be json encoded
+    return urlencode(params)
 
 
 def get_param_str_raw(params: Dict[str, Any]) -> str:
@@ -110,8 +105,8 @@ class RenderConfig(BaseModel):
         json_dumps = orjson_dumps
 
 
-def get_render_config() -> RenderConfig:
+def get_render_config(render_params) -> RenderConfig:
     """This is a placeholder for what may be a more complex function in the future.
     As of now, it isn't clear how we should get this rendering information as it should
     likely be sourced from the dashboard's configuration."""
-    return RenderConfig()
+    return RenderConfig(render_params=render_params)

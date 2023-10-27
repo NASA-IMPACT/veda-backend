@@ -28,13 +28,16 @@ class LinkInjector:
     def __init__(
         self,
         collection_id: str,
+        render_params: Dict[str, Any],
         request: Request,
     ) -> None:
         """Initialize a LinkInjector"""
+
+        render_params = render_params.get("visual", {})
+        render_params.pop("title", render_params)
+
         self.collection_id = collection_id
-        # The collection_id should be suitable for getting a RenderConfig with more details
-        # TODO: create customized render configurations so collections can differ is needed
-        self.render_config = get_render_config()
+        self.render_config = get_render_config(render_params)
         self.tiler_href = tiles_settings.titiler_endpoint or ""
 
     def inject_item(self, item: Item) -> None:
@@ -44,12 +47,14 @@ class LinkInjector:
         if self.tiler_href:
             item["links"].append(self._get_item_zxy_template(item_id))
             item["links"].append(self._get_item_wmts_link(item_id))
-            item["links"].append(self._get_item_tilejson_link(item_id))
-            item["links"].append(self._get_item_preview_link(item_id))
+            item["assets"]["tilejson"] = self._get_item_tilejson_link(item_id)
+            item["assets"]["rendered_preview"] = self._get_item_preview_link(item_id)
 
     def _get_item_zxy_template(self, item_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs(self.collection_id, item_id)
-        href = urljoin(self.tiler_href, "stac/tiles/WebMercatorQuad/{z}/{x}/{y}" + f"?{qs}")
+        href = urljoin(
+            self.tiler_href, "stac/tiles/WebMercatorQuad/{z}/{x}/{y}" + f"?{qs}"
+        )
 
         return {
             "title": "ZXY template for webmap tiles",
@@ -83,7 +88,7 @@ class LinkInjector:
         }
 
     def _get_item_wmts_link(self, item_id: str) -> Dict[str, Any]:
-        qs = self.render_config.get_full_render_qs_raw(self.collection_id, item_id)
+        qs = self.render_config.get_full_render_qs(self.collection_id, item_id)
         href = urljoin(
             self.tiler_href,
             f"stac/WebMercatorQuad/WMTSCapabilities.xml?{qs}",
