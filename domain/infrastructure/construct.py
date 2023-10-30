@@ -59,7 +59,7 @@ class DomainConstruct(Construct):
 
             # Either create one subdomain to share for all endpoints or create a unique subdomain for each
 
-            if not veda_domain_settings.create_shared_subdomain:
+            if not veda_domain_settings.shared_subdomain:
                 # Use custom api prefix if provided or deployment stage if not
                 if veda_domain_settings.api_prefix:
                     raster_url_prefix = (
@@ -125,7 +125,7 @@ class DomainConstruct(Construct):
                     value=f"https://{stac_url_prefix}.{hosted_zone_name}/",
                 )
 
-            if veda_domain_settings.create_shared_subdomain:
+            if veda_domain_settings.shared_subdomain:
                 self.shared_sub_domain_name = aws_apigatewayv2_alpha.DomainName(
                     self,
                     "cfSharedApiCustomDomain",

@@ -47,6 +47,7 @@ async def lifespan(app: FastAPI):
     # Close the Connection Pool
     await close_db_connection(app)
 
+
 # needed for openapi+reverse-proxy+prefix https://github.com/tiangolo/fastapi/discussions/9018#discussioncomment-5155534
 servers = None
 if settings.root_path:
