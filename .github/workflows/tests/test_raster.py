@@ -178,14 +178,14 @@ def test_item():
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
-    assert resp.json() == ["cog_default"]
+    assert resp.json() == ["cog"]
 
     resp = httpx.get(
         f"{raster_endpoint}/stac/tilejson.json",
         params={
             "collection": "noaa-emergency-response",
             "item": "20200307aC0853300w361200",
-            "assets": "cog_default",
+            "assets": "cog",
         },
     )
     assert resp.status_code == 200
