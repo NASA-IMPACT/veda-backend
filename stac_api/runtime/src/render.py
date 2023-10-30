@@ -1,7 +1,8 @@
 """This module contains functions and classes for defining titiler rendering query parameters STAC items."""
-from urllib.parse import urlencode
-from typing import Any, Dict, List, Optional
 import json
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlencode
+
 import orjson
 from pydantic import BaseModel
 
