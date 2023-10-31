@@ -92,7 +92,7 @@ class CloudfrontDistributionConstruct(Construct):
                     ),
                 },
             )
-            # TODO does this belong in domain? or should we keep it here
+
             hosted_zone = aws_route53.HostedZone.from_hosted_zone_attributes(
                 self,
                 "hosted-zone",

@@ -133,22 +133,6 @@ class DomainConstruct(Construct):
                     certificate=certificate,
                 )
 
-                # This record is currently created in routes/infrastructure/construct.py
-                # TODO should it be here?
-                # aws_route53.ARecord(
-                #     self,
-                #     "shared-api-dns-record",
-                #     zone=hosted_zone,
-                #     target=aws_route53.RecordTarget.from_alias(
-                #         aws_route53_targets.ApiGatewayv2DomainProperties(
-                #             regional_domain_name=self.shared_sub_domain_name.regional_domain_name,
-                #             regional_hosted_zone_id=self.shared_sub_domain_name.regional_hosted_zone_id,
-                #         )
-                #     ),
-                #     # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
-                #     record_name=stage,
-                # )
-
                 CfnOutput(
                     self,
                     "shared-sub-domain-name",
