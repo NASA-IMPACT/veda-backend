@@ -74,11 +74,6 @@ class vedaRasterSettings(BaseSettings):
         description="Optional root path for all api endpoints",
     )
 
-    cloudfront: Optional[bool] = Field(
-        False,
-        description="Boolean if Cloudfront Distribution should be deployed",
-    )
-
     class Config:
         """model config"""
 

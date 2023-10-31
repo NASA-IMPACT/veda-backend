@@ -23,16 +23,6 @@ class vedaSTACSettings(BaseSettings):
         description="Optional path prefix to add to all api endpoints",
     )
 
-    domain_hosted_zone_name: Optional[str] = Field(
-        None,
-        description="Domain name for the cloudfront distribution",
-    )
-
-    cloudfront: Optional[bool] = Field(
-        False,
-        description="Boolean if Cloudfront Distribution should be deployed",
-    )
-
     class Config:
         """model config"""
 

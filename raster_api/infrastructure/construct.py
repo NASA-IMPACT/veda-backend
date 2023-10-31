@@ -97,8 +97,7 @@ class RasterApiLambdaConstruct(Construct):
         domain_mapping = None
         # Legacy method to use a custom subdomain for this api (i.e. <stage>-raster.<domain-name>.com)
         # If using a custom root path and/or a proxy server, do not use a custom subdomain
-        # TODO we could also add support a shared custom subdomain with custom root path
-        if domain and domain.raster_domain_name and not veda_raster_settings.cloudfront:
+        if domain and domain.raster_domain_name:
             domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
                 domain_name=domain.raster_domain_name
             )
