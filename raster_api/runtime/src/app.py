@@ -48,17 +48,12 @@ async def lifespan(app: FastAPI):
     await close_db_connection(app)
 
 
-# needed for openapi+reverse-proxy+prefix https://github.com/tiangolo/fastapi/discussions/9018#discussioncomment-5155534
-servers = None
-if settings.root_path:
-    servers = [{"url": settings.root_path}]
 app = FastAPI(
     title=settings.name,
     version=veda_raster_version,
     openapi_url="/openapi.json",
     docs_url="/docs",
     lifespan=lifespan,
-    servers=servers,
     root_path=settings.root_path,
 )
 
