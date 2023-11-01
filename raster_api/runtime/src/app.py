@@ -48,13 +48,13 @@ async def lifespan(app: FastAPI):
     await close_db_connection(app)
 
 
-path_prefix = settings.path_prefix
 app = FastAPI(
     title=settings.name,
     version=veda_raster_version,
-    openapi_url=f"{path_prefix}/openapi.json",
-    docs_url=f"{path_prefix}/docs",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
     lifespan=lifespan,
+    root_path=settings.root_path,
 )
 
 # router to be applied to all titiler route factories (improves logs with FastAPI context)
@@ -66,7 +66,7 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 # /mosaic - PgSTAC Mosaic titiler endpoint
 ###############################################################################
 mosaic = MosaicTilerFactory(
-    router_prefix=f"{path_prefix}/mosaic",
+    router_prefix="/mosaic",
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     process_dependency=PostProcessParams,
@@ -80,7 +80,7 @@ mosaic = MosaicTilerFactory(
     # add /bbox [GET] and /feature  [POST] (default to False)
     add_part=True,
 )
-app.include_router(mosaic.router, prefix=f"{path_prefix}/mosaic", tags=["Mosaic"])
+app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
 # TODO
 # prefix will be replaced by `/mosaics/{search_id}` in titiler-pgstac 0.9.0
 
@@ -91,14 +91,14 @@ stac = MultiBaseTilerFactory(
     reader=PgSTACReader,
     path_dependency=ItemPathParams,
     optional_headers=optional_headers,
-    router_prefix=f"{path_prefix}/stac",
+    router_prefix="/stac",
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
     extensions=[
         stacViewerExtension(),
     ],
 )
-app.include_router(stac.router, tags=["Items"], prefix=f"{path_prefix}/stac")
+app.include_router(stac.router, tags=["Items"], prefix="/stac")
 # TODO
 # in titiler-pgstac we replaced the prefix to `/collections/{collection_id}/items/{item_id}`
 
@@ -106,7 +106,7 @@ app.include_router(stac.router, tags=["Items"], prefix=f"{path_prefix}/stac")
 # /cog - External Cloud Optimized GeoTIFF endpoints
 ###############################################################################
 cog = TilerFactory(
-    router_prefix=f"{path_prefix}/cog",
+    router_prefix="/cog",
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
@@ -116,9 +116,7 @@ cog = TilerFactory(
     ],
 )
 
-app.include_router(
-    cog.router, tags=["Cloud Optimized GeoTIFF"], prefix=f"{path_prefix}/cog"
-)
+app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
 
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])

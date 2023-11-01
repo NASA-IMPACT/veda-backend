@@ -18,19 +18,9 @@ class vedaSTACSettings(BaseSettings):
         description="Name or ARN of the AWS Secret containing database connection parameters",
     )
 
-    stac_path_prefix: Optional[str] = Field(
+    stac_root_path: str = Field(
         "",
         description="Optional path prefix to add to all api endpoints",
-    )
-
-    domain_hosted_zone_name: Optional[str] = Field(
-        None,
-        description="Domain name for the cloudfront distribution",
-    )
-
-    cloudfront: Optional[bool] = Field(
-        False,
-        description="Boolean if Cloudfront Distribution should be deployed",
     )
 
     class Config:
