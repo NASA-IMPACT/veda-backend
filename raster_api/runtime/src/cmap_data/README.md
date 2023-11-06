@@ -26,5 +26,5 @@ my_cmap.set_under('white', alpha=0)
 x = np.linspace(0, 1, 256)
 cmap_vals = my_cmap(x)[:, :]
 cmap_uint8 = (cmap_vals * 255).astype('uint8')
-np.save("epa.npy", cmap_uint8)
+np.save("epa-ghgi-ch4.npy", cmap_uint8)
 ```
