@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from aws_lambda_powertools.metrics import MetricUnit
 from src.algorithms import PostProcessParams
 from src.config import ApiSettings
-from src.dependencies import ItemPathParams
+from src.dependencies import ColorMapParams, ItemPathParams
 from src.extensions import stacViewerExtension
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 from src.version import __version__ as veda_raster_version
@@ -79,10 +79,11 @@ mosaic = MosaicTilerFactory(
     add_viewer=False,
     # add /bbox [GET] and /feature  [POST] (default to False)
     add_part=True,
+    colormap_dependency=ColorMapParams,
 )
 app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
 # TODO
-# prefix will be replaced by `/mosaics/{search_id}` in titiler-pgstac 0.9.0
+# prefix will be replaced by `/mosaics/{search_id}` in titiler-pgstac 1.0.0
 
 ###############################################################################
 # /stac - Custom STAC titiler endpoint
@@ -97,6 +98,7 @@ stac = MultiBaseTilerFactory(
     extensions=[
         stacViewerExtension(),
     ],
+    colormap_dependency=ColorMapParams,
 )
 app.include_router(stac.router, tags=["Items"], prefix="/stac")
 # TODO
@@ -114,6 +116,7 @@ cog = TilerFactory(
         cogValidateExtension(),
         cogViewerExtension(),
     ],
+    colormap_dependency=ColorMapParams,
 )
 
 app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
