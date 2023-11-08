@@ -23,6 +23,11 @@ class vedaSTACSettings(BaseSettings):
         description="Optional path prefix to add to all api endpoints",
     )
 
+    custom_host: str = Field(
+        None,
+        description="Optional custom host. When provided, override host in api integration",
+    )
+
     class Config:
         """model config"""
 

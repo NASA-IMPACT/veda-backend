@@ -101,6 +101,11 @@ class RasterApiLambdaConstruct(Construct):
             domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
                 domain_name=domain.raster_domain_name
             )
+        # If a custom host is configured, overwrite (custom_host will replace raster_domain_name if both are provided)
+        if veda_raster_settings.custom_host:
+            domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
+                domain_name=veda_raster_settings.custom_host
+            )
 
         self.raster_api = aws_apigatewayv2_alpha.HttpApi(
             self,
