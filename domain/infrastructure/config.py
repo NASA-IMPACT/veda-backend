@@ -17,8 +17,8 @@ class vedaDomainSettings(BaseSettings):
     create_custom_subdomains: bool = Field(
         False,
         description=(
-            "When true, create a unique subdomain for stac and raster apis. "
-            "For example <stage>-stac.domain.com and <stage>-raster.domain.com"
+            "When true and hosted zone config is provided, create a unique subdomain for stac and raster apis. "
+            "For example <stage>-stac.<hosted_zone_name> and <stage>-raster.<hosted_zone_name>"
         ),
     )
     api_prefix: Optional[str] = Field(
