@@ -30,10 +30,8 @@ class DomainConstruct(Construct):
         self.stac_domain_name = None
         self.raster_domain_name = None
 
-        if (
-            veda_domain_settings.hosted_zone_id
-            and veda_domain_settings.hosted_zone_name
-        ):
+        if veda_domain_settings.create_custom_subdomains:
+
             # If alternative custom domain provided, use it instead of the default
             if alt_domain is True:
                 hosted_zone_name = veda_domain_settings.alt_hosted_zone_name
@@ -57,84 +55,65 @@ class DomainConstruct(Construct):
                 ),
             )
 
-            # Either create one subdomain to share for all endpoints or create a unique subdomain for each
+            # Use custom api prefix if provided or deployment stage if not
+            if veda_domain_settings.api_prefix:
+                raster_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-raster"
+                stac_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-stac"
+            else:
+                raster_url_prefix = f"{stage.lower()}-raster"
+                stac_url_prefix = f"{stage.lower()}-stac"
+            raster_domain_name = f"{raster_url_prefix}.{hosted_zone_name}"
+            stac_domain_name = f"{stac_url_prefix}.{hosted_zone_name}"
 
-            if not veda_domain_settings.shared_subdomain:
-                # Use custom api prefix if provided or deployment stage if not
-                if veda_domain_settings.api_prefix:
-                    raster_url_prefix = (
-                        f"{veda_domain_settings.api_prefix.lower()}-raster"
+            self.raster_domain_name = aws_apigatewayv2_alpha.DomainName(
+                self,
+                "rasterApiCustomDomain",
+                domain_name=raster_domain_name,
+                certificate=certificate,
+            )
+
+            aws_route53.ARecord(
+                self,
+                "raster-api-dns-record",
+                zone=hosted_zone,
+                target=aws_route53.RecordTarget.from_alias(
+                    aws_route53_targets.ApiGatewayv2DomainProperties(
+                        regional_domain_name=self.raster_domain_name.regional_domain_name,
+                        regional_hosted_zone_id=self.raster_domain_name.regional_hosted_zone_id,
                     )
-                    stac_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-stac"
-                else:
-                    raster_url_prefix = f"{stage.lower()}-raster"
-                    stac_url_prefix = f"{stage.lower()}-stac"
-                raster_domain_name = f"{raster_url_prefix}.{hosted_zone_name}"
-                stac_domain_name = f"{stac_url_prefix}.{hosted_zone_name}"
+                ),
+                # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
+                record_name=raster_url_prefix,
+            )
 
-                self.raster_domain_name = aws_apigatewayv2_alpha.DomainName(
-                    self,
-                    "rasterApiCustomDomain",
-                    domain_name=raster_domain_name,
-                    certificate=certificate,
-                )
+            self.stac_domain_name = aws_apigatewayv2_alpha.DomainName(
+                self,
+                "stacApiCustomDomain",
+                domain_name=stac_domain_name,
+                certificate=certificate,
+            )
 
-                aws_route53.ARecord(
-                    self,
-                    "raster-api-dns-record",
-                    zone=hosted_zone,
-                    target=aws_route53.RecordTarget.from_alias(
-                        aws_route53_targets.ApiGatewayv2DomainProperties(
-                            regional_domain_name=self.raster_domain_name.regional_domain_name,
-                            regional_hosted_zone_id=self.raster_domain_name.regional_hosted_zone_id,
-                        )
-                    ),
-                    # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
-                    record_name=raster_url_prefix,
-                )
+            aws_route53.ARecord(
+                self,
+                "stac-api-dns-record",
+                zone=hosted_zone,
+                target=aws_route53.RecordTarget.from_alias(
+                    aws_route53_targets.ApiGatewayv2DomainProperties(
+                        regional_domain_name=self.stac_domain_name.regional_domain_name,
+                        regional_hosted_zone_id=self.stac_domain_name.regional_hosted_zone_id,
+                    )
+                ),
+                # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
+                record_name=stac_url_prefix,
+            )
 
-                self.stac_domain_name = aws_apigatewayv2_alpha.DomainName(
-                    self,
-                    "stacApiCustomDomain",
-                    domain_name=stac_domain_name,
-                    certificate=certificate,
-                )
-
-                aws_route53.ARecord(
-                    self,
-                    "stac-api-dns-record",
-                    zone=hosted_zone,
-                    target=aws_route53.RecordTarget.from_alias(
-                        aws_route53_targets.ApiGatewayv2DomainProperties(
-                            regional_domain_name=self.stac_domain_name.regional_domain_name,
-                            regional_hosted_zone_id=self.stac_domain_name.regional_hosted_zone_id,
-                        )
-                    ),
-                    # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
-                    record_name=stac_url_prefix,
-                )
-
-                CfnOutput(
-                    self,
-                    "raster-api",
-                    value=f"https://{raster_url_prefix}.{hosted_zone_name}/docs",
-                )
-                CfnOutput(
-                    self,
-                    "stac-api",
-                    value=f"https://{stac_url_prefix}.{hosted_zone_name}/",
-                )
-
-            if veda_domain_settings.shared_subdomain:
-                self.shared_sub_domain_name = aws_apigatewayv2_alpha.DomainName(
-                    self,
-                    "cfSharedApiCustomDomain",
-                    domain_name=f"{stage}.{hosted_zone_name}",
-                    certificate=certificate,
-                )
-
-                CfnOutput(
-                    self,
-                    "shared-sub-domain-name",
-                    value=f"https://{stage}.{hosted_zone_name}/",
-                )
+            CfnOutput(
+                self,
+                "raster-api",
+                value=f"https://{raster_url_prefix}.{hosted_zone_name}/docs",
+            )
+            CfnOutput(
+                self,
+                "stac-api",
+                value=f"https://{stac_url_prefix}.{hosted_zone_name}/",
+            )
