@@ -76,7 +76,7 @@ class vedaRasterSettings(BaseSettings):
 
     custom_host: str = Field(
         None,
-        description="Optional custom host. When provided, override host in api integration",
+        description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
 
     class Config:
