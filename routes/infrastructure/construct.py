@@ -82,10 +82,11 @@ class CloudfrontDistributionConstruct(Construct):
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                         origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
                     ),
-                    "/api/publish*": cf.BehaviorOptions(
+                    "/api/ingest**": cf.BehaviorOptions(
                         origin=origins.HttpOrigin(
                             urlparse(veda_route_settings.ingest_url).hostname,
                             origin_id="ingest-api",
+                            origin_path="/dev",
                         ),
                         cache_policy=cf.CachePolicy.CACHING_DISABLED,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
