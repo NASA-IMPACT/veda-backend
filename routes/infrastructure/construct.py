@@ -86,7 +86,7 @@ class CloudfrontDistributionConstruct(Construct):
                         origin=origins.HttpOrigin(
                             urlparse(veda_route_settings.ingest_url).hostname,
                             origin_id="ingest-api",
-                            origin_path="/dev"
+                            origin_path="/dev",
                         ),
                         cache_policy=cf.CachePolicy.CACHING_DISABLED,
                         allowed_methods=cf.AllowedMethods.ALLOW_ALL,
