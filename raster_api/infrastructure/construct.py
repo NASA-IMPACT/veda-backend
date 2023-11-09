@@ -87,6 +87,14 @@ class RasterApiLambdaConstruct(Construct):
             )
 
         integration_kwargs = dict(handler=veda_raster_function)
+        if veda_raster_settings.custom_host:
+            integration_kwargs[
+                "parameter_mapping"
+            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                "host",
+                aws_apigatewayv2_alpha.MappingValue(veda_raster_settings.custom_host),
+            )
+
         raster_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
                 construct_id,

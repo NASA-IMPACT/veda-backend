@@ -81,6 +81,13 @@ class StacApiLambdaConstruct(Construct):
         )
 
         integration_kwargs = dict(handler=lambda_function)
+        if veda_stac_settings.custom_host:
+            integration_kwargs[
+                "parameter_mapping"
+            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                "host",
+                aws_apigatewayv2_alpha.MappingValue(veda_stac_settings.custom_host),
+            )
         stac_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
                 construct_id,

@@ -14,9 +14,12 @@ class vedaDomainSettings(BaseSettings):
     hosted_zone_name: Optional[str] = Field(
         None, description="Custom domain name, i.e. veda-backend.xyz"
     )
-    shared_subdomain: bool = Field(
+    create_custom_subdomains: bool = Field(
         False,
-        description="Create a subdomain for app stage to used for all endpoints, i.e. <stage>.veda-backend.com/api/raster",
+        description=(
+            "When true and hosted zone config is provided, create a unique subdomain for stac and raster apis. "
+            "For example <stage>-stac.<hosted_zone_name> and <stage>-raster.<hosted_zone_name>"
+        ),
     )
     api_prefix: Optional[str] = Field(
         None,
