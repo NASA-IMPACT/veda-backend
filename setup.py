@@ -5,7 +5,6 @@ from setuptools import find_packages, setup
 with open("README.md") as f:
     long_description = f.read()
 
-
 extra_reqs = {
     "dev": ["pre-commit", "python-dotenv"],
     "deploy": [
@@ -13,7 +12,7 @@ extra_reqs = {
         "constructs>=10.0.0,<11.0.0",
         "aws-cdk.aws_apigatewayv2_alpha~=2.15.0a0",
         "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.15.0a0",
-        "pydantic",
+        "pydantic~=1.0",
     ],
     "test": [
         "pytest",
@@ -27,7 +26,6 @@ extra_reqs = {
 
 setup(
     name="veda-backend",
-    version="0.6.2",
     description="",
     long_description=long_description,
     long_description_content_type="text/markdown",

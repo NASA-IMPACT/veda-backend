@@ -84,6 +84,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       # API Config
       - VEDA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
+      - VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS=TRUE
+
 
     depends_on:
       - database
@@ -95,7 +97,7 @@ services:
   database:
     container_name: veda.db
     platform: linux/amd64
-    image: ghcr.io/stac-utils/pgstac:v0.7.9
+    image: ghcr.io/stac-utils/pgstac:v0.7.10
     environment:
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password

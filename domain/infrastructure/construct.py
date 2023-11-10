@@ -30,10 +30,8 @@ class DomainConstruct(Construct):
         self.stac_domain_name = None
         self.raster_domain_name = None
 
-        if (
-            veda_domain_settings.hosted_zone_id
-            and veda_domain_settings.hosted_zone_name
-        ):
+        if veda_domain_settings.create_custom_subdomains:
+
             # If alternative custom domain provided, use it instead of the default
             if alt_domain is True:
                 hosted_zone_name = veda_domain_settings.alt_hosted_zone_name
@@ -115,5 +113,7 @@ class DomainConstruct(Construct):
                 value=f"https://{raster_url_prefix}.{hosted_zone_name}/docs",
             )
             CfnOutput(
-                self, "stac-api", value=f"https://{stac_url_prefix}.{hosted_zone_name}/"
+                self,
+                "stac-api",
+                value=f"https://{stac_url_prefix}.{hosted_zone_name}/",
             )

@@ -34,6 +34,7 @@ class VedaStacApi(StacApi):
                 CollectionSearchPost,
                 self.response_class,
             ),
+            include_in_schema=False,
         )
 
     def register_get_search(self):
@@ -55,4 +56,5 @@ class VedaStacApi(StacApi):
                 CollectionSearchGet,
                 self.response_class,
             ),
+            include_in_schema=False,
         )

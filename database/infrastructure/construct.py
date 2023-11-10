@@ -139,8 +139,19 @@ class RdsConstruct(Construct):
 
         # Custom parameter group
         engine = aws_rds.DatabaseInstanceEngine.postgres(
-            version=aws_rds.PostgresEngineVersion.VER_14
+            version=aws_rds.PostgresEngineVersion.of(
+                veda_db_settings.rds_engine_full_version,
+                veda_db_settings.rds_engine_major_version,
+            )
         )
+
+        # RDS Instance Type
+        rds_instance_type = aws_ec2.InstanceType.of(
+            aws_ec2.InstanceClass[veda_db_settings.rds_instance_class],
+            aws_ec2.InstanceSize[veda_db_settings.rds_instance_size],
+        )
+
+        #  version=aws_rds.PostgresEngineVersion.postgres_major_version(veda_db_settings.rds_engine_version)
         parameter_group = aws_rds.ParameterGroup(
             self,
             "parameter-group",
@@ -152,35 +163,33 @@ class RdsConstruct(Construct):
             },
         )
 
+        # Database Configurations
         database_config = {
             "id": "rds",
             "instance_identifier": f"{stack_name}-postgres",
             "vpc": vpc,
             "engine": engine,
-            "instance_type": aws_ec2.InstanceType(
-                instance_type_identifier=veda_db_settings.rds_type
-            ),
+            "instance_type": rds_instance_type,
             "vpc_subnets": aws_ec2.SubnetSelection(subnet_type=subnet_type),
             "deletion_protection": True,
             "removal_policy": RemovalPolicy.RETAIN,
             "publicly_accessible": veda_db_settings.publicly_accessible,
             "parameter_group": parameter_group,
         }
-
-        if storage_encrypted := veda_db_settings.storage_encrypted:
-            database_config["storage_encrypted"] = storage_encrypted
+        if veda_db_settings.rds_encryption:
+            database_config["storage_encrypted"] = veda_db_settings.rds_encryption
 
         # Create a new database instance from snapshot if provided
         if veda_db_settings.snapshot_id:
             # For the database from snapshot we will need a new master secret
-            credentials = aws_rds.SnapshotCredentials.from_generated_secret(
+            snapshot_credentials = aws_rds.SnapshotCredentials.from_generated_secret(
                 username=veda_db_settings.admin_user
             )
 
             database = aws_rds.DatabaseInstanceFromSnapshot(
                 self,
                 snapshot_identifier=veda_db_settings.snapshot_id,
-                credentials=credentials,
+                credentials=snapshot_credentials,
                 **database_config,
             )
         # Or create/update RDS Resource

@@ -1,6 +1,7 @@
 """Veda-backend database construct configuration."""
 from typing import Optional
 
+from aws_cdk import aws_ec2, aws_rds
 from pydantic import BaseSettings, Field
 
 
@@ -57,12 +58,37 @@ class vedaDBSettings(BaseSettings):
         False,
         description="Boolean if the RDS should be accessed through a proxy",
     )
-    rds_type: str = Field(
-        "t3.small",
-        description="Postgres database type",
+    rds_instance_class: Optional[str] = Field(
+        aws_ec2.InstanceClass.BURSTABLE3.value,
+        description=(
+            "The instance class of the RDS instance "
+            "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_ec2/InstanceClass.html"
+        ),
     )
-    storage_encrypted: bool = Field(
-        False, description="Boolean if the RDS should be storage encrypted"
+    rds_instance_size: Optional[str] = Field(
+        aws_ec2.InstanceSize.SMALL.value,
+        description=(
+            "The size of the RDS instance "
+            "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_ec2/InstanceSize.html"
+        ),
+    )
+    rds_engine_full_version: Optional[str] = Field(
+        aws_rds.PostgresEngineVersion.VER_14.postgres_full_version,
+        description=(
+            "The version of the RDS Postgres engine "
+            "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/PostgresEngineVersion.html"
+        ),
+    )
+    rds_engine_major_version: Optional[str] = Field(
+        aws_rds.PostgresEngineVersion.VER_14.postgres_major_version,
+        description=(
+            "The version of the RDS Postgres engine "
+            "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/PostgresEngineVersion.html"
+        ),
+    )
+    rds_encryption: Optional[bool] = Field(
+        False,
+        description="Boolean if the RDS should be encrypted",
     )
 
     class Config:

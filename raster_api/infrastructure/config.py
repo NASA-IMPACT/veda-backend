@@ -56,47 +56,45 @@ class vedaRasterSettings(BaseSettings):
     timeout: int = 30  # seconds
     memory: int = 8000  # Mb
 
-    enable_mosaic_search: bool = Field(
+    raster_enable_mosaic_search: bool = Field(
         False,
         description="Deploy the raster API with the mosaic/list endpoint TRUE/FALSE",
     )
-    pgstac_secret_arn: Optional[str] = Field(
+    raster_pgstac_secret_arn: Optional[str] = Field(
         None,
         description="Name or ARN of the AWS Secret containing database connection parameters",
     )
 
-    data_access_role_arn: Optional[str] = Field(
+    raster_data_access_role_arn: Optional[str] = Field(
         None,
         description="Resource name of role permitting access to specified external S3 buckets",
     )
 
-    aws_request_payer: Optional[str] = Field(
+    raster_export_assume_role_creds_as_envs: Optional[bool] = Field(
+        False,
+        description="enables 'get_gdal_config' flow to export AWS credentials as os env vars",
+    )
+
+    raster_aws_request_payer: Optional[str] = Field(
         None,
         description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs",
     )
-    path_prefix: Optional[str] = Field(
+
+    raster_root_path: str = Field(
         "",
-        description="Optional path prefix to add to all api endpoints",
+        description="Optional root path for all api endpoints",
+    )
+
+    custom_host: str = Field(
+        None,
+        description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
 
     class Config(MyConfig):
         """model config"""
 
         env_file = ".env"
-        env_prefix = "VEDA_RASTER_"
-
-
-class Settings(vedaRasterSettings):
-    """Application Settings"""
-
-    host: Optional[str] = Field(
-        "",
-        description="Optional host to send to raster api",  # propagate cf url to raster api
-    )
-
-    class Config(MyConfig):
-        "Model config"
         env_prefix = "VEDA_"
 
 
-veda_raster_settings = Settings()
+veda_raster_settings = vedaRasterSettings()
