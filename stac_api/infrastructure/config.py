@@ -13,21 +13,26 @@ class vedaSTACSettings(BaseSettings):
     memory: int = 8000  # Mb
 
     # Secret database credentials
-    pgstac_secret_arn: Optional[str] = Field(
+    stac_pgstac_secret_arn: Optional[str] = Field(
         None,
         description="Name or ARN of the AWS Secret containing database connection parameters",
     )
 
-    path_prefix: Optional[str] = Field(
+    stac_root_path: str = Field(
         "",
         description="Optional path prefix to add to all api endpoints",
+    )
+
+    custom_host: str = Field(
+        None,
+        description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
 
     class Config:
         """model config"""
 
         env_file = ".env"
-        env_prefix = "VEDA_STAC_"
+        env_prefix = "VEDA_"
 
 
 veda_stac_settings = vedaSTACSettings()

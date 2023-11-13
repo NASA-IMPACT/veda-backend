@@ -116,10 +116,17 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .[dev,deploy,test]
 
-      - name: Get dev environment configuration for develop branch
-        run: ./scripts/get-env.sh "veda-backend-uah-dev-env"
-
+      - name: Get environment configuration for target branch
+        run: |
+          if [ "${{ github.base_ref }}" == "main" ]; then
+            ./scripts/get-env.sh "veda-backend-uah-staging-env"
+          elif [ "${{ github.base_ref }}" == "develop" ]; then
+            ./scripts/get-env.sh "veda-backend-uah-dev-env"
+          else
+            echo "No environment associated with ${GITHUB_REF##*/} branch. Test changes against dev stack"
+            ./scripts/get-env.sh "veda-backend-uah-dev-env"
+          fi
       - name: Pre deployment CDK diff
         run: |
           echo $STAGE
-          cdk diff veda-backend-uah-dev
+          cdk diff

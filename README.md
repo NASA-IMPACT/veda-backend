@@ -53,7 +53,8 @@ The constructs and applications in this project are configured using pydantic. T
 | Domain | `VEDA_DOMAIN` | [domain/infrastructure/config.py](domain/infrastructure/config.py) |
 | Network | `N/A` | [network/infrastructure/config.py](network/infrastructure/config.py) |
 | Raster API (TiTiler) | `VEDA_RASTER` | [raster_api/infrastructure/config.py](raster_-_api/infrastructure/config.py) |
-| STAC API | `VEDA_STAC` | [stac_api/infrastructure/config.py](stac_api/infrastructure/config.py) |
+| STAC API | `VEDA` | [stac_api/infrastructure/config.py](stac_api/infrastructure/config.py) |
+| Routes | `VEDA` | [routes/infrastructure/config.py](routes/infrastructure/config.py) |
 
 ### Deploying to the cloud
 
@@ -124,7 +125,7 @@ docker compose down
 
 > **Warning** PgSTAC records should be loaded in the database using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac) for proper indexing and partitioning.
 
-The VEDA ecosystem includes tools specifially created for loading PgSTAC records and optimizing data assets. The [veda-data-pipelines](https://github.com/NASA-IMPACT/veda-data-pipelines) project provides examples of cloud pipelines that transform data to cloud optimized formats, generate STAC metadata, and submit records for publication to the veda-backend database using the [veda-stac-ingestor](https://github.com/NASA-IMPACT/veda-stac-ingestor).
+The VEDA ecosystem includes tools specifially created for loading PgSTAC records and optimizing data assets. The [veda-data-airflow](https://github.com/NASA-IMPACT/veda-data-airflow) project provides examples of cloud pipelines that transform data to cloud optimized formats, generate STAC metadata, and submit records for publication to the veda-backend database using the [veda-stac-ingestor](https://github.com/NASA-IMPACT/veda-stac-ingestor).
 
 ## Support scripts
 Support scripts are provided for manual system operations.
@@ -139,7 +140,8 @@ Support scripts are provided for manual system operations.
 | [**veda-config**](https://github.com/NASA-IMPACT/veda-config) | Configuration for viewing VEDA assets in dashboard UI  |
 | [**veda-ui**](https://github.com/NASA-IMPACT/veda-ui) | Dashboard UI for viewing and analysing VEDA assets |
 | [**veda-stac-ingestor**](https://github.com/NASA-IMPACT/veda-stac-ingestor) |  Entry-point for users/services to add new records to database |
-| [**veda-data-pipelines**](https://github.com/NASA-IMPACT/veda-data-pipelines) | Cloud optimize data assets and submit records for publication to veda-stac-ingestor |
+| [**veda-data**](https://github.com/NASA-IMPACT/veda-data) | Collection and asset discovery configuration |
+| [**veda-data-airflow**](https://github.com/NASA-IMPACT/veda-data-airflow) | Cloud optimize data assets and submit records for publication to veda-stac-ingestor |
 | [**veda-docs**](https://github.com/NASA-IMPACT/veda-docs) | Documentation repository for end users of VEDA ecosystem data and tools |
 
 ## VEDA usage examples

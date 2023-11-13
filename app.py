@@ -10,6 +10,7 @@ from domain.infrastructure.construct import DomainConstruct
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
+from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
 app = App()
@@ -57,18 +58,29 @@ domain = DomainConstruct(veda_stack, "domain", stage=veda_app_settings.stage_nam
 raster_api = RasterApiLambdaConstruct(
     veda_stack,
     "raster-api",
+    stage=veda_app_settings.stage_name(),
     vpc=vpc.vpc,
     database=database,
-    domain_name=domain.raster_domain_name,
+    domain=domain,
 )
 
 stac_api = StacApiLambdaConstruct(
     veda_stack,
     "stac-api",
+    stage=veda_app_settings.stage_name(),
     vpc=vpc.vpc,
     database=database,
     raster_api=raster_api,
-    domain_name=domain.stac_domain_name,
+    domain=domain,
+)
+
+veda_routes = CloudfrontDistributionConstruct(
+    veda_stack,
+    "routes",
+    stage=veda_app_settings.stage_name(),
+    raster_api_id=raster_api.raster_api.api_id,
+    stac_api_id=stac_api.stac_api.api_id,
+    region=veda_app_settings.cdk_default_region,
 )
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
@@ -83,6 +95,7 @@ if veda_app_settings.alt_domain():
     alt_raster_api = RasterApiLambdaConstruct(
         veda_stack,
         "alt-raster-api",
+        stage=veda_app_settings.stage_name(),
         vpc=vpc.vpc,
         database=database,
         domain_name=alt_domain.raster_domain_name,
@@ -91,6 +104,7 @@ if veda_app_settings.alt_domain():
     alt_stac_api = StacApiLambdaConstruct(
         veda_stack,
         "alt-stac-api",
+        stage=veda_app_settings.stage_name(),
         vpc=vpc.vpc,
         database=database,
         raster_api=raster_api,

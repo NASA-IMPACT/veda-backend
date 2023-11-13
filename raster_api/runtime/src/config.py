@@ -6,9 +6,10 @@ import os
 from typing import Optional
 
 import boto3
-import pydantic
-from pydantic import BaseSettings, Field
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings
 from rasterio.session import AWSSession
+from typing_extensions import Annotated
 
 from titiler.pgstac.settings import PostgresSettings
 
@@ -53,14 +54,20 @@ class ApiSettings(BaseSettings):
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
-    path_prefix: str = ""
+    root_path: Optional[str] = None
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False
 
-    pgstac_secret_arn: Optional[str]
+    pgstac_secret_arn: Optional[str] = None
 
-    @pydantic.validator("cors_origins")
+    model_config = {
+        "env_file": ".env",
+        "extra": "ignore",
+        "env_prefix": "VEDA_RASTER_",
+    }
+
+    @field_validator("cors_origins")
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
@@ -74,21 +81,25 @@ class ApiSettings(BaseSettings):
                 postgres_user=secret["username"],
                 postgres_pass=secret["password"],
                 postgres_host=secret["host"],
-                postgres_port=str(secret["port"]),
+                postgres_port=int(secret["port"]),
                 postgres_dbname=secret["dbname"],
             )
         else:
             return PostgresSettings()
 
-    data_access_role_arn: Optional[str] = Field(
-        None,
-        description="Resource name of role permitting access to specified external S3 buckets",
-    )
+    data_access_role_arn: Annotated[
+        Optional[str],
+        Field(
+            description="Resource name of role permitting access to specified external S3 buckets"
+        ),
+    ] = None
 
-    export_assume_role_creds_as_envs: Optional[bool] = Field(
-        False,
-        description="enables 'get_gdal_config' flow to export AWS credentials as os env vars",
-    )
+    export_assume_role_creds_as_envs: Annotated[
+        bool,
+        Field(
+            description="enables 'get_gdal_config' flow to export AWS credentials as os env vars",
+        ),
+    ] = False
 
     def get_gdal_config(self):
         """return default aws session config or assume role data_access_role_arn credentials session"""
@@ -131,9 +142,3 @@ class ApiSettings(BaseSettings):
         else:
             # Use the default role of this lambda
             return {}
-
-    class Config:
-        """model config"""
-
-        env_file = ".env"
-        env_prefix = "VEDA_RASTER_"
