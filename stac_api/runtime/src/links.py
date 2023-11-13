@@ -12,7 +12,6 @@ from .render import get_render_config
 
 tiles_settings = TilesApiSettings()
 
-
 class LinkInjector:
     """
     A class which organizes information relating STAC entries
@@ -35,7 +34,6 @@ class LinkInjector:
     ) -> None:
         """Initialize a LinkInjector"""
 
-        render_params = render_params.get("dashboard", {})
         render_params.pop("title", render_params)
 
         self.collection_id = collection_id

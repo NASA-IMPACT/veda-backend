@@ -136,7 +136,6 @@ class VedaCrudClient(CoreCrudClient):
         request = kwargs["request"]
 
         result = await _super._search_base(search_request, **kwargs)
-        render_params = {}
 
         if len(result["features"]) > 0:
             collection_id = result["features"][0]["collection"]
@@ -144,14 +143,18 @@ class VedaCrudClient(CoreCrudClient):
 
             render_params = collection.get("renders", {})
 
-        item_collection = ItemCollection(
-            **{
-                **result,
-                "features": [
-                    self.inject_item_links(i, render_params, request)
-                    for i in result.get("features", [])
-                ],
-            }
-        )
+            if "dashboard" in render_params:
+                item_collection = ItemCollection(
+                    **{
+                        **result,
+                        "features": [
+                            self.inject_item_links(i, render_params["dashboard"], request)
+                            for i in result.get("features", [])
+                        ],
+                    }
+                )
+            else:
+                item_collection=result
+            
 
         return item_collection
