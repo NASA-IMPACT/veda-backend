@@ -6,17 +6,6 @@ from typing import Dict, List, Optional
 from pydantic import BaseSettings, Field
 
 
-class MyConfig(BaseSettings.Config):
-    """Custom config class that support multiple env_prefixes"""
-
-    @classmethod
-    def prepare_field(cls, field) -> None:
-        """Workaround to not overwrite ENV_PREFIX"""
-        if "env_names" in field.field_info.extra:
-            return
-        return super().prepare_field(field)
-
-
 class vedaRasterSettings(BaseSettings):
     """Raster settings"""
 
@@ -90,7 +79,7 @@ class vedaRasterSettings(BaseSettings):
         description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
 
-    class Config(MyConfig):
+    class Config:
         """model config"""
 
         env_file = ".env"

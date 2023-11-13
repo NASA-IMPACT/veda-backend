@@ -93,6 +93,8 @@ class StacApiLambdaConstruct(Construct):
                 construct_id,
                 **integration_kwargs,
             )
+            if veda_stac_settings.host
+            else None,
         )
 
         domain_mapping = None
