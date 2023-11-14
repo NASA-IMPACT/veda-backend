@@ -12,6 +12,7 @@ from .render import get_render_config
 
 tiles_settings = TilesApiSettings()
 
+
 class LinkInjector:
     """
     A class which organizes information relating STAC entries
@@ -56,7 +57,7 @@ class LinkInjector:
             "title": "Map of Item",
             "href": href,
             "rel": "preview",
-            "type": "text/html"
+            "type": "text/html",
         }
 
     def _get_item_preview_link(self, item_id: str) -> Dict[str, Any]:

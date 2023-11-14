@@ -17,8 +17,8 @@ def get_param_str(params: Dict[str, Any]) -> str:
     for k, v in params.items():
         if k == "colormap":
             params[k] = json.dumps(v)  # colormap needs to be json encoded
-        elif k=="rescale":
-            params[k]=','.join([str(i) for i in v])
+        elif k == "rescale":
+            params[k] = ",".join([str(i) for i in v])
 
     return urlencode(params, True)
 

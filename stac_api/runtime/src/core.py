@@ -148,13 +148,14 @@ class VedaCrudClient(CoreCrudClient):
                     **{
                         **result,
                         "features": [
-                            self.inject_item_links(i, render_params["dashboard"], request)
+                            self.inject_item_links(
+                                i, render_params["dashboard"], request
+                            )
                             for i in result.get("features", [])
                         ],
                     }
                 )
             else:
-                item_collection=result
-            
+                item_collection = result
 
         return item_collection
