@@ -34,4 +34,5 @@ class vedaSTACSettings(BaseSettings):
         env_file = ".env"
         env_prefix = "VEDA_"
 
+
 veda_stac_settings = vedaSTACSettings()
