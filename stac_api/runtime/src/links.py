@@ -3,11 +3,11 @@ from typing import Any, Dict
 from urllib.parse import urljoin
 
 import pystac
+from src.config import TilesApiSettings
 
 from fastapi import Request
 from stac_fastapi.types.stac import Item
 
-from src.config import TilesApiSettings
 from .render import get_render_config
 
 tiles_settings = TilesApiSettings()
