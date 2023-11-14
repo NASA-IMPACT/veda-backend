@@ -1,76 +1,38 @@
 """veda.raster.dependencies."""
 
-import json
-from base64 import b64decode
-from typing import Dict, Union
-from urllib.parse import urlparse
-
-from cachetools import LRUCache, cached
-from cachetools.keys import hashkey
+import pystac
+from rio_tiler.colormap import cmap as default_cmap
+from typing_extensions import Annotated
 
 from fastapi import Query
 from starlette.requests import Request
+from titiler.core.dependencies import create_colormap_dependency
+from titiler.pgstac.dependencies import get_stac_item
+
+try:
+    from importlib.resources import files as resources_files  # type: ignore
+except ImportError:
+    # Try backported to PY<39 `importlib_resources`.
+    from importlib_resources import files as resources_files  # type: ignore
 
 
-@cached(
-    LRUCache(maxsize=512),
-    key=lambda pool, collection_id, item_id: hashkey(collection_id, item_id),
-)
-def get_item(pool, collection_id, item_id):
-    """Get STAC Item from PGStac."""
-
-    print("COLLECTION ID: ", collection_id)
-    print("ITEM ID: ", item_id)
-
-    req = dict(
-        filter={
-            "op": "and",
-            "args": [
-                {
-                    "op": "eq",
-                    "args": [{"property": "collection"}, collection_id],
-                },
-                {"op": "eq", "args": [{"property": "id"}, item_id]},
-            ],
-        },
-    )
-    print("REQUEST: ", req)
-    with pool.connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                "SELECT * FROM search(%s);",
-                (json.dumps(req),),
-            )
-            resp = cursor.fetchone()[0]
-            features = resp.get("features", [])
-            if not len(features):
-                raise Exception(
-                    "No item '{item_id}' found in '{collection_id}' collection"
-                )
-
-            return features[0]
+def ItemPathParams(
+    request: Request,
+    collection: Annotated[
+        str,
+        Query(description="STAC Collection ID"),
+    ],
+    item: Annotated[
+        str,
+        Query(description="STAC Item ID"),
+    ],
+) -> pystac.Item:
+    """STAC Item dependency."""
+    return get_stac_item(request.app.state.dbpool, collection, item)
 
 
-def DatasetPathParams(
-    request: Request, url: str = Query(..., description="Dataset URL")
-) -> Union[str, Dict]:
-    """Custom Dataset Param for the custom STAC Reader"""
-    parsed = urlparse(url)
-
-    # stac://{base 64 encoded item}
-    if parsed.scheme == "stac":
-        return json.loads(b64decode(url.replace("stac://", "")))
-
-    # pgstac://{collectionId}/{itemId}
-    elif parsed.scheme == "pgstac":
-        collection_id = parsed.netloc
-        item_id = parsed.path.strip("/")
-        return get_item(
-            request.app.state.dbpool,
-            collection_id,
-            item_id,
-        )
-
-    # Default to passing the URL
-    else:
-        return url
+VEDA_CMAPS_FILES = {
+    f.stem: str(f) for f in (resources_files(__package__) / "cmap_data").glob("*.npy")  # type: ignore
+}
+cmap = default_cmap.register(VEDA_CMAPS_FILES)
+ColorMapParams = create_colormap_dependency(cmap)

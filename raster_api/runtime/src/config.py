@@ -2,12 +2,14 @@
 
 import base64
 import json
+import os
 from typing import Optional
 
 import boto3
-import pydantic
-from pydantic import BaseSettings, Field
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings
 from rasterio.session import AWSSession
+from typing_extensions import Annotated
 
 from titiler.pgstac.settings import PostgresSettings
 
@@ -52,13 +54,20 @@ class ApiSettings(BaseSettings):
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
+    root_path: Optional[str] = None
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False
 
-    pgstac_secret_arn: Optional[str]
+    pgstac_secret_arn: Optional[str] = None
 
-    @pydantic.validator("cors_origins")
+    model_config = {
+        "env_file": ".env",
+        "extra": "ignore",
+        "env_prefix": "VEDA_RASTER_",
+    }
+
+    @field_validator("cors_origins")
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
@@ -72,16 +81,25 @@ class ApiSettings(BaseSettings):
                 postgres_user=secret["username"],
                 postgres_pass=secret["password"],
                 postgres_host=secret["host"],
-                postgres_port=str(secret["port"]),
+                postgres_port=int(secret["port"]),
                 postgres_dbname=secret["dbname"],
             )
         else:
             return PostgresSettings()
 
-    data_access_role_arn: Optional[str] = Field(
-        None,
-        description="Resource name of role permitting access to specified external S3 buckets",
-    )
+    data_access_role_arn: Annotated[
+        Optional[str],
+        Field(
+            description="Resource name of role permitting access to specified external S3 buckets"
+        ),
+    ] = None
+
+    export_assume_role_creds_as_envs: Annotated[
+        bool,
+        Field(
+            description="enables 'get_gdal_config' flow to export AWS credentials as os env vars",
+        ),
+    ] = False
 
     def get_gdal_config(self):
         """return default aws session config or assume role data_access_role_arn credentials session"""
@@ -91,6 +109,22 @@ class ApiSettings(BaseSettings):
                 data_access_credentials = get_role_credentials(
                     self.data_access_role_arn
                 )
+
+                # hack for issue https://github.com/NASA-IMPACT/veda-backend/issues/192
+                # which forces any nested `rasterio.Env` context managers (which run in separate threads)
+                # to pick up the assume-role `AWS_*` os env vars and re-init from there via:
+                # https://github.com/rasterio/rasterio/blob/main/rasterio/env.py#L204-L205
+                if self.export_assume_role_creds_as_envs:
+                    os.environ["AWS_ACCESS_KEY_ID"] = data_access_credentials[
+                        "AccessKeyId"
+                    ]
+                    os.environ["AWS_SECRET_ACCESS_KEY"] = data_access_credentials[
+                        "SecretAccessKey"
+                    ]
+                    os.environ["AWS_SESSION_TOKEN"] = data_access_credentials[
+                        "SessionToken"
+                    ]
+
                 return {
                     "session": AWSSession(
                         aws_access_key_id=data_access_credentials["AccessKeyId"],
@@ -108,11 +142,3 @@ class ApiSettings(BaseSettings):
         else:
             # Use the default role of this lambda
             return {}
-
-    path_prefix: str = ""
-
-    class Config:
-        """model config"""
-
-        env_file = ".env"
-        env_prefix = "VEDA_RASTER_"

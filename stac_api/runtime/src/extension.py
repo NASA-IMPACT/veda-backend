@@ -14,7 +14,6 @@ from starlette.requests import Request
 from .monitoring import LoggerRouteHandler, tracer
 
 api_settings = ApiSettings()
-path_prefix = api_settings.path_prefix
 
 MAX_B64_ITEM_SIZE = 2000
 
@@ -31,7 +30,7 @@ class TiTilerExtension(ApiExtension):
             None
 
         """
-        router = APIRouter(route_class=LoggerRouteHandler, prefix=path_prefix)
+        router = APIRouter(route_class=LoggerRouteHandler)
 
         @tracer.capture_method
         @router.get(

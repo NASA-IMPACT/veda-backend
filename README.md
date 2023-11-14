@@ -43,16 +43,42 @@ To retrieve the variables for a stage that has been previously deployed, the sec
 | `VEDA_DB_PGSTAC_VERSION` | **REQUIRED** version of PgStac database, i.e. 0.7.9 |
 | `VEDA_DB_SCHEMA_VERSION` | **REQUIRED** The version of the custom veda-backend schema, i.e. 0.1.1 |
 | `VEDA_DB_SNAPSHOT_ID` | **Once used always REQUIRED** Optional RDS snapshot identifier to initialize RDS from a snapshot |
-> **Note** See [Advanced Configuration](docs/advanced_configuration.md) for details about custom configuration options.
+
+### Advanced configuration
+The constructs and applications in this project are configured using pydantic. The settings are defined in config.py files stored alongside the associated construct or application--for example the settings for the RDS PostgreSQL construct are defined in database/infrastructure/config.py. For custom configuration, use environment variables to override the pydantic defaults.
+
+| Construct | Env Prefix | Configuration |
+| --- | --- | --- |
+| Database | `VEDA_DB` | [database/infrastructure/config.py](database/infrastructure/config.py) |
+| Domain | `VEDA_DOMAIN` | [domain/infrastructure/config.py](domain/infrastructure/config.py) |
+| Network | `N/A` | [network/infrastructure/config.py](network/infrastructure/config.py) |
+| Raster API (TiTiler) | `VEDA_RASTER` | [raster_api/infrastructure/config.py](raster_-_api/infrastructure/config.py) |
+| STAC API | `VEDA` | [stac_api/infrastructure/config.py](stac_api/infrastructure/config.py) |
+| Routes | `VEDA` | [routes/infrastructure/config.py](routes/infrastructure/config.py) |
 
 ### Deploying to the cloud
 
-#### Install pre-requisites
+#### Install deployment pre-requisites
+- [Node](https://nodejs.org/)
+- [NVM](https://github.com/nvm-sh/nvm#node-version-manager---)
+- [jq](https://jqlang.github.io/jq/) (used for exporting environment variable secrets to `.env` in [scripts/sync-env-local.sh](/scripts/sync-env-local.sh))
 
+These can be installed with [homebrew](https://brew.sh/) on MacOS
+```
+brew install node
+brew install nvm
+brew install jq
+```
+
+#### Virtual environment example
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+#### Install requirements
 ```bash
-nvm install 17
-nvm use 17
-node --version
+nvm use --lts
 npm install --location=global aws-cdk
 python3 -m pip install --upgrade pip
 python3 -m pip install -e ".[dev,deploy,test]"
@@ -72,8 +98,9 @@ cdk deploy
 If this is a development stack that is safe to delete, you can delete the stack in CloudFormation console or via `cdk destroy`, however, the additional manual steps were required to completely delete the stack resources:
 
 1. You will need to disable deletion protection of the RDS database and delete the database.
-2. Detach the Internet Gateway (IGW) from the VPC and delete it.
-3. If this stack created a new VPC, delete the VPC (this should delete a subnet and security group too).
+2. Identify and delete the RDS subnet group associated with the RDS database you just deleted (it will not be automatically removed because of the RDS deletion protection in place when the group was created).
+3. If this stack created a new VPC, detach the Internet Gateway (IGW) from the VPC and delete it.
+4. If this stack created a new VPC, delete the VPC (this should delete a subnet and security group too).
 
 ## Custom deployments
 
@@ -98,7 +125,7 @@ docker compose down
 
 > **Warning** PgSTAC records should be loaded in the database using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac) for proper indexing and partitioning.
 
-The VEDA ecosystem includes tools specifially created for loading PgSTAC records and optimizing data assets. The [veda-data-pipelines](https://github.com/NASA-IMPACT/veda-data-pipelines) project provides examples of cloud pipelines that transform data to cloud optimized formats, generate STAC metadata, and submit records for publication to the veda-backend database using the [veda-stac-ingestor](https://github.com/NASA-IMPACT/veda-stac-ingestor).
+The VEDA ecosystem includes tools specifially created for loading PgSTAC records and optimizing data assets. The [veda-data-airflow](https://github.com/NASA-IMPACT/veda-data-airflow) project provides examples of cloud pipelines that transform data to cloud optimized formats, generate STAC metadata, and submit records for publication to the veda-backend database using the [veda-stac-ingestor](https://github.com/NASA-IMPACT/veda-stac-ingestor).
 
 ## Support scripts
 Support scripts are provided for manual system operations.
@@ -119,6 +146,7 @@ Support scripts are provided for manual system operations.
 ## VEDA usage examples
 
 ### [VEDA documentation](https://nasa-impact.github.io/veda-docs)
+### [VEDA documentation](https://nasa-impact.github.io/veda-docs)
 
 ### [VEDA dashboard](https://www.earthdata.nasa.gov/dashboard)
 
@@ -129,3 +157,4 @@ Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is 
 
 # License
 This project is licensed under **Apache 2**, see the [LICENSE](LICENSE) file for more details.
+
