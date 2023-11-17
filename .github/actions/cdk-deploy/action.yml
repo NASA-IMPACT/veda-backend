@@ -9,9 +9,8 @@ inputs:
     type: string
     default: "."
 
-jobs:   
-  - test:
-    runs-on: ubuntu-latest
+runs:
+  using: "composite"
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
