@@ -24,14 +24,17 @@ runs:
         key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
 
     - name: Install python dependencies
+      shell: bash
       run: |
         python -m pip install --upgrade pip
         python -m pip install -e .[dev,deploy,test] 
 
     - name: Launch services
+      shell: bash
       run: docker compose up --build -d
 
     - name: Ingest Stac Items/Collection
+      shell: bash
       run: |
         ./scripts/load-data-container.sh
 
@@ -40,22 +43,12 @@ runs:
       shell: bash
 
     - name: Integrations tests
+      shell: bash
       run: python -m pytest .github/workflows/tests/ -vv -s
 
     - name: Stop services
+      shell: bash
       run: docker compose stop
-
-- deploy: 
-  needs: [test]
-
-  runs-on: ubuntu-latest
-  steps:
-  
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
     
     - name: Setup Node
       uses: actions/setup-node@v3
@@ -66,24 +59,17 @@ runs:
       with:
         path: ~/.npm
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-    
+      
     - name: Install CDK
+      shell: bash
       run: npm install -g aws-cdk@2
-    
-    - uses: actions/cache@v3
-      with:
-        path: ${{ env.pythonLocation }}
-        key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
-    
-    - name: Install python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install -e .[dev,deploy,test] 
 
     - name: Get dev environment configuration for develop branch
+      shell: bash
       run: ./scripts/get-env.sh ${{ inputs.env_aws_secret_name }}
 
-    - name: Deploy 
+    - name: Deploy
+      shell: bash
       run: |
         echo $STAGE
         cdk deploy --require-approval never
