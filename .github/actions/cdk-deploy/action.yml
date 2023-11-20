@@ -35,7 +35,6 @@ runs:
       
     - name: Install CDK
       shell: bash
-      working-directory: ${{ inputs.dir }}
       run: npm install -g aws-cdk@2
 
     - name: Install python dependencies
