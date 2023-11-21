@@ -122,7 +122,7 @@ for key, value in {
 
 app.synth()
 
-if veda_app_settings.bootstrap_qualifier:
+if veda_app_settings.veda_bootstrap_qualifier:
     app.node.set_context(
         "@aws-cdk/core:bootstrapQualifier", veda_app_settings.veda_bootstrap_qualifier
     )
