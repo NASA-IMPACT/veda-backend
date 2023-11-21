@@ -70,7 +70,8 @@ runs:
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
-        docker-compose down --rmi all --volumes
+        docker compose down --rmi all --volumes
+        rm -rf .pgdata
 
     - name: Get dev environment configuration for develop branch
       shell: bash
