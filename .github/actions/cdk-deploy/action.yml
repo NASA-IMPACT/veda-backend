@@ -69,7 +69,8 @@ runs:
     - name: Stop services
       shell: bash
       working-directory: ${{ inputs.dir }}
-      run: docker compose stop
+      run: |
+        docker-compose down --rmi all --volumes
 
     - name: Get dev environment configuration for develop branch
       shell: bash
