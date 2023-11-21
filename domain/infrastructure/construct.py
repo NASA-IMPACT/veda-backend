@@ -31,7 +31,6 @@ class DomainConstruct(Construct):
         self.raster_domain_name = None
 
         if veda_domain_settings.create_custom_subdomains:
-
             # If alternative custom domain provided, use it instead of the default
             if alt_domain is True:
                 hosted_zone_name = veda_domain_settings.alt_hosted_zone_name
