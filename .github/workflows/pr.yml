@@ -28,7 +28,7 @@ jobs:
   lint-conventional-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: CondeNast/conventional-pull-request-action@v0.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -87,12 +87,12 @@ jobs:
           python-version: '3.9'
       
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 17
 
       - name: Configure awscli
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -129,4 +129,4 @@ jobs:
       - name: Pre deployment CDK diff
         run: |
           echo $STAGE
-          cdk diff
+          cdk diff >> $GITHUB_OUTPUT
