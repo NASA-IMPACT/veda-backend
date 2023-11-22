@@ -14,7 +14,7 @@ class PermissionsBoundaryAspect:
     This aspect finds all aws_iam.Role objects in a node (ie. CDK stack) and sets permissions boundary to the given ARN.
     """
 
-    def __init__(self, permissions_boundary: Union[aws_iam.IManagedPolicy, str]) -> None:
+    def __init__(self, permissions_boundary: Union[aws_iam.ManagedPolicy, str]) -> None:
         """
         :param permissions_boundary: Either aws_iam.ManagedPolicy object or managed policy's ARN string
         """
