@@ -24,7 +24,7 @@ class VedaStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         if veda_app_settings.permissions_boundary_policy_name:
-            permissions_boundary_policy = aws_iam.ManagedPolicy.from_managed_policy_name(
+            permissions_boundary_policy = aws_iam.Policy.from_policy_name(
                 self,
                 "permissions-boundary",
                 veda_app_settings.permissions_boundary_policy_name,
@@ -121,3 +121,8 @@ for key, value in {
         Tags.of(app).add(key=key, value=value)
 
 app.synth()
+
+if veda_app_settings.veda_bootstrap_qualifier:
+    app.node.set_context(
+        "@aws-cdk/core:bootstrapQualifier", veda_app_settings.veda_bootstrap_qualifier
+    )

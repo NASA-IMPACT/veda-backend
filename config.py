@@ -47,6 +47,11 @@ class vedaAppSettings(BaseSettings):
         description="Custom domain name, i.e. veda-backend.xyz",
     )
 
+    veda_bootstrap_qualifier: Optional[str] = Field(
+        None,
+        description="Qualifier for cdk bootstraps",
+    )
+
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""
 
