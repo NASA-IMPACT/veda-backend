@@ -49,7 +49,7 @@ class vedaAppSettings(BaseSettings):
 
     bootstrap_qualifier: Optional[str] = Field(
         None,
-        description="Qualifier for cdk bootstraps",
+        description="Custom bootstrap qualifier override if not using a default installation of AWS CDK Toolkit to synthesize app.",
     )
 
     def cdk_env(self) -> dict:
