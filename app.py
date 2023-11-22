@@ -126,9 +126,4 @@ for key, value in {
     if value:
         Tags.of(app).add(key=key, value=value)
 
-if veda_app_settings.bootstrap_qualifier:
-    app.node.set_context(
-        "@aws-cdk/core:bootstrapQualifier", veda_app_settings.bootstrap_qualifier
-    )
-
 app.synth()
