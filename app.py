@@ -14,9 +14,9 @@ from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
 app = App()
-if veda_app_settings.veda_bootstrap_qualifier:
+if veda_app_settings.bootstrap_qualifier:
     app.node.set_context(
-        "@aws-cdk/core:bootstrapQualifier", veda_app_settings.veda_bootstrap_qualifier
+        "@aws-cdk/core:bootstrapQualifier", veda_app_settings.bootstrap_qualifier
     )
 
 
