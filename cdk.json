@@ -1,6 +1,3 @@
 {
-  "app": "python3 app.py",
-  "context": {
-    "@aws-cdk/core:bootstrapQualifier": "mnhnb659fd"
-  }
+  "app": "python3 app.py"
 }
