@@ -14,6 +14,10 @@ from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
 app = App()
+if veda_app_settings.bootstrap_qualifier:
+    app.node.set_context(
+        "@aws-cdk/core:bootstrapQualifier", veda_app_settings.bootstrap_qualifier
+    )
 
 
 class VedaStack(Stack):
@@ -24,10 +28,12 @@ class VedaStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         if veda_app_settings.permissions_boundary_policy_name:
-            permissions_boundary_policy = aws_iam.ManagedPolicy.from_managed_policy_name(
-                self,
-                "permissions-boundary",
-                veda_app_settings.permissions_boundary_policy_name,
+            permissions_boundary_policy = (
+                aws_iam.ManagedPolicy.from_managed_policy_name(
+                    self,
+                    "permissions-boundary",
+                    veda_app_settings.permissions_boundary_policy_name,
+                )
             )
             aws_iam.PermissionsBoundary.of(self).apply(permissions_boundary_policy)
             Aspects.of(self).add(PermissionsBoundaryAspect(permissions_boundary_policy))
