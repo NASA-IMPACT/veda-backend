@@ -47,7 +47,7 @@ class vedaAppSettings(BaseSettings):
         description="Custom domain name, i.e. veda-backend.xyz",
     )
 
-    veda_bootstrap_qualifier: Optional[str] = Field(
+    bootstrap_qualifier: Optional[str] = Field(
         None,
         description="Qualifier for cdk bootstraps",
     )
