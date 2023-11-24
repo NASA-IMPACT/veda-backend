@@ -54,7 +54,7 @@ class vedaRasterSettings(BaseSettings):
         description="Name or ARN of the AWS Secret containing database connection parameters",
     )
 
-    raster_data_access_role_arn: Optional[str] = Field(
+    data_access_role_arn: Optional[str] = Field(
         None,
         description="Resource name of role permitting access to specified external S3 buckets",
     )

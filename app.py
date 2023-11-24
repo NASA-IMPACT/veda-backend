@@ -13,8 +13,8 @@ from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
 from ingest_api.infrastructure.config import IngestorConfig as ingest_config
-from ingest_api.infrastructure.constructs import ApiConstruct as ingest_api_construct
-from ingest_api.infrastructure.constructs import IngestorConstruct as ingestor_construct
+from ingest_api.infrastructure.construct import ApiConstruct as ingest_api_construct
+from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_construct
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
@@ -213,6 +213,7 @@ ingest_api = ingest_api_construct(
     config=ingestor_config,
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
+    domain=domain,
 )
 
 ingestor = ingestor_construct(
@@ -223,6 +224,13 @@ ingestor = ingestor_construct(
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
 )
+
+veda_routes.add_ingest_behavior(
+    ingest_api=ingest_api.api, stage=veda_app_settings.stage_name()
+)
+
+# Must be done after all CF behaviors exist
+veda_routes.create_route_records(stage=veda_app_settings.stage_name())
 
 
 def register_ssm_parameter(

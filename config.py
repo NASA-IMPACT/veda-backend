@@ -53,7 +53,7 @@ class vedaAppSettings(BaseSettings):
     permissions_boundary_policy_name: Optional[str] = Field(
         None,
         description="Name of IAM policy to define stack permissions boundary",
-    )
+    ) 
     veda_domain_alt_hosted_zone_id: Optional[str] = Field(
         None,
         description="Route53 zone identifier if using a custom domain name",
