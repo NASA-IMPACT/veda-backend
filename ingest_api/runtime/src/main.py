@@ -27,14 +27,16 @@ settings = (
 
 
 app = FastAPI(
-    root_path=settings.root_path,
-    title="VEDA Ingestion API Documentation",
+    title="VEDA Ingestion API",
     description=DESCRIPTION,
     license_info={
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     },
     contact={"url": "https://github.com/NASA-IMPACT/veda-backend"},
+    root_path=settings.root_path,
+    openapi_url="/openapi.json",
+    docs_url="/docs",
 )
 
 collection_publisher = CollectionPublisher()

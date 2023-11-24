@@ -131,12 +131,12 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         # Optional use sts assume role with GetObject permissions for external S3 bucket(s)
-        if veda_raster_settings.raster_data_access_role_arn:
+        if veda_raster_settings.data_access_role_arn:
             # Get the role for external data access
             data_access_role = aws_iam.Role.from_role_arn(
                 self,
                 "data-access-role",
-                veda_raster_settings.raster_data_access_role_arn,
+                veda_raster_settings.data_access_role_arn,
             )
 
             # Allow this lambda to assume the data access role
@@ -147,7 +147,7 @@ class RasterApiLambdaConstruct(Construct):
 
             veda_raster_function.add_environment(
                 "VEDA_RASTER_DATA_ACCESS_ROLE_ARN",
-                veda_raster_settings.raster_data_access_role_arn,
+                veda_raster_settings.data_access_role_arn,
             )
 
         # Optional configuration to export assume role session into lambda function environment

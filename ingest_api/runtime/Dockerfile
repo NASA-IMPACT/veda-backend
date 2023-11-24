@@ -2,7 +2,7 @@ FROM public.ecr.aws/sam/build-python3.9:latest
 
 WORKDIR /tmp
 
-COPY ingest_api/runtime /tmp/ingestor
+COPY ingest_api/runtime/requirements.txt /tmp/ingestor/requirements.txt
 RUN pip install -r /tmp/ingestor/requirements.txt -t /asset --no-binary pydantic uvicorn
 RUN rm -rf /tmp/ingestor
 # TODO this is temporary until we use a real packaging system like setup.py or poetry

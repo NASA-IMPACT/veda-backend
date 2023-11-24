@@ -1,4 +1,5 @@
 from getpass import getuser
+from typing import Optional
 
 import aws_cdk
 from pydantic import BaseSettings, Field, constr
@@ -56,9 +57,13 @@ class IngestorConfig(BaseSettings):
         description="URL of Raster API used to serve asset tiles"
     )
 
+    ingest_root_path: str = Field(description="Root path for ingest API")
+    custom_host: Optional[str] = Field(description="Custom host name")
+
     class Config:
         case_sensitive = False
         env_file = ".env"
+        env_prefix = "VEDA_"
 
     @property
     def stack_name(self) -> str:

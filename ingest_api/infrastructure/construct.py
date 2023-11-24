@@ -1,8 +1,9 @@
 import os
-from typing import Dict
+from typing import Dict, Optional
 
-from aws_cdk import Duration, RemovalPolicy, Stack
+from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
 from aws_cdk import aws_apigateway as apigateway
+from aws_cdk import aws_apigatewayv2_alpha, aws_apigatewayv2_integrations_alpha
 from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_ec2 as ec2
@@ -24,6 +25,7 @@ class ApiConstruct(Construct):
         config: IngestorConfig,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
+        domain: Optional["DomainConstruct"] = None,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -46,14 +48,15 @@ class ApiConstruct(Construct):
         lambda_env = {
             "DYNAMODB_TABLE": self.table.table_name,
             "JWKS_URL": self.jwks_url,
-            "ROOT_PATH": f"/{config.stage}",
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.stac_api_url,
-            "DATA_ACCESS_ROLE": config.data_access_role_arn,
+            "DATA_ACCESS_ROLE_ARN": config.data_access_role_arn,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
             "RASTER_URL": config.raster_api_url,
+            "ROOT_PATH": config.ingest_root_path,
+            "STAGE": config.stage,
         }
 
         # create lambda
@@ -70,10 +73,14 @@ class ApiConstruct(Construct):
         )
 
         # create API
-        self.api = self.build_api(
+        self.api: aws_apigatewayv2_alpha.HttpApi = self.build_api(
+            construct_id=construct_id,
             handler=self.api_lambda,
-            stage=config.stage,
+            domain=domain,
+            custom_host=config.custom_host,
         )
+
+        CfnOutput(self, "ingest-api", value=self.api.url)
 
         register_ssm_parameter(
             self,
@@ -166,15 +173,42 @@ class ApiConstruct(Construct):
     def build_api(
         self,
         *,
+        construct_id: str,
         handler: aws_lambda.IFunction,
-        stage: str,
-    ) -> apigateway.LambdaRestApi:
-        return apigateway.LambdaRestApi(
+        domain,
+        custom_host: str,
+    ) -> aws_apigatewayv2_alpha.HttpApi:
+
+        integration_kwargs = dict(handler=handler)
+        if custom_host:
+            integration_kwargs[
+                "parameter_mapping"
+            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                "host",
+                aws_apigatewayv2_alpha.MappingValue(custom_host),
+            )
+
+        ingest_api_integration = (
+            aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
+                construct_id,
+                **integration_kwargs,
+            )
+        )
+
+        domain_mapping = None
+        # Legacy method to use a custom subdomain for this api (i.e. <stage>-ingest.<domain-name>.com)
+        # If using a custom root path and/or a proxy server, do not use a custom subdomain
+        if domain and domain.ingest_domain_name:
+            domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
+                domain_name=domain.ingest_domain_name
+            )
+        stack_name = Stack.of(self).stack_name
+
+        return aws_apigatewayv2_alpha.HttpApi(
             self,
-            f"{Stack.of(self).stack_name}-api",
-            handler=handler,
-            cloud_watch_role=True,
-            deploy_options=apigateway.StageOptions(stage_name=stage),
+            f"{stack_name}-{construct_id}",
+            default_integration=ingest_api_integration,
+            default_domain_mapping=domain_mapping,
         )
 
     def build_jwks_url(self, userpool_id: str) -> str:
@@ -218,10 +252,9 @@ class IngestorConstruct(Construct):
         # continue with ingestor-related methods (build_ingestor, etc.)
         lambda_env = {
             "DYNAMODB_TABLE": table.table_name,
-            "ROOT_PATH": f"/{config.stage}",
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.stac_api_url,
-            "DATA_ACCESS_ROLE": config.data_access_role_arn,
+            "DATA_ACCESS_ROLE_ARN": config.data_access_role_arn,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
