@@ -12,6 +12,7 @@ from permissions_boundary.infrastructure.construct import PermissionsBoundaryAsp
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
+from eoapi_cdk import StacBrowser
 
 app = App()
 if veda_app_settings.bootstrap_qualifier:
@@ -88,6 +89,16 @@ veda_routes = CloudfrontDistributionConstruct(
     stac_api_id=stac_api.stac_api.api_id,
     region=veda_app_settings.cdk_default_region,
 )
+
+# eoapi-cdk stac-browser only supported for stacks with cloudfront distribution
+if veda_app_settings.cloudfront:
+    stac_browser = StacBrowser(
+        veda_stack,
+        "stac-browser",
+        github_repo_tag=veda_app_settings.stac_browser_tag,
+        stac_catalog_url=veda_routes.stac_catalog_url,
+        bucket_arn=veda_routes.bucket.bucket_arn,
+    )
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
 if veda_app_settings.alt_domain():

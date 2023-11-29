@@ -14,9 +14,9 @@ class vedaRouteSettings(BaseSettings):
         description="Boolean if Cloudfront Distribution should be deployed",
     )
 
-    # STAC S#3 browser bucket name
+    # STAC S3 browser bucket name
     stac_browser_bucket: Optional[str] = Field(
-        "", description="STAC browser S3 bucket name"
+        None, description="STAC browser S3 bucket name"
     )
 
     # API Gateway URLs
@@ -37,6 +37,16 @@ class vedaRouteSettings(BaseSettings):
     cert_arn: Optional[str] = Field(
         None,
         description="Certificate’s ARN",
+    )
+
+    custom_host: str = Field(
+        None,
+        description="Complete url of custom host including subdomain. Used to infer url of stac-api before app synthesis.",
+    )
+
+    stac_root_path: str = Field(
+        "",
+        description="Optional path prefix to add to all api endpoints. Used to infer url of stac-api before app synthesis.",
     )
 
     class Config:
