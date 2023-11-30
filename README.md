@@ -11,7 +11,9 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 - [eoapi-cdk](https://github.com/developmentseed/eoapi-cdk/tree/main#eoapi-cdk-constructs)+ [radiantearth/stac-browser](https://github.com/radiantearth/stac-browser)
 
 ## VEDA backend context
-![architecture diagram](.readme/veda-backend.drawio.svg)
+![architecture diagram](.readme/veda-overview-bw.drawio.png)
+
+_Edit this diagram in VS Code using the [Draw.io Integration Extension](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio)_
 
 Veda backend is is the central index of the [VEDA ecosystem](#veda-ecosystem). This project provides the infrastructure for a PgSTAC database, STAC API, and TiTiler. This infrastructure is used to discover, access, and visualize the Analysis Ready Cloud Optimized (ARCO) assets of the VEDA Data Store.
 
