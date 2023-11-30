@@ -11,6 +11,7 @@ from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from routes.infrastructure.construct import CloudfrontDistributionConstruct
+from s3_website.infrastructure.construct import VedaWebsite
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
 from eoapi_cdk import StacBrowser
@@ -82,23 +83,27 @@ stac_api = StacApiLambdaConstruct(
     domain=domain,
 )
 
+website = VedaWebsite(veda_stack, "stac-browser-bucket")
+
 veda_routes = CloudfrontDistributionConstruct(
     veda_stack,
     "routes",
     stage=veda_app_settings.stage_name(),
     raster_api_id=raster_api.raster_api.api_id,
     stac_api_id=stac_api.stac_api.api_id,
+    origin_bucket=website.bucket,
     region=veda_app_settings.cdk_default_region,
 )
 
-# eoapi-cdk stac-browser only supported for stacks with cloudfront distribution
-if veda_app_settings.cloudfront:
+# Only create a stac browser if we can infer what the catalog url from configuration before synthesis (API Gateway URL not yet available)
+stac_catalog_url = veda_app_settings.get_stac_catalog_url(domain.stac_domain_name)
+if stac_catalog_url:
     stac_browser = StacBrowser(
         veda_stack,
         "stac-browser",
         github_repo_tag=veda_app_settings.stac_browser_tag,
-        stac_catalog_url=veda_routes.stac_catalog_url,
-        bucket_arn=veda_routes.bucket.bucket_arn,
+        stac_catalog_url=stac_catalog_url,
+        bucket_arn=website.bucket.bucket_arn,
     )
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary

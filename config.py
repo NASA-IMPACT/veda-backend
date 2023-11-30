@@ -65,6 +65,16 @@ class vedaAppSettings(BaseSettings):
         description="Boolean if Cloudfront Distribution should be deployed",
     )
 
+    veda_custom_host: str = Field(
+        None,
+        description="Complete url of custom host including subdomain. Used to infer url of stac-api before app synthesis.",
+    )
+
+    veda_stac_root_path: str = Field(
+        "",
+        description="Optional path prefix to add to all api endpoints. Used to infer url of stac-api before app synthesis.",
+    )
+
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""
 
@@ -88,6 +98,14 @@ class vedaAppSettings(BaseSettings):
     def stage_name(self) -> str:
         """Force lowercase stage name"""
         return self.stage.lower()
+
+    def get_stac_catalog_url(
+        self, stac_subdomain: Optional[str] = None
+    ) -> Optional[str]:
+        """Infer stac catalog url based on whether the app is configured to deploy the catalog to a custom subdomain or to a cloudfront route"""
+        if self.veda_custom_host and self.veda_stac_root_path:
+            return f"https://{veda_app_settings.veda_custom_host}/{veda_app_settings.veda_stac_root_path.lstrip('/')}"
+        return stac_subdomain
 
     class Config:
         """model config."""

@@ -2,7 +2,7 @@
 from typing import Optional
 from urllib.parse import urlparse
 
-from aws_cdk import CfnOutput, RemovalPolicy, Stack
+from aws_cdk import CfnOutput, Stack
 from aws_cdk import aws_certificatemanager as certificatemanager
 from aws_cdk import aws_cloudfront as cf
 from aws_cdk import aws_cloudfront_origins as origins
@@ -24,6 +24,7 @@ class CloudfrontDistributionConstruct(Construct):
         stage: str,
         raster_api_id: str,
         stac_api_id: str,
+        origin_bucket: s3.Bucket,
         region: Optional[str],
         **kwargs,
     ) -> None:
@@ -33,30 +34,6 @@ class CloudfrontDistributionConstruct(Construct):
         stack_name = Stack.of(self).stack_name
 
         if veda_route_settings.cloudfront:
-
-            if veda_route_settings.stac_browser_bucket:
-                self.bucket = s3.Bucket.from_bucket_name(
-                    self,
-                    "stac-browser-bucket",
-                    bucket_name=veda_route_settings.stac_browser_bucket,
-                )
-            else:
-                self.bucket = s3.Bucket(
-                    self,
-                    "stac-browser-bucket",
-                    bucket_name=f"{stack_name}-stac-browser",
-                    removal_policy=RemovalPolicy.DESTROY,
-                    auto_delete_objects=True,
-                    website_index_document="index.html",
-                    public_read_access=True,
-                    block_public_access=s3.BlockPublicAccess(
-                        block_public_acls=False,
-                        block_public_policy=False,
-                        ignore_public_acls=False,
-                        restrict_public_buckets=False,
-                    ),
-                    object_ownership=s3.ObjectOwnership.OBJECT_WRITER,
-                )
 
             # Certificate must be in zone us-east-1
             domain_cert = (
@@ -73,9 +50,9 @@ class CloudfrontDistributionConstruct(Construct):
                 comment=stack_name,
                 default_behavior=cf.BehaviorOptions(
                     origin=origins.HttpOrigin(
-                        self.bucket.bucket_website_domain_name,
+                        origin_bucket.bucket_website_domain_name,
                         protocol_policy=cf.OriginProtocolPolicy.HTTP_ONLY,
-                        origin_id="stac-browser",
+                        origin_id="stac-browser-bucket",
                     ),
                     cache_policy=cf.CachePolicy.CACHING_DISABLED,
                 ),
@@ -131,10 +108,9 @@ class CloudfrontDistributionConstruct(Construct):
                 record_name=stage,
             )
 
-            # Infer stac url before synthesis for stac-browser deployment and add cloudfront service to bucket resource policy
-            self.stac_catalog_url = f"https://{veda_route_settings.custom_host}/{veda_route_settings.stac_root_path.lstrip('/')}"
+            # Infer cloudfront arn to add to bucket resource policy
             self.distribution_arn = f"arn:aws:cloudfront::{self.distribution.env.account}:distribution/{self.distribution.distribution_id}"
-            self.bucket.add_to_resource_policy(
+            origin_bucket.add_to_resource_policy(
                 permission=iam.PolicyStatement(
                     actions=["s3:GetObject"],
                     conditions={
@@ -142,7 +118,7 @@ class CloudfrontDistributionConstruct(Construct):
                     },
                     effect=iam.Effect("ALLOW"),
                     principals=[iam.ServicePrincipal("cloudfront.amazonaws.com")],
-                    resources=[self.bucket.arn_for_objects("*")],
+                    resources=[origin_bucket.arn_for_objects("*")],
                     sid="AllowCloudFrontServicePrincipal",
                 )
             )
