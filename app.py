@@ -95,7 +95,7 @@ veda_routes = CloudfrontDistributionConstruct(
     region=veda_app_settings.cdk_default_region,
 )
 
-# Only create a stac browser if we can infer what the catalog url from configuration before synthesis (API Gateway URL not yet available)
+# Only create a stac browser if we can infer the catalog url from configuration before synthesis (API Gateway URL not yet available)
 stac_catalog_url = veda_app_settings.get_stac_catalog_url(domain.stac_domain_name)
 if stac_catalog_url:
     stac_browser = StacBrowser(

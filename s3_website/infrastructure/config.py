@@ -21,7 +21,7 @@ class vedaStacBrowserSettings(BaseSettings):
         """model config"""
 
         env_file = ".env"
-        env_prefix = "VEDA_BROWSER_"
+        env_prefix = "VEDA_"
 
 
 veda_stac_browser_settings = vedaStacBrowserSettings()
