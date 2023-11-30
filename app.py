@@ -12,6 +12,7 @@ from permissions_boundary.infrastructure.construct import PermissionsBoundaryAsp
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
+
 from eoapi_cdk import StacBrowser
 
 app = App()

@@ -6,9 +6,9 @@ from aws_cdk import CfnOutput, RemovalPolicy, Stack
 from aws_cdk import aws_certificatemanager as certificatemanager
 from aws_cdk import aws_cloudfront as cf
 from aws_cdk import aws_cloudfront_origins as origins
+from aws_cdk import aws_iam as iam
 from aws_cdk import aws_route53, aws_route53_targets
 from aws_cdk import aws_s3 as s3
-from aws_cdk import aws_iam as iam
 from constructs import Construct
 
 from .config import veda_route_settings
@@ -56,7 +56,7 @@ class CloudfrontDistributionConstruct(Construct):
                         restrict_public_buckets=False,
                     ),
                     object_ownership=s3.ObjectOwnership.OBJECT_WRITER,
-            )
+                )
 
             # Certificate must be in zone us-east-1
             domain_cert = (
@@ -130,7 +130,7 @@ class CloudfrontDistributionConstruct(Construct):
                 ),
                 record_name=stage,
             )
-            
+
             # Infer stac url before synthesis for stac-browser deployment and add cloudfront service to bucket resource policy
             self.stac_catalog_url = f"https://{veda_route_settings.custom_host}/{veda_route_settings.stac_root_path.lstrip('/')}"
             self.distribution_arn = f"arn:aws:cloudfront::{self.distribution.env.account}:distribution/{self.distribution.distribution_id}"
@@ -138,9 +138,7 @@ class CloudfrontDistributionConstruct(Construct):
                 permission=iam.PolicyStatement(
                     actions=["s3:GetObject"],
                     conditions={
-                        "StringEquals": {
-                            "aws:SourceArn": self.distribution_arn
-                        }
+                        "StringEquals": {"aws:SourceArn": self.distribution_arn}
                     },
                     effect=iam.Effect("ALLOW"),
                     principals=[iam.ServicePrincipal("cloudfront.amazonaws.com")],
