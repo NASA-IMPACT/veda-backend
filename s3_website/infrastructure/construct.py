@@ -46,4 +46,8 @@ class VedaWebsite(Construct):
                 object_ownership=s3.ObjectOwnership.OBJECT_WRITER,
             )
 
-        CfnOutput(self, "bucket-website", value=self.bucket.bucket_website_domain_name)
+        CfnOutput(
+            self,
+            "bucket-website",
+            value=f"https://{self.bucket.bucket_website_domain_name}",
+        )

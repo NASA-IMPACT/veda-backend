@@ -75,6 +75,17 @@ class vedaAppSettings(BaseSettings):
         description="Optional path prefix to add to all api endpoints. Used to infer url of stac-api before app synthesis.",
     )
 
+    veda_domain_create_custom_subdomains: bool = Field(
+        False,
+        description=(
+            "When true and hosted zone config is provided, create a unique subdomain for stac and raster apis. "
+            "For example <stage>-stac.<hosted_zone_name> and <stage>-raster.<hosted_zone_name>"
+        ),
+    )
+    veda_domain_hosted_zone_name: Optional[str] = Field(
+        None, description="Custom domain name, i.e. veda-backend.xyz"
+    )
+
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""
 
@@ -99,13 +110,18 @@ class vedaAppSettings(BaseSettings):
         """Force lowercase stage name"""
         return self.stage.lower()
 
-    def get_stac_catalog_url(
-        self, stac_subdomain: Optional[str] = None
-    ) -> Optional[str]:
+    def get_stac_catalog_url(self) -> Optional[str]:
         """Infer stac catalog url based on whether the app is configured to deploy the catalog to a custom subdomain or to a cloudfront route"""
         if self.veda_custom_host and self.veda_stac_root_path:
             return f"https://{veda_app_settings.veda_custom_host}/{veda_app_settings.veda_stac_root_path.lstrip('/')}"
-        return stac_subdomain
+        if (
+            self.veda_domain_create_custom_subdomains
+            and self.veda_domain_hosted_zone_name
+        ):
+            return (
+                f"https://{self.stage.lower()}-stac.{self.veda_domain_hosted_zone_name}"
+            )
+        return None
 
     class Config:
         """model config."""

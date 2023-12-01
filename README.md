@@ -59,7 +59,7 @@ The constructs and applications in this project are configured using pydantic. T
 | STAC API | `VEDA` | [stac_api/infrastructure/config.py](stac_api/infrastructure/config.py) |
 | Routes | `VEDA` | [routes/infrastructure/config.py](routes/infrastructure/config.py) |
 | S3 Website | `VEDA` | [s3_website/infrastructure/config.py](s3_website/infrastructure/config.py) |
-| App (global settings) | `VEDA` | [config.py](config.py) |
+| App (global settings) | `N/A` | [config.py](config.py) |
 
 ### Deploying to the cloud
 
