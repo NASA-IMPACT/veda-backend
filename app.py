@@ -83,7 +83,9 @@ stac_api = StacApiLambdaConstruct(
     domain=domain,
 )
 
-website = VedaWebsite(veda_stack, "stac-browser-bucket")
+website = VedaWebsite(
+    veda_stack, "stac-browser-bucket", stage=veda_app_settings.stage_name()
+)
 
 veda_routes = CloudfrontDistributionConstruct(
     veda_stack,

@@ -13,6 +13,7 @@ class VedaWebsite(Construct):
         self,
         scope: Construct,
         construct_id: str,
+        stage: str,
         **kwargs,
     ) -> None:
         """."""
@@ -31,7 +32,7 @@ class VedaWebsite(Construct):
             self.bucket = s3.Bucket(
                 self,
                 construct_id,
-                bucket_name=f"{stack_name}-stac-browser",
+                bucket_name=f"{stack_name}-{stage}-stac-browser",
                 removal_policy=RemovalPolicy.DESTROY,
                 auto_delete_objects=True,
                 website_index_document="index.html",
