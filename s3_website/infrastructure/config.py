@@ -6,7 +6,7 @@ from typing import Optional
 from pydantic import BaseSettings, Field
 
 
-class vedaStacBrowserSettings(BaseSettings):
+class vedaS3WebsiteSettings(BaseSettings):
     """Application settings"""
 
     stac_browser_bucket: Optional[str] = Field(
@@ -24,4 +24,4 @@ class vedaStacBrowserSettings(BaseSettings):
         env_prefix = "VEDA_"
 
 
-veda_stac_browser_settings = vedaStacBrowserSettings()
+veda_s3_website_settings = vedaS3WebsiteSettings()

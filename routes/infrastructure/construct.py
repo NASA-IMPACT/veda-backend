@@ -52,7 +52,7 @@ class CloudfrontDistributionConstruct(Construct):
                     origin=origins.HttpOrigin(
                         origin_bucket.bucket_website_domain_name,
                         protocol_policy=cf.OriginProtocolPolicy.HTTP_ONLY,
-                        origin_id="stac-browser-bucket",
+                        origin_id="stac-browser",
                     ),
                     cache_policy=cf.CachePolicy.CACHING_DISABLED,
                 ),

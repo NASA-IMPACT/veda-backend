@@ -3,7 +3,7 @@ from aws_cdk import CfnOutput, RemovalPolicy, Stack
 from aws_cdk import aws_s3 as s3
 from constructs import Construct
 
-from .config import veda_stac_browser_settings
+from .config import veda_s3_website_settings
 
 
 class VedaWebsite(Construct):
@@ -22,11 +22,11 @@ class VedaWebsite(Construct):
         # The code that defines your stack goes here
         stack_name = Stack.of(self).stack_name.split("-")[0]
 
-        if veda_stac_browser_settings.stac_browser_bucket:
+        if veda_s3_website_settings.stac_browser_bucket:
             self.bucket = s3.Bucket.from_bucket_name(
                 self,
                 construct_id,
-                bucket_name=veda_stac_browser_settings.stac_browser_bucket,
+                bucket_name=veda_s3_website_settings.stac_browser_bucket,
             )
         else:
             self.bucket = s3.Bucket(
