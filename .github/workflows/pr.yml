@@ -3,7 +3,7 @@ name: Pull Request - Lint and Test Workflow
 on: [pull_request]
 
 jobs:
-  lint:
+  lint-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -42,6 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Launch services
+        run: |
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+          AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} \
+          docker compose up --build -d
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -75,7 +82,7 @@ jobs:
         run: docker compose stop
 
   predeploy:
-    needs: [test]
+    needs: [test-pr]
 
     runs-on: ubuntu-latest
     steps:

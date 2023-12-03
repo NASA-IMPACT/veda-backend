@@ -196,6 +196,8 @@ class RdsConstruct(Construct):
             database = aws_rds.DatabaseInstance(self, **database_config)
 
         hostname = database.instance_endpoint.hostname
+        self.db_security_group = database.connections.security_groups[0]
+        self.is_publicly_accessible = veda_db_settings.publicly_accessible
 
         # Use custom resource to bootstrap PgSTAC database
         self.pgstac = BootstrapPgStac(
