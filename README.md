@@ -8,7 +8,7 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 - [pgstac](https://github.com/stac-utils/pgstac)
 - [titiler](https://github.com/developmentseed/titiler)
 - [titiler-pgstac](https://github.com/stac-utils/titiler-pgstac)
-- [eoapi-cdk](https://github.com/developmentseed/eoapi-cdk/tree/main#eoapi-cdk-constructs)+ [radiantearth/stac-browser](https://github.com/radiantearth/stac-browser)
+- [eoapi-cdk](https://github.com/developmentseed/eoapi-cdk/tree/main#eoapi-cdk-constructs) + [radiantearth/stac-browser](https://github.com/radiantearth/stac-browser)
 
 ## VEDA backend context
 ![architecture diagram](.readme/veda-overview-bw.svg)

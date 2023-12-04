@@ -39,16 +39,6 @@ class vedaRouteSettings(BaseSettings):
         description="Certificate’s ARN",
     )
 
-    custom_host: str = Field(
-        None,
-        description="Complete url of custom host including subdomain. Used to infer url of stac-api before app synthesis.",
-    )
-
-    stac_root_path: str = Field(
-        "",
-        description="Optional path prefix to add to all api endpoints. Used to infer url of stac-api before app synthesis.",
-    )
-
     class Config:
         """model config"""
 
