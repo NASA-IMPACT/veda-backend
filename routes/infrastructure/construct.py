@@ -6,6 +6,7 @@ from aws_cdk import CfnOutput, Stack
 from aws_cdk import aws_certificatemanager as certificatemanager
 from aws_cdk import aws_cloudfront as cf
 from aws_cdk import aws_cloudfront_origins as origins
+from aws_cdk import aws_iam as iam
 from aws_cdk import aws_route53, aws_route53_targets
 from aws_cdk import aws_s3 as s3
 from constructs import Construct
@@ -23,6 +24,7 @@ class CloudfrontDistributionConstruct(Construct):
         stage: str,
         raster_api_id: str,
         stac_api_id: str,
+        origin_bucket: s3.Bucket,
         region: Optional[str],
         **kwargs,
     ) -> None:
@@ -32,11 +34,6 @@ class CloudfrontDistributionConstruct(Construct):
         stack_name = Stack.of(self).stack_name
 
         if veda_route_settings.cloudfront:
-            s3Bucket = s3.Bucket.from_bucket_name(
-                self,
-                "stac-browser-bucket",
-                bucket_name=veda_route_settings.stac_browser_bucket,
-            )
 
             # Certificate must be in zone us-east-1
             domain_cert = (
@@ -53,7 +50,7 @@ class CloudfrontDistributionConstruct(Construct):
                 comment=stack_name,
                 default_behavior=cf.BehaviorOptions(
                     origin=origins.HttpOrigin(
-                        s3Bucket.bucket_website_domain_name,
+                        origin_bucket.bucket_website_domain_name,
                         protocol_policy=cf.OriginProtocolPolicy.HTTP_ONLY,
                         origin_id="stac-browser",
                     ),
@@ -109,6 +106,21 @@ class CloudfrontDistributionConstruct(Construct):
                     aws_route53_targets.CloudFrontTarget(self.distribution)
                 ),
                 record_name=stage,
+            )
+
+            # Infer cloudfront arn to add to bucket resource policy
+            self.distribution_arn = f"arn:aws:cloudfront::{self.distribution.env.account}:distribution/{self.distribution.distribution_id}"
+            origin_bucket.add_to_resource_policy(
+                permission=iam.PolicyStatement(
+                    actions=["s3:GetObject"],
+                    conditions={
+                        "StringEquals": {"aws:SourceArn": self.distribution_arn}
+                    },
+                    effect=iam.Effect("ALLOW"),
+                    principals=[iam.ServicePrincipal("cloudfront.amazonaws.com")],
+                    resources=[origin_bucket.arn_for_objects("*")],
+                    sid="AllowCloudFrontServicePrincipal",
+                )
             )
 
             CfnOutput(self, "Endpoint", value=self.distribution.domain_name)
