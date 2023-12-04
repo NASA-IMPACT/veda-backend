@@ -1,9 +1,7 @@
 """CDK Construct for a Cloudfront Distribution."""
 from typing import Optional
-from urllib.parse import urlparse
 
 from aws_cdk import CfnOutput, Stack
-from aws_cdk import aws_apigateway as apigateway
 from aws_cdk import aws_certificatemanager as certificatemanager
 from aws_cdk import aws_cloudfront as cf
 from aws_cdk import aws_cloudfront_origins as origins
@@ -107,13 +105,13 @@ class CloudfrontDistributionConstruct(Construct):
 
             CfnOutput(self, "Endpoint", value=self.distribution.domain_name)
 
-    # required as second step as ingest API depends on stac API route
     def add_ingest_behavior(
         self,
         ingest_api,
         stage: str,
         region: Optional[str] = "us-west-2",
     ):
+        """Required as second step as ingest API depends on stac API route"""
         if veda_route_settings.cloudfront:
             self.distribution.add_behavior(
                 "/api/ingest*",
@@ -126,8 +124,8 @@ class CloudfrontDistributionConstruct(Construct):
                 origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
             )
 
-    # this is a seperate function so that it can be called after all behaviors are instantiated
     def create_route_records(self, stage: str):
+        """This is a seperate function so that it can be called after all behaviors are instantiated"""
         if veda_route_settings.cloudfront:
             aws_route53.ARecord(
                 self,
