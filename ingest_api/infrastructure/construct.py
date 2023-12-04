@@ -1,4 +1,5 @@
 import os
+import typing
 from typing import Dict, Optional
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
@@ -15,6 +16,9 @@ from aws_cdk import aws_ssm as ssm
 from constructs import Construct
 
 from .config import IngestorConfig
+
+if typing.TYPE_CHECKING:
+    from domain.infrastructure.construct import DomainConstruct
 
 
 class ApiConstruct(Construct):
@@ -176,7 +180,7 @@ class ApiConstruct(Construct):
         construct_id: str,
         handler: aws_lambda.IFunction,
         domain,
-        custom_host: str,
+        custom_host: Optional[str],
     ) -> aws_apigatewayv2_alpha.HttpApi:
 
         integration_kwargs = dict(handler=handler)

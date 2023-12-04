@@ -4,7 +4,7 @@
 import json
 import subprocess
 
-from aws_cdk import App, Stack, Tags, aws_iam
+from aws_cdk import App, Aspects, Stack, Tags, aws_iam
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_ssm as ssm
 from constructs import Construct
