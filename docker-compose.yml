@@ -127,7 +127,7 @@ services:
       - PGUSER=username
       - PGPASSWORD=password
       - PGDATABASE=postgis
-      - DYNAMODB_ENDPOINT=http://localhost:8084
+      - DYNAMODB_ENDPOINT=http://localhost:8085
     ports:
       - "8083:8083"
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && python /asset/local.py"
@@ -143,7 +143,7 @@ services:
     volumes:
       -  ./dynamodb-data:/home/dynamodblocal/data
     ports:
-      - 8084:8084
+      - 8085:8000 # skip 8084 for github actions to work
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
 
 
