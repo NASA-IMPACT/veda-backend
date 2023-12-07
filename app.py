@@ -6,7 +6,6 @@ import subprocess
 
 from aws_cdk import App, Aspects, Stack, Tags, aws_iam
 from aws_cdk import aws_secretsmanager as secretsmanager
-from aws_cdk import aws_ssm as ssm
 from constructs import Construct
 
 from config import veda_app_settings
@@ -231,32 +230,6 @@ veda_routes.add_ingest_behavior(
 
 # Must be done after all CF behaviors exist
 veda_routes.create_route_records(stage=veda_app_settings.stage_name())
-
-
-def register_ssm_parameter(
-    ctx: Construct,  # context for param init
-    name: str,
-    value: str,
-    description: str,
-) -> ssm.IStringParameter:
-    """Register SSM parameter"""
-    parameter_namespace = Stack.of(ctx).stack_name
-    return ssm.StringParameter(
-        ctx,
-        f"{name.replace('_', '-')}-parameter",
-        description=description,
-        parameter_name=f"/{parameter_namespace}/{name}",
-        string_value=value,
-    )
-
-
-def get_db_secret(
-    ctx: Construct, secret_name: str, stage: str
-) -> secretsmanager.ISecret:
-    """Get pgstac DB secret from Secrets Manager"""
-    return secretsmanager.Secret.from_secret_name_v2(
-        ctx, f"pgstac-db-secret-{stage}", secret_name
-    )
 
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
