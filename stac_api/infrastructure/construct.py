@@ -71,7 +71,7 @@ class StacApiLambdaConstruct(Construct):
         )
 
         if veda_stac_settings.custom_host:
-            titler_endpoint = f"https://{veda_stac_settings.custom_host}/api/raster/"
+            titler_endpoint = f"https://{veda_stac_settings.custom_host}{veda_stac_settings.raster_root_path}"
         else:
             titler_endpoint = raster_api.raster_api.url
         lambda_function.add_environment("TITILER_ENDPOINT", titler_endpoint)
