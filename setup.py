@@ -8,11 +8,12 @@ with open("README.md") as f:
 extra_reqs = {
     "dev": ["pre-commit", "python-dotenv"],
     "deploy": [
-        "aws-cdk-lib<3.0.0,>=2.15.0",
+        "aws-cdk-lib<3.0.0,>=2.47.0.a0",
         "constructs>=10.0.0,<11.0.0",
-        "aws-cdk.aws_apigatewayv2_alpha~=2.15.0a0",
-        "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.15.0a0",
+        "aws-cdk.aws_apigatewayv2_alpha~=2.47.0.a0",
+        "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.47.0.a0",
         "pydantic~=1.0",
+        "eoapi-cdk==5.4.0",
     ],
     "test": [
         "pytest",

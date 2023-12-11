@@ -8,9 +8,12 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 - [pgstac](https://github.com/stac-utils/pgstac)
 - [titiler](https://github.com/developmentseed/titiler)
 - [titiler-pgstac](https://github.com/stac-utils/titiler-pgstac)
+- [eoapi-cdk](https://github.com/developmentseed/eoapi-cdk/tree/main#eoapi-cdk-constructs) + [radiantearth/stac-browser](https://github.com/radiantearth/stac-browser)
 
 ## VEDA backend context
-![architecture diagram](.readme/veda-backend.drawio.svg)
+![architecture diagram](.readme/veda-overview-bw.svg)
+
+_Edit this diagram in VS Code using the [Draw.io Integration Extension](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) and export a new SVG_
 
 Veda backend is is the central index of the [VEDA ecosystem](#veda-ecosystem). This project provides the infrastructure for a PgSTAC database, STAC API, and TiTiler. This infrastructure is used to discover, access, and visualize the Analysis Ready Cloud Optimized (ARCO) assets of the VEDA Data Store.
 
@@ -55,6 +58,8 @@ The constructs and applications in this project are configured using pydantic. T
 | Raster API (TiTiler) | `VEDA_RASTER` | [raster_api/infrastructure/config.py](raster_-_api/infrastructure/config.py) |
 | STAC API | `VEDA` | [stac_api/infrastructure/config.py](stac_api/infrastructure/config.py) |
 | Routes | `VEDA` | [routes/infrastructure/config.py](routes/infrastructure/config.py) |
+| S3 Website | `VEDA` | [s3_website/infrastructure/config.py](s3_website/infrastructure/config.py) |
+| App (global settings) | `N/A` | [config.py](config.py) |
 
 ### Deploying to the cloud
 
