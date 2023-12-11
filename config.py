@@ -67,14 +67,6 @@ class vedaAppSettings(BaseSettings):
         None,
         description="Custom bootstrap qualifier override if not using a default installation of AWS CDK Toolkit to synthesize app.",
     )
-    oidc_provider_arn: Optional[AwsOidcArn] = Field(  # type: ignore
-        description="ARN of AWS OIDC provider used for authentication"
-    )
-
-    oidc_repo_id: str = Field(
-        "NASA-IMPACT/veda-backend",
-        description="ID of AWS ECR repository used for OIDC provider",
-    )
 
     stac_browser_tag: Optional[str] = Field(
         "v3.1.0",
