@@ -122,7 +122,7 @@ jobs:
           cdk deploy --require-approval never --outputs-file ${HOME}/cdk-outputs.json
 
   pre-release:
-    needs: [deploy]
+    needs: [deploy-dev]
     runs-on: ubuntu-latest
     concurrency: release
     permissions:
