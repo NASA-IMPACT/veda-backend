@@ -47,7 +47,7 @@ class IngestorConfig(BaseSettings):
         default=True,
     )
 
-    data_access_role_arn: AwsArn = Field(  # type: ignore
+    raster_data_access_role_arn: AwsArn = Field(  # type: ignore
         description="ARN of AWS Role used to validate access to S3 data"
     )
 
