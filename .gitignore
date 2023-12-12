@@ -140,3 +140,4 @@ node_modules/
 package-lock.json
 cdk-dev.out
 **/--no-binary/
+stac-browser

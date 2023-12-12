@@ -23,6 +23,11 @@ class vedaSTACSettings(BaseSettings):
         description="Optional path prefix to add to all api endpoints",
     )
 
+    raster_root_path: str = Field(
+        "",
+        description="Optional path prefix to add to all raster endpoints",
+    )
+
     custom_host: str = Field(
         None,
         description="Complete url of custom host including subdomain. When provided, override host in api integration",

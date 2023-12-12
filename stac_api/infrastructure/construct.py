@@ -70,7 +70,11 @@ class StacApiLambdaConstruct(Construct):
             lambda_function, port_range=aws_ec2.Port.tcp(5432)
         )
 
-        lambda_function.add_environment("TITILER_ENDPOINT", raster_api.raster_api.url)
+        if veda_stac_settings.custom_host:
+            titler_endpoint = f"https://{veda_stac_settings.custom_host}{veda_stac_settings.raster_root_path}"
+        else:
+            titler_endpoint = raster_api.raster_api.url
+        lambda_function.add_environment("TITILER_ENDPOINT", titler_endpoint)
 
         lambda_function.add_environment(
             "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
