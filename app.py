@@ -145,12 +145,13 @@ ingestor = ingestor_construct(
     db_vpc=vpc.vpc,
 )
 
-veda_routes.add_ingest_behavior(
-    ingest_api=ingest_api.api, stage=veda_app_settings.stage_name()
-)
+if veda_app_settings.cloudfront:
+    veda_routes.add_ingest_behavior(
+        ingest_api=ingest_api.api, stage=veda_app_settings.stage_name()
+    )
 
-# Must be done after all CF behaviors exist
-veda_routes.create_route_records(stage=veda_app_settings.stage_name())
+    # Must be done after all CF behaviors exist
+    veda_routes.create_route_records(stage=veda_app_settings.stage_name())
 
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
