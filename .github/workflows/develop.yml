@@ -66,7 +66,7 @@ jobs:
         run: python -m pip install -r ingest_api/runtime/requirements.txt
       
       - name: Ingest unit tests
-        run: NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest ingest_api/tests/ -vv -s
+        run: NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest ingest_api/runtime/tests/ -vv -s
 
       - name: Stop services
         run: docker compose stop

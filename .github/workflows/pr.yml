@@ -78,6 +78,12 @@ jobs:
       - name: Integrations tests
         run: python -m pytest .github/workflows/tests/ -vv -s
 
+      - name: Install reqs for unit tests
+        run: python -m pip install -r ingest_api/runtime/requirements.txt
+      
+      - name: Ingest unit tests
+        run: NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest ingest_api/runtime/tests/ -vv -s
+
       - name: Stop services
         run: docker compose stop
 
