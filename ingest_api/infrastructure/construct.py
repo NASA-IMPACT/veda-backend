@@ -85,10 +85,11 @@ class ApiConstruct(Construct):
         )
 
         # CfnOutput(self, "ingest-api", value=self.api.url)
+        stack_name = Stack.of(self).stack_name
         CfnOutput(
             self,
-            "stac_ingestor_api_url",
-            export_name="stac_ingestor_api_url",
+            "stac-ingestor-api-url",
+            export_name=f"{stack_name}-stac-ingestor-api-url",
             value=self.api.url,
         )
 
