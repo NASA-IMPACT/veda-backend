@@ -86,10 +86,10 @@ class ApiConstruct(Construct):
 
         # CfnOutput(self, "ingest-api", value=self.api.url)
         CfnOutput(
-            self, 
-            "stac_ingestor_api_url", 
+            self,
+            "stac_ingestor_api_url",
             export_name="stac_ingestor_api_url",
-            value=self.api.url
+            value=self.api.url,
         )
 
         register_ssm_parameter(
