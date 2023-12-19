@@ -15,6 +15,7 @@ def test_environ():
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_REGION"] = "us-west-2"
 
     # Config mocks
     os.environ["CLIENT_ID"] = "fake_client_id"
@@ -25,6 +26,8 @@ def test_environ():
     os.environ["STAC_URL"] = "https://test-stac.url"
     os.environ["RASTER_URL"] = "https://test-raster.url"
     os.environ["USERPOOL_ID"] = "fake_id"
+    os.environ["STAGE"] = "testing"
+    os.environ["ROOT_PATH"] = "/"
 
 
 @pytest.fixture
@@ -50,7 +53,7 @@ def mock_table(app, test_environ):
     from src import dependencies, main
 
     with mock_dynamodb():
-        client = boto3.resource("dynamodb")
+        client = boto3.resource("dynamodb", region_name="us-west-2")
         mock_table = client.create_table(
             TableName=main.settings.dynamodb_table,
             AttributeDefinitions=[
