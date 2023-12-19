@@ -131,6 +131,6 @@ jobs:
       uses: python-semantic-release/python-semantic-release@master
       with:
         changelog: "false"
-        vcs-release: "true"
+        vcs_release: "true"
         github_token: ${{ secrets.GITHUB_TOKEN }}
           

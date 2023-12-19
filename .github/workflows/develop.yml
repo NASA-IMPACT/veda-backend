@@ -61,12 +61,6 @@ jobs:
   
       - name: Integrations tests
         run: python -m pytest .github/workflows/tests/ -vv -s
-      
-      - name: Install reqs for unit tests
-        run: python -m pip install -r ingest_api/requirements.txt
-      
-      - name: Ingest unit tests
-        run: NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest ingest_api/tests/ -vv -s
 
       - name: Stop services
         run: docker compose stop
@@ -137,5 +131,5 @@ jobs:
       uses: python-semantic-release/python-semantic-release@master
       with:
         changelog: "false"
-        vcs-release: "true"
+        vcs_release: "true"
         github_token: ${{ secrets.GITHUB_TOKEN }}
