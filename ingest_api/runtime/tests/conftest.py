@@ -53,7 +53,7 @@ def mock_table(app, test_environ):
     from src import dependencies, main
 
     with mock_dynamodb():
-        client = boto3.resource("dynamodb")
+        client = boto3.resource("dynamodb", region_name="us-west-2")
         mock_table = client.create_table(
             TableName=main.settings.dynamodb_table,
             AttributeDefinitions=[
