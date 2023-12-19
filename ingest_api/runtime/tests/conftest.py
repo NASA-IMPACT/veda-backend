@@ -15,6 +15,7 @@ def test_environ():
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_REGION"] = "us-west-2"
 
     # Config mocks
     os.environ["CLIENT_ID"] = "fake_client_id"
