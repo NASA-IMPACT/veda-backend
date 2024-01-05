@@ -63,11 +63,6 @@ class DashboardCollection(Collection):
     class Config:
         allow_population_by_field_name = True
 
-    @validator("item_assets")
-    def cog_default_exists(cls, item_assets):
-        validators.cog_default_exists(item_assets)
-        return item_assets
-
     @root_validator
     def check_time_density(cls, values):
         validators.time_density_is_valid(values["is_periodic"], values["time_density"])

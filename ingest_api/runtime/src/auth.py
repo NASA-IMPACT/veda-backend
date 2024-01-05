@@ -87,18 +87,23 @@ def authenticate_and_get_token(
     app_client_secret: str,
 ) -> Dict:
     client = boto3.client("cognito-idp")
+    if app_client_secret:
+        auth_params = {
+            "USERNAME": username,
+            "PASSWORD": password,
+            "SECRET_HASH": _get_secret_hash(username, app_client_id, app_client_secret),
+        }
+    else:
+        auth_params = {
+            "USERNAME": username,
+            "PASSWORD": password,
+        }
     try:
         resp = client.admin_initiate_auth(
             UserPoolId=user_pool_id,
             ClientId=app_client_id,
             AuthFlow="ADMIN_USER_PASSWORD_AUTH",
-            AuthParameters={
-                "USERNAME": username,
-                "PASSWORD": password,
-                "SECRET_HASH": _get_secret_hash(
-                    username, app_client_id, app_client_secret
-                ),
-            },
+            AuthParameters=auth_params,
         )
     except client.exceptions.NotAuthorizedException:
         return {
