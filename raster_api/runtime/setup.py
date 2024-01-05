@@ -15,6 +15,7 @@ inst_reqs = [
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
     "rio-tiler==6.2.3.post1",
+    "starlette < 0.28",
 ]
 
 extra_reqs = {
