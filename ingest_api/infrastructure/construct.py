@@ -84,7 +84,14 @@ class ApiConstruct(Construct):
             custom_host=config.custom_host,
         )
 
-        CfnOutput(self, "ingest-api", value=self.api.url)
+        # CfnOutput(self, "ingest-api", value=self.api.url)
+        stack_name = Stack.of(self).stack_name
+        CfnOutput(
+            self,
+            "stac-ingestor-api-url",
+            export_name=f"{stack_name}-stac-ingestor-api-url",
+            value=self.api.url,
+        )
 
         register_ssm_parameter(
             self,
