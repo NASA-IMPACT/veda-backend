@@ -120,7 +120,7 @@ class ApiConstruct(Construct):
                 "Role used by STAC Ingestor. Manually defined so that we can choose a "
                 "name that is supported by the data access roles trust policy"
             ),
-            role_name=f"delta-backend-staging-stac-ingestion-api-{stage}",
+            role_name=f"veda-{stage}-stac-ingestion-api",
             assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name(
