@@ -12,6 +12,7 @@ from domain.infrastructure.construct import DomainConstruct
 from ingest_api.infrastructure.config import IngestorConfig as ingest_config
 from ingest_api.infrastructure.construct import ApiConstruct as ingest_api_construct
 from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_construct
+from workflow_api.infrastructure.construct import ApiConstruct as workflow_api_construct
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
@@ -147,6 +148,13 @@ ingestor = ingestor_construct(
 
 veda_routes.add_ingest_behavior(
     ingest_api=ingest_api.api, stage=veda_app_settings.stage_name()
+)
+
+workflow_api = workflow_api_construct(
+    veda_stack,
+    "workflow-api",
+    config=None,
+    domain=domain,
 )
 
 # Must be done after all CF behaviors exist
