@@ -8,6 +8,12 @@ inputs:
     required: false
     type: string
     default: "."
+  auth_stack_name:
+    required: true
+    type: string
+  script_path:
+    required: true
+    type: string
 
 runs:
   using: "composite"
@@ -73,11 +79,23 @@ runs:
         docker compose down --rmi all --volumes
         sudo rm -rf .pgdata
 
-    - name: Get dev environment configuration for develop branch
+    # - name: Get dev environment configuration for develop branch
+    #   shell: bash
+    #   working-directory: ${{ inputs.dir }}
+    #   run: |
+    #     ./scripts/get-env.sh ${{ inputs.env_aws_secret_name }}
+    - name: Get relevant environment configuration from aws secrets
       shell: bash
       working-directory: ${{ inputs.dir }}
+      env:
+        SECRET_SSM_NAME: ${{ inputs.env_aws_secret_name }}
+        AWS_DEFAULT_REGION: us-west-2
       run: |
+        if [[ -z "${{ inputs.script_path }}" ]]; then
         ./scripts/get-env.sh ${{ inputs.env_aws_secret_name }}
+        else
+        python ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }} --stack-names ${{ inputs.auth_stack_name}},${{ inputs.backend_stack_name}}
+        fi
 
     - name: Deploy
       shell: bash
