@@ -4,9 +4,6 @@ inputs:
   env_aws_secret_name:
     required: true
     type: string
-  auth_env_aws_secret_name:
-    required: true
-    type: string
   dir:
     required: false
     type: string
@@ -81,7 +78,6 @@ runs:
       working-directory: ${{ inputs.dir }}
       run: |
         ./scripts/get-env.sh ${{ inputs.env_aws_secret_name }}
-        ./scripts/get-env.sh ${{ inputs.auth_env_aws_secret_name }}
 
     - name: Deploy
       shell: bash
