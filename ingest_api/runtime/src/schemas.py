@@ -102,9 +102,9 @@ class AuthResponse(BaseModel):
 
 class WhoAmIResponse(BaseModel):
     sub: str = Field(..., description="A unique identifier for the user")
-    cognito_groups: List[str] = Field(
-        ..., description="A list of Cognito groups the user belongs to"
-    )
+    # cognito_groups: List[str] = Field(
+    #     ..., description="A list of Cognito groups the user belongs to"
+    # )
     iss: str = Field(..., description="The issuer of the token")
     client_id: str = Field(..., description="The client ID of the authenticated app")
     origin_jti: str = Field(
