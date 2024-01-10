@@ -65,6 +65,7 @@ class IngestorConfig(BaseSettings):
     class Config:
         case_sensitive = False
         env_file = ".env"
+        env_prefix = "VEDA_"
 
     @property
     def stack_name(self) -> str:
