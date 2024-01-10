@@ -1,4 +1,4 @@
-from pydantic import AnyHttpUrl, BaseSettings, Field, constr
+from pydantic import AnyHttpUrl, BaseSettings, Field, Optional, constr
 from pydantic_ssm_settings import AwsSsmSourceConfig
 
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
@@ -19,7 +19,9 @@ class Settings(BaseSettings):
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
 
     client_id: str = Field(description="The Cognito APP client ID")
-    client_secret: str = Field(description="The Cognito APP client secret")
+    client_secret: Optional[str] = Field(
+        None, description="The Cognito APP client secret"
+    )
     root_path: str = Field(description="Root path of API")
     stage: str = Field(description="API stage")
 
