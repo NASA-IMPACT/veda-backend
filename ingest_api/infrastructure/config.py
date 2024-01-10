@@ -34,7 +34,7 @@ class IngestorConfig(BaseSettings):
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
     client_id: str = Field(description="The Cognito APP client ID")
     client_secret: Optional[str] = Field(
-        None, description="The Cognito APP client secret"
+        "", description="The Cognito APP client secret"
     )
 
     stac_db_secret_name: str = Field(
