@@ -4,6 +4,9 @@ inputs:
   env_aws_secret_name:
     required: true
     type: string
+  auth_env_aws_secret_name:
+    required: true
+    type: string
   dir:
     required: false
     type: string
@@ -76,11 +79,13 @@ runs:
     - name: Get dev environment configuration for develop branch
       shell: bash
       working-directory: ${{ inputs.dir }}
-      run: ./scripts/get-env.sh ${{ inputs.env_aws_secret_name }}
+      run: |
+        ./scripts/get-env.sh ${{ inputs.env_aws_secret_name }}
+        ./scripts/get-env.sh ${{ inputs.auth_env_aws_secret_name }}
 
     - name: Deploy
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
         echo $STAGE
-        cdk deploy --require-approval never
+        cdk deploy --require-approval never --outputs-file ${HOME}/cdk-outputs.json
