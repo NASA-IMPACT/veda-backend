@@ -91,3 +91,15 @@ def collection_exists(collection_id: str) -> bool:
         f"Invalid collection '{collection_id}', received "
         f"{response.status_code} response code from STAC API"
     )
+
+
+def time_density_is_valid(is_periodic: bool, time_density: Union[str, None]):
+    """
+    Ensures that the time_density is valid based on the value of is_periodic
+    """
+    if is_periodic and not time_density:
+        raise ValueError("If is_periodic is true, time_density must be set.")
+
+    # Literal[str, None] doesn't quite work for null field inputs from a dict()
+    if time_density and time_density not in ["day", "month", "year"]:
+        raise ValueError("If set, time_density must be one of 'day, 'month' or 'year'")
