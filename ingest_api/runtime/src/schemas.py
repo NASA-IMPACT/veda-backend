@@ -8,13 +8,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 from urllib.parse import urlparse
 
 import src.validators as validators
-from pydantic import (
-    BaseModel,
-    Field,
-    PositiveInt,
-    error_wrappers,
-    validator,
-)
+from pydantic import BaseModel, Field, PositiveInt, error_wrappers, validator
 from src.schema_helpers import SpatioTemporalExtent
 from stac_pydantic import Collection, Item, shared
 from stac_pydantic.links import Link
