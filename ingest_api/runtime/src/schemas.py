@@ -13,7 +13,6 @@ from pydantic import (
     Field,
     PositiveInt,
     error_wrappers,
-    root_validator,
     validator,
 )
 from src.schema_helpers import SpatioTemporalExtent
@@ -62,11 +61,6 @@ class DashboardCollection(Collection):
 
     class Config:
         allow_population_by_field_name = True
-
-    @root_validator
-    def check_time_density(cls, values):
-        validators.time_density_is_valid(values["is_periodic"], values["time_density"])
-        return values
 
 
 class Status(str, enum.Enum):
