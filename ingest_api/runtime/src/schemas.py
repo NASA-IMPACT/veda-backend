@@ -8,14 +8,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 from urllib.parse import urlparse
 
 import src.validators as validators
-from pydantic import (
-    BaseModel,
-    Field,
-    PositiveInt,
-    error_wrappers,
-    root_validator,
-    validator,
-)
+from pydantic import BaseModel, Field, PositiveInt, error_wrappers, validator
 from src.schema_helpers import SpatioTemporalExtent
 from stac_pydantic import Collection, Item, shared
 from stac_pydantic.links import Link
@@ -63,11 +56,6 @@ class DashboardCollection(Collection):
     class Config:
         allow_population_by_field_name = True
 
-    @root_validator
-    def check_time_density(cls, values):
-        validators.time_density_is_valid(values["is_periodic"], values["time_density"])
-        return values
-
 
 class Status(str, enum.Enum):
     @classmethod
@@ -102,9 +90,9 @@ class AuthResponse(BaseModel):
 
 class WhoAmIResponse(BaseModel):
     sub: str = Field(..., description="A unique identifier for the user")
-    cognito_groups: List[str] = Field(
-        ..., description="A list of Cognito groups the user belongs to"
-    )
+    # cognito_groups: List[str] = Field(
+    #     ..., description="A list of Cognito groups the user belongs to"
+    # )
     iss: str = Field(..., description="The issuer of the token")
     client_id: str = Field(..., description="The client ID of the authenticated app")
     origin_jti: str = Field(
