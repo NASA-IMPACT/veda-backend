@@ -199,13 +199,19 @@ async def get_token(
     """
     Get token from username and password
     """
-    return auth.authenticate_and_get_token(
-        form_data.username,
-        form_data.password,
-        settings.userpool_id,
-        settings.client_id,
-        settings.client_secret,
-    )
+    try:
+        return auth.authenticate_and_get_token(
+            form_data.username,
+            form_data.password,
+            settings.userpool_id,
+            settings.client_id,
+            settings.client_secret,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=(f"Unable to get token: {e}"),
+        )
 
 
 @app.get("/auth/me", tags=["Auth"], response_model=schemas.WhoAmIResponse)
