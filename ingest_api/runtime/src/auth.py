@@ -109,4 +109,6 @@ def authenticate_and_get_token(
         return {
             "message": "Login failed, please make sure the credentials are correct."
         }
+    except Exception as e:
+        return {"message": f"Login failed with exception {e}"}
     return resp["AuthenticationResult"]
