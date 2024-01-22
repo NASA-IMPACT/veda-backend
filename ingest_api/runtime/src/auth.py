@@ -111,4 +111,6 @@ def authenticate_and_get_token(
         }
     except Exception as e:
         return {"message": f"Login failed with exception {e}"}
+    except TimeoutError as te:
+        return {"message:" f"Request timed out: {te}"}
     return resp["AuthenticationResult"]
