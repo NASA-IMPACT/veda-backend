@@ -8,9 +8,8 @@ from typing import Optional
 import boto3
 import pydantic
 
+from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
-
-# from stac_fastapi.pgstac.extensions import QueryExtension
 from stac_fastapi.extensions.core import (
     ContextExtension,
     FieldsExtension,
@@ -18,8 +17,10 @@ from stac_fastapi.extensions.core import (
     QueryExtension,
     SortExtension,
     TokenPaginationExtension,
+    TransactionExtension,
 )
 from stac_fastapi.pgstac.config import Settings
+from stac_fastapi.pgstac.transactions import TransactionsClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
 
@@ -126,6 +127,11 @@ extensions = [
     FieldsExtension(),
     TokenPaginationExtension(),
     ContextExtension(),
+    TransactionExtension(
+        client=TransactionsClient(),
+        settings=ApiSettings().load_postgres_settings(),
+        response_class=ORJSONResponse,
+    ),
 ]
 post_request_model = create_post_request_model(extensions, base_model=PgstacSearch)
 get_request_model = create_get_request_model(extensions)
