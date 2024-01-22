@@ -102,6 +102,10 @@ class vedaAppSettings(BaseSettings):
         None, description="Custom domain name, i.e. veda-backend.xyz"
     )
 
+    mwaa_env: Optional[str] = Field(
+        None, description="Optional name of MWAA environment to be used by workflow API"
+    )
+
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""
 

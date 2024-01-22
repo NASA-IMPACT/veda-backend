@@ -30,6 +30,7 @@ class DomainConstruct(Construct):
         self.stac_domain_name = None
         self.raster_domain_name = None
         self.ingest_domain_name = None
+        self.workflow_domain_name = None
 
         if veda_domain_settings.create_custom_subdomains:
             # If alternative custom domain provided, use it instead of the default
