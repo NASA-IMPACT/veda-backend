@@ -199,21 +199,6 @@ class UpdateIngestionRequest(BaseModel):
     message: str = Field(None, description="Message of the ingestion")
 
 
-class Status(str, enum.Enum):
-    @classmethod
-    def _missing_(cls, value):
-        for member in cls:
-            if member.value.lower() == value.lower():
-                return member
-        return cls.unknown
-
-    started = "started"
-    queued = "queued"
-    failed = "failed"
-    succeeded = "succeeded"
-    cancelled = "cancelled"
-
-
 class WorkflowExecutionResponse(BaseModel):
     id: str = Field(
         ..., description="ID of the workflow execution in discover step function."
@@ -226,22 +211,6 @@ class WorkflowExecutionResponse(BaseModel):
 class ExecutionResponse(WorkflowExecutionResponse):
     message: str = Field(..., description="Message returned from the step function.")
     discovered_files: List[str] = Field(..., description="List of discovered files.")
-
-
-class AuthResponse(BaseModel):
-    AccessToken: str = Field(..., description="Token used to authenticate the user.")
-    ExpiresIn: int = Field(
-        ..., description="Number of seconds before the AccessToken expires."
-    )
-    TokenType: str = Field(
-        ..., description="Type of token being returned (e.g. 'Bearer')."
-    )
-    RefreshToken: str = Field(
-        ..., description="Token used to refresh the AccessToken when it expires."
-    )
-    IdToken: str = Field(
-        ..., description="Token containing information about the authenticated user."
-    )
 
 
 class WorkflowInputBase(BaseModel):
