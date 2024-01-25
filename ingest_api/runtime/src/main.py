@@ -270,6 +270,7 @@ async def publish_dataset(
     collection = schemas.DashboardCollection.parse_obj(collection_data)
     collection_publisher.ingest(collection)
 
+    # TODO improve typing
     return_dict = {
         "message": f"Successfully published collection: {dataset.collection}."
     }
@@ -281,8 +282,8 @@ async def publish_dataset(
             response = await start_discovery_workflow_execution(discovery)
             workflow_runs.append(response.id)
         if workflow_runs:
-            return_dict["message"] += f" {len(workflow_runs)} workflows initiated."
-            return_dict["workflows_ids"] = workflow_runs
+            return_dict["message"] += f" {len(workflow_runs)} workflows initiated."  # type: ignore
+            return_dict["workflows_ids"] = workflow_runs  # type: ignore
 
     return return_dict
 
