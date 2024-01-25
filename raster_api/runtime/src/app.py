@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from aws_lambda_powertools.metrics import MetricUnit
 from src.algorithms import PostProcessParams
+from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
 from src.dependencies import ColorMapParams, ItemPathParams
 from src.extensions import stacViewerExtension
@@ -101,8 +102,23 @@ stac = MultiBaseTilerFactory(
     colormap_dependency=ColorMapParams,
 )
 app.include_router(stac.router, tags=["Items"], prefix="/stac")
-# TODO
-# in titiler-pgstac we replaced the prefix to `/collections/{collection_id}/items/{item_id}`
+
+###############################################################################
+# /stac-alt - Custom STAC titiler endpoint for alternate asset locations
+###############################################################################
+stac_alt = MultiBaseTilerFactory(
+    reader=PgSTACReaderAlt,
+    path_dependency=ItemPathParams,
+    optional_headers=optional_headers,
+    router_prefix="/stac-alt",
+    environment_dependency=settings.get_gdal_config,
+    router=APIRouter(route_class=LoggerRouteHandler),
+    extensions=[
+        stacViewerExtension(),
+    ],
+    colormap_dependency=ColorMapParams,
+)
+app.include_router(stac_alt.router, tags=["Items"], prefix="/stac-alt")
 
 ###############################################################################
 # /cog - External Cloud Optimized GeoTIFF endpoints
