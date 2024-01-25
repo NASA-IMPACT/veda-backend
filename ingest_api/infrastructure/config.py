@@ -62,6 +62,14 @@ class IngestorConfig(BaseSettings):
     ingest_root_path: str = Field(description="Root path for ingest API")
     custom_host: Optional[str] = Field(description="Custom host name")
 
+    # Workflow sub-app settings
+
+    mwaa_env: Optional[str] = Field(
+        description="Environment of Airflow deployment",
+    )
+
+    workflow_root_path: Optional[str] = Field("/", description="Workflow API root path")
+
     class Config:
         case_sensitive = False
         env_file = ".env"

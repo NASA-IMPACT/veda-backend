@@ -18,8 +18,6 @@ from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from s3_website.infrastructure.construct import VedaWebsite
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
-from workflow_api.infrastructure.config import WorkflowConfig as workflow_config
-from workflow_api.infrastructure.construct import ApiConstruct as workflow_api_construct
 
 from eoapi_cdk import StacBrowser
 
@@ -126,6 +124,7 @@ ingestor_config = ingest_config(
     stac_db_public_subnet=database.is_publicly_accessible,
     stac_api_url=stac_api.stac_api.url,
     raster_api_url=raster_api.raster_api.url,
+    mwaa_env=veda_app_settings.mwaa_env,
 )
 
 
@@ -149,22 +148,6 @@ ingestor = ingestor_construct(
 
 veda_routes.add_ingest_behavior(
     ingest_api=ingest_api.api, stage=veda_app_settings.stage_name()
-)
-
-workflow_api_config = workflow_config(
-    stac_db_vpc_id=vpc.vpc.vpc_id,
-    stac_db_secret_name=db_secret_name,
-    stac_db_security_group_id=db_security_group.security_group_id,
-    stac_db_public_subnet=database.is_publicly_accessible,
-    mwaa_env=veda_app_settings.mwaa_env,
-)
-
-workflow_api = workflow_api_construct(
-    veda_stack,
-    "workflow-api",
-    config=workflow_api_config,
-    domain=domain,
-    db_vpc=vpc.vpc,
 )
 
 # Must be done after all CF behaviors exist

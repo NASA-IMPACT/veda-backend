@@ -74,6 +74,7 @@ class ApiConstruct(Construct):
             db_vpc=db_vpc,
             db_security_group=db_security_group,
             db_subnet_public=config.stac_db_public_subnet,
+            mwaa_env=config.mwaa_env,
         )
 
         # create API
@@ -119,6 +120,7 @@ class ApiConstruct(Construct):
         db_security_group: ec2.ISecurityGroup,
         db_subnet_public: bool,
         code_dir: str = "./",
+        mwaa_env: Optional[str],
     ) -> apigateway.LambdaRestApi:
         handler_role = iam.Role(
             self,
@@ -170,6 +172,19 @@ class ApiConstruct(Construct):
                 resources=[user_pool.user_pool_arn],
             )
         )
+
+        if mwaa_env:
+            handler.add_to_role_policy(
+                iam.PolicyStatement(
+                    actions=["airflow:CreateCliToken"],
+                    resources=[
+                        f"arn:aws:airflow:{self.region}:{self.account}:environment/{mwaa_env}"
+                    ],
+                )
+            )
+
+        # this output is required to allow subsequent MWAA deployments to grant permissions to this lamdba
+        CfnOutput(self, "Ingest API Lambda Role", value=handler.role.role_arn)
 
         # Allow handler to read DB secret
         db_secret.grant_read(handler)

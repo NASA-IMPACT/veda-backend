@@ -1,16 +1,19 @@
+import logging
 import os
 from getpass import getuser
-from typing import Dict
+from typing import Dict, Union
 
+import requests
+import src.airflow_helpers as airflow_helpers
 import src.auth as auth
 import src.config as config
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
-from src.collection_publisher import CollectionPublisher, ItemPublisher
+from src.collection_publisher import CollectionPublisher, ItemPublisher, Publisher
 from src.doc import DESCRIPTION
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Body, Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -24,6 +27,8 @@ settings = (
         ),
     )
 )
+
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
@@ -41,6 +46,7 @@ app = FastAPI(
 
 collection_publisher = CollectionPublisher()
 item_publisher = ItemPublisher()
+publisher = Publisher()
 
 
 @app.get(
@@ -220,6 +226,141 @@ def who_am_i(claims=Depends(auth.decode_token)):
     Return claims for the provided JWT
     """
     return claims
+
+
+# "Datasets" interface (collections + item ingests from one input)
+
+
+@app.post(
+    "/dataset/validate",
+    tags=["Dataset"],
+    dependencies=[Depends(auth.get_username)],
+)
+def validate_dataset(dataset: schemas.COGDataset):
+    # for all sample files in dataset, test access using raster /validate endpoint
+    for sample in dataset.sample_files:
+        url = f"{settings.raster_url}/cog/validate?url={sample}"
+        try:
+            response = requests.get(url)
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=(f"Unable to validate dataset: {response.text}"),
+                )
+        except Exception as e:
+            raise HTTPException(
+                status_code=422,
+                detail=(f"Sample file {sample} is an invalid COG: {e}"),
+            )
+    return {
+        f"Dataset metadata is valid and ready to be published - {dataset.collection}"
+    }
+
+
+@app.post(
+    "/dataset/publish", tags=["Dataset"], dependencies=[Depends(auth.get_username)]
+)
+async def publish_dataset(
+    dataset: Union[schemas.ZarrDataset, schemas.COGDataset] = Body(
+        ..., discriminator="data_type"
+    )
+):
+    # Construct and load collection
+    collection_data = publisher.generate_stac(dataset, dataset.data_type or "cog")
+    collection = schemas.DashboardCollection.parse_obj(collection_data)
+    collection_publisher.ingest(collection)
+
+    return_dict = {
+        "message": f"Successfully published collection: {dataset.collection}."
+    }
+
+    if dataset.data_type == schemas.DataType.cog:
+        workflow_runs = []
+        for discovery in dataset.discovery_items:
+            discovery.collection = dataset.collection
+            response = await start_discovery_workflow_execution(discovery)
+            workflow_runs.append(response.id)
+        if workflow_runs:
+            return_dict["message"] += f" {len(workflow_runs)} workflows initiated."
+            return_dict["workflows_ids"] = workflow_runs
+
+    return return_dict
+
+
+# Subapp for managing Processes and DAG executions (workflows)
+
+workflows_app = FastAPI(
+    title="VEDA Workflows API",
+    license_info={
+        "name": "Apache 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+    },
+    contact={"url": "https://github.com/NASA-IMPACT/veda-backend"},
+    openapi_url="/api/workflows/openapi.json",  # needed due to Mount adding a prefix of '/'
+)
+
+
+@workflows_app.post(
+    "/discovery",
+    response_model=schemas.WorkflowExecutionResponse,
+    tags=["Workflow-Executions"],
+    status_code=201,
+    dependencies=[Depends(auth.get_username)],
+)
+async def start_discovery_workflow_execution(
+    input=Body(..., discriminator="discovery"),
+) -> schemas.WorkflowExecutionResponse:
+    """
+    Triggers the ingestion workflow
+    """
+    return airflow_helpers.trigger_discover(input)
+
+
+@workflows_app.get(
+    "/discovery-executions/{workflow_execution_id}",
+    response_model=Union[schemas.ExecutionResponse, schemas.WorkflowExecutionResponse],
+    tags=["Workflow-Executions"],
+    dependencies=[Depends(auth.get_username)],
+)
+async def get_discovery_workflow_execution_status(
+    workflow_execution_id: str,
+) -> Union[schemas.ExecutionResponse, schemas.WorkflowExecutionResponse]:
+    """
+    Returns the status of the workflow execution
+    """
+    return airflow_helpers.get_status(workflow_execution_id)
+
+
+@workflows_app.get(
+    "/list-workflows",
+    tags=["Workflow-Executions"],
+    dependencies=[Depends(auth.get_username)],
+)
+async def get_workflow_list() -> Union[
+    schemas.ExecutionResponse, schemas.WorkflowExecutionResponse
+]:
+    """
+    Returns the status of the workflow execution
+    """
+    return airflow_helpers.list_dags()
+
+
+@workflows_app.post(
+    "/cli-input",
+    tags=["Admin"],
+    dependencies=[Depends(auth.get_username)],
+)
+async def send_cli_command(cli_command: str):
+    return airflow_helpers.send_cli_command(cli_command)
+
+
+# TODO remove debugging code
+app.mount("/api/workflows", workflows_app)
+
+def get_mounted_apps(app):
+    return [route for route in app.router.routes]
+
+logger.info(get_mounted_apps(app))
 
 
 # exception handling

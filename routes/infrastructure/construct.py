@@ -123,6 +123,16 @@ class CloudfrontDistributionConstruct(Construct):
                 allowed_methods=cf.AllowedMethods.ALLOW_ALL,
                 origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
             )
+            self.distribution.add_behavior(
+                "/api/workflows*",
+                origin=origins.HttpOrigin(
+                    f"{ingest_api.api_id}.execute-api.{region}.amazonaws.com",
+                    origin_id="workflow-api",
+                ),
+                cache_policy=cf.CachePolicy.CACHING_DISABLED,
+                allowed_methods=cf.AllowedMethods.ALLOW_ALL,
+                origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+            )
 
     def create_route_records(self, stage: str):
         """This is a seperate function so that it can be called after all behaviors are instantiated"""
