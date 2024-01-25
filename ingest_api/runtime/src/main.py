@@ -30,8 +30,9 @@ settings = (
 
 logger = logging.getLogger(__name__)
 
+app = FastAPI()
 
-app = FastAPI(
+ingest_app = FastAPI(
     title="VEDA Ingestion API",
     description=DESCRIPTION,
     license_info={
@@ -39,7 +40,6 @@ app = FastAPI(
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     },
     contact={"url": "https://github.com/NASA-IMPACT/veda-backend"},
-    root_path=settings.root_path,
     openapi_url="/openapi.json",
     docs_url="/docs",
 )
@@ -49,7 +49,7 @@ item_publisher = ItemPublisher()
 publisher = Publisher()
 
 
-@app.get(
+@ingest_app.get(
     "/ingestions", response_model=schemas.ListIngestionResponse, tags=["Ingestion"]
 )
 async def list_ingestions(
@@ -64,7 +64,7 @@ async def list_ingestions(
     )
 
 
-@app.post(
+@ingest_app.post(
     "/ingestions",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -86,7 +86,7 @@ async def enqueue_ingestion(
     ).enqueue(db)
 
 
-@app.get(
+@ingest_app.get(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -100,7 +100,7 @@ def get_ingestion(
     return ingestion
 
 
-@app.patch(
+@ingest_app.patch(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -117,7 +117,7 @@ def update_ingestion(
     return updated_item.save(db)
 
 
-@app.delete(
+@ingest_app.delete(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -139,7 +139,7 @@ def cancel_ingestion(
     return ingestion.cancel(db)
 
 
-@app.post(
+@ingest_app.post(
     "/collections",
     tags=["Collection"],
     status_code=201,
@@ -160,7 +160,7 @@ def publish_collection(collection: schemas.DashboardCollection):
         )
 
 
-@app.delete(
+@ingest_app.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
     dependencies=[Depends(auth.get_username)],
@@ -177,7 +177,7 @@ def delete_collection(collection_id: str):
         raise HTTPException(status_code=400, detail=(f"{e}"))
 
 
-@app.post(
+@ingest_app.post(
     "/items",
     tags=["Items"],
     status_code=201,
@@ -198,7 +198,7 @@ def publish_item(item: schemas.Item):
         )
 
 
-@app.post("/token", tags=["Auth"], response_model=schemas.AuthResponse)
+@ingest_app.post("/token", tags=["Auth"], response_model=schemas.AuthResponse)
 async def get_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Dict:
@@ -220,7 +220,7 @@ async def get_token(
         )
 
 
-@app.get("/auth/me", tags=["Auth"], response_model=schemas.WhoAmIResponse)
+@ingest_app.get("/auth/me", tags=["Auth"], response_model=schemas.WhoAmIResponse)
 def who_am_i(claims=Depends(auth.decode_token)):
     """
     Return claims for the provided JWT
@@ -231,7 +231,7 @@ def who_am_i(claims=Depends(auth.decode_token)):
 # "Datasets" interface (collections + item ingests from one input)
 
 
-@app.post(
+@ingest_app.post(
     "/dataset/validate",
     tags=["Dataset"],
     dependencies=[Depends(auth.get_username)],
@@ -257,7 +257,7 @@ def validate_dataset(dataset: schemas.COGDataset):
     }
 
 
-@app.post(
+@ingest_app.post(
     "/dataset/publish", tags=["Dataset"], dependencies=[Depends(auth.get_username)]
 )
 async def publish_dataset(
@@ -296,7 +296,6 @@ workflows_app = FastAPI(
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     },
     contact={"url": "https://github.com/NASA-IMPACT/veda-backend"},
-    openapi_url="/api/workflows/openapi.json",  # needed due to Mount adding a prefix of '/'
 )
 
 
@@ -355,10 +354,13 @@ async def send_cli_command(cli_command: str):
 
 
 # TODO remove debugging code
-app.mount("/api/workflows", workflows_app)
+app.mount(settings.workflow_root_path, workflows_app)
+app.mount(settings.ingest_root_path, ingest_app)
+
 
 def get_mounted_apps(app):
     return [route for route in app.router.routes]
+
 
 logger.info(get_mounted_apps(app))
 

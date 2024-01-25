@@ -59,8 +59,9 @@ class ApiConstruct(Construct):
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
             "RASTER_URL": config.raster_api_url,
-            "ROOT_PATH": config.ingest_root_path,
+            "INGEST_ROOT_PATH": config.ingest_root_path,
             "STAGE": config.stage,
+            "WORKFLOW_ROOT_PATH": "/api/workflows",
         }
 
         # create lambda
