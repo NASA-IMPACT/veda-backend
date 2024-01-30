@@ -206,19 +206,17 @@ def test_area_weighted_stats():
         "geometry": {
             "type": "Polygon",
             "coordinates": [
-            [
-                [0.0000028, -15.8750977],
-                [20.7286425, 0.0000028],
-                [20.7286425, -15.8750977],
-                [0.0000028, -15.8750977]
-            ]
-            ]
-        }
+                [
+                    [0.0000028, -15.8750977],
+                    [20.7286425, 0.0000028],
+                    [20.7286425, -15.8750977],
+                    [0.0000028, -15.8750977],
+                ]
+            ],
+        },
     }
 
-    headers = {
-        'Content-Type': 'application/json'
-    }
+    headers = {"Content-Type": "application/json"}
 
     resp = httpx.post(
         f"{raster_endpoint}/stac/statistics",
@@ -227,7 +225,7 @@ def test_area_weighted_stats():
             "item": "row_encoded_raster_wgs84",
         },
         json=area_of_interest,
-        headers=headers
+        headers=headers,
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
