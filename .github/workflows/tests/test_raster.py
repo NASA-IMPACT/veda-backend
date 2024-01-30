@@ -195,3 +195,42 @@ def test_item():
     assert "item=20200307aC0853300w361200" in resp.json()["tiles"][0]
     assert "collection=noaa-emergency-response" in resp.json()["tiles"][0]
     assert resp.json()["bounds"] == [-85.5501, 36.1749, -85.5249, 36.2001]
+
+
+def test_area_weighted_stats():
+    """test statistics results endpoints."""
+
+    area_of_interest = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+            [
+                [0.0000028, -15.8750977],
+                [20.7286425, 0.0000028],
+                [20.7286425, -15.8750977],
+                [0.0000028, -15.8750977]
+            ]
+            ]
+        }
+    }
+
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    resp = httpx.post(
+        f"{raster_endpoint}/stac/statistics",
+        params={
+            "collection": "test-tifs",
+            "item": "row_encoded_raster_wgs84",
+        },
+        json=area_of_interest,
+        headers=headers
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/json"
+    print(resp.json())
+
+    assert resp.json() == "this will fail"
