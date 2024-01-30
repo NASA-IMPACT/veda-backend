@@ -227,6 +227,7 @@ def test_area_weighted_stats():
         json=area_of_interest,
         headers=headers,
     )
+    print(resp.json())
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
     print(resp.json())
