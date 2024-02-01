@@ -141,3 +141,5 @@ package-lock.json
 cdk-dev.out
 **/--no-binary/
 stac-browser
+
+container_logs.log

@@ -124,6 +124,15 @@ Clean up after running locally
 docker compose down
 ```
 
+## Running tests locally
+
+To run tests implicated in CI, a script is included that requires as little setup as possible
+```
+./scripts/run-local-tests.sh
+```
+
+In case of failure, all container logs will be written out to `container_logs.log`.
+
 # Operations
 
 ## Adding new data to veda-backend 
