@@ -67,7 +67,7 @@ def handler(event: "events.DynamoDBStreamEvent", context: "context_.Context"):
 
     items = [
         # NOTE: Important to deserialize values to convert decimals to floats
-        convert_decimals_to_float(ingestion.item)
+        convert_decimals_to_float(ingestion.item.model_dump())
         for ingestion in ingestions
     ]
 
