@@ -146,8 +146,8 @@ class RdsConstruct(Construct):
 
         # RDS Instance Type
         rds_instance_type = aws_ec2.InstanceType.of(
-            aws_ec2.InstanceClass[veda_db_settings.rds_instance_class.upper()],
-            aws_ec2.InstanceSize[veda_db_settings.rds_instance_size.upper()],
+            aws_ec2.InstanceClass[veda_db_settings.rds_instance_class],
+            aws_ec2.InstanceSize[veda_db_settings.rds_instance_size],
         )
 
         #  version=aws_rds.PostgresEngineVersion.postgres_major_version(veda_db_settings.rds_engine_version)
