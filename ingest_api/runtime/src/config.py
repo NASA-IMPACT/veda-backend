@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import AnyHttpUrl, BaseSettings, Field, constr
 from pydantic_ssm_settings import AwsSsmSourceConfig
 
@@ -8,7 +10,7 @@ AwsStepArn = constr(regex=r"^arn:aws:states:.+:\d{12}:stateMachine:.+")
 class Settings(BaseSettings):
     dynamodb_table: str
 
-    jwks_url: AnyHttpUrl = Field(
+    jwks_url: Optional[AnyHttpUrl] = Field(
         description="URL of JWKS, e.g. https://cognito-idp.{region}.amazonaws.com/{userpool_id}/.well-known/jwks.json"  # noqa
     )
 
@@ -22,8 +24,8 @@ class Settings(BaseSettings):
 
     client_id: str = Field(description="The Cognito APP client ID")
     client_secret: str = Field("", description="The Cognito APP client secret")
-    root_path: str = Field(description="Root path of API")
-    stage: str = Field(description="API stage")
+    root_path: Optional[str] = Field(description="Root path of API")
+    stage: Optional[str] = Field(description="API stage")
 
     class Config(AwsSsmSourceConfig):
         env_file = ".env"
