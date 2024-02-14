@@ -1,0 +1,79 @@
+from getpass import getuser
+from typing import Optional
+
+import aws_cdk
+from pydantic import BaseSettings, Field, constr
+
+AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
+AwsStepArn = constr(regex=r"^arn:aws:states:.+:\d{12}:stateMachine:.+")
+AwsOidcArn = constr(regex=r"^arn:aws:iam::\d{12}:oidc-provider/.+")
+
+
+class IngestorConfig(BaseSettings):
+    stage: str = Field(
+        description=" ".join(
+            [
+                "Stage of deployment (e.g. 'dev', 'prod').",
+                "Used as suffix for stack name.",
+                "Defaults to current username.",
+            ]
+        ),
+        default_factory=getuser,
+    )
+    owner: str = Field(
+        description=" ".join(
+            [
+                "Name of primary contact for Cloudformation Stack.",
+                "Used to tag generated resources",
+                "Defaults to current username.",
+            ]
+        ),
+        default_factory=getuser,
+    )
+
+    userpool_id: str = Field(description="The Cognito Userpool used for authentication")
+    client_id: str = Field(description="The Cognito APP client ID")
+    client_secret: Optional[str] = Field(
+        "", description="The Cognito APP client secret"
+    )
+
+    stac_db_secret_name: str = Field(
+        description="Name of secret containing pgSTAC DB connection information"
+    )
+    stac_db_vpc_id: str = Field(description="ID of VPC running pgSTAC DB")
+    stac_db_security_group_id: str = Field(
+        description="ID of Security Group used by pgSTAC DB"
+    )
+    stac_db_public_subnet: bool = Field(
+        description="Boolean indicating whether or not pgSTAC DB is in a public subnet",
+        default=True,
+    )
+
+    raster_data_access_role_arn: AwsArn = Field(  # type: ignore
+        description="ARN of AWS Role used to validate access to S3 data"
+    )
+
+    stac_api_url: str = Field(description="URL of STAC API used to serve STAC Items")
+
+    raster_api_url: str = Field(
+        description="URL of Raster API used to serve asset tiles"
+    )
+
+    ingest_root_path: str = Field(description="Root path for ingest API")
+    custom_host: Optional[str] = Field(description="Custom host name")
+
+    class Config:
+        case_sensitive = False
+        env_file = ".env"
+        env_prefix = "VEDA_"
+
+    @property
+    def stack_name(self) -> str:
+        return f"veda-stac-ingestion-{self.stage}"
+
+    @property
+    def env(self) -> aws_cdk.Environment:
+        return aws_cdk.Environment(
+            account=self.aws_account,
+            region=self.aws_region,
+        )

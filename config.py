@@ -1,7 +1,12 @@
 """App settings."""
+from getpass import getuser
 from typing import Optional
 
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings, Field, constr
+
+AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
+AwsStepArn = constr(regex=r"^arn:aws:states:.+:\d{12}:stateMachine:.+")
+AwsOidcArn = constr(regex=r"^arn:aws:iam::\d{12}:oidc-provider/.+")
 
 
 class vedaAppSettings(BaseSettings):
@@ -19,6 +24,17 @@ class vedaAppSettings(BaseSettings):
             "i.e. `dev`, `staging`, `prod`"
         ),
     )
+    owner: str = Field(
+        description=" ".join(
+            [
+                "Name of primary contact for Cloudformation Stack.",
+                "Used to tag generated resources",
+                "Defaults to current username.",
+            ]
+        ),
+        default_factory=getuser,
+    )
+
     vpc_id: Optional[str] = Field(
         None,
         description=(

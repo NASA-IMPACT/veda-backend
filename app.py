@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """ CDK Configuration for the veda-backend stack."""
 
+import subprocess
+
 from aws_cdk import App, Aspects, Stack, Tags, aws_iam
 from constructs import Construct
 
 from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
+from ingest_api.infrastructure.config import IngestorConfig as ingest_config
+from ingest_api.infrastructure.construct import ApiConstruct as ingest_api_construct
+from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_construct
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
@@ -108,6 +113,46 @@ if stac_catalog_url:
         bucket_arn=website.bucket.bucket_arn,
     )
 
+db_secret_name = database.pgstac.secret.secret_name
+db_security_group = database.db_security_group
+
+# ingestor config requires references to other resources, but can be shared between ingest api and bulk ingestor
+ingestor_config = ingest_config(
+    stac_db_vpc_id=vpc.vpc.vpc_id,
+    stac_db_secret_name=db_secret_name,
+    stac_db_security_group_id=db_security_group.security_group_id,
+    stac_db_public_subnet=database.is_publicly_accessible,
+    stac_api_url=stac_api.stac_api.url,
+    raster_api_url=raster_api.raster_api.url,
+)
+
+
+ingest_api = ingest_api_construct(
+    veda_stack,
+    "ingest-api",
+    config=ingestor_config,
+    db_secret=database.pgstac.secret,
+    db_vpc=vpc.vpc,
+    domain=domain,
+)
+
+ingestor = ingestor_construct(
+    veda_stack,
+    "IngestorConstruct",
+    config=ingestor_config,
+    table=ingest_api.table,
+    db_secret=database.pgstac.secret,
+    db_vpc=vpc.vpc,
+)
+
+veda_routes.add_ingest_behavior(
+    ingest_api=ingest_api.api, stage=veda_app_settings.stage_name()
+)
+
+# Must be done after all CF behaviors exist
+veda_routes.create_route_records(stage=veda_app_settings.stage_name())
+
+
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
 if veda_app_settings.alt_domain():
     alt_domain = DomainConstruct(
@@ -136,11 +181,28 @@ if veda_app_settings.alt_domain():
         domain_name=alt_domain.stac_domain_name,
     )
 
+    alt_ingest_api = ingest_api_construct(
+        veda_stack,
+        "alt-ingest-api",
+        config=ingestor_config,
+        db_secret=database.pgstac.secret,
+        db_vpc=vpc.vpc,
+        domain_name=alt_domain.ingest_domain_name,
+    )
+
+git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+try:
+    git_tag = subprocess.check_output(["git", "describe", "--tags"]).decode().strip()
+except subprocess.CalledProcessError:
+    git_tag = "no-tag"
+
 for key, value in {
     "Project": veda_app_settings.app_name,
     "Stack": veda_app_settings.stage_name(),
     "Client": "nasa-impact",
-    "Owner": "ds",
+    "Owner": veda_app_settings.owner,
+    "GitCommit": git_sha,
+    "GitTag": git_tag,
 }.items():
     if value:
         Tags.of(app).add(key=key, value=value)
