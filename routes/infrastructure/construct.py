@@ -33,7 +33,6 @@ class CloudfrontDistributionConstruct(Construct):
         stack_name = Stack.of(self).stack_name
 
         if veda_route_settings.cloudfront:
-
             # Certificate must be in zone us-east-1
             domain_cert = (
                 certificatemanager.Certificate.from_certificate_arn(
