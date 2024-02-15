@@ -190,7 +190,6 @@ class ApiConstruct(Construct):
         domain,
         custom_host: Optional[str],
     ) -> aws_apigatewayv2_alpha.HttpApi:
-
         integration_kwargs = dict(handler=handler)
         if custom_host:
             integration_kwargs[
