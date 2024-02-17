@@ -662,7 +662,7 @@ const switchPane = (event) => {
 
 map.on('load', () => {
   // get collections
-  fetch('{{ endpoint }}/collections')
+  fetch('{{ endpoint }}/api/stac/collections')
     .then(res => {
       if (res.ok) return res.json()
       throw new Error('Network response was not ok.')
