@@ -4,7 +4,6 @@ from pypgstac.db import PgstacDB
 from src.schemas import DashboardCollection
 from src.utils import (
     IngestionType,
-    convert_decimals_to_float,
     get_db_credentials,
     load_into_pgstac,
 )
@@ -21,9 +20,7 @@ class CollectionPublisher:
         """
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
         collection = [
-            convert_decimals_to_float(
-                collection.dict(by_alias=True, exclude_unset=True)
-            )
+            collection.model_dump()
         ]
         with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
             load_into_pgstac(
@@ -48,6 +45,6 @@ class ItemPublisher:
         and loads into the PgSTAC item table
         """
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
-        item = [convert_decimals_to_float(item.dict(by_alias=True))]
+        item = [item.model_dump()]
         with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
             load_into_pgstac(db=db, ingestions=item, table=IngestionType.items)
