@@ -142,22 +142,27 @@ class VedaCrudClient(CoreCrudClient):
         item_collection = result
 
         if len(result["features"]) > 0:
-            collection_id = result["features"][0]["collection"]
-            collection = await _super.get_collection(collection_id, request=request)
-            render_params = collection.get("renders", {})
-            if "dashboard" in render_params:
-                item_collection = ItemCollection(
-                    **{
-                        **result,
-                        "features": [
-                            self.inject_item_links(
-                                i, render_params["dashboard"], request
-                            )
-                            for i in result.get("features", [])
-                        ],
-                    }
-                )
-            else:
+            try:
+                collection_id = result["features"][0]["collection"]
+                collection = await _super.get_collection(collection_id, request=request)
+
+                render_params = collection.get("renders", {})
+
+                if "dashboard" in render_params:
+                    item_collection = ItemCollection(
+                        **{
+                            **result,
+                            "features": [
+                                self.inject_item_links(
+                                    i, render_params["dashboard"], request
+                                )
+                                for i in result.get("features", [])
+                            ],
+                        }
+                    )
+                else:
+                    item_collection = result
+            except Exception:
                 item_collection = result
 
         return item_collection

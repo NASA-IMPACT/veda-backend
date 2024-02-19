@@ -120,6 +120,7 @@ class ApiConstruct(Construct):
         db_subnet_public: bool,
         code_dir: str = "./",
     ) -> apigateway.LambdaRestApi:
+        stack_name = Stack.of(self).stack_name
         handler_role = iam.Role(
             self,
             "execution-role",
@@ -127,7 +128,7 @@ class ApiConstruct(Construct):
                 "Role used by STAC Ingestor. Manually defined so that we can choose a "
                 "name that is supported by the data access roles trust policy"
             ),
-            role_name=f"delta-backend-staging-stac-ingestion-api-{stage}",
+            role_name=f"stac-ingestion-api-{stack_name}-role",
             assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name(
@@ -190,7 +191,6 @@ class ApiConstruct(Construct):
         domain,
         custom_host: Optional[str],
     ) -> aws_apigatewayv2_alpha.HttpApi:
-
         integration_kwargs = dict(handler=handler)
         if custom_host:
             integration_kwargs[
