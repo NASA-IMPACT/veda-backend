@@ -1,7 +1,6 @@
 """FastAPI application using PGStac.
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
-from pydantic import root_validator
 from aws_lambda_powertools.metrics import MetricUnit
 from src.config import ApiSettings, TilesApiSettings
 from src.config import extensions as PgStacExtensions
