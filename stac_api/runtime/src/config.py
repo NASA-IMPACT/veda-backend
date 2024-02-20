@@ -23,6 +23,7 @@ from stac_fastapi.pgstac.config import Settings
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
 
+@lru_cache()
 def get_secret_dict(secret_name: str):
     """Retrieve secrets from AWS Secrets Manager
 

@@ -136,6 +136,10 @@ class VedaCrudClient(CoreCrudClient):
         request = kwargs["request"]
 
         result = await _super._search_base(search_request, **kwargs)
+        # Without assigning item_collection here we will get the error
+        # UnboundLocalError: local variable 'item_collection' referenced before assignment (cloudfront 500 error)
+        # in case len(result["features"]) == 0
+        item_collection = result
 
         if len(result["features"]) > 0:
             try:
