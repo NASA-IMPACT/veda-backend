@@ -7,14 +7,14 @@ with open("README.md") as f:
 
 inst_reqs = [
     "boto3",
-    "titiler.pgstac==0.8.0",
-    "titiler.core>=0.15.1,<0.16",
-    "titiler.mosaic>=0.15.1,<0.16",
-    "titiler.extensions[cogeo]>=0.15.1,<0.16",
+    "titiler.pgstac==0.8.1",
+    "titiler.core>=0.15.5,<0.16",
+    "titiler.mosaic>=0.15.5,<0.16",
+    "titiler.extensions[cogeo]>=0.15.5,<0.16",
     "starlette-cramjam>=0.3,<0.4",
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
-    "rio-tiler==6.2.3.post1",
+    "starlette<0.28",
 ]
 
 extra_reqs = {
