@@ -23,7 +23,7 @@ from titiler.core.resources.enums import OptionalHeader
 from titiler.core.resources.responses import JSONResponse
 from titiler.extensions import cogValidateExtension, cogViewerExtension
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
-from titiler.pgstac.db import close_db_connection, connect_to_db
+from titiler.pgstac.db import close_db_connection
 from titiler.pgstac.factory import MosaicTilerFactory
 from titiler.pgstac.reader import PgSTACReader
 
@@ -39,8 +39,6 @@ if settings.debug:
 else:
     optional_headers = []
 
-
-await connect_to_db()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
