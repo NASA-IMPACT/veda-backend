@@ -4,16 +4,13 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Iterator, List, Optional, Sequence
 
 from boto3.dynamodb.types import TypeDeserializer
-from fastapi.encoders import jsonable_encoder
 from pypgstac.db import PgstacDB
 from src.auth import get_settings
 from src.dependencies import get_table
 from src.schemas import Ingestion, Status
-from src.utils import (
-    IngestionType,
-    get_db_credentials,
-    load_into_pgstac,
-)
+from src.utils import IngestionType, get_db_credentials, load_into_pgstac
+
+from fastapi.encoders import jsonable_encoder
 
 if TYPE_CHECKING:
     from aws_lambda_typing import context as context_
