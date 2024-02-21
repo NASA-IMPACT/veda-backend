@@ -20,7 +20,7 @@ class CollectionPublisher:
         """
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
         collection = [
-            collection.model_dump()
+            collection.to_dict()
         ]
         with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
             load_into_pgstac(
@@ -45,6 +45,6 @@ class ItemPublisher:
         and loads into the PgSTAC item table
         """
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
-        item = [item.model_dump()]
+        item = [item.to_dict()]
         with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
             load_into_pgstac(db=db, ingestions=item, table=IngestionType.items)
