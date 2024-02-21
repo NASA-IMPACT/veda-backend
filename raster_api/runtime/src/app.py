@@ -6,6 +6,7 @@ from aws_lambda_powertools.metrics import MetricUnit
 from src.algorithms import PostProcessParams
 from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
+from src.db import connect_to_rds_proxy
 from src.dependencies import ColorMapParams, ItemPathParams
 from src.extensions import stacViewerExtension
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
@@ -39,11 +40,13 @@ else:
     optional_headers = []
 
 
+await connect_to_db()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """FastAPI Lifespan."""
     # Create Connection Pool
-    await connect_to_db(app, settings=settings.load_postgres_settings())
+    await connect_to_rds_proxy(app, settings=settings.load_postgres_settings())
     yield
     # Close the Connection Pool
     await close_db_connection(app)
