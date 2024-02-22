@@ -4,16 +4,14 @@ inputs:
   env_aws_secret_name:
     required: true
     type: string
+  script_path:
+    type: string
+  auth_stack_name:
+    type: string
   dir:
     required: false
     type: string
     default: "."
-  project_prefix:
-    type: string
-  stage:
-    type: string
-  script_path:
-    type: string
 
 
 runs:
@@ -63,7 +61,7 @@ runs:
           then
             ./scripts/sync-env-local.sh ${{ inputs.env_aws_secret_name }}
           else
-            python ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }}
+            python ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }} --stack-names ${{ inputs.auth_stack_name }}
         fi
 
     - name: Deploy 
