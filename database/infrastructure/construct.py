@@ -266,7 +266,6 @@ class RdsConstruct(Construct):
             description=f"Name of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
         )
         if self.proxy:
-
             CfnOutput(
                 self,
                 "rds-proxy-endpoint",

@@ -20,7 +20,7 @@ logging.getLogger("mangum.http").setLevel(logging.ERROR)
 @app.on_event("startup")
 async def startup_event() -> None:
     """Connect to database on startup."""
-    await connect_to_db(app, settings=settings.load_postgres_settings())
+    await connect_to_db(app, settings=settings.load_postgres_settings(), pool_kwargs={})
 
 
 handler = Mangum(app, lifespan="off", api_gateway_base_path=app.root_path)
