@@ -30,7 +30,7 @@ class LoggerRouteHandler(APIRoute):
             logger.info("Received request")
             metrics.add_metric(
                 name="/".join(
-                    str(request.url).split("/")[:2]
+                    str(request.url.path).split("/")[:2]
                 ),  # enough detail to capture search IDs, but not individual tile coords
                 unit=MetricUnit.Count,
                 value=1,

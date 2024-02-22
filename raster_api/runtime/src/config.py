@@ -3,6 +3,7 @@
 import base64
 import json
 import os
+from functools import lru_cache
 from typing import Optional
 
 import boto3
@@ -14,6 +15,7 @@ from typing_extensions import Annotated
 from titiler.pgstac.settings import PostgresSettings
 
 
+@lru_cache()
 def get_secret_dict(secret_name: str):
     """Retrieve secrets from AWS Secrets Manager
 
@@ -54,7 +56,7 @@ class ApiSettings(BaseSettings):
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
-    path_prefix: str = ""
+    root_path: Optional[str] = None
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False

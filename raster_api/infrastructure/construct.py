@@ -1,5 +1,7 @@
 """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
 import os
+import typing
+from typing import Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -16,9 +18,12 @@ from constructs import Construct
 
 from .config import veda_raster_settings
 
+if typing.TYPE_CHECKING:
+    from domain.infrastructure.construct import DomainConstruct
+
 
 class RasterApiLambdaConstruct(Construct):
-    """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
+    """CDK Construct for a Lambda based TiTiler API with pgstac extension."""
 
     def __init__(
         self,
@@ -28,7 +33,8 @@ class RasterApiLambdaConstruct(Construct):
         vpc,
         database,
         code_dir: str = "./",
-        domain_name: aws_apigatewayv2_alpha.DomainName = None,
+        # domain_name: aws_apigatewayv2_alpha.DomainName = None,
+        domain: Optional["DomainConstruct"] = None,
         **kwargs,
     ) -> None:
         """."""
@@ -71,7 +77,7 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         veda_raster_function.add_environment(
-            "VEDA_RASTER_PATH_PREFIX", veda_raster_settings.raster_path_prefix
+            "VEDA_RASTER_ROOT_PATH", veda_raster_settings.raster_root_path
         )
 
         # Optional AWS S3 requester pays global setting
@@ -81,17 +87,12 @@ class RasterApiLambdaConstruct(Construct):
             )
 
         integration_kwargs = dict(handler=veda_raster_function)
-        if (
-            veda_raster_settings.domain_hosted_zone_name
-            and veda_raster_settings.cloudfront
-        ):
+        if veda_raster_settings.custom_host:
             integration_kwargs[
                 "parameter_mapping"
             ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
                 "host",
-                aws_apigatewayv2_alpha.MappingValue(
-                    f"{stage}.{veda_raster_settings.domain_hosted_zone_name}"
-                ),
+                aws_apigatewayv2_alpha.MappingValue(veda_raster_settings.custom_host),
             )
 
         raster_api_integration = (
@@ -102,9 +103,11 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         domain_mapping = None
-        if domain_name:
+        # Legacy method to use a custom subdomain for this api (i.e. <stage>-raster.<domain-name>.com)
+        # If using a custom root path and/or a proxy server, do not use a custom subdomain
+        if domain and domain.raster_domain_name:
             domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
-                domain_name=domain_name
+                domain_name=domain.raster_domain_name
             )
 
         self.raster_api = aws_apigatewayv2_alpha.HttpApi(

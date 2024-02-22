@@ -8,7 +8,7 @@ from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware.cors import CORSMiddleware
@@ -32,13 +32,13 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 
 api_settings = ApiSettings()
 tiles_settings = TilesApiSettings()
-path_prefix = api_settings.path_prefix
 
 api = VedaStacApi(
     app=FastAPI(
         title=api_settings.name,
-        openapi_url=f"{path_prefix}/openapi.json",
-        docs_url=f"{path_prefix}/docs",
+        openapi_url="/openapi.json",
+        docs_url="/docs",
+        root_path=api_settings.root_path,
     ),
     title=api_settings.name,
     description=api_settings.name,
@@ -49,7 +49,6 @@ api = VedaStacApi(
     search_post_request_model=POSTModel,
     response_class=ORJSONResponse,
     middlewares=[CompressionMiddleware],
-    router=APIRouter(prefix=f"{path_prefix}"),
 )
 app = api.app
 

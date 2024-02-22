@@ -7,11 +7,14 @@ with open("README.md") as f:
 
 inst_reqs = [
     "boto3",
-    "titiler.pgstac==0.8.0",
-    "titiler.extensions[cogeo]>=0.15.0,<0.16",
+    "titiler.pgstac==0.8.2",
+    "titiler.core>=0.15.5,<0.16",
+    "titiler.mosaic>=0.15.5,<0.16",
+    "titiler.extensions[cogeo]>=0.15.5,<0.16",
     "starlette-cramjam>=0.3,<0.4",
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
+    "starlette<0.28",
 ]
 
 extra_reqs = {
@@ -28,7 +31,7 @@ setup(
     description="",
     python_requires=">=3.8",
     packages=find_namespace_packages(exclude=["tests*"]),
-    package_data={"src": ["templates/*.html"]},
+    package_data={"src": ["templates/*.html", "cmap_data/*.npy"]},
     include_package_data=True,
     zip_safe=False,
     install_requires=inst_reqs,

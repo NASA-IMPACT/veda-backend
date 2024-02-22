@@ -13,7 +13,6 @@ inputs:
     type: string
     default: "."
 
-
 runs:
   using: "composite"
   steps:
@@ -64,9 +63,36 @@ runs:
             python ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }} --stack-names ${{ inputs.auth_stack_name }}
         fi
 
-    - name: Deploy 
+    - name: Launch services
+      shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: docker compose up --build -d
+
+    - name: Ingest Stac Items/Collection
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
-        cdk deploy --all --require-approval never --outputs-file ${HOME}/cdk-outputs.json
+        ./scripts/load-data-container.sh
 
+    - name: Sleep for 10 seconds
+      run: sleep 10s
+      shell: bash
+      working-directory: ${{ inputs.dir }}
+
+    - name: Integrations tests
+      shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: python -m pytest .github/workflows/tests/ -vv -s
+
+    - name: Stop services
+      shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: |
+        docker compose down --rmi all --volumes
+        sudo rm -rf .pgdata
+
+    - name: Deploy
+      shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: |
+        cdk deploy --require-approval never --outputs-file ${HOME}/cdk-outputs.json

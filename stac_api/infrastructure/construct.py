@@ -1,5 +1,7 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
 import os
+import typing
+from typing import Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -15,6 +17,9 @@ from constructs import Construct
 
 from .config import veda_stac_settings
 
+if typing.TYPE_CHECKING:
+    from domain.infrastructure.construct import DomainConstruct
+
 
 class StacApiLambdaConstruct(Construct):
     """CDK Construct for a Lambda backed API implementing stac-fastapi."""
@@ -28,7 +33,7 @@ class StacApiLambdaConstruct(Construct):
         database,
         raster_api,  # TODO: typing!
         code_dir: str = "./",
-        domain_name: aws_apigatewayv2_alpha.DomainName = None,
+        domain: Optional["DomainConstruct"] = None,
         **kwargs,
     ) -> None:
         """."""
@@ -65,27 +70,28 @@ class StacApiLambdaConstruct(Construct):
             lambda_function, port_range=aws_ec2.Port.tcp(5432)
         )
 
-        lambda_function.add_environment("TITILER_ENDPOINT", raster_api.raster_api.url)
+        if veda_stac_settings.custom_host:
+            titler_endpoint = f"https://{veda_stac_settings.custom_host}{veda_stac_settings.raster_root_path}/"
+        else:
+            titler_endpoint = raster_api.raster_api.url
+        lambda_function.add_environment("TITILER_ENDPOINT", titler_endpoint)
 
         lambda_function.add_environment(
             "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
         lambda_function.add_environment(
-            "VEDA_STAC_PATH_PREFIX", veda_stac_settings.stac_path_prefix
+            "VEDA_STAC_ROOT_PATH", veda_stac_settings.stac_root_path
         )
 
         integration_kwargs = dict(handler=lambda_function)
-        if veda_stac_settings.domain_hosted_zone_name and veda_stac_settings.cloudfront:
+        if veda_stac_settings.custom_host:
             integration_kwargs[
                 "parameter_mapping"
             ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
                 "host",
-                aws_apigatewayv2_alpha.MappingValue(
-                    f"{stage}.{veda_stac_settings.domain_hosted_zone_name}"
-                ),
+                aws_apigatewayv2_alpha.MappingValue(veda_stac_settings.custom_host),
             )
-
         stac_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
                 construct_id,
@@ -94,9 +100,11 @@ class StacApiLambdaConstruct(Construct):
         )
 
         domain_mapping = None
-        if domain_name:
+        # Legacy method to use a custom subdomain for this api (i.e. <stage>-stac.<domain-name>.com)
+        # If using a custom root path and/or a proxy server, do not use a custom subdomain
+        if domain and domain.stac_domain_name:
             domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
-                domain_name=domain_name
+                domain_name=domain.stac_domain_name
             )
 
         stac_api = self.stac_api = aws_apigatewayv2_alpha.HttpApi(

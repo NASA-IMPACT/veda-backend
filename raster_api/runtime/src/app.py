@@ -4,8 +4,9 @@ from contextlib import asynccontextmanager
 
 from aws_lambda_powertools.metrics import MetricUnit
 from src.algorithms import PostProcessParams
+from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
-from src.dependencies import ItemPathParams
+from src.dependencies import ColorMapParams, ItemPathParams
 from src.extensions import stacViewerExtension
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 from src.version import __version__ as veda_raster_version
@@ -48,13 +49,13 @@ async def lifespan(app: FastAPI):
     await close_db_connection(app)
 
 
-path_prefix = settings.path_prefix
 app = FastAPI(
     title=settings.name,
     version=veda_raster_version,
-    openapi_url=f"{path_prefix}/openapi.json",
-    docs_url=f"{path_prefix}/docs",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
     lifespan=lifespan,
+    root_path=settings.root_path,
 )
 
 # router to be applied to all titiler route factories (improves logs with FastAPI context)
@@ -66,7 +67,7 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 # /mosaic - PgSTAC Mosaic titiler endpoint
 ###############################################################################
 mosaic = MosaicTilerFactory(
-    router_prefix=f"{path_prefix}/mosaic",
+    router_prefix="/mosaic",
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     process_dependency=PostProcessParams,
@@ -79,10 +80,11 @@ mosaic = MosaicTilerFactory(
     add_viewer=False,
     # add /bbox [GET] and /feature  [POST] (default to False)
     add_part=True,
+    colormap_dependency=ColorMapParams,
 )
-app.include_router(mosaic.router, prefix=f"{path_prefix}/mosaic", tags=["Mosaic"])
+app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
 # TODO
-# prefix will be replaced by `/mosaics/{search_id}` in titiler-pgstac 0.9.0
+# prefix will be replaced by `/mosaics/{search_id}` in titiler-pgstac 1.0.0
 
 ###############################################################################
 # /stac - Custom STAC titiler endpoint
@@ -91,22 +93,38 @@ stac = MultiBaseTilerFactory(
     reader=PgSTACReader,
     path_dependency=ItemPathParams,
     optional_headers=optional_headers,
-    router_prefix=f"{path_prefix}/stac",
+    router_prefix="/stac",
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
     extensions=[
         stacViewerExtension(),
     ],
+    colormap_dependency=ColorMapParams,
 )
-app.include_router(stac.router, tags=["Items"], prefix=f"{path_prefix}/stac")
-# TODO
-# in titiler-pgstac we replaced the prefix to `/collections/{collection_id}/items/{item_id}`
+app.include_router(stac.router, tags=["Items"], prefix="/stac")
+
+###############################################################################
+# /stac-alt - Custom STAC titiler endpoint for alternate asset locations
+###############################################################################
+stac_alt = MultiBaseTilerFactory(
+    reader=PgSTACReaderAlt,
+    path_dependency=ItemPathParams,
+    optional_headers=optional_headers,
+    router_prefix="/stac-alt",
+    environment_dependency=settings.get_gdal_config,
+    router=APIRouter(route_class=LoggerRouteHandler),
+    extensions=[
+        stacViewerExtension(),
+    ],
+    colormap_dependency=ColorMapParams,
+)
+app.include_router(stac_alt.router, tags=["Items"], prefix="/stac-alt")
 
 ###############################################################################
 # /cog - External Cloud Optimized GeoTIFF endpoints
 ###############################################################################
 cog = TilerFactory(
-    router_prefix=f"{path_prefix}/cog",
+    router_prefix="/cog",
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
@@ -114,11 +132,10 @@ cog = TilerFactory(
         cogValidateExtension(),
         cogViewerExtension(),
     ],
+    colormap_dependency=ColorMapParams,
 )
 
-app.include_router(
-    cog.router, tags=["Cloud Optimized GeoTIFF"], prefix=f"{path_prefix}/cog"
-)
+app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
 
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])

@@ -8,6 +8,7 @@ from aws_cdk import (
     CustomResource,
     Duration,
     RemovalPolicy,
+    SecretValue,
     Stack,
     aws_ec2,
     aws_iam,
@@ -130,7 +131,7 @@ class RdsConstruct(Construct):
 
         # Configure accessibility
         subnet_type = (
-            aws_ec2.SubnetType.PRIVATE_ISOLATED
+            aws_ec2.SubnetType.PRIVATE_WITH_EGRESS
             if veda_db_settings.publicly_accessible is False
             else aws_ec2.SubnetType.PUBLIC
         )
@@ -196,6 +197,8 @@ class RdsConstruct(Construct):
             database = aws_rds.DatabaseInstance(self, **database_config)
 
         hostname = database.instance_endpoint.hostname
+        self.db_security_group = database.connections.security_groups[0]
+        self.is_publicly_accessible = veda_db_settings.publicly_accessible
 
         # Use custom resource to bootstrap PgSTAC database
         self.pgstac = BootstrapPgStac(
@@ -235,6 +238,27 @@ class RdsConstruct(Construct):
             for sg in database.connections.security_groups:
                 self.proxy.connections.add_security_group(sg)
 
+            # Update the value of host to use the proxy endpoint
+            # The best way is to update the host value in the secret but there is no easy way to do it with CDK
+            # So we will create a new secret with the proxy endpoint and use it in the custom resource
+            self.pgstac.secret = aws_secretsmanager.Secret(
+                self,
+                "RDSProxySecret",
+                secret_name=os.path.join(
+                    stack_name, f"rds-proxy-{construct_id}", self.node.addr[-8:]
+                ),
+                description="RDS Proxy secret manager",
+                secret_object_value={
+                    "dbname": SecretValue.unsafe_plain_text(veda_db_settings.dbname),
+                    "engine": SecretValue.unsafe_plain_text("postgres"),
+                    "port": SecretValue.unsafe_plain_text("5432"),
+                    "host": SecretValue.unsafe_plain_text(self.proxy.endpoint),
+                    "username": SecretValue.unsafe_plain_text(veda_db_settings.user),
+                    # Here we use the same password we bootstrapped for pgstac to avoid creating a new user
+                    # for the proxy
+                    "password": self.pgstac.secret.secret_value_from_json("password"),
+                },
+            )
         CfnOutput(
             self,
             "pgstac-secret-name",
@@ -249,3 +273,10 @@ class RdsConstruct(Construct):
             value=database.connections.security_groups[0].security_group_id,
             description=f"The security group id associated with the {construct_id} postgres database",
         )
+
+        if self.proxy:
+            CfnOutput(
+                self,
+                "rds-proxy-endpoint",
+                value=self.proxy.endpoint,
+            )

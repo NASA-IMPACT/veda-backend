@@ -23,6 +23,7 @@ from stac_fastapi.pgstac.config import Settings
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
 
+@lru_cache()
 def get_secret_dict(secret_name: str):
     """Retrieve secrets from AWS Secrets Manager
 
@@ -53,7 +54,7 @@ class _ApiSettings(pydantic.BaseSettings):
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
-    path_prefix: str = ""
+    root_path: Optional[str] = None
     pgstac_secret_arn: Optional[str]
 
     @pydantic.validator("cors_origins")
