@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+# Lint
+pre-commit run --all-files
+
+# Bring up stack for testing; ingestor not required
+docker compose up -d stac raster database dynamodb
+
+# cleanup, logging in case of failure
+cleanup() {
+    # Get the exit status of the last command executed before trap was called
+    local exit_status=$?
+    if [ $exit_status -ne 0 ]; then
+        echo "Test failed, collecting logs from all containers..."
+        LOG_FILE="container_logs.log"
+        docker compose logs > "$LOG_FILE"
+        echo "Logs collected and saved to $LOG_FILE"
+    else
+        echo "Tests passed, no need to collect logs."
+    fi
+
+    echo "Removing test stack..."
+    docker compose down
+}
+trap cleanup EXIT
+
+# Load data for tests
+docker exec veda.db /tmp/scripts/bin/load-data.sh
+
+# Run tests
+python -m pytest .github/workflows/tests/ -vv -s
