@@ -1,6 +1,6 @@
 import os
 import typing
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
 from aws_cdk import aws_apigateway as apigateway
@@ -74,6 +74,7 @@ class ApiConstruct(Construct):
             db_vpc=db_vpc,
             db_security_group=db_security_group,
             db_subnet_public=config.stac_db_public_subnet,
+            db_subnet_ids=config.stac_db_subnet_ids,
         )
 
         # create API
@@ -113,11 +114,11 @@ class ApiConstruct(Construct):
         env: Dict[str, str],
         data_access_role: iam.IRole,
         user_pool: cognito.IUserPool,
-        stage: str,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
         db_subnet_public: bool,
+        db_subnet_ids: List,
         code_dir: str = "./",
     ) -> apigateway.LambdaRestApi:
         stack_name = Stack.of(self).stack_name
@@ -137,9 +138,18 @@ class ApiConstruct(Construct):
             ],
         )
 
-        subnets = ec2.SubnetSelection(
-            subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS
-        ).subnets
+        if (db_subnet_ids):
+            subnets = ec2.SubnetSelection(
+                subnets=[ec2.Subnet.from_subnet_attributes(self, f"Subnet{i}", subnet_id=subnet_id)
+                         for i, subnet_id in enumerate(db_subnet_ids)]
+            )
+        else:
+            subnets = ec2.SubnetSelection(
+                subnet_type=ec2.SubnetType.PUBLIC
+                if db_subnet_public
+                else ec2.SubnetType.PRIVATE_WITH_EGRESS
+            )
+
         handler = aws_lambda.Function(
             self,
             "api-handler",
@@ -285,6 +295,7 @@ class IngestorConstruct(Construct):
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
+            db_subnet_ids=config.stac_db_subnet_ids,
             db_subnet_public=config.stac_db_public_subnet,
         )
 
@@ -296,9 +307,21 @@ class IngestorConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
+        db_subnet_ids: List,
         db_subnet_public: bool,
         code_dir: str = "./",
     ) -> aws_lambda.Function:
+        if (db_subnet_ids):
+            subnets = ec2.SubnetSelection(
+                subnets=[ec2.Subnet.from_subnet_attributes(self, f"Subnet{i}", subnet_id=subnet_id)
+                         for i, subnet_id in enumerate(db_subnet_ids)]
+            )
+        else:
+            subnets = ec2.SubnetSelection(
+                subnet_type=ec2.SubnetType.PUBLIC
+                if db_subnet_public
+                else ec2.SubnetType.PRIVATE_WITH_EGRESS
+            )
         handler = aws_lambda.Function(
             self,
             "stac-ingestor",
@@ -312,11 +335,7 @@ class IngestorConstruct(Construct):
             timeout=Duration.seconds(180),
             environment={"DB_SECRET_ARN": db_secret.secret_arn, **env},
             vpc=db_vpc,
-            vpc_subnets=ec2.SubnetSelection(
-                subnet_type=ec2.SubnetType.PUBLIC
-                if db_subnet_public
-                else ec2.SubnetType.PRIVATE_WITH_EGRESS
-            ),
+            vpc_subnets=subnets,
             allow_public_subnet=True,
             memory_size=2048,
         )

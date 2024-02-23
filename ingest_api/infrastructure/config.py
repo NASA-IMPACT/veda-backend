@@ -1,12 +1,10 @@
 from getpass import getuser
-from typing import Optional
+from typing import List, Optional
 
 import aws_cdk
 from pydantic import BaseSettings, Field, constr
 
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
-AwsStepArn = constr(regex=r"^arn:aws:states:.+:\d{12}:stateMachine:.+")
-AwsOidcArn = constr(regex=r"^arn:aws:iam::\d{12}:oidc-provider/.+")
 
 
 class IngestorConfig(BaseSettings):
@@ -43,6 +41,10 @@ class IngestorConfig(BaseSettings):
     stac_db_vpc_id: str = Field(description="ID of VPC running pgSTAC DB")
     stac_db_security_group_id: str = Field(
         description="ID of Security Group used by pgSTAC DB"
+    )
+    stac_db_subnet_ids: Optional[List] = Field(
+        [],
+        description="Subnet IDs"
     )
     stac_db_public_subnet: bool = Field(
         description="Boolean indicating whether or not pgSTAC DB is in a public subnet",

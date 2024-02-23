@@ -64,7 +64,7 @@ else:
     vpc = VpcConstruct(veda_stack, "network", stage=veda_app_settings.stage_name())
 
 database = RdsConstruct(
-    veda_stack, "database", vpc.vpc, stage=veda_app_settings.stage_name()
+    veda_stack, "database", vpc=vpc.vpc, subnet_ids=veda_app_settings.subnet_ids, stage=veda_app_settings.stage_name()
 )
 
 domain = DomainConstruct(veda_stack, "domain", stage=veda_app_settings.stage_name())
@@ -124,6 +124,7 @@ ingestor_config = ingest_config(
     stac_db_public_subnet=database.is_publicly_accessible,
     stac_api_url=stac_api.stac_api.url,
     raster_api_url=raster_api.raster_api.url,
+    stac_db_subnet_ids=veda_app_settings.subnet_ids
 )
 
 

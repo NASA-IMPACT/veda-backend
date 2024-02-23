@@ -1,7 +1,7 @@
 """CDK Construct for veda-backend RDS instance."""
 import json
 import os
-from typing import Union
+from typing import List, Optional, Union
 
 from aws_cdk import (
     CfnOutput,
@@ -119,6 +119,7 @@ class RdsConstruct(Construct):
         scope: Construct,
         construct_id: str,
         vpc: aws_ec2.Vpc,
+        subnet_ids: Optional[List],
         stage: str,
         **kwargs,
     ) -> None:
@@ -129,12 +130,6 @@ class RdsConstruct(Construct):
 
         stack_name = Stack.of(self).stack_name
 
-        # Configure accessibility
-        subnet_type = (
-            aws_ec2.SubnetType.PRIVATE_WITH_EGRESS
-            if veda_db_settings.publicly_accessible is False
-            else aws_ec2.SubnetType.PUBLIC
-        )
 
         # Custom parameter group
         engine = aws_rds.DatabaseInstanceEngine.postgres(
@@ -169,12 +164,26 @@ class RdsConstruct(Construct):
             "vpc": vpc,
             "engine": engine,
             "instance_type": rds_instance_type,
-            "vpc_subnets": aws_ec2.SubnetSelection(subnet_type=subnet_type),
             "deletion_protection": True,
             "removal_policy": RemovalPolicy.RETAIN,
             "publicly_accessible": veda_db_settings.publicly_accessible,
             "parameter_group": parameter_group,
         }
+
+        # Configure accessibility
+        if (subnet_ids):
+            database_config["vpc_subnets"] = aws_ec2.SubnetSelection(
+                subnets=[aws_ec2.Subnet.from_subnet_attributes(self, f"Subnet{i}", subnet_id=subnet_id)
+                         for i, subnet_id in enumerate(subnet_ids)]
+            )
+        else:
+            subnet_type = (
+                aws_ec2.SubnetType.PRIVATE_WITH_EGRESS
+                if veda_db_settings.publicly_accessible is False
+                else aws_ec2.SubnetType.PUBLIC
+            )
+            database_config["vpc_subnets"]: aws_ec2.SubnetSelection(subnet_type=subnet_type)
+
         if veda_db_settings.rds_encryption:
             database_config["storage_encrypted"] = veda_db_settings.rds_encryption
 
