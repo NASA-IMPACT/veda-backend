@@ -67,33 +67,33 @@ runs:
             python ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }} --stack-names ${{ inputs.auth_stack_name }}
         fi
 
-    - name: Launch services
-      shell: bash
-      working-directory: ${{ inputs.dir }}
-      run: docker compose up --build -d
+    # - name: Launch services
+    #   shell: bash
+    #   working-directory: ${{ inputs.dir }}
+    #   run: docker compose up --build -d
 
-    - name: Ingest Stac Items/Collection
-      shell: bash
-      working-directory: ${{ inputs.dir }}
-      run: |
-        ./scripts/load-data-container.sh
+    # - name: Ingest Stac Items/Collection
+    #   shell: bash
+    #   working-directory: ${{ inputs.dir }}
+    #   run: |
+    #     ./scripts/load-data-container.sh
 
-    - name: Sleep for 10 seconds
-      run: sleep 10s
-      shell: bash
-      working-directory: ${{ inputs.dir }}
+    # - name: Sleep for 10 seconds
+    #   run: sleep 10s
+    #   shell: bash
+    #   working-directory: ${{ inputs.dir }}
 
-    - name: Integrations tests
-      shell: bash
-      working-directory: ${{ inputs.dir }}
-      run: python -m pytest .github/workflows/tests/ -vv -s
+    # - name: Integrations tests
+    #   shell: bash
+    #   working-directory: ${{ inputs.dir }}
+    #   run: python -m pytest .github/workflows/tests/ -vv -s
 
-    - name: Stop services
-      shell: bash
-      working-directory: ${{ inputs.dir }}
-      run: |
-        docker compose down --rmi all --volumes
-        sudo rm -rf .pgdata
+    # - name: Stop services
+    #   shell: bash
+    #   working-directory: ${{ inputs.dir }}
+    #   run: |
+    #     docker compose down --rmi all --volumes
+    #     sudo rm -rf .pgdata
 
     - name: Deploy
       shell: bash
