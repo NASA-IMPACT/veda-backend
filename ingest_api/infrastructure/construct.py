@@ -140,6 +140,7 @@ class ApiConstruct(Construct):
         subnets = ec2.SubnetSelection(
             subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS
         ).subnets
+
         handler = aws_lambda.Function(
             self,
             "api-handler",
@@ -154,7 +155,7 @@ class ApiConstruct(Construct):
             role=handler_role,
             environment={"DB_SECRET_ARN": db_secret.secret_arn, **env},
             vpc=db_vpc,
-            vpc_subnets=subnets,
+            # vpc_subnets=subnets,
             allow_public_subnet=True,
             memory_size=2048,
             log_format="JSON",
