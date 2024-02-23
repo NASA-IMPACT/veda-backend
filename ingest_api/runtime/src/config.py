@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
 
     client_id: str = Field(description="The Cognito APP client ID")
-    client_secret: str = Field("", description="The Cognito APP client secret")
+    client_secret: Optional[str] = Field("", description="The Cognito APP client secret")
     root_path: Optional[str] = Field(description="Root path of API")
     stage: Optional[str] = Field(description="API stage")
 
