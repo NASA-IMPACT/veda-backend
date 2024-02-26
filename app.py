@@ -64,7 +64,11 @@ else:
     vpc = VpcConstruct(veda_stack, "network", stage=veda_app_settings.stage_name())
 
 database = RdsConstruct(
-    veda_stack, "database", vpc.vpc, stage=veda_app_settings.stage_name()
+    veda_stack,
+    "database",
+    vpc=vpc.vpc,
+    subnet_ids=veda_app_settings.subnet_ids,
+    stage=veda_app_settings.stage_name(),
 )
 
 domain = DomainConstruct(veda_stack, "domain", stage=veda_app_settings.stage_name())

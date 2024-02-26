@@ -156,10 +156,14 @@ class RdsConstruct(Construct):
         )
 
         # Configure accessibility
-        if (subnet_ids):
+        if subnet_ids:
             self.vpc_subnets = aws_ec2.SubnetSelection(
-                subnets=[aws_ec2.Subnet.from_subnet_attributes(self, f"Subnet{i}", subnet_id=subnet_id)
-                         for i, subnet_id in enumerate(subnet_ids)]
+                subnets=[
+                    aws_ec2.Subnet.from_subnet_attributes(
+                        self, f"Subnet{i}", subnet_id=subnet_id
+                    )
+                    for i, subnet_id in enumerate(subnet_ids)
+                ]
             )
         else:
             subnet_type = (

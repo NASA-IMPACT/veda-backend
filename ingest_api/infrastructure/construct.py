@@ -70,7 +70,6 @@ class ApiConstruct(Construct):
             env=lambda_env,
             data_access_role=self.data_access_role,
             user_pool=self.user_pool,
-            stage=config.stage,
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
@@ -283,7 +282,7 @@ class IngestorConstruct(Construct):
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
-            db_vpc_subnets=db_vpc_subnets
+            db_vpc_subnets=db_vpc_subnets,
         )
 
     def build_ingestor(

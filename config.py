@@ -1,6 +1,6 @@
 """App settings."""
 from getpass import getuser
-from typing import Optional, List
+from typing import List, Optional
 
 from pydantic import BaseSettings, Field, constr
 
@@ -40,9 +40,9 @@ class vedaAppSettings(BaseSettings):
             "subnets will be provisioned."
         ),
     )
-    subnet_ids: Optional[List[AwsSubnetId]] = Field(
+    subnet_ids: Optional[List[AwsSubnetId]] = Field(  # type: ignore
         [],
-        description="The subnet ids of subnets associated with the VPC to be used for the database and lambda function."
+        description="The subnet ids of subnets associated with the VPC to be used for the database and lambda function.",
     )
     cdk_default_account: Optional[str] = Field(
         None,
