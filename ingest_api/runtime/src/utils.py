@@ -1,10 +1,7 @@
-import decimal
-import json
 from enum import Enum
-from typing import Any, Dict, Sequence, Union
+from typing import Sequence, Union
 
 import boto3
-import orjson
 import pydantic
 from pypgstac.db import PgstacDB
 from pypgstac.load import Methods
@@ -39,26 +36,6 @@ def get_db_credentials(secret_arn: str) -> DbCreds:
     client = session.client(service_name="secretsmanager")
     response = client.get_secret_value(SecretId=secret_arn)
     return DbCreds.parse_raw(response["SecretString"])
-
-
-def convert_decimals_to_float(item: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    DynamoDB stores floats as Decimals. We want to convert them back to floats
-    before inserting them into pgSTAC to avoid any issues when the records are
-    converted to JSON by pgSTAC.
-    """
-
-    def decimal_to_float(obj):
-        if isinstance(obj, decimal.Decimal):
-            return float(obj)
-        raise TypeError
-
-    return json.loads(
-        orjson.dumps(
-            item,
-            default=decimal_to_float,
-        )
-    )
 
 
 def load_items(items: Sequence[AccessibleItem], loader):

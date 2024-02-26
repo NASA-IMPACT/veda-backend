@@ -2,12 +2,7 @@ import os
 
 from pypgstac.db import PgstacDB
 from src.schemas import DashboardCollection
-from src.utils import (
-    IngestionType,
-    convert_decimals_to_float,
-    get_db_credentials,
-    load_into_pgstac,
-)
+from src.utils import IngestionType, get_db_credentials, load_into_pgstac
 from src.vedaloader import VEDALoader
 from stac_pydantic import Item
 
@@ -20,11 +15,7 @@ class CollectionPublisher:
         and loads into the PgSTAC collection table
         """
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
-        collection = [
-            convert_decimals_to_float(
-                collection.dict(by_alias=True, exclude_unset=True)
-            )
-        ]
+        collection = [collection.to_dict()]
         with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
             load_into_pgstac(
                 db=db, ingestions=collection, table=IngestionType.collections
@@ -48,6 +39,6 @@ class ItemPublisher:
         and loads into the PgSTAC item table
         """
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
-        item = [convert_decimals_to_float(item.dict(by_alias=True))]
+        item = [item.to_dict()]
         with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
             load_into_pgstac(db=db, ingestions=item, table=IngestionType.items)
