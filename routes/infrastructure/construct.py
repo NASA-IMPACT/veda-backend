@@ -60,28 +60,27 @@ class CloudfrontDistributionConstruct(Construct):
                 else None,
             )
 
-            if veda_route_settings.cloudfront:
-                self.distribution.add_behavior(
-                    path_pattern="/api/stac*",
-                    origin=origins.HttpOrigin(
-                        f"{stac_api_id}.execute-api.{region}.amazonaws.com",
-                        origin_id="stac-api",
-                    ),
-                    cache_policy=cf.CachePolicy.CACHING_DISABLED,
-                    allowed_methods=cf.AllowedMethods.ALLOW_ALL,
-                    origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-                )
+            self.distribution.add_behavior(
+                path_pattern="/api/stac*",
+                origin=origins.HttpOrigin(
+                    f"{stac_api_id}.execute-api.{region}.amazonaws.com",
+                    origin_id="stac-api",
+                ),
+                cache_policy=cf.CachePolicy.CACHING_DISABLED,
+                allowed_methods=cf.AllowedMethods.ALLOW_ALL,
+                origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+            )
 
-                self.distribution.add_behavior(
-                    path_pattern="/api/raster*",
-                    origin=origins.HttpOrigin(
-                        f"{raster_api_id}.execute-api.{region}.amazonaws.com",
-                        origin_id="raster-api",
-                    ),
-                    cache_policy=cf.CachePolicy.CACHING_DISABLED,
-                    allowed_methods=cf.AllowedMethods.ALLOW_ALL,
-                    origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-                )
+            self.distribution.add_behavior(
+                path_pattern="/api/raster*",
+                origin=origins.HttpOrigin(
+                    f"{raster_api_id}.execute-api.{region}.amazonaws.com",
+                    origin_id="raster-api",
+                ),
+                cache_policy=cf.CachePolicy.CACHING_DISABLED,
+                allowed_methods=cf.AllowedMethods.ALLOW_ALL,
+                origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+            )
 
             self.hosted_zone = aws_route53.HostedZone.from_hosted_zone_attributes(
                 self,
