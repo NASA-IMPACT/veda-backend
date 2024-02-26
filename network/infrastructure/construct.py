@@ -3,7 +3,7 @@ CDK construct for veda-backend VPC.
 """
 from typing import Optional
 
-from aws_cdk import CfnOutput, aws_ec2, Stack
+from aws_cdk import CfnOutput, Stack, aws_ec2
 from constructs import Construct
 
 from .config import dev_vpc_settings, prod_vpc_settings, staging_vpc_settings
@@ -75,4 +75,9 @@ class VpcConstruct(Construct):
                 elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):
                     self.vpc.add_gateway_endpoint(id, service=service)
 
-        CfnOutput(self, "vpc-id", value=self.vpc.vpc_id, export_name=f"{stack_name}-stac-db-vpc-id")
+        CfnOutput(
+            self,
+            "vpc-id",
+            value=self.vpc.vpc_id,
+            export_name=f"{stack_name}-stac-db-vpc-id",
+        )
