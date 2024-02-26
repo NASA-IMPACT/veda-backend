@@ -228,7 +228,7 @@ class RdsConstruct(Construct):
                 id="RdsProxy",
                 vpc=vpc,
                 secrets=[database.secret, proxy_secret],
-                db_proxy_name=f"veda-backend-{stage}-proxy",
+                db_proxy_name=f"{stack_name}-proxy",
                 role=proxy_role,
                 require_tls=False,
                 debug_logging=False,
@@ -263,6 +263,7 @@ class RdsConstruct(Construct):
             self,
             "pgstac-secret-name",
             value=self.pgstac.secret.secret_arn,
+            export_name=f"{stack_name}-stac-db-secret-name",
             description=f"Name of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
         )
         if self.proxy:
