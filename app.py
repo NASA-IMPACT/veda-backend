@@ -118,10 +118,7 @@ db_security_group = database.db_security_group
 
 # ingestor config requires references to other resources, but can be shared between ingest api and bulk ingestor
 ingestor_config = ingest_config(
-    stac_db_vpc_id=vpc.vpc.vpc_id,
-    stac_db_secret_name=db_secret_name,
     stac_db_security_group_id=db_security_group.security_group_id,
-    stac_db_public_subnet=database.is_publicly_accessible,
     stac_api_url=stac_api.stac_api.url,
     raster_api_url=raster_api.raster_api.url,
 )
@@ -133,6 +130,7 @@ ingest_api = ingest_api_construct(
     config=ingestor_config,
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
+    db_vpc_subnets=database.vpc_subnets,
     domain=domain,
 )
 
@@ -143,6 +141,7 @@ ingestor = ingestor_construct(
     table=ingest_api.table,
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
+    db_vpc_subnets=database.vpc_subnets,
 )
 
 veda_routes.add_ingest_behavior(

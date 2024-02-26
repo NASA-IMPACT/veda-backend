@@ -29,6 +29,7 @@ class ApiConstruct(Construct):
         config: IngestorConfig,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
+        db_vpc_subnets=ec2.SubnetSelection,
         domain: Optional["DomainConstruct"] = None,
         **kwargs,
     ) -> None:
@@ -73,7 +74,7 @@ class ApiConstruct(Construct):
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
-            db_subnet_public=config.stac_db_public_subnet,
+            db_vpc_subnets=db_vpc_subnets,
         )
 
         # create API
@@ -113,11 +114,10 @@ class ApiConstruct(Construct):
         env: Dict[str, str],
         data_access_role: iam.IRole,
         user_pool: cognito.IUserPool,
-        stage: str,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
-        db_subnet_public: bool,
+        db_vpc_subnets: ec2.SubnetSelection,
         code_dir: str = "./",
     ) -> apigateway.LambdaRestApi:
         stack_name = Stack.of(self).stack_name
@@ -137,9 +137,6 @@ class ApiConstruct(Construct):
             ],
         )
 
-        subnets = ec2.SubnetSelection(
-            subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS
-        ).subnets
         handler = aws_lambda.Function(
             self,
             "api-handler",
@@ -154,7 +151,7 @@ class ApiConstruct(Construct):
             role=handler_role,
             environment={"DB_SECRET_ARN": db_secret.secret_arn, **env},
             vpc=db_vpc,
-            vpc_subnets=subnets,
+            vpc_subnets=db_vpc_subnets,
             allow_public_subnet=True,
             memory_size=2048,
             log_format="JSON",
@@ -258,6 +255,7 @@ class IngestorConstruct(Construct):
         table: dynamodb.ITable,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
+        db_vpc_subnets=ec2.SubnetSelection,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -285,7 +283,7 @@ class IngestorConstruct(Construct):
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
-            db_subnet_public=config.stac_db_public_subnet,
+            db_vpc_subnets=db_vpc_subnets
         )
 
     def build_ingestor(
@@ -296,7 +294,7 @@ class IngestorConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
-        db_subnet_public: bool,
+        db_vpc_subnets: ec2.SubnetSelection,
         code_dir: str = "./",
     ) -> aws_lambda.Function:
         handler = aws_lambda.Function(
@@ -312,11 +310,7 @@ class IngestorConstruct(Construct):
             timeout=Duration.seconds(180),
             environment={"DB_SECRET_ARN": db_secret.secret_arn, **env},
             vpc=db_vpc,
-            vpc_subnets=ec2.SubnetSelection(
-                subnet_type=ec2.SubnetType.PUBLIC
-                if db_subnet_public
-                else ec2.SubnetType.PRIVATE_WITH_EGRESS
-            ),
+            vpc_subnets=db_vpc_subnets,
             allow_public_subnet=True,
             memory_size=2048,
         )
