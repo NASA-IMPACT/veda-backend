@@ -14,7 +14,6 @@ class devVpcSettings(BaseSettings):
     nat_gateways: int = 1
     public_mask: int = 24
     private_mask: int = 24
-    isolated_mask: int = 27
 
 
 class stagingVpcSettings(BaseSettings):
@@ -26,7 +25,6 @@ class stagingVpcSettings(BaseSettings):
     nat_gateways: int = 1
     public_mask: int = 24
     private_mask: int = 24
-    isolated_mask: int = 27
 
 
 class prodVpcSettings(BaseSettings):
@@ -38,7 +36,6 @@ class prodVpcSettings(BaseSettings):
     nat_gateways: int = 1
     public_mask: int = 24
     private_mask: int = 24
-    isolated_mask: int = 27
 
 
 dev_vpc_settings = devVpcSettings()

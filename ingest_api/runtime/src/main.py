@@ -179,16 +179,16 @@ def delete_collection(collection_id: str):
 )
 def publish_item(item: schemas.Item):
     """
-    Publish a collection to the STAC database.
+    Publish an item to the STAC database.
     """
-    # pgstac create collection
+    # pgstac create item
     try:
         item_publisher.ingest(item)
         return {f"Successfully published: {item.id}"}
     except Exception as e:
         raise HTTPException(
             status_code=400,
-            detail=(f"Unable to publish collection: {e}"),
+            detail=(f"Unable to publish item: {e}"),
         )
 
 

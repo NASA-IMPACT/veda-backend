@@ -120,6 +120,7 @@ class ApiConstruct(Construct):
         db_subnet_public: bool,
         code_dir: str = "./",
     ) -> apigateway.LambdaRestApi:
+        stack_name = Stack.of(self).stack_name
         handler_role = iam.Role(
             self,
             "execution-role",
@@ -127,7 +128,7 @@ class ApiConstruct(Construct):
                 "Role used by STAC Ingestor. Manually defined so that we can choose a "
                 "name that is supported by the data access roles trust policy"
             ),
-            role_name=f"delta-backend-staging-stac-ingestion-api-{stage}",
+            role_name=f"stac-ingestion-api-{stack_name}-role",
             assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name(
@@ -137,7 +138,7 @@ class ApiConstruct(Construct):
         )
 
         subnets = ec2.SubnetSelection(
-            subnet_type=ec2.SubnetType.PRIVATE_ISOLATED
+            subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS
         ).subnets
         handler = aws_lambda.Function(
             self,
@@ -314,7 +315,7 @@ class IngestorConstruct(Construct):
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PUBLIC
                 if db_subnet_public
-                else ec2.SubnetType.PRIVATE_ISOLATED
+                else ec2.SubnetType.PRIVATE_WITH_EGRESS
             ),
             allow_public_subnet=True,
             memory_size=2048,

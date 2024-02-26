@@ -3,6 +3,7 @@
 import base64
 import json
 import os
+from functools import lru_cache
 from typing import Optional
 
 import boto3
@@ -14,6 +15,7 @@ from typing_extensions import Annotated
 from titiler.pgstac.settings import PostgresSettings
 
 
+@lru_cache()
 def get_secret_dict(secret_name: str):
     """Retrieve secrets from AWS Secrets Manager
 
