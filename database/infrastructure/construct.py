@@ -187,7 +187,8 @@ class RdsConstruct(Construct):
             "parameter_group": parameter_group,
         }
 
-        if veda_db_settings.rds_encryption:
+        # Only set storage_encrypted if creating a database instance not from snapshot
+        if not veda_db_settings.snapshot_id and veda_db_settings.rds_encryption:
             database_config["storage_encrypted"] = veda_db_settings.rds_encryption
 
         # Create a new database instance from snapshot if provided
