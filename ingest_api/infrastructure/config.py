@@ -5,8 +5,6 @@ import aws_cdk
 from pydantic import BaseSettings, Field, constr
 
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
-AwsStepArn = constr(regex=r"^arn:aws:states:.+:\d{12}:stateMachine:.+")
-AwsOidcArn = constr(regex=r"^arn:aws:iam::\d{12}:oidc-provider/.+")
 
 
 class IngestorConfig(BaseSettings):
@@ -36,17 +34,8 @@ class IngestorConfig(BaseSettings):
     client_secret: Optional[str] = Field(
         "", description="The Cognito APP client secret"
     )
-
-    stac_db_secret_name: str = Field(
-        description="Name of secret containing pgSTAC DB connection information"
-    )
-    stac_db_vpc_id: str = Field(description="ID of VPC running pgSTAC DB")
     stac_db_security_group_id: str = Field(
         description="ID of Security Group used by pgSTAC DB"
-    )
-    stac_db_public_subnet: bool = Field(
-        description="Boolean indicating whether or not pgSTAC DB is in a public subnet",
-        default=True,
     )
 
     raster_data_access_role_arn: AwsArn = Field(  # type: ignore
