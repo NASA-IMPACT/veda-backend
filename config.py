@@ -1,12 +1,10 @@
 """App settings."""
 from getpass import getuser
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseSettings, Field, constr
 
-AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
-AwsStepArn = constr(regex=r"^arn:aws:states:.+:\d{12}:stateMachine:.+")
-AwsOidcArn = constr(regex=r"^arn:aws:iam::\d{12}:oidc-provider/.+")
+AwsSubnetId = constr(regex=r"^subnet-[a-z0-9]{17}$")
 
 
 class vedaAppSettings(BaseSettings):
@@ -41,6 +39,10 @@ class vedaAppSettings(BaseSettings):
             "Resource identifier of VPC, if none a new VPC with public and private "
             "subnets will be provisioned."
         ),
+    )
+    subnet_ids: Optional[List[AwsSubnetId]] = Field(  # type: ignore
+        [],
+        description="The subnet ids of subnets associated with the VPC to be used for the database and lambda function.",
     )
     cdk_default_account: Optional[str] = Field(
         None,

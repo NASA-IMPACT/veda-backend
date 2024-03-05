@@ -4,7 +4,6 @@ from pydantic import AnyHttpUrl, BaseSettings, Field, constr
 from pydantic_ssm_settings import AwsSsmSourceConfig
 
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
-AwsStepArn = constr(regex=r"^arn:aws:states:.+:\d{12}:stateMachine:.+")
 
 
 class Settings(BaseSettings):

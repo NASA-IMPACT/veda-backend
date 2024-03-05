@@ -1,7 +1,7 @@
 """CDK Construct for veda-backend RDS instance."""
 import json
 import os
-from typing import Union
+from typing import List, Optional, Union
 
 from aws_cdk import (
     CfnOutput,
@@ -36,7 +36,6 @@ class BootstrapPgStac(Construct):
         new_dbname: str,
         new_username: str,
         secrets_prefix: str,
-        stage: str,
         host: str,
     ) -> None:
         """."""
@@ -119,6 +118,7 @@ class RdsConstruct(Construct):
         scope: Construct,
         construct_id: str,
         vpc: aws_ec2.Vpc,
+        subnet_ids: Optional[List],
         stage: str,
         **kwargs,
     ) -> None:
@@ -128,13 +128,6 @@ class RdsConstruct(Construct):
         # The code that defines your stack goes here
 
         stack_name = Stack.of(self).stack_name
-
-        # Configure accessibility
-        subnet_type = (
-            aws_ec2.SubnetType.PRIVATE_WITH_EGRESS
-            if veda_db_settings.publicly_accessible is False
-            else aws_ec2.SubnetType.PUBLIC
-        )
 
         # Custom parameter group
         engine = aws_rds.DatabaseInstanceEngine.postgres(
@@ -162,6 +155,24 @@ class RdsConstruct(Construct):
             },
         )
 
+        # Configure accessibility
+        if subnet_ids:
+            self.vpc_subnets = aws_ec2.SubnetSelection(
+                subnets=[
+                    aws_ec2.Subnet.from_subnet_attributes(
+                        self, f"Subnet{i}", subnet_id=subnet_id
+                    )
+                    for i, subnet_id in enumerate(subnet_ids)
+                ]
+            )
+        else:
+            subnet_type = (
+                aws_ec2.SubnetType.PRIVATE_WITH_EGRESS
+                if not veda_db_settings.publicly_accessible
+                else aws_ec2.SubnetType.PUBLIC
+            )
+            self.vpc_subnets = aws_ec2.SubnetSelection(subnet_type=subnet_type)
+
         # Database Configurations
         database_config = {
             "id": "rds",
@@ -169,12 +180,13 @@ class RdsConstruct(Construct):
             "vpc": vpc,
             "engine": engine,
             "instance_type": rds_instance_type,
-            "vpc_subnets": aws_ec2.SubnetSelection(subnet_type=subnet_type),
+            "vpc_subnets": self.vpc_subnets,
             "deletion_protection": True,
             "removal_policy": RemovalPolicy.RETAIN,
             "publicly_accessible": veda_db_settings.publicly_accessible,
             "parameter_group": parameter_group,
         }
+
         if veda_db_settings.rds_encryption:
             database_config["storage_encrypted"] = veda_db_settings.rds_encryption
 
@@ -208,7 +220,6 @@ class RdsConstruct(Construct):
             new_dbname=veda_db_settings.dbname,
             new_username=veda_db_settings.user,
             secrets_prefix=stack_name,
-            stage=stage,
             host=hostname,
         )
 
