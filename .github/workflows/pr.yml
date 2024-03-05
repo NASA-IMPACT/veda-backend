@@ -142,4 +142,4 @@ jobs:
       - name: Pre deployment CDK diff
         run: |
           echo $STAGE
-          cdk diff --outputs-file ${HOME}/cdk-outputs.json
+          cdk diff -v --outputs-file ${HOME}/cdk-outputs.json
