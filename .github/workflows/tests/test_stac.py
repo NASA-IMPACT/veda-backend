@@ -13,6 +13,7 @@ with open(".github/workflows/tests/schemas/collection_schema.json", "r") as f:
 
 stac_endpoint = "http://0.0.0.0:8081"
 
+
 def test_stac_api():
     """test stac."""
     # Ping
