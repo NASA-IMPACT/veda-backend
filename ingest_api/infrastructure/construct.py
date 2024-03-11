@@ -136,7 +136,7 @@ class ApiConstruct(Construct):
 
         handler = aws_lambda.Function(
             self,
-            "Api",
+            "api-handler",
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
                 file="ingest_api/runtime/Dockerfile",
@@ -294,7 +294,7 @@ class IngestorConstruct(Construct):
     ) -> aws_lambda.Function:
         handler = aws_lambda.Function(
             self,
-            "Loader",
+            "stac-ingestor",
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
                 file="ingest_api/runtime/Dockerfile",
