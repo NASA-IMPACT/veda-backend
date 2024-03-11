@@ -138,7 +138,7 @@ class ApiConstruct(Construct):
 
         handler = aws_lambda.Function(
             self,
-            "api-handler",
+            "ingest-api",
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
                 file="ingest_api/runtime/Dockerfile",
@@ -150,8 +150,8 @@ class ApiConstruct(Construct):
             role=handler_role,
             environment={"DB_SECRET_ARN": db_secret.secret_arn, **env},
             vpc=db_vpc,
-            vpc_subnets=db_vpc_subnets,
-            allow_public_subnet=True,
+            # vpc_subnets=db_vpc_subnets,
+            # allow_public_subnet=True,
             memory_size=2048,
             log_format="JSON",
         )
@@ -298,7 +298,7 @@ class IngestorConstruct(Construct):
     ) -> aws_lambda.Function:
         handler = aws_lambda.Function(
             self,
-            "stac-ingestor",
+            "ingest-loader",
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
                 file="ingest_api/runtime/Dockerfile",
