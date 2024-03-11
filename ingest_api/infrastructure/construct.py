@@ -73,7 +73,6 @@ class ApiConstruct(Construct):
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
-            db_vpc_subnets=db_vpc_subnets,
         )
 
         # create API
@@ -116,7 +115,6 @@ class ApiConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
-        db_vpc_subnets: ec2.SubnetSelection,
         code_dir: str = "./",
     ) -> apigateway.LambdaRestApi:
         stack_name = Stack.of(self).stack_name
@@ -150,8 +148,6 @@ class ApiConstruct(Construct):
             role=handler_role,
             environment={"DB_SECRET_ARN": db_secret.secret_arn, **env},
             vpc=db_vpc,
-            # vpc_subnets=db_vpc_subnets,
-            # allow_public_subnet=True,
             memory_size=2048,
             log_format="JSON",
         )
