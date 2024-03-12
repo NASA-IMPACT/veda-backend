@@ -4,6 +4,7 @@ import httpx
 
 stac_endpoint = "http://0.0.0.0:8081"
 
+
 def test_stac_api():
     """test stac."""
     # Ping
@@ -33,6 +34,7 @@ def test_stac_api():
     assert resp.status_code == 200
     item = resp.json()
     assert item["id"] == "20200307aC0853300w361200"
+
 
 def test_stac_to_raster():
     """test link to raster api."""
