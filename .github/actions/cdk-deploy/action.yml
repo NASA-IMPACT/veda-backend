@@ -4,8 +4,9 @@ inputs:
   env_aws_secret_name:
     required: true
     type: string
-  auth_env_aws_secret_name:
-    required: true
+  script_path:
+    type: string
+  auth_stack_name:
     type: string
   dir:
     required: false
@@ -16,37 +17,42 @@ runs:
   using: "composite"
   steps:
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
+        cache: 'pip'
+        cache-dependency-path: |
+          ${{ inputs.dir }}/setup.py
+          ${{ inputs.dir }}/setup.cfg
 
     - name: Setup Node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with: 
-        node-version: 17
+        node-version: 20
 
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       with:
         path: ~/.npm
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-      
+
     - name: Install CDK
       shell: bash
       run: npm install -g aws-cdk@2
-    
-    - uses: actions/cache@v3
+
+    - uses: actions/cache@v4
       with:
         path: ${{ env.pythonLocation }}
-        key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
+        key:  ${{ env.pythonLocation }}-${{ hashFiles('${{ inputs.dir }}/setup.py') }}
 
     - name: Install python dependencies
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
         python -m pip install --upgrade pip
-        python -m pip install -e .[dev,deploy,test] 
+        python -m pip install -e .[dev,deploy,test]
+        python -m pip install boto3
 
     - name: Launch services
       shell: bash
@@ -76,12 +82,18 @@ runs:
         docker compose down --rmi all --volumes
         sudo rm -rf .pgdata
 
-    - name: Get dev environment configuration for develop branch
+    - name: Get relevant environment configuration from aws secrets
       shell: bash
       working-directory: ${{ inputs.dir }}
+      env:
+        AWS_DEFAULT_REGION: us-west-2
       run: |
-        ./scripts/get-env.sh ${{ inputs.env_aws_secret_name }}
-        ./scripts/get-env.sh ${{ inputs.auth_env_aws_secret_name }}
+        if [ -z "${{ inputs.script_path }}" ]
+          then
+            ./scripts/sync-env-local.sh ${{ inputs.env_aws_secret_name }}
+          else
+            python ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }} --stack-names ${{ inputs.auth_stack_name }}
+        fi
 
     - name: Deploy
       shell: bash
