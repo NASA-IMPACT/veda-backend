@@ -23,7 +23,6 @@ extra_reqs = {
         "psycopg[binary, pool]",
         "fastapi",
         "moto",
-        "openapi_schema_validator>=0.6.2",
     ],
 }
 
