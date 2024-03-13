@@ -14,7 +14,6 @@ inst_reqs = [
     "starlette-cramjam>=0.3,<0.4",
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
-    "starlette>=0.36.2",
 ]
 
 extra_reqs = {
