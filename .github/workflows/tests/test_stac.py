@@ -1,6 +1,15 @@
 """test veda-backend STAC."""
 
+import json
+
 import httpx
+from openapi_schema_validator import validate
+
+with open(".github/workflows/tests/schemas/feature_schema.json", "r") as f:
+    feature_schema = json.load(f)
+
+with open(".github/workflows/tests/schemas/collection_schema.json", "r") as f:
+    collection_schema = json.load(f)
 
 stac_endpoint = "http://0.0.0.0:8081"
 
@@ -18,6 +27,7 @@ def test_stac_api():
     assert resp.status_code == 200
     collections = resp.json()["collections"]
     assert len(collections) > 0
+    validate(collections[0], collection_schema)
     ids = [c["id"] for c in collections]
     assert "noaa-emergency-response" in ids
 
@@ -25,6 +35,7 @@ def test_stac_api():
     resp = httpx.get(f"{stac_endpoint}/collections/noaa-emergency-response/items")
     assert resp.status_code == 200
     items = resp.json()["features"]
+    validate(items[0], feature_schema)
     assert len(items) == 10
 
     # item
@@ -34,6 +45,7 @@ def test_stac_api():
     assert resp.status_code == 200
     item = resp.json()
     assert item["id"] == "20200307aC0853300w361200"
+    validate(item, feature_schema)
 
 
 def test_stac_to_raster():
