@@ -9,13 +9,13 @@ jobs:
   lint-dev:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -32,13 +32,13 @@ jobs:
     needs: [lint-dev]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -77,9 +77,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -95,7 +95,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
@@ -103,7 +103,7 @@ jobs:
       - name: Install CDK
         run: npm install -g aws-cdk@2
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -130,7 +130,7 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Python Semantic Release
