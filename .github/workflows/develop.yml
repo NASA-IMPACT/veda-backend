@@ -71,8 +71,27 @@ jobs:
       - name: Stop services
         run: docker compose stop
 
-  deploy-dev:
+  pre-release:
     needs: [test-dev]
+    runs-on: ubuntu-latest
+    concurrency: release
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Python Semantic Release
+      uses: python-semantic-release/python-semantic-release@master
+      with:
+        changelog: "false"
+        vcs-release: "true"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-dev:
+    needs: [pre-release]
 
     runs-on: ubuntu-latest
     steps:
@@ -120,22 +139,3 @@ jobs:
         run: |
           echo $STAGE
           cdk deploy --require-approval never --outputs-file ${HOME}/cdk-outputs.json
-
-  pre-release:
-    needs: [deploy-dev]
-    runs-on: ubuntu-latest
-    concurrency: release
-    permissions:
-      id-token: write
-      contents: write
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Python Semantic Release
-      uses: python-semantic-release/python-semantic-release@master
-      with:
-        changelog: "false"
-        vcs-release: "true"
-        github_token: ${{ secrets.GITHUB_TOKEN }}
