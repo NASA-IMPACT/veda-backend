@@ -6,13 +6,13 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -28,20 +28,16 @@ jobs:
   lint-conventional-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: CondeNast/conventional-pull-request-action@v0.2.0
+      - uses: actions/checkout@v4
+      - uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          # if the PR contains a single commit, fail if the commit message and the PR title do not match
-          commitTitleMatch: "true"
-          ignoreCommits: "true"
 
   test:
     needs: [lint, lint-conventional-pr]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Launch services
         run: |
@@ -50,11 +46,11 @@ jobs:
           docker compose up --build -d
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -93,16 +89,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 17
+          node-version: 20
 
       - name: Configure awscli
         uses: aws-actions/configure-aws-credentials@v3
@@ -111,7 +107,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
@@ -119,7 +115,7 @@ jobs:
       - name: Install CDK
         run: npm install -g aws-cdk@2
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}

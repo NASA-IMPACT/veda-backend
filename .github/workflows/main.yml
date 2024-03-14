@@ -9,13 +9,13 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
     
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -32,13 +32,13 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -65,22 +65,41 @@ jobs:
       - name: Stop services
         run: docker compose stop
 
-  deploy: 
+  release:
     needs: [test]
+    runs-on: ubuntu-latest
+    concurrency: release
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Python Semantic Release
+      uses: python-semantic-release/python-semantic-release@master
+      with:
+        changelog: "false"
+        vcs-release: "true"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy: 
+    needs: [release]
 
     runs-on: ubuntu-latest
     steps:
     
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
       
       - name: Setup Node
         uses: actions/setup-node@v3
         with: 
-          node-version: 17
+          node-version: 20
       
       - name: Configure awscli
         uses: aws-actions/configure-aws-credentials@v3
@@ -89,7 +108,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
@@ -97,7 +116,7 @@ jobs:
       - name: Install CDK
         run: npm install -g aws-cdk@2
       
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
@@ -114,23 +133,4 @@ jobs:
         run: |
           echo $STAGE
           cdk deploy --require-approval never --outputs-file ${HOME}/cdk-outputs.json
-
-  release:
-    needs: [deploy]
-    runs-on: ubuntu-latest
-    concurrency: release
-    permissions:
-      id-token: write
-      contents: write
-
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - name: Python Semantic Release
-      uses: python-semantic-release/python-semantic-release@master
-      with:
-        changelog: "false"
-        vcs-release: "true"
-        github_token: ${{ secrets.GITHUB_TOKEN }}
           
