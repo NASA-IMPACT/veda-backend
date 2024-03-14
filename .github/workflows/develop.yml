@@ -14,7 +14,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-    
+
       - uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
@@ -27,7 +27,7 @@ jobs:
 
       - name: Run pre-commit
         run: pre-commit run --all-files
-    
+
   test-dev:
     needs: [lint-dev]
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .[dev,deploy,test] 
+          python -m pip install -e .[dev,deploy,test]
 
       - name: Launch services
         run: AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} docker compose up --build -d
@@ -59,11 +59,11 @@ jobs:
         run: sleep 10s
         shell: bash
 
-      - name: Install reqs for unit and integration tests
-        run: python -m pip install -r ingest_api/runtime/requirements.txt
-  
       - name: Integrations tests
         run: python -m pytest .github/workflows/tests/ -vv -s
+
+      - name: Install reqs for ingest api
+        run: python -m pip install -r ingest_api/runtime/requirements.txt
 
       - name: Ingest unit tests
         run: NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest ingest_api/runtime/tests/ -vv -s
@@ -71,23 +71,23 @@ jobs:
       - name: Stop services
         run: docker compose stop
 
-  deploy-dev: 
+  deploy-dev:
     needs: [test-dev]
 
     runs-on: ubuntu-latest
     steps:
-    
+
       - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      
+
       - name: Setup Node
         uses: actions/setup-node@v3
-        with: 
+        with:
           node-version: 17
-      
+
       - name: Configure awscli
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -99,24 +99,24 @@ jobs:
         with:
           path: ~/.npm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-      
+
       - name: Install CDK
         run: npm install -g aws-cdk@2
-      
+
       - uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key:  ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
-      
+
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .[dev,deploy,test] 
+          python -m pip install -e .[dev,deploy,test]
 
       - name: Get dev environment configuration for develop branch
         run: ./scripts/get-env.sh "veda-backend-uah-dev-env"
 
-      - name: Deploy 
+      - name: Deploy
         run: |
           echo $STAGE
           cdk deploy --require-approval never --outputs-file ${HOME}/cdk-outputs.json
