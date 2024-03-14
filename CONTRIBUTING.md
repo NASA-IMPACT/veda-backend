@@ -14,7 +14,7 @@ This project generally follows the [git-flow branching model](https://nvie.com/p
 
 - Pull requests should explain **what** is changed, **why**, and **how the change can be tested**.
   
-- Pull request *titles* must adhere to the [conventional commits specification]([#conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/)). This is enforced using the  [conventional-pull-request-action](https://github.com/CondeNast/conventional-pull-request-action).  
+- Pull request *titles* must adhere to the [conventional commits specification]([#conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/)). This is enforced using [action-semantic-pull-request](https://github.com/amannn/action-semantic-pull-request).  
 
 - Successful automated pull request linting, testing, and deployment checks are required.
 
