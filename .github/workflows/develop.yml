@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - develop
+    - fix/stac-browser
 
 jobs:
   lint-dev:
