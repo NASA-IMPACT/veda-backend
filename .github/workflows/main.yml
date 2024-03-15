@@ -81,7 +81,6 @@ jobs:
       uses: python-semantic-release/python-semantic-release@master
       with:
         changelog: "false"
-        vcs-release: "true"
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy: 
@@ -97,12 +96,12 @@ jobs:
           python-version: '3.9'
       
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with: 
           node-version: 20
       
       - name: Configure awscli
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
