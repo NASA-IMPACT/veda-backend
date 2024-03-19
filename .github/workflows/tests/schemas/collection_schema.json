@@ -13,10 +13,7 @@
       "type": "string"
     },
     "type": {
-      "type": "string",
-      "enum": [
-        "Collection"
-      ]
+      "type": "string"
     },
     "id": {
       "type": "string"
@@ -104,6 +101,28 @@
           }
         }
       }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "href",
+          "rel"
+        ],
+        "properties": {
+          "href": {
+            "type": "string",
+            "format": "uri"
+          },
+          "rel": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "title": {
+      "type": "string"
     }
   }
 }
