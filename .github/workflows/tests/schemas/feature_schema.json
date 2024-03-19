@@ -1,23 +1,38 @@
 {
   "type": "object",
   "required": [
-      "id",
-      "bbox",
-      "type",
-      "links",
       "stac_version",
-      "stac_extensions"
-  ],
+      "id",
+      "type",
+      "geometry",
+      "bbox",
+      "links",
+      "properties",
+      "assets"
+    ],
   "properties": {
-      "id": {
-          "type": "string"
-      },
+    "stac_version": {
+        "type": "string"
+    },
+    "id": {
+        "type": "string"
+    },
+    "type": {
+        "type": "string"
+    },
+    "geometry": {
+        "type": "object",
+        "properties": {
+            "type": {
+                "type": "string",
+                "coordinates": "array"
+            }
+        }
+    },
       "bbox": {
           "type": "array"
       },
-      "type": {
-          "type": "string"
-      },
+
       "links": {
           "type": "array",
           "items": {
@@ -36,25 +51,40 @@
           }
       },
       "assets": {
-          "type": "object"
-      },
-      "geometry": {
           "type": "object",
-          "properties": {
-              "type": {
+          "additionalProperties": {
+            "required": ["href"],
+            "properties": {
+              "href": {
                   "type": "string",
-                  "coordinates": "array"
-              }
+                  "format": "url"
+            },
+            "description": {
+              "type": "string"
+           },
+           "title": {
+              "type": "string"
+           },
+           "type": {
+              "type": "string"
+           }
+            }
           }
-      },
+    },
+
       "collection": {
           "type": "string"
       },
       "properties": {
-          "type": "object"
-      },
-      "stac_version": {
-          "type": "string"
+          "type": "object",
+          "required": ["datetime"],
+          "properties": {
+            "datetime": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": "true"
+            }
+          }
       },
       "stac_extensions": {
           "type": "array"
