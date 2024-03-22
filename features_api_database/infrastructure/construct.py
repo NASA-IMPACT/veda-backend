@@ -222,9 +222,3 @@ class FeaturesRdsConstruct(Construct):
             export_name=f"{stack_name}-stac-db-secret-name",
             description=f"Name of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
         )
-        if self.proxy:
-            CfnOutput(
-                self,
-                "rds-proxy-endpoint",
-                value=self.proxy.endpoint,
-            )

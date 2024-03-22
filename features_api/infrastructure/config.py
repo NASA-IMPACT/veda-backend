@@ -1,9 +1,11 @@
 from typing import Dict, List, Optional
 
-from pydantic_settings import BaseSettings, Field
+from pydantic import BaseSettings, Field
 
 
 class FeatureLambdaSettings(BaseSettings):
+
+    env: Dict = {}
 
     features_memory: int = 8192  # Mb
 
