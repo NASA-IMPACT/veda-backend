@@ -217,8 +217,8 @@ class FeaturesRdsConstruct(Construct):
 
         CfnOutput(
             self,
-            "pgstac-secret-name",
+            "featuresdb-secret-name",
             value=self.postgis.secret.secret_arn,
-            export_name=f"{stack_name}-stac-db-secret-name",
+            export_name=f"{stack_name}-featuresdb-secret-name",
             description=f"Name of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
         )

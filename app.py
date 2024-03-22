@@ -121,7 +121,7 @@ veda_routes = CloudfrontDistributionConstruct(
     stage=veda_app_settings.stage_name(),
     raster_api_id=raster_api.raster_api.api_id,
     stac_api_id=stac_api.stac_api.api_id,
-    features_api_id=features_api.features_api.id,
+    features_api_id=features_api.features_api.api_id,
     origin_bucket=website.bucket,
     region=veda_app_settings.cdk_default_region,
 )

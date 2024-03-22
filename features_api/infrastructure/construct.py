@@ -93,9 +93,9 @@ class FeaturesAPILambdaConstruct(Construct):
         domain_mapping = None
         # Legacy method to use a custom subdomain for this api (i.e. <stage>-features.<domain-name>.com)
         # If using a custom root path and/or a proxy server, do not use a custom subdomain
-        if domain and domain.features_api_domain_name:
+        if domain and domain.features_domain_name:
             domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
-                domain_name=domain.features_api_domain_name
+                domain_name=domain.features_domain_name
             )
 
         self.features_api = aws_apigatewayv2_alpha.HttpApi(
