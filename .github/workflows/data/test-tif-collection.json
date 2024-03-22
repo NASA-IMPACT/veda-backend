@@ -1,0 +1,28 @@
+{
+    "id": "test-tifs",
+    "title": "Testing Tifs",
+    "description": "Tifs provided merely to test Titiler behaviors.",
+    "stac_version": "1.0.0",
+    "license": "public-domain",
+    "links": [],
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "2024-01-01T00:00:00Z",
+                    "null"
+                ]
+            ]
+        }
+    }
+}
