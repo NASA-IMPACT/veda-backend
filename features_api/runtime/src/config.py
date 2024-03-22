@@ -1,8 +1,8 @@
 """Stack Configs."""
 
 from typing import Optional
-
-import pydantic
+from functools import lru_cache
+import pydantic_settings
 
 
 @lru_cache()
@@ -29,8 +29,7 @@ def get_secret_dict(secret_name: str):
         return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
-
-class FeaturesAPISettings(pydantic.BaseSettings):
+class FeaturesAPISettings(pydantic_settings.BaseSettings):
     """Application settings"""
 
     name: str = "veda-features-api"
@@ -41,21 +40,14 @@ class FeaturesAPISettings(pydantic.BaseSettings):
     add_tiles_viewer: bool = True
 
     catalog_ttl: int = 300  # seconds
-    timeout: int = 30  # seconds
-    memory: int = 8000  # Mb
 
-    # The maximum of concurrent executions you want to reserve for the function.
-    # Default: - No specific limit - account limit.
-    max_concurrent: Optional[int]
-
-    pgstac_secret_arn: Optional[str] = None
-
+    postgis_secret_arn: Optional[str] = None
 
     def load_postgres_settings(self) -> "PostgresSettings":
-        """Load postgres connection params from AWS secret"""
+        from tipg.settings import PostgresSettings
 
-        if self.pgstac_secret_arn:
-            secret = get_secret_dict(self.pgstac_secret_arn)
+        if self.postgis_secret_arn:
+            secret = get_secret_dict(self.postgis_secret_arn)
             return PostgresSettings(
                 postgres_user=secret["username"],
                 postgres_pass=secret["password"],

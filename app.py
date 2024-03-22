@@ -15,6 +15,8 @@ from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_co
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
+from features_api.infrastructure.construct import FeaturesAPILambdaConstruct
+from features_api_database.infrastructure.construct import FeaturesRdsConstruct
 from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from s3_website.infrastructure.construct import VedaWebsite
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
@@ -71,6 +73,14 @@ database = RdsConstruct(
     stage=veda_app_settings.stage_name(),
 )
 
+features_database = FeaturesRdsConstruct(
+    veda_stack,
+    "features-database",
+    vpc=vpc.vpc,
+    subnet_ids=veda_app_settings.subnet_ids,
+    stage=veda_app_settings.stage_name(),
+)
+
 domain = DomainConstruct(veda_stack, "domain", stage=veda_app_settings.stage_name())
 
 raster_api = RasterApiLambdaConstruct(
@@ -92,6 +102,15 @@ stac_api = StacApiLambdaConstruct(
     domain=domain,
 )
 
+features_api = FeaturesAPILambdaConstruct(
+    veda_stack,
+    "features-api",
+    stage=veda_app_settings.stage_name(),
+    vpc=vpc.vpc,
+    database=features_database,
+    domain=domain,
+)
+
 website = VedaWebsite(
     veda_stack, "stac-browser-bucket", stage=veda_app_settings.stage_name()
 )
@@ -102,6 +121,7 @@ veda_routes = CloudfrontDistributionConstruct(
     stage=veda_app_settings.stage_name(),
     raster_api_id=raster_api.raster_api.api_id,
     stac_api_id=stac_api.stac_api.api_id,
+    features_api_id=features_api.features_api.id,
     origin_bucket=website.bucket,
     region=veda_app_settings.cdk_default_region,
 )

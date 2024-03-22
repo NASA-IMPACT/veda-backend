@@ -23,6 +23,7 @@ class CloudfrontDistributionConstruct(Construct):
         stage: str,
         raster_api_id: str,
         stac_api_id: str,
+        features_api_id: str,
         origin_bucket: s3.Bucket,
         region: Optional[str],
         **kwargs,
@@ -76,6 +77,17 @@ class CloudfrontDistributionConstruct(Construct):
                 origin=origins.HttpOrigin(
                     f"{raster_api_id}.execute-api.{region}.amazonaws.com",
                     origin_id="raster-api",
+                ),
+                cache_policy=cf.CachePolicy.CACHING_DISABLED,
+                allowed_methods=cf.AllowedMethods.ALLOW_ALL,
+                origin_request_policy=cf.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+            )
+
+            self.distribution.add_behavior(
+                path_pattern="/api/features*",
+                origin=origins.HttpOrigin(
+                    f"{features_api_id}.execute-api.{region}.amazonaws.com",
+                    origin_id="features-api",
                 ),
                 cache_policy=cf.CachePolicy.CACHING_DISABLED,
                 allowed_methods=cf.AllowedMethods.ALLOW_ALL,

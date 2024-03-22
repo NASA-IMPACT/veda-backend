@@ -10,7 +10,11 @@ from src.config import ApiSettings
 from src.monitoring import logger, metrics, tracer
 
 from contextlib import asynccontextmanager
-from tipg.database import close_db_connection, connect_to_db, register_collection_catalog
+from tipg.database import (
+    close_db_connection,
+    connect_to_db,
+    register_collection_catalog,
+)
 
 settings = ApiSettings()
 

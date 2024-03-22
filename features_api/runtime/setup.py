@@ -7,11 +7,11 @@ with open("README.md") as f:
 
 inst_reqs = [
     "boto3",
+    "pydantic>=2.4,<3.0",
+    "pydantic-settings~=2.0",
     "tipg==0.6.2",
-    "starlette-cramjam>=0.3,<0.4",
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
-    "starlette<0.28",
 ]
 
 extra_reqs = {

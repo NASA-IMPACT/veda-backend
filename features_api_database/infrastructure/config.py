@@ -44,7 +44,7 @@ class FeaturesDBSettings(BaseSettings):
     max_connections: Optional[str] = Field(
         "475",
         description="Maximum number of connections allowed",
-        regex = r"^[1-9]\d*$",
+        regex=r"^[1-9]\d*$",
     )
     temp_buffers: Optional[str] = Field(
         "32000",

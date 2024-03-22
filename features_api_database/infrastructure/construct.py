@@ -100,7 +100,7 @@ class BootstrapTIPG(Construct):
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
 # https://github.com/NASA-IMPACT/hls-sentinel2-downloader-serverless/blob/main/cdk/downloader_stack.py
 # https://github.com/aws-samples/aws-cdk-examples/blob/master/python/new-vpc-alb-asg-mysql/cdk_vpc_ec2/cdk_rds_stack.py
-class RdsConstruct(Construct):
+class FeaturesRdsConstruct(Construct):
     """Provisions an empty RDS database, fed to the BootstrapTIPG construct
     which provisions and executes a lambda function that loads the PGSTAC
     schema in the database"""
@@ -205,7 +205,7 @@ class RdsConstruct(Construct):
         self.is_publicly_accessible = features_db_settings.publicly_accessible
 
         # Use custom resource to bootstrap PgSTAC database
-        self.pgstac = BootstrapTIPG(
+        self.postgis = BootstrapTIPG(
             self,
             "features-tipg-db",
             database=database,
@@ -218,7 +218,7 @@ class RdsConstruct(Construct):
         CfnOutput(
             self,
             "pgstac-secret-name",
-            value=self.pgstac.secret.secret_arn,
+            value=self.postgis.secret.secret_arn,
             export_name=f"{stack_name}-stac-db-secret-name",
             description=f"Name of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
         )

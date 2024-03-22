@@ -1,225 +1,114 @@
-import json
+"""CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
 import os
-from typing import Any, Dict, List, Optional
+import typing
+from typing import Optional
 
-import aws_cdk.aws_logs as logs
-from aws_cdk import aws_apigatewayv2 as apigw
-from aws_cdk import aws_apigatewayv2_integrations as apigw_integrations
-from aws_cdk import aws_ec2 as ec2
-from aws_cdk import aws_iam as iam
-from aws_cdk import aws_lambda
-from aws_cdk import aws_rds as rds
-from aws_cdk import aws_secretsmanager as secretsmanager
-from aws_cdk import core
+from aws_cdk import (
+    CfnOutput,
+    Duration,
+    Stack,
+    aws_apigatewayv2_alpha,
+    aws_apigatewayv2_integrations_alpha,
+    aws_ec2,
+    aws_iam,
+    aws_lambda,
+    aws_logs,
+)
+from constructs import Construct
 
-from config import APISettings, DBSettings
+from .config import features_lambda_settings
 
-api_settings = APISettings()
-db_settings = DBSettings()
+if typing.TYPE_CHECKING:
+    from domain.infrastructure.construct import DomainConstruct
 
 
-class BootstrappedDb(core.Construct):
-    """
-    Given an RDS database, connect to DB and create a database, user, and
-    password
-    """
-
+class FeaturesAPILambdaConstruct(Construct):
     def __init__(
         self,
-        scope: core.Construct,
-        id: str,
-        db: rds.DatabaseInstance,
-        new_dbname: str,
-        new_username: str,
-        secrets_prefix: str,
-    ) -> None:
-        """Update RDS database."""
-        super().__init__(scope, id)
-
-        # TODO: Utilize a singleton function.
-        handler = aws_lambda.Function(
-            self,
-            "DatabaseBootstrapper",
-            handler="handler.handler",
-            runtime=aws_lambda.Runtime.PYTHON_3_8,
-            code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath("./"),
-                file="stack/Dockerfile.db",
-                platform="linux/amd64",
-            ),
-            timeout=core.Duration.minutes(5),
-            vpc=db.vpc,
-            allow_public_subnet=True,
-            log_retention=logs.RetentionDays.ONE_WEEK,
-        )
-
-        self.secret = secretsmanager.Secret(
-            self,
-            id,
-            secret_name=os.path.join(
-                secrets_prefix, id.replace(" ", "_"), self.node.unique_id[-8:]
-            ),
-            generate_secret_string=secretsmanager.SecretStringGenerator(
-                secret_string_template=json.dumps(
-                    {
-                        "dbname": new_dbname,
-                        "engine": "postgres",
-                        "port": 5432,
-                        "host": db.instance_endpoint.hostname,
-                        "username": new_username,
-                    },
-                ),
-                generate_string_key="password",
-                exclude_punctuation=True,
-            ),
-            description=f"Deployed by {core.Stack.of(self).stack_name}",
-        )
-
-        self.resource = core.CustomResource(
-            scope=scope,
-            id="BootstrappedDbResource",
-            service_token=handler.function_arn,
-            properties={
-                "conn_secret_arn": db.secret.secret_arn,
-                "new_user_secret_arn": self.secret.secret_arn,
-            },
-            # We do not need to run the custom resource on STAC Delete
-            # Custom Resource are not physical resources so it's OK to `Retain` it
-            removal_policy=core.RemovalPolicy.RETAIN,
-        )
-
-        # Allow lambda to...
-        # read new user secret
-        self.secret.grant_read(handler)
-        # read database secret
-        db.secret.grant_read(handler)
-        # connect to database
-        db.connections.allow_from(handler, port_range=ec2.Port.tcp(5432))
-
-    def is_required_by(self, construct: core.Construct):
-        """Register required services."""
-        return construct.node.add_dependency(self.resource)
-
-
-class LambdaStack(core.Stack):
-    """Lambda Stack"""
-
-    def __init__(
-        self,
-        scope: core.Construct,
-        id: str,
+        scope: Construct,
+        construct_id: str,
         stage: str,
-        name: str,
+        vpc,
+        database,
         code_dir: str = "./",
-        **kwargs: Any,
+        # domain_name: aws_apigatewayv2_alpha.DomainName = None,
+        domain: Optional["DomainConstruct"] = None,
+        **kwargs,
     ) -> None:
-        """Define stack."""
-        super().__init__(scope, id, **kwargs)
+        """."""
+        super().__init__(scope, construct_id)
 
-        vpc = ec2.Vpc(self, f"{id}-vpc", nat_gateways=0)
+        stack_name = Stack.of(self).stack_name
 
-        interface_endpoints = [
-            (
-                "SecretsManager Endpoint",
-                ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-            ),
-            (
-                "CloudWatch Logs Endpoint",
-                ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
-            ),
-        ]
-        for (key, service) in interface_endpoints:
-            vpc.add_interface_endpoint(key, service=service)
-
-        gateway_endpoints = [("S3", ec2.GatewayVpcEndpointAwsService.S3)]
-        for (key, service) in gateway_endpoints:
-            vpc.add_gateway_endpoint(key, service=service)
-
-        db = rds.DatabaseInstance(
+        features_api_function = aws_lambda.Function(
             self,
-            f"{id}-postgres-db",
-            vpc=vpc,
-            engine=rds.DatabaseInstanceEngine.POSTGRES,
-            instance_type=ec2.InstanceType.of(
-                ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.SMALL
-            ),
-            database_name=db_settings.dbname,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),
-            backup_retention=core.Duration.days(7),
-            deletion_protection=api_settings.stage.lower() == "production",
-            removal_policy=core.RemovalPolicy.SNAPSHOT
-            if api_settings.stage.lower() == "production"
-            else core.RemovalPolicy.DESTROY,
-        )
-
-        setup_db = BootstrappedDb(
-            self,
-            "Features DB for EIS Fires",
-            db=db,
-            new_dbname=db_settings.dbname,
-            new_username=db_settings.user,
-            secrets_prefix=os.path.join(stage, name),
-        )
-
-        core.CfnOutput(
-            self,
-            f"{id}-database-secret-arn",
-            value=db.secret.secret_arn,
-            description="Arn of the SecretsManager instance holding the connection info for Postgres DB",
-        )
-
-        db_secrets = {
-            "POSTGRES_HOST": setup_db.secret.secret_value_from_json(
-                "host"
-            ).to_string(),
-            "POSTGRES_DBNAME": setup_db.secret.secret_value_from_json(
-                "dbname"
-            ).to_string(),
-            "POSTGRES_USER": setup_db.secret.secret_value_from_json(
-                "username"
-            ).to_string(),
-            "POSTGRES_PASS": setup_db.secret.secret_value_from_json(
-                "password"
-            ).to_string(),
-            "POSTGRES_PORT": setup_db.secret.secret_value_from_json(
-                "port"
-            ).to_string(),
-        }
-
-        env = {}
-        env["DB_MIN_CONN_SIZE"] = "1"
-        env["DB_MAX_CONN_SIZE"] = "1"
-
-        api_function = aws_lambda.Function(
-            self,
-            f"{id}-vector-lambda",
-            runtime=aws_lambda.Runtime.PYTHON_3_8,
+            "lambda",
+            runtime=aws_lambda.Runtime.PYTHON_3_9,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
-                file="stack/Dockerfile.lambda",
+                file="features_api/runtime/Dockerfile",
                 platform="linux/amd64",
             ),
             vpc=vpc,
             allow_public_subnet=True,
             handler="handler.handler",
-            memory_size=api_settings.memory,
-            timeout=core.Duration.seconds(api_settings.timeout),
-            environment=env,
-            log_retention=logs.RetentionDays.ONE_WEEK,
+            memory_size=features_lambda_settings.features_memory,
+            timeout=Duration.seconds(features_lambda_settings.features_timeout),
+            log_retention=aws_logs.RetentionDays.ONE_WEEK,
+            environment=features_lambda_settings.env or {},
+            tracing=aws_lambda.Tracing.ACTIVE,
         )
-        for k, v in db_secrets.items():
-            api_function.add_environment(key=k, value=str(v))
 
-        db.connections.allow_from(api_function, port_range=ec2.Port.tcp(5432))
+        database.postgis.secret.grant_read(features_api_function)
+        database.postgis.connections.allow_from(
+            features_api_function, port_range=aws_ec2.Port.tcp(5432)
+        )
 
-        api = apigw.HttpApi(
+        features_api_function.add_environment(
+            "VEDA_FEATURES_POSTGIS_SECRET_ARN", database.postgis.secret.secret_full_arn
+        )
+
+        features_api_function.add_environment(
+            "VEDA_FEATURES_ROOT_PATH", features_lambda_settings.features_root_path
+        )
+
+        integration_kwargs = dict(handler=features_api_function)
+        if features_lambda_settings.custom_host:
+            integration_kwargs[
+                "parameter_mapping"
+            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                "host",
+                aws_apigatewayv2_alpha.MappingValue(
+                    features_lambda_settings.custom_host
+                ),
+            )
+
+        features_api_integration = (
+            aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
+                construct_id,
+                **integration_kwargs,
+            )
+        )
+
+        domain_mapping = None
+        # Legacy method to use a custom subdomain for this api (i.e. <stage>-features.<domain-name>.com)
+        # If using a custom root path and/or a proxy server, do not use a custom subdomain
+        if domain and domain.features_api_domain_name:
+            domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
+                domain_name=domain.features_api_domain_name
+            )
+
+        self.features_api = aws_apigatewayv2_alpha.HttpApi(
             self,
-            f"{id}-endpoint",
-            default_integration=apigw_integrations.HttpLambdaIntegration(
-                f"{id}-integration",
-                handler=api_function,
-            ),
+            f"{stack_name}-{construct_id}",
+            default_integration=features_api_integration,
+            default_domain_mapping=domain_mapping,
         )
-        core.CfnOutput(self, "lambda", value=api.url.strip("/"))
 
-        setup_db.is_required_by(api_function)
+        CfnOutput(
+            self,
+            "features-api",
+            value=self.features_api.url,
+            export_name=f"{stack_name}-features-url",
+        )
+        CfnOutput(self, "features-api-arn", value=features_api_function.function_arn)

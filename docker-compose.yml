@@ -94,6 +94,41 @@ services:
       - ./scripts:/tmp/scripts
       - $HOME/.aws/credentials:/root/.aws/credentials
 
+  features:
+    container_name: veda.features
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: local/Dockerfile.features
+    ports:
+      - "8083:8083"
+    environment:
+      # Application
+      - HOST=0.0.0.0
+      - PORT=8083
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#web_concurrency
+      - WEB_CONCURRENCY=1
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#workers_per_core
+      - WORKERS_PER_CORE=1
+      # https://github.com/tiangolo/uvicorn-gunicorn-docker#max_workers
+      - MAX_WORKERS=10
+      # Postgres connection
+      - POSTGRES_USER=username
+      - POSTGRES_PASS=password
+      - POSTGRES_DBNAME=postgis
+      - POSTGRES_HOST=database
+      - POSTGRES_PORT=5432
+      - DB_MIN_CONN_SIZE=1
+      - DB_MAX_CONN_SIZE=10
+      # - DB_MAX_QUERIES=10
+      # - DB_MAX_IDLE=10
+    depends_on:
+      - database
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
+    volumes:
+      - ./scripts:/tmp/scripts
+      - $HOME/.aws/credentials:/root/.aws/credentials
+
   database:
     container_name: veda.db
     platform: linux/amd64
@@ -111,6 +146,7 @@ services:
     volumes:
       - ./scripts:/tmp/scripts
       - ./.github/workflows/data:/tmp/data
+      - ./features_api_database/local_data/mydata.sql:/tmp/data/mydata.sql
     # broken in github actions (definitely when run in act, possibly in tests involving ingest-api)? re-enable to persist local database
     #  - ./.pgdata:/var/lib/postgresql/data
 
