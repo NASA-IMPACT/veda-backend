@@ -9,13 +9,6 @@ from src.app import app
 from src.config import FeaturesAPISettings
 from src.monitoring import logger, metrics, tracer
 
-from contextlib import asynccontextmanager
-from tipg.database import (
-    close_db_connection,
-    connect_to_db,
-    register_collection_catalog,
-)
-
 settings = FeaturesAPISettings()
 
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
