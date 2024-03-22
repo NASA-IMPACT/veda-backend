@@ -6,7 +6,7 @@ import os
 
 from mangum import Mangum
 from src.app import app
-from src.config import ApiSettings
+from src.config import FeaturesAPISettings
 from src.monitoring import logger, metrics, tracer
 
 from contextlib import asynccontextmanager
@@ -16,7 +16,7 @@ from tipg.database import (
     register_collection_catalog,
 )
 
-settings = ApiSettings()
+settings = FeaturesAPISettings()
 
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
 logging.getLogger("mangum.http").setLevel(logging.ERROR)

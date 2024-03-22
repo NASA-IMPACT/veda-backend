@@ -168,7 +168,7 @@ class FeaturesRdsConstruct(Construct):
         # Database Configurations
         database_config = {
             "id": "rds",
-            "instance_identifier": f"{stack_name}-postgres",
+            "instance_identifier": f"{stack_name}-featuresdb-postgres",
             "vpc": vpc,
             "engine": engine,
             "instance_type": rds_instance_type,
