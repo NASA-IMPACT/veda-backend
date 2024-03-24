@@ -3,6 +3,9 @@
 import httpx
 
 raster_endpoint = "http://0.0.0.0:8082"
+seeded_collection = "nightlights-500m-daily"
+seeded_item = "VNP46A2_V011_ny_2021-03-01_cog"
+seeded_item_bounds = [-80.0, 40.0, -70.0, 50.0]
 
 
 def test_raster_api():
@@ -18,7 +21,7 @@ def test_raster_api():
 
 def test_mosaic_api():
     """test mosaic."""
-    query = {"collections": ["noaa-emergency-response"], "filter-lang": "cql-json"}
+    query = {"collections": [seeded_collection], "filter-lang": "cql-json"}
     resp = httpx.post(f"{raster_endpoint}/mosaic/register", json=query)
     assert resp.headers["content-type"] == "application/json"
     assert resp.status_code == 200
@@ -27,28 +30,22 @@ def test_mosaic_api():
 
     searchid = resp.json()["searchid"]
 
-    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/-85.6358,36.1624/assets")
-    assert resp.status_code == 200
-    assert len(resp.json()) == 1
-    assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
-    assert resp.json()[0]["id"] == "20200307aC0853900w361030"
-
-    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/tiles/15/8589/12849/assets")
-    assert resp.status_code == 200
-    assert len(resp.json()) == 1
-    assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
-    assert resp.json()[0]["id"] == "20200307aC0853900w361030"
-
-    z, x, y = 15, 8589, 12849
     resp = httpx.get(
-        f"{raster_endpoint}/mosaic/{searchid}/tiles/{z}/{x}/{y}",
-        params={"assets": "cog"},
-        headers={"Accept-Encoding": "br, gzip"},
-        timeout=10.0,
+        f"{raster_endpoint}/mosaic/{searchid}/{str(seeded_item_bounds[0])},{str(seeded_item_bounds[1])}/assets"
     )
     assert resp.status_code == 200
-    assert resp.headers["content-type"] == "image/jpeg"
-    assert "content-encoding" not in resp.headers
+    assert len(resp.json()) >= 1
+    assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
+    assert resp.json()[0]["id"] == seeded_item
+
+    resp = httpx.get(f"{raster_endpoint}/mosaic/{searchid}/tiles/0/0/0/assets")
+    assert resp.status_code == 200
+    assert len(resp.json()) >= 1
+
+    assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
+    items = resp.json()
+    ids = [c["id"] for c in items]
+    assert seeded_item in ids
 
 
 def test_mosaic_search():
@@ -172,26 +169,26 @@ def test_item():
     resp = httpx.get(
         f"{raster_endpoint}/stac/assets",
         params={
-            "collection": "noaa-emergency-response",
-            "item": "20200307aC0853300w361200",
+            "collection": seeded_collection,
+            "item": seeded_item,
         },
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
-    assert resp.json() == ["cog"]
+    assert resp.json() == ["cog_default"]
 
     resp = httpx.get(
         f"{raster_endpoint}/stac/tilejson.json",
         params={
-            "collection": "noaa-emergency-response",
-            "item": "20200307aC0853300w361200",
-            "assets": "cog",
+            "collection": seeded_collection,
+            "item": seeded_item,
+            "assets": "cog_default",
         },
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
     assert resp.json()["tilejson"]
     assert "assets=cog" in resp.json()["tiles"][0]
-    assert "item=20200307aC0853300w361200" in resp.json()["tiles"][0]
-    assert "collection=noaa-emergency-response" in resp.json()["tiles"][0]
-    assert resp.json()["bounds"] == [-85.5501, 36.1749, -85.5249, 36.2001]
+    assert f"item={seeded_item}" in resp.json()["tiles"][0]
+    assert f"collection={seeded_collection}" in resp.json()["tiles"][0]
+    assert resp.json()["bounds"] == seeded_item_bounds

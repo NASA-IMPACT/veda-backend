@@ -3,6 +3,7 @@
   "required": [
     "stac_version",
     "id",
+    "type",
     "description",
     "license",
     "extent",
