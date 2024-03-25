@@ -3,10 +3,26 @@
 import json
 
 import httpx
+import requests
+import yaml
 from openapi_schema_validator import validate
 
-with open(".github/workflows/tests/schemas/feature_schema.json", "r") as f:
-    feature_schema = json.load(f)
+with requests.get(
+    "https://api.stacspec.org/v1.0.0/ogcapi-features/openapi.yaml", allow_redirects=True
+) as response:
+    # Convert bytes to string
+    content = response.content.decode("utf-8")
+    # Load the yaml
+    feature_schema = yaml.safe_load(content)
+
+with requests.get(
+    "https://api.stacspec.org/v1.0.0/collections/openapi.yaml", allow_redirects=True
+) as response:
+    # Convert bytes to string
+    content = response.content.decode("utf-8")
+    # Load the yaml
+    collection_schema = yaml.safe_load(content)
+
 
 with open(".github/workflows/tests/schemas/collection_schema.json", "r") as f:
     collection_schema = json.load(f)
