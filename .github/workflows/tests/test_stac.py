@@ -1,7 +1,5 @@
 """test veda-backend STAC."""
 
-import json
-
 import httpx
 import requests
 import yaml
@@ -23,9 +21,6 @@ with requests.get(
     # Load the yaml
     collection_schema = yaml.safe_load(content)
 
-
-with open(".github/workflows/tests/schemas/collection_schema.json", "r") as f:
-    collection_schema = json.load(f)
 
 stac_endpoint = "http://0.0.0.0:8081"
 seeded_collection = "nightlights-500m-daily"
