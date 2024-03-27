@@ -9,7 +9,6 @@ import pytest
 
 from fastapi.encoders import jsonable_encoder
 
-# from src.schemas import Ingestion
 
 if TYPE_CHECKING:
     from src import schemas, services
@@ -66,27 +65,3 @@ class TestList:
         assert json.loads(base64.b64decode(response.json()["next"])) == expected_next
         assert response.json()["items"] == jsonable_encoder(example_ingestions[:limit])
 
-    # def test_load_large_number(self):
-    #     ingestion_data = self.example_ingestion.dict()
-    #     visual_asset = ingestion_data["item"]["assets"]["visual"]
-    #     # todo: why does this need to be a float?
-    #     visual_asset["nodata"] = -3.4028234663852886e38
-    #     ingestion = Ingestion.parse_obj(ingestion_data)
-    #     self.mock_table.put_item(Item=ingestion.dynamodb_dict())
-
-    #     response = self.api_client.get(ingestion_endpoint)
-    #     actual = response.json()["items"]
-    #     expected = [json.loads(ingestion.json(by_alias=True))]
-
-    #     # first, check the nodata value
-    #     # value should match, format will not. isclose() will properly compare the values
-    #     assert isclose(
-    #         actual[0]["item"]["assets"]["visual"]["nodata"],
-    #         expected[0]["item"]["assets"]["visual"]["nodata"],
-    #         abs_tol=1,
-    #     )
-    #     expected[0]["item"]["assets"]["visual"]["nodata"] = actual[0]["item"]["assets"][
-    #         "visual"
-    #     ]["nodata"]
-    #     # second, check everything else
-    #     assert actual == expected
