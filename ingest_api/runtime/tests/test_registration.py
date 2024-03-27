@@ -9,7 +9,6 @@ import pytest
 
 from fastapi.encoders import jsonable_encoder
 
-
 if TYPE_CHECKING:
     from src import schemas, services
 
@@ -64,4 +63,3 @@ class TestList:
         assert response.status_code == 200
         assert json.loads(base64.b64decode(response.json()["next"])) == expected_next
         assert response.json()["items"] == jsonable_encoder(example_ingestions[:limit])
-
