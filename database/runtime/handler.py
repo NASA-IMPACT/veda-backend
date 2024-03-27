@@ -486,10 +486,13 @@ def handler(event, context):
                 print("Creating dashboard schema...")
                 create_dashboard_schema(cursor=cur, username=user_params["username"])
 
-                print(
-                    "Creating functions for summarizing default collection datetimes and cog_default statistics..."
-                )
+                print("Creating functions for summarizing collection datetimes...")
                 create_collection_summaries_functions(cursor=cur)
+
+                print(
+                    "Creating functions for setting the maximum end_datetime temporal extent of a collection..."
+                )
+                create_collection_extents_functions(cursor=cur)
 
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")
