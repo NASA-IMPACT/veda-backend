@@ -288,7 +288,7 @@ def create_collection_extents_functions(cursor) -> None:
                     )
                 )
             )
-        WHERE collection.id=$1;
+        WHERE collections.id=$1;
     $function$
     ;
     """
