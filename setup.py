@@ -22,7 +22,7 @@ extra_reqs = {
         "pypgstac==0.7.4",
         "psycopg[binary, pool]",
         "fastapi",
-        "moto==4.2.12",
+        "moto[dynamodb, ssm]>=4.0.9,<5.0",
     ],
 }
 
