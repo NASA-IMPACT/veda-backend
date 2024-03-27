@@ -271,9 +271,9 @@ def create_collection_extents_functions(cursor) -> None:
     cursor.execute(sql.SQL(collection_temporal_extent_max_sql))
 
     update_collection_extents_max_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.update_collection_extents_max(id text) RETURNS jsonb
+    CREATE OR REPLACE FUNCTION dashboard.update_collection_extents_max(id text) 
+    RETURNS void
     LANGUAGE sql
-    IMMUTABLE PARALLEL SAFE
     SET search_path TO 'pgstac', 'public'
     AS $function$
         UPDATE collections SET
