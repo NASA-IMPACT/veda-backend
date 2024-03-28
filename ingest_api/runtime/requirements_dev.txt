@@ -19,4 +19,5 @@ zarr==2.13.6
 boto3==1.24.59
 moto[dynamodb, ssm]>=4.0.9,<5.0
 httpx
+aws_xray_sdk>=2.6.0,<3
 aws-lambda-powertools>=1.18.0
