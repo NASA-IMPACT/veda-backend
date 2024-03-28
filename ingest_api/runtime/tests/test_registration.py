@@ -1,8 +1,6 @@
 import base64
 import json
 from datetime import timedelta
-
-# from math import isclose
 from typing import TYPE_CHECKING, List
 
 import pytest
