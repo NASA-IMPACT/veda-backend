@@ -1,0 +1,93 @@
+{
+  "id": "nightlights-500m-daily",
+  "type": "Collection",
+  "links": [
+    {
+      "rel": "items",
+      "type": "application/geo+json",
+      "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items"
+    },
+    {
+      "rel": "parent",
+      "type": "application/json",
+      "href": "https://staging-stac.delta-backend.com/"
+    },
+    {
+      "rel": "root",
+      "type": "application/json",
+      "href": "https://staging-stac.delta-backend.com/"
+    },
+    {
+      "rel": "self",
+      "type": "application/json",
+      "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+    }
+  ],
+  "title": "Black Marble 500m Nightlights Daily Dataset",
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -130,
+          9.997916666666665,
+          150,
+          60
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2020-01-01T00:00:00+00:00",
+          "2021-03-01T00:00:00+00:00"
+        ]
+      ]
+    }
+  },
+  "license": "MIT",
+  "providers": [
+    {
+      "url": "https://blackmarble.gsfc.nasa.gov/",
+      "name": "NASA Black Marble",
+      "roles": [
+        "producer",
+        "processor"
+      ]
+    },
+    {
+      "url": "https://www.earthdata.nasa.gov/dashboard/",
+      "name": "NASA VEDA",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "summaries": {
+    "datetime": [
+      "2020-01-01T00:00:00Z",
+      "2021-03-01T00:00:00Z"
+    ],
+    "cog_default": {
+      "max": 6539.10009765625,
+      "min": 0
+    }
+  },
+  "description": "Darker colors indicate fewer night lights and less activity. Lighter colors indicate more night lights and more activity. Check out the HD dataset to see a light-corrected version of this dataset.",
+  "item_assets": {
+    "cog_default": {
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "roles": [
+        "data",
+        "layer"
+      ],
+      "title": "Default COG Layer",
+      "description": "Cloud optimized default layer to display on map"
+    }
+  },
+  "stac_version": "1.0.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/item-assets/v1.0.0/schema.json"
+  ],
+  "dashboard:is_periodic": true,
+  "dashboard:time_density": "day"
+}

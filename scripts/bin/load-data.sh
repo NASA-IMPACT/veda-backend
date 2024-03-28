@@ -10,10 +10,10 @@ done
 
 # Load collections
 echo "Loading collections..."
-pypgstac load collections /tmp/data/noaa-emergency-response.json --dsn postgresql://username:password@0.0.0.0:5432/postgis --method upsert
+pypgstac load collections /tmp/data/nightlights-500m-daily.json --dsn postgresql://username:password@0.0.0.0:5432/postgis --method upsert
 
 # Load items
 echo "Loading items..."
-pypgstac load items /tmp/data/noaa-eri-nashville2020.json --dsn postgresql://username:password@0.0.0.0:5432/postgis --method upsert
+pypgstac load items /tmp/data/nightlights-500m-daily-items.json --dsn postgresql://username:password@0.0.0.0:5432/postgis --method upsert
 
 echo "Data loaded successfully!"

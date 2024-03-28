@@ -1,0 +1,1620 @@
+{
+  "id": "VNP46A2_V011_tk_2021-03-01_cog",
+  "bbox": [
+    130,
+    30,
+    150,
+    40
+  ],
+  "type": "Feature",
+  "links": [
+    {
+      "rel": "collection",
+      "type": "application/json",
+      "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+    },
+    {
+      "rel": "parent",
+      "type": "application/json",
+      "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+    },
+    {
+      "rel": "root",
+      "type": "application/json",
+      "href": "https://staging-stac.delta-backend.com/"
+    },
+    {
+      "rel": "self",
+      "type": "application/geo+json",
+      "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_tk_2021-03-01_cog"
+    }
+  ],
+  "assets": {
+    "cog_default": {
+      "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_tk_2021-03-01_cog.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "roles": [
+        "data",
+        "layer"
+      ],
+      "title": "Default COG Layer",
+      "description": "Cloud optimized default layer to display on map",
+      "raster:bands": [
+        {
+          "scale": 1,
+          "nodata": 6553.5,
+          "offset": 0,
+          "sampling": "area",
+          "data_type": "float64",
+          "histogram": {
+            "max": 579.7999877929688,
+            "min": 0,
+            "count": 11,
+            "buckets": [
+              83830,
+              197,
+              26,
+              10,
+              4,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "statistics": {
+            "mean": 2.268276874345738,
+            "stddev": 7.540637963423387,
+            "maximum": 579.7999877929688,
+            "minimum": 0,
+            "valid_percent": 16.034698486328125
+          }
+        }
+      ]
+    }
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          130,
+          30
+        ],
+        [
+          150,
+          30
+        ],
+        [
+          150,
+          40
+        ],
+        [
+          130,
+          40
+        ],
+        [
+          130,
+          30
+        ]
+      ]
+    ]
+  },
+  "collection": "nightlights-500m-daily",
+  "properties": {
+    "datetime": "2021-03-01T00:00:00+00:00",
+    "proj:bbox": [
+      130,
+      30,
+      150,
+      40
+    ],
+    "proj:epsg": 4326,
+    "proj:shape": [
+      2400,
+      4800
+    ],
+    "proj:geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            130,
+            30
+          ],
+          [
+            150,
+            30
+          ],
+          [
+            150,
+            40
+          ],
+          [
+            130,
+            40
+          ],
+          [
+            130,
+            30
+          ]
+        ]
+      ]
+    },
+    "proj:transform": [
+      0.004166666666666667,
+      0,
+      130,
+      0,
+      -0.004166666666666667,
+      40,
+      0,
+      0,
+      1
+    ]
+  },
+  "stac_version": "1.0.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+  ]
+}
+{
+  "id": "VNP46A2_V011_sf_2021-03-01_cog",
+  "bbox": [
+    -130,
+    30,
+    -120,
+    40
+  ],
+  "type": "Feature",
+  "links": [
+    {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_sf_2021-03-01_cog"
+        }
+      ],
+      "assets": {
+        "cog_default": {
+          "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_sf_2021-03-01_cog.tif",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "roles": [
+            "data",
+            "layer"
+          ],
+          "title": "Default COG Layer",
+          "description": "Cloud optimized default layer to display on map",
+          "raster:bands": [
+            {
+              "scale": 1,
+              "nodata": 6553.5,
+              "offset": 0,
+              "sampling": "area",
+              "data_type": "float64",
+              "histogram": {
+                "max": 358.79998779296875,
+                "min": 0,
+                "count": 11,
+                "buckets": [
+                  135677,
+                  1073,
+                  239,
+                  60,
+                  22,
+                  6,
+                  2,
+                  0,
+                  1,
+                  1
+                ]
+              },
+              "statistics": {
+                "mean": 1.6960527021576888,
+                "stddev": 7.630494826814801,
+                "maximum": 358.79998779296875,
+                "minimum": 0,
+                "valid_percent": 13.073062896728516
+              }
+            }
+          ]
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -130,
+              30
+            ],
+            [
+              -120,
+              30
+            ],
+            [
+              -120,
+              40
+            ],
+            [
+              -130,
+              40
+            ],
+            [
+              -130,
+              30
+            ]
+          ]
+        ]
+      },
+      "collection": "nightlights-500m-daily",
+      "properties": {
+        "datetime": "2021-03-01T00:00:00+00:00",
+        "proj:bbox": [
+          -130,
+          30,
+          -120,
+          40
+        ],
+        "proj:epsg": 4326,
+        "proj:shape": [
+          2400,
+          2400
+        ],
+        "proj:geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -130,
+                30
+              ],
+              [
+                -120,
+                30
+              ],
+              [
+                -120,
+                40
+              ],
+              [
+                -130,
+                40
+              ],
+              [
+                -130,
+                30
+              ]
+            ]
+          ]
+        },
+        "proj:transform": [
+          0.004166666666666667,
+          0,
+          -130,
+          0,
+          -0.004166666666666667,
+          40,
+          0,
+          0,
+          1
+        ]
+      },
+      "stac_version": "1.0.0",
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ]
+    }
+    {
+      "id": "VNP46A2_V011_ny_2021-03-01_cog",
+      "bbox": [
+        -80,
+        40,
+        -70,
+        50
+      ],
+      "type": "Feature",
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_ny_2021-03-01_cog"
+        }
+      ],
+      "assets": {
+        "cog_default": {
+          "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_ny_2021-03-01_cog.tif",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "roles": [
+            "data",
+            "layer"
+          ],
+          "title": "Default COG Layer",
+          "description": "Cloud optimized default layer to display on map",
+          "raster:bands": [
+            {
+              "scale": 1,
+              "nodata": 6553.5,
+              "offset": 0,
+              "sampling": "area",
+              "data_type": "float64",
+              "histogram": {
+                "max": 2317.39990234375,
+                "min": 0,
+                "count": 11,
+                "buckets": [
+                  1006567,
+                  195,
+                  6,
+                  3,
+                  2,
+                  0,
+                  0,
+                  3,
+                  0,
+                  1
+                ]
+              },
+              "statistics": {
+                "mean": 3.5589974761822494,
+                "stddev": 13.661171431755562,
+                "maximum": 2317.39990234375,
+                "minimum": 0,
+                "valid_percent": 96.01373672485352
+              }
+            }
+          ]
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -80,
+              40
+            ],
+            [
+              -70,
+              40
+            ],
+            [
+              -70,
+              50
+            ],
+            [
+              -80,
+              50
+            ],
+            [
+              -80,
+              40
+            ]
+          ]
+        ]
+      },
+      "collection": "nightlights-500m-daily",
+      "properties": {
+        "datetime": "2021-03-01T00:00:00+00:00",
+        "proj:bbox": [
+          -80,
+          40,
+          -70,
+          50
+        ],
+        "proj:epsg": 4326,
+        "proj:shape": [
+          2400,
+          2400
+        ],
+        "proj:geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -80,
+                40
+              ],
+              [
+                -70,
+                40
+              ],
+              [
+                -70,
+                50
+              ],
+              [
+                -80,
+                50
+              ],
+              [
+                -80,
+                40
+              ]
+            ]
+          ]
+        },
+        "proj:transform": [
+          0.004166666666666667,
+          0,
+          -80,
+          0,
+          -0.004166666666666667,
+          50,
+          0,
+          0,
+          1
+        ]
+      },
+      "stac_version": "1.0.0",
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ]
+    }
+    {
+      "id": "VNP46A2_V011_la_2021-03-01_cog",
+      "bbox": [
+        -120,
+        30,
+        -110,
+        40
+      ],
+      "type": "Feature",
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_la_2021-03-01_cog"
+        }
+      ],
+      "assets": {
+        "cog_default": {
+          "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_la_2021-03-01_cog.tif",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "roles": [
+            "data",
+            "layer"
+          ],
+          "title": "Default COG Layer",
+          "description": "Cloud optimized default layer to display on map",
+          "raster:bands": [
+            {
+              "scale": 1,
+              "nodata": 6553.5,
+              "offset": 0,
+              "sampling": "area",
+              "data_type": "float64",
+              "histogram": {
+                "max": 4843,
+                "min": 0,
+                "count": 11,
+                "buckets": [
+                  899718,
+                  10,
+                  2,
+                  2,
+                  1,
+                  0,
+                  1,
+                  0,
+                  0,
+                  1
+                ]
+              },
+              "statistics": {
+                "mean": 1.1946047484826614,
+                "stddev": 10.640865956720264,
+                "maximum": 4843,
+                "minimum": 0,
+                "valid_percent": 85.80541610717773
+              }
+            }
+          ]
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -120,
+              30
+            ],
+            [
+              -110,
+              30
+            ],
+            [
+              -110,
+              40
+            ],
+            [
+              -120,
+              40
+            ],
+            [
+              -120,
+              30
+            ]
+          ]
+        ]
+      },
+      "collection": "nightlights-500m-daily",
+      "properties": {
+        "datetime": "2021-03-01T00:00:00+00:00",
+        "proj:bbox": [
+          -120,
+          30,
+          -110,
+          40
+        ],
+        "proj:epsg": 4326,
+        "proj:shape": [
+          2400,
+          2400
+        ],
+        "proj:geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -120,
+                30
+              ],
+              [
+                -110,
+                30
+              ],
+              [
+                -110,
+                40
+              ],
+              [
+                -120,
+                40
+              ],
+              [
+                -120,
+                30
+              ]
+            ]
+          ]
+        },
+        "proj:transform": [
+          0.004166666666666667,
+          0,
+          -120,
+          0,
+          -0.004166666666666667,
+          40,
+          0,
+          0,
+          1
+        ]
+      },
+      "stac_version": "1.0.0",
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ]
+    }
+    {
+      "id": "VNP46A2_V011_EUPorts_2021-03-01_cog",
+      "bbox": [
+        0,
+        50,
+        10,
+        60
+      ],
+      "type": "Feature",
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_EUPorts_2021-03-01_cog"
+        }
+      ],
+      "assets": {
+        "cog_default": {
+          "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_EUPorts_2021-03-01_cog.tif",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "roles": [
+            "data",
+            "layer"
+          ],
+          "title": "Default COG Layer",
+          "description": "Cloud optimized default layer to display on map",
+          "raster:bands": [
+            {
+              "scale": 1,
+              "nodata": 6553.5,
+              "offset": 0,
+              "sampling": "area",
+              "data_type": "float64",
+              "histogram": {
+                "max": 3760.300048828125,
+                "min": 0,
+                "count": 11,
+                "buckets": [
+                  896098,
+                  77,
+                  28,
+                  15,
+                  11,
+                  3,
+                  9,
+                  5,
+                  3,
+                  3
+                ]
+              },
+              "statistics": {
+                "mean": 2.4408040396809296,
+                "stddev": 18.769396883289904,
+                "maximum": 3760.300048828125,
+                "minimum": 0,
+                "valid_percent": 85.47325134277344
+              }
+            }
+          ]
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              50
+            ],
+            [
+              10,
+              50
+            ],
+            [
+              10,
+              60
+            ],
+            [
+              0,
+              60
+            ],
+            [
+              0,
+              50
+            ]
+          ]
+        ]
+      },
+      "collection": "nightlights-500m-daily",
+      "properties": {
+        "datetime": "2021-03-01T00:00:00+00:00",
+        "proj:bbox": [
+          0,
+          50,
+          10,
+          60
+        ],
+        "proj:epsg": 4326,
+        "proj:shape": [
+          2400,
+          2400
+        ],
+        "proj:geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0,
+                50
+              ],
+              [
+                10,
+                50
+              ],
+              [
+                10,
+                60
+              ],
+              [
+                0,
+                60
+              ],
+              [
+                0,
+                50
+              ]
+            ]
+          ]
+        },
+        "proj:transform": [
+          0.004166666666666667,
+          0,
+          0,
+          0,
+          -0.004166666666666667,
+          60,
+          0,
+          0,
+          1
+        ]
+      },
+      "stac_version": "1.0.0",
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ]
+    }
+    {
+      "id": "VNP46A2_V011_be_2021-03-01_cog",
+      "bbox": [
+        110,
+        30,
+        120,
+        50
+      ],
+      "type": "Feature",
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_be_2021-03-01_cog"
+        }
+      ],
+      "assets": {
+        "cog_default": {
+          "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_be_2021-03-01_cog.tif",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "roles": [
+            "data",
+            "layer"
+          ],
+          "title": "Default COG Layer",
+          "description": "Cloud optimized default layer to display on map",
+          "raster:bands": [
+            {
+              "scale": 1,
+              "nodata": 6553.5,
+              "offset": 0,
+              "sampling": "area",
+              "data_type": "float64",
+              "histogram": {
+                "max": 1304,
+                "min": 0,
+                "count": 11,
+                "buckets": [
+                  524231,
+                  47,
+                  4,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              },
+              "statistics": {
+                "mean": 1.2272532232587499,
+                "stddev": 5.415598551799036,
+                "maximum": 1304,
+                "minimum": 0,
+                "valid_percent": 99.9990463256836
+              }
+            }
+          ]
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              110,
+              30
+            ],
+            [
+              120,
+              30
+            ],
+            [
+              120,
+              50
+            ],
+            [
+              110,
+              50
+            ],
+            [
+              110,
+              30
+            ]
+          ]
+        ]
+      },
+      "collection": "nightlights-500m-daily",
+      "properties": {
+        "datetime": "2021-03-01T00:00:00+00:00",
+        "proj:bbox": [
+          110,
+          30,
+          120,
+          50
+        ],
+        "proj:epsg": 4326,
+        "proj:shape": [
+          4800,
+          2400
+        ],
+        "proj:geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                110,
+                30
+              ],
+              [
+                120,
+                30
+              ],
+              [
+                120,
+                50
+              ],
+              [
+                110,
+                50
+              ],
+              [
+                110,
+                30
+              ]
+            ]
+          ]
+        },
+        "proj:transform": [
+          0.004166666666666667,
+          0,
+          110,
+          0,
+          -0.004166666666666667,
+          50,
+          0,
+          0,
+          1
+        ]
+      },
+      "stac_version": "1.0.0",
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ]
+    }
+    {
+      "id": "VNP46A2_V011_tk_2021-02-28_cog",
+      "bbox": [
+        130,
+        30,
+        150,
+        40
+      ],
+      "type": "Feature",
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_tk_2021-02-28_cog"
+        }
+      ],
+      "assets": {
+        "cog_default": {
+          "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_tk_2021-02-28_cog.tif",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "roles": [
+            "data",
+            "layer"
+          ],
+          "title": "Default COG Layer",
+          "description": "Cloud optimized default layer to display on map",
+          "raster:bands": [
+            {
+              "scale": 1,
+              "nodata": 6553.5,
+              "offset": 0,
+              "sampling": "area",
+              "data_type": "float64",
+              "histogram": {
+                "max": 1021.7000122070312,
+                "min": 0,
+                "count": 11,
+                "buckets": [
+                  84027,
+                  33,
+                  4,
+                  2,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              },
+              "statistics": {
+                "mean": 2.1354177611259493,
+                "stddev": 7.773245367119132,
+                "maximum": 1021.7000122070312,
+                "minimum": 0,
+                "valid_percent": 16.034698486328125
+              }
+            }
+          ]
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              130,
+              30
+            ],
+            [
+              150,
+              30
+            ],
+            [
+              150,
+              40
+            ],
+            [
+              130,
+              40
+            ],
+            [
+              130,
+              30
+            ]
+          ]
+        ]
+      },
+      "collection": "nightlights-500m-daily",
+      "properties": {
+        "datetime": "2021-02-28T00:00:00+00:00",
+        "proj:bbox": [
+          130,
+          30,
+          150,
+          40
+        ],
+        "proj:epsg": 4326,
+        "proj:shape": [
+          2400,
+          4800
+        ],
+        "proj:geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                130,
+                30
+              ],
+              [
+                150,
+                30
+              ],
+              [
+                150,
+                40
+              ],
+              [
+                130,
+                40
+              ],
+              [
+                130,
+                30
+              ]
+            ]
+          ]
+        },
+        "proj:transform": [
+          0.004166666666666667,
+          0,
+          130,
+          0,
+          -0.004166666666666667,
+          40,
+          0,
+          0,
+          1
+        ]
+      },
+      "stac_version": "1.0.0",
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ]
+    }
+    {
+      "id": "VNP46A2_V011_sf_2021-02-28_cog",
+      "bbox": [
+        -130,
+        30,
+        -120,
+        40
+      ],
+      "type": "Feature",
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_sf_2021-02-28_cog"
+        }
+      ],
+      "assets": {
+        "cog_default": {
+          "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_sf_2021-02-28_cog.tif",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "roles": [
+            "data",
+            "layer"
+          ],
+          "title": "Default COG Layer",
+          "description": "Cloud optimized default layer to display on map",
+          "raster:bands": [
+            {
+              "scale": 1,
+              "nodata": 6553.5,
+              "offset": 0,
+              "sampling": "area",
+              "data_type": "float64",
+              "histogram": {
+                "max": 520.7000122070312,
+                "min": 0,
+                "count": 11,
+                "buckets": [
+                  136318,
+                  617,
+                  105,
+                  16,
+                  15,
+                  6,
+                  1,
+                  2,
+                  0,
+                  1
+                ]
+              },
+              "statistics": {
+                "mean": 1.738917870816264,
+                "stddev": 8.509279436520853,
+                "maximum": 520.7000122070312,
+                "minimum": 0,
+                "valid_percent": 13.073062896728516
+              }
+            }
+          ]
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -130,
+              30
+            ],
+            [
+              -120,
+              30
+            ],
+            [
+              -120,
+              40
+            ],
+            [
+              -130,
+              40
+            ],
+            [
+              -130,
+              30
+            ]
+          ]
+        ]
+      },
+      "collection": "nightlights-500m-daily",
+      "properties": {
+        "datetime": "2021-02-28T00:00:00+00:00",
+        "proj:bbox": [
+          -130,
+          30,
+          -120,
+          40
+        ],
+        "proj:epsg": 4326,
+        "proj:shape": [
+          2400,
+          2400
+        ],
+        "proj:geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -130,
+                30
+              ],
+              [
+                -120,
+                30
+              ],
+              [
+                -120,
+                40
+              ],
+              [
+                -130,
+                40
+              ],
+              [
+                -130,
+                30
+              ]
+            ]
+          ]
+        },
+        "proj:transform": [
+          0.004166666666666667,
+          0,
+          -130,
+          0,
+          -0.004166666666666667,
+          40,
+          0,
+          0,
+          1
+        ]
+      },
+      "stac_version": "1.0.0",
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ]
+    }
+    {
+      "id": "VNP46A2_V011_ny_2021-02-28_cog",
+      "bbox": [
+        -80,
+        40,
+        -70,
+        50
+      ],
+      "type": "Feature",
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_ny_2021-02-28_cog"
+        }
+      ],
+      "assets": {
+        "cog_default": {
+          "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_ny_2021-02-28_cog.tif",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "roles": [
+            "data",
+            "layer"
+          ],
+          "title": "Default COG Layer",
+          "description": "Cloud optimized default layer to display on map",
+          "raster:bands": [
+            {
+              "scale": 1,
+              "nodata": 6553.5,
+              "offset": 0,
+              "sampling": "area",
+              "data_type": "float64",
+              "histogram": {
+                "max": 1870.0999755859375,
+                "min": 0,
+                "count": 11,
+                "buckets": [
+                  1006239,
+                  507,
+                  24,
+                  1,
+                  2,
+                  2,
+                  0,
+                  0,
+                  1,
+                  1
+                ]
+              },
+              "statistics": {
+                "mean": 3.460037030752827,
+                "stddev": 12.885394309492264,
+                "maximum": 1870.0999755859375,
+                "minimum": 0,
+                "valid_percent": 96.01373672485352
+              }
+            }
+          ]
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -80,
+              40
+            ],
+            [
+              -70,
+              40
+            ],
+            [
+              -70,
+              50
+            ],
+            [
+              -80,
+              50
+            ],
+            [
+              -80,
+              40
+            ]
+          ]
+        ]
+      },
+      "collection": "nightlights-500m-daily",
+      "properties": {
+        "datetime": "2021-02-28T00:00:00+00:00",
+        "proj:bbox": [
+          -80,
+          40,
+          -70,
+          50
+        ],
+        "proj:epsg": 4326,
+        "proj:shape": [
+          2400,
+          2400
+        ],
+        "proj:geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -80,
+                40
+              ],
+              [
+                -70,
+                40
+              ],
+              [
+                -70,
+                50
+              ],
+              [
+                -80,
+                50
+              ],
+              [
+                -80,
+                40
+              ]
+            ]
+          ]
+        },
+        "proj:transform": [
+          0.004166666666666667,
+          0,
+          -80,
+          0,
+          -0.004166666666666667,
+          50,
+          0,
+          0,
+          1
+        ]
+      },
+      "stac_version": "1.0.0",
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ]
+    },
+    {
+      "id": "VNP46A2_V011_la_2021-02-28_cog",
+      "bbox": [
+        -120,
+        30,
+        -110,
+        40
+      ],
+      "type": "Feature",
+      "links": [
+        {
+          "rel": "collection",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "parent",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily"
+        },
+        {
+          "rel": "root",
+          "type": "application/json",
+          "href": "https://staging-stac.delta-backend.com/"
+        },
+        {
+          "rel": "self",
+          "type": "application/geo+json",
+          "href": "https://staging-stac.delta-backend.com/collections/nightlights-500m-daily/items/VNP46A2_V011_la_2021-02-28_cog"
+        }
+      ],
+      "assets": {
+        "cog_default": {
+          "href": "s3://veda-data-store-staging/nightlights-500m-daily/VNP46A2_V011_la_2021-02-28_cog.tif",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+          "roles": [
+            "data",
+            "layer"
+          ],
+          "title": "Default COG Layer",
+          "description": "Cloud optimized default layer to display on map",
+          "raster:bands": [
+            {
+              "scale": 1,
+              "nodata": 6553.5,
+              "offset": 0,
+              "sampling": "area",
+              "data_type": "float64",
+              "histogram": {
+                "max": 2392.800048828125,
+                "min": 0,
+                "count": 11,
+                "buckets": [
+                  899676,
+                  49,
+                  3,
+                  2,
+                  3,
+                  0,
+                  0,
+                  1,
+                  0,
+                  1
+                ]
+              },
+              "statistics": {
+                "mean": 1.1665254810430998,
+                "stddev": 8.261116417012577,
+                "maximum": 2392.800048828125,
+                "minimum": 0,
+                "valid_percent": 85.80541610717773
+              }
+            }
+          ]
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -120,
+              30
+            ],
+            [
+              -110,
+              30
+            ],
+            [
+              -110,
+              40
+            ],
+            [
+              -120,
+              40
+            ],
+            [
+              -120,
+              30
+            ]
+          ]
+        ]
+      },
+      "collection": "nightlights-500m-daily",
+      "properties": {
+        "datetime": "2021-02-28T00:00:00+00:00",
+        "proj:bbox": [
+          -120,
+          30,
+          -110,
+          40
+        ],
+        "proj:epsg": 4326,
+        "proj:shape": [
+          2400,
+          2400
+        ],
+        "proj:geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -120,
+                30
+              ],
+              [
+                -110,
+                30
+              ],
+              [
+                -110,
+                40
+              ],
+              [
+                -120,
+                40
+              ],
+              [
+                -120,
+                30
+              ]
+            ]
+          ]
+        },
+        "proj:transform": [
+          0.004166666666666667,
+          0,
+          -120,
+          0,
+          -0.004166666666666667,
+          40,
+          0,
+          0,
+          1
+        ]
+      },
+      "stac_version": "1.0.0",
+      "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/raster/v1.1.0/schema.json"
+      ]
+    }
