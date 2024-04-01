@@ -1,4 +1,5 @@
 """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
+
 import os
 import typing
 from typing import Optional
@@ -23,6 +24,7 @@ if typing.TYPE_CHECKING:
 
 class FeaturesAPILambdaConstruct(Construct):
     """Features Construct"""
+
     def __init__(
         self,
         scope: Construct,

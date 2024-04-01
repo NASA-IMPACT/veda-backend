@@ -1,4 +1,5 @@
 """CDK Construct for a custom API domain."""
+
 from typing import Optional
 
 from aws_cdk import (
@@ -61,7 +62,9 @@ class DomainConstruct(Construct):
                 raster_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-raster"
                 stac_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-stac"
                 ingest_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-ingest"
-                features_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-features"
+                features_url_prefix = (
+                    f"{veda_domain_settings.api_prefix.lower()}-features"
+                )
             else:
                 raster_url_prefix = f"{stage.lower()}-raster"
                 stac_url_prefix = f"{stage.lower()}-stac"
