@@ -22,6 +22,7 @@ if typing.TYPE_CHECKING:
 
 
 class FeaturesAPILambdaConstruct(Construct):
+    """Features Construct"""
     def __init__(
         self,
         scope: Construct,

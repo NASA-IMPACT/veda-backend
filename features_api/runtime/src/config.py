@@ -46,7 +46,8 @@ class FeaturesAPISettings(pydantic_settings.BaseSettings):
 
     postgis_secret_arn: Optional[str] = None
 
-    def load_postgres_settings(self) -> "PostgresSettings":
+    def load_postgres_settings(self):
+        """Load Settings from Secret"""
         from tipg.settings import PostgresSettings  # noqa: F821
 
         if self.postgis_secret_arn:
