@@ -84,47 +84,47 @@ def create_db(cursor, db_name: str) -> None:
         )
 
 
-# def create_user(cursor, username: str, password: str) -> None:
-#     """Create User."""
-#     cursor.execute(
-#         sql.SQL(
-#             "DO $$ "
-#             "BEGIN "
-#             "  IF NOT EXISTS ( "
-#             "       SELECT 1 FROM pg_roles "
-#             "       WHERE rolname = {user}) "
-#             "  THEN "
-#             "    CREATE USER {username} "
-#             "    WITH PASSWORD {password}; "
-#             "  ELSE "
-#             "    ALTER USER {username} "
-#             "    WITH PASSWORD {password}; "
-#             "  END IF; "
-#             "END "
-#             "$$; "
-#         ).format(username=sql.Identifier(username), password=password, user=username)
-#     )
-#
+def create_user(cursor, username: str, password: str) -> None:
+    """Create User."""
+    cursor.execute(
+        sql.SQL(
+            "DO $$ "
+            "BEGIN "
+            "  IF NOT EXISTS ( "
+            "       SELECT 1 FROM pg_roles "
+            "       WHERE rolname = {user}) "
+            "  THEN "
+            "    CREATE USER {username} "
+            "    WITH PASSWORD {password}; "
+            "  ELSE "
+            "    ALTER USER {username} "
+            "    WITH PASSWORD {password}; "
+            "  END IF; "
+            "END "
+            "$$; "
+        ).format(username=sql.Identifier(username), password=password, user=username)
+    )
 
-# def create_permissions(cursor, db_name: str, username: str) -> None:
-#     """Add permissions and user-specific pgstac configuration."""
-#     cursor.execute(
-#         sql.SQL(
-#             "GRANT CONNECT ON DATABASE {db_name} TO {username};"
-#             "GRANT CREATE ON DATABASE {db_name} TO {username};"  # Allow schema creation
-#             "GRANT USAGE ON SCHEMA public TO {username};"
-#             "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
-#             "GRANT ALL PRIVILEGES ON TABLES TO {username};"
-#             "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
-#             "GRANT ALL PRIVILEGES ON SEQUENCES TO {username};"
-#             "GRANT pgstac_read TO {username};"
-#             "GRANT pgstac_ingest TO {username};"
-#             "GRANT pgstac_admin TO {username};"
-#         ).format(
-#             db_name=sql.Identifier(db_name),
-#             username=sql.Identifier(username),
-#         )
-#     )
+
+def create_permissions(cursor, db_name: str, username: str) -> None:
+    """Add permissions and user-specific pgstac configuration."""
+    cursor.execute(
+        sql.SQL(
+            "GRANT CONNECT ON DATABASE {db_name} TO {username};"
+            "GRANT CREATE ON DATABASE {db_name} TO {username};"  # Allow schema creation
+            "GRANT USAGE ON SCHEMA public TO {username};"
+            "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
+            "GRANT ALL PRIVILEGES ON TABLES TO {username};"
+            "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
+            "GRANT ALL PRIVILEGES ON SEQUENCES TO {username};"
+            "GRANT pgstac_read TO {username};"
+            "GRANT pgstac_ingest TO {username};"
+            "GRANT pgstac_admin TO {username};"
+        ).format(
+            db_name=sql.Identifier(db_name),
+            username=sql.Identifier(username),
+        )
+    )
 
 
 def register_extensions(cursor) -> None:
@@ -163,19 +163,19 @@ def handler(event, context):
                 print("Registering PostGIS ...")
                 register_extensions(cursor=cur)
 
-                # print("Creating user...")
-                # create_user(
-                #     cursor=cur,
-                #     username=user_params["username"],
-                #     password=user_params["password"],
-                # )
+                print("Creating user...")
+                create_user(
+                    cursor=cur,
+                    username=user_params["username"],
+                    password=user_params["password"],
+                )
 
-                # print("Setting permissions...")
-                # create_permissions(
-                #     cursor=cur,
-                #     db_name=user_params["dbname"],
-                #     username=user_params["username"],
-                # )
+                print("Setting permissions...")
+                create_permissions(
+                    cursor=cur,
+                    db_name=user_params["dbname"],
+                    username=user_params["username"],
+                )
 
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")

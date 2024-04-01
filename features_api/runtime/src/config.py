@@ -50,6 +50,7 @@ class FeaturesAPISettings(pydantic_settings.BaseSettings):
         from tipg.settings import PostgresSettings
 
         if self.postgis_secret_arn:
+            print(f"loading {self.postgis_secret_arn}")
             secret = get_secret_dict(self.postgis_secret_arn)
             return PostgresSettings(
                 postgres_user=secret["username"],

@@ -17,7 +17,7 @@ class FeaturesDBSettings(BaseSettings):
         description="Name of admin role for postgres database",
     )
     user: str = Field(
-        "postgres",
+        "veda",
         description="Name of pgstac role for postgres database",
     )
     snapshot_id: Optional[str] = Field(
