@@ -1,9 +1,12 @@
-from typing import Dict, List, Optional
+""""""
+from typing import Dict
 
 from pydantic import BaseSettings, Field
 
 
 class FeatureLambdaSettings(BaseSettings):
+    """settings that get loaded and bound to the Lambda service in /app.py
+    """
 
     env: Dict = {}
 

@@ -47,10 +47,9 @@ class FeaturesAPISettings(pydantic_settings.BaseSettings):
     postgis_secret_arn: Optional[str] = None
 
     def load_postgres_settings(self) -> "PostgresSettings":
-        from tipg.settings import PostgresSettings
+        from tipg.settings import PostgresSettings  # noqa: F821
 
         if self.postgis_secret_arn:
-            print(f"loading {self.postgis_secret_arn}")
             secret = get_secret_dict(self.postgis_secret_arn)
             return PostgresSettings(
                 postgres_user=secret["username"],

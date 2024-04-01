@@ -1,7 +1,4 @@
 from contextlib import asynccontextmanager
-from typing import Any, List
-
-import jinja2
 
 from src.config import FeaturesAPISettings as APISettings
 
@@ -19,7 +16,6 @@ from tipg.settings import (
 from fastapi import FastAPI, Request
 
 from starlette.middleware.cors import CORSMiddleware
-from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
 settings = APISettings()
@@ -30,6 +26,7 @@ custom_sql_settings = CustomSQLSettings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """reload catalogs"""
     await connect_to_db(
         app,
         settings=postgres_settings,
@@ -111,6 +108,7 @@ def ping():
 
 @app.get("/refresh")
 async def refresh(request: Request):
+    """refresh catalog"""
     await register_collection_catalog(
         request.app,
         schemas=db_settings.schemas,

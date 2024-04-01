@@ -10,7 +10,6 @@ from aws_cdk import (
     aws_apigatewayv2_alpha,
     aws_apigatewayv2_integrations_alpha,
     aws_ec2,
-    aws_iam,
     aws_lambda,
     aws_logs,
 )
