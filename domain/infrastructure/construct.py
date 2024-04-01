@@ -70,7 +70,7 @@ class DomainConstruct(Construct):
             raster_domain_name = f"{raster_url_prefix}.{hosted_zone_name}"
             stac_domain_name = f"{stac_url_prefix}.{hosted_zone_name}"
             ingest_domain_name = f"{ingest_url_prefix}.{hosted_zone_name}"
-            features_domain_name = f"{raster_url_prefix}.{hosted_zone_name}"
+            features_domain_name = f"{features_url_prefix}.{hosted_zone_name}"
 
             self.raster_domain_name = aws_apigatewayv2_alpha.DomainName(
                 self,
@@ -174,5 +174,5 @@ class DomainConstruct(Construct):
             CfnOutput(
                 self,
                 "features-api",
-                value=f"https://{ingest_url_prefix}.{hosted_zone_name}/",
+                value=f"https://{features_url_prefix}.{hosted_zone_name}/",
             )
