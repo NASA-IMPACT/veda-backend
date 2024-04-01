@@ -117,9 +117,6 @@ def create_permissions(cursor, db_name: str, username: str) -> None:
             "GRANT ALL PRIVILEGES ON TABLES TO {username};"
             "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
             "GRANT ALL PRIVILEGES ON SEQUENCES TO {username};"
-            "GRANT pgstac_read TO {username};"
-            "GRANT pgstac_ingest TO {username};"
-            "GRANT pgstac_admin TO {username};"
         ).format(
             db_name=sql.Identifier(db_name),
             username=sql.Identifier(username),
