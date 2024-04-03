@@ -14,7 +14,10 @@ from fastapi import Depends, HTTPException, security
 
 logger = logging.getLogger(__name__)
 
-token_scheme = security.HTTPBearer()
+token_scheme = security.OAuth2AuthorizationCodeBearer(
+    authorizationUrl="https://veda-auth-stack-dev.auth.us-west-2.amazoncognito.com/oauth2/auth",
+    tokenUrl=f"https://veda-auth-stack-dev.auth.us-west-2.amazoncognito.com/oauth2/token",
+)
 
 
 def get_settings() -> config.Settings:
