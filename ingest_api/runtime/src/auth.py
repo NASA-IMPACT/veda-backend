@@ -15,7 +15,7 @@ from fastapi import Depends, HTTPException, security
 logger = logging.getLogger(__name__)
 
 token_scheme = security.OAuth2AuthorizationCodeBearer(
-    authorizationUrl="https://veda-auth-stack-dev.auth.us-west-2.amazoncognito.com/oauth2/auth",
+    authorizationUrl="https://veda-auth-stack-dev.auth.us-west-2.amazoncognito.com/oauth2/authorize",
     tokenUrl=f"https://veda-auth-stack-dev.auth.us-west-2.amazoncognito.com/oauth2/token",
 )
 
@@ -38,7 +38,7 @@ def get_jwks(jwks_url: str = Depends(get_jwks_url)) -> KeySet:
 
 
 def decode_token(
-    token: security.HTTPAuthorizationCredentials = Depends(token_scheme),
+    token: str = Depends(token_scheme),
     jwks: KeySet = Depends(get_jwks),
 ) -> JWTClaims:
     """
@@ -46,7 +46,7 @@ def decode_token(
     """
     try:
         claims = JsonWebToken(["RS256"]).decode(
-            s=token.credentials,
+            s=token,
             key=jwks,
             claims_options={
                 # # Example of validating audience to match expected value

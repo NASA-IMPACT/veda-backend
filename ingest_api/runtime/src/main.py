@@ -37,6 +37,11 @@ app = FastAPI(
     root_path=settings.root_path,
     openapi_url="/openapi.json",
     docs_url="/docs",
+    swagger_ui_init_oauth={
+        "appName": "Cognito",
+        "clientId": settings.client_id,
+        "usePkceWithAuthorizationCodeGrant": True,
+    },
 )
 
 collection_publisher = CollectionPublisher()
