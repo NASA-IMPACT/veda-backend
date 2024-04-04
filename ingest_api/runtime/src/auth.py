@@ -2,13 +2,13 @@ import base64
 import hashlib
 import hmac
 import logging
-from typing import Annotated, Dict
+from typing import Annotated, Any, Dict
 
 import boto3
 import jwt
 from src.config import settings
 
-from fastapi import HTTPException, Security, security, status
+from fastapi import Depends, HTTPException, Security, security, status
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,10 @@ def user_token(
             )
 
     return token
+
+
+def get_username(token: Annotated[Dict[Any, Any], Depends(user_token)]):
+    return token["username"]
 
 
 def _get_secret_hash(username: str, client_id: str, client_secret: str) -> str:

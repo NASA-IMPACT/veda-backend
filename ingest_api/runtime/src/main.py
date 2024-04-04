@@ -209,7 +209,7 @@ async def get_token(
 
 # @app.get("/auth/me", tags=["Auth"], response_model=schemas.WhoAmIResponse)
 @app.get("/auth/me", tags=["Auth"])
-def who_am_i(claims=Depends(auth.decode_token)):
+def who_am_i(claims=Depends(auth.user_token)):
     """
     Return claims for the provided JWT
     """
