@@ -2,72 +2,56 @@ import base64
 import hashlib
 import hmac
 import logging
-from typing import Dict
+from typing import Annotated, Dict
 
 import boto3
-import requests
-import src.config as config
-from authlib.jose import JsonWebKey, JsonWebToken, JWTClaims, KeySet, errors
-from cachetools import TTLCache, cached
+import jwt
+from src.config import settings
 
-from fastapi import Depends, HTTPException, security
+from fastapi import HTTPException, Security, security, status
 
 logger = logging.getLogger(__name__)
 
-token_scheme = security.OAuth2AuthorizationCodeBearer(
-    authorizationUrl="https://veda-auth-stack-test.auth.us-west-2.amazoncognito.com/oauth2/authorize",
-    tokenUrl=f"https://veda-auth-stack-test.auth.us-west-2.amazoncognito.com/oauth2/token",
-    refreshUrl=f"https://veda-auth-stack-test.auth.us-west-2.amazoncognito.com/oauth2/token",
+oauth2_scheme = security.OAuth2AuthorizationCodeBearer(
+    authorizationUrl=settings.authorization_url,
+    tokenUrl=settings.token_url,
+    refreshUrl=settings.refresh_url,
 )
 
-
-def get_settings() -> config.Settings:
-    import src.main as main
-
-    return main.settings
+jwks_client = jwt.PyJWKClient(settings.jwks_url)  # Caches JWKS
 
 
-def get_jwks_url(settings: config.Settings = Depends(get_settings)) -> str:
-    return settings.jwks_url
-
-
-@cached(TTLCache(maxsize=1, ttl=3600))
-def get_jwks(jwks_url: str = Depends(get_jwks_url)) -> KeySet:
-    with requests.get(jwks_url) as response:
-        response.raise_for_status()
-        return JsonWebKey.import_key_set(response.json())
-
-
-def decode_token(
-    token: str = Depends(token_scheme),
-    jwks: KeySet = Depends(get_jwks),
-) -> JWTClaims:
-    """
-    Validate & decode JWT
-    """
+def user_token(
+    token_str: Annotated[str, Security(oauth2_scheme)],
+    required_scopes: security.SecurityScopes,
+):
+    # Parse & validate token
     try:
-        claims = JsonWebToken(["RS256"]).decode(
-            s=token,
-            key=jwks,
-            claims_options={
-                # # Example of validating audience to match expected value
-                # "aud": {"essential": True, "values": [APP_CLIENT_ID]}
-            },
+        token = jwt.decode(
+            token_str,
+            jwks_client.get_signing_key_from_jwt(token_str).key,
+            algorithms=["RS256"],
+            audience=settings.permitted_jwt_audiences,
         )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from e
 
-        if "client_id" in claims:
-            # Insert Cognito's `client_id` into `aud` claim if `aud` claim is unset
-            claims.setdefault("aud", claims["client_id"])
+    # Validate scopes (if required)
+    for scope in required_scopes.scopes:
+        if scope not in token["scope"]:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not enough permissions",
+                headers={
+                    "WWW-Authenticate": f'Bearer scope="{required_scopes.scope_str}"'
+                },
+            )
 
-        claims.validate()
-        return claims
-    except errors.JoseError:  #
-        logger.exception("Unable to decode token")
-        raise HTTPException(status_code=403, detail="Bad auth token")
-
-
-def get_username(claims: security.HTTPBasicCredentials = Depends(decode_token)):
-    return claims["sub"]
+    return token
 
 
 def _get_secret_hash(username: str, client_id: str, client_secret: str) -> str:

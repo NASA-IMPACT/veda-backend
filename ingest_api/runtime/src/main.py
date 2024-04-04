@@ -1,9 +1,7 @@
-import os
-from getpass import getuser
 from typing import Dict
 
 import src.auth as auth
-import src.config as config
+from src.config import settings
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
@@ -14,16 +12,6 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
-
-settings = (
-    config.Settings()
-    if os.environ.get("NO_PYDANTIC_SSM_SETTINGS")
-    else config.Settings.from_ssm(
-        stack=os.environ.get(
-            "STACK", f"veda-stac-ingestion-system-{os.environ.get('STAGE', getuser())}"
-        ),
-    )
-)
 
 
 app = FastAPI(
@@ -71,7 +59,7 @@ async def list_ingestions(
 )
 async def enqueue_ingestion(
     item: schemas.AccessibleItem,
-    username: str = Depends(auth.get_username),
+    username: str = Depends(auth.user_token),
     db: services.Database = Depends(dependencies.get_db),
 ) -> schemas.Ingestion:
     """
@@ -142,7 +130,7 @@ def cancel_ingestion(
     "/collections",
     tags=["Collection"],
     status_code=201,
-    dependencies=[Depends(auth.get_username)],
+    dependencies=[Depends(auth.user_token)],
 )
 def publish_collection(collection: schemas.DashboardCollection):
     """
@@ -162,7 +150,7 @@ def publish_collection(collection: schemas.DashboardCollection):
 @app.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
-    dependencies=[Depends(auth.get_username)],
+    dependencies=[Depends(auth.user_token)],
 )
 def delete_collection(collection_id: str):
     """
@@ -180,7 +168,7 @@ def delete_collection(collection_id: str):
     "/items",
     tags=["Items"],
     status_code=201,
-    dependencies=[Depends(auth.get_username)],
+    dependencies=[Depends(auth.user_token)],
 )
 def publish_item(item: schemas.Item):
     """
