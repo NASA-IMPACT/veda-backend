@@ -31,7 +31,6 @@ def validated_token(
             token_str,
             jwks_client.get_signing_key_from_jwt(token_str).key,
             algorithms=["RS256"],
-            audience=settings.permitted_jwt_audiences,
         )
     except jwt.exceptions.InvalidTokenError as e:
         raise HTTPException(
