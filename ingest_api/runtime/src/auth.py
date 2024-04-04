@@ -21,7 +21,7 @@ oauth2_scheme = security.OAuth2AuthorizationCodeBearer(
 jwks_client = jwt.PyJWKClient(settings.jwks_url)  # Caches JWKS
 
 
-def user_token(
+def validated_token(
     token_str: Annotated[str, Security(oauth2_scheme)],
     required_scopes: security.SecurityScopes,
 ):
@@ -54,7 +54,7 @@ def user_token(
     return token
 
 
-def get_username(token: Annotated[Dict[Any, Any], Depends(user_token)]):
+def get_username(token: Annotated[Dict[Any, Any], Depends(validated_token)]):
     return token["username"]
 
 

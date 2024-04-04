@@ -59,7 +59,7 @@ async def list_ingestions(
 )
 async def enqueue_ingestion(
     item: schemas.AccessibleItem,
-    username: str = Depends(auth.user_token),
+    username: str = Depends(auth.validated_token),
     db: services.Database = Depends(dependencies.get_db),
 ) -> schemas.Ingestion:
     """
@@ -130,7 +130,7 @@ def cancel_ingestion(
     "/collections",
     tags=["Collection"],
     status_code=201,
-    dependencies=[Depends(auth.user_token)],
+    dependencies=[Depends(auth.validated_token)],
 )
 def publish_collection(collection: schemas.DashboardCollection):
     """
@@ -150,7 +150,7 @@ def publish_collection(collection: schemas.DashboardCollection):
 @app.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
-    dependencies=[Depends(auth.user_token)],
+    dependencies=[Depends(auth.validated_token)],
 )
 def delete_collection(collection_id: str):
     """
@@ -168,7 +168,7 @@ def delete_collection(collection_id: str):
     "/items",
     tags=["Items"],
     status_code=201,
-    dependencies=[Depends(auth.user_token)],
+    dependencies=[Depends(auth.validated_token)],
 )
 def publish_item(item: schemas.Item):
     """
@@ -209,7 +209,7 @@ async def get_token(
 
 # @app.get("/auth/me", tags=["Auth"], response_model=schemas.WhoAmIResponse)
 @app.get("/auth/me", tags=["Auth"])
-def who_am_i(claims=Depends(auth.user_token)):
+def who_am_i(claims=Depends(auth.validated_token)):
     """
     Return claims for the provided JWT
     """
