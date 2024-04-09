@@ -1,18 +1,17 @@
 from typing import Dict
 
 import src.auth as auth
-from src.config import settings
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
 from src.collection_publisher import CollectionPublisher, ItemPublisher
+from src.config import settings
 from src.doc import DESCRIPTION
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
-
 
 app = FastAPI(
     title="VEDA Ingestion API",

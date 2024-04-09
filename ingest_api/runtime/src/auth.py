@@ -13,9 +13,9 @@ from fastapi import Depends, HTTPException, Security, security, status
 logger = logging.getLogger(__name__)
 
 oauth2_scheme = security.OAuth2AuthorizationCodeBearer(
-    authorizationUrl=settings.authorization_url,
-    tokenUrl=settings.token_url,
-    refreshUrl=settings.refresh_url,
+    authorizationUrl=settings.cognito_authorization_url,
+    tokenUrl=settings.cognito_token_url,
+    refreshUrl=settings.cognito_token_url,
 )
 
 jwks_client = jwt.PyJWKClient(settings.jwks_url)  # Caches JWKS

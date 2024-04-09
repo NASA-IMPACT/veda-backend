@@ -62,6 +62,7 @@ class ApiConstruct(Construct):
             "RASTER_URL": config.raster_api_url,
             "ROOT_PATH": config.ingest_root_path,
             "STAGE": config.stage,
+            "COGNITO_DOMAIN": config.cognito_domain,
         }
 
         # create lambda
