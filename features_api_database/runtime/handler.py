@@ -143,7 +143,7 @@ def handler(event, context):
 
         print("Connecting to admin DB...")
         admin_db_conninfo = make_conninfo(
-            dbname=connection_params.get("dbname", "postgres"),
+            dbname=connection_params.get("dbname", "postgis-features"),
             user=connection_params["username"],
             password=connection_params["password"],
             host=connection_params["host"],

@@ -9,7 +9,7 @@ inst_reqs = [
     "boto3",
     "pydantic>=2.4,<3.0",
     "pydantic-settings~=2.0",
-    "tipg==0.6.2",
+    "tipg==0.6.3",
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
 ]

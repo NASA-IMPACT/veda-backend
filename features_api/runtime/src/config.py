@@ -39,7 +39,8 @@ class FeaturesAPISettings(pydantic_settings.BaseSettings):
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
-    root_path: Optional[str] = None
+    # TODO: .env os env vars should be setting this correctly but currently are not
+    root_path: Optional[str] = "/api/features"
     add_tiles_viewer: bool = True
 
     catalog_ttl: int = 300  # seconds

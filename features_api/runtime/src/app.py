@@ -2,6 +2,7 @@
 from contextlib import asynccontextmanager
 
 from src.config import FeaturesAPISettings as APISettings
+from src.monitoring import logger
 
 from tipg import __version__ as tipg_version
 from tipg.collections import register_collection_catalog
@@ -31,6 +32,7 @@ async def lifespan(app: FastAPI):
     await connect_to_db(
         app,
         settings=postgres_settings,
+        schemas=["public",]
     )
 
     # Register Collection Catalog
@@ -58,7 +60,8 @@ app = FastAPI(
     openapi_url="/api",
     docs_url="/api.html",
     lifespan=lifespan,
-    root_path=settings.root_path,
+    # TODO: this should be passing dynamically from `settings.root_path` but isn't working
+    root_path="/api/features",
 )
 
 ogc_api = Endpoints(
