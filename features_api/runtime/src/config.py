@@ -2,7 +2,7 @@
 
 from typing import Optional
 from functools import lru_cache
-import pydantic_settings
+import pydantic
 import boto3
 import json
 import base64
@@ -32,7 +32,7 @@ def get_secret_dict(secret_name: str):
         return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
-class FeaturesAPISettings(pydantic_settings.BaseSettings):
+class FeaturesAPISettings(pydantic.BaseSettings):
     """Application settings"""
 
     name: str = "veda-features-api"
@@ -40,7 +40,7 @@ class FeaturesAPISettings(pydantic_settings.BaseSettings):
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
     # TODO: .env os env vars should be setting this correctly but currently are not
-    root_path: Optional[str] = "/api/features"
+    root_path: Optional[str] = ""
     add_tiles_viewer: bool = True
 
     catalog_ttl: int = 300  # seconds
@@ -63,8 +63,7 @@ class FeaturesAPISettings(pydantic_settings.BaseSettings):
         else:
             return PostgresSettings()
 
-    model_config = {
-        "env_file": ".env",
-        "extra": "ignore",
-        "env_prefix": "VEDA_FEATURES_",
-    }
+    class Config:
+        """"model config"""
+        env_file = ".env"
+        env_prefix = "VEDA_FEATURES_"

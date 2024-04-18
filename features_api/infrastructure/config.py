@@ -26,11 +26,8 @@ class FeatureLambdaSettings(BaseSettings):
         description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
 
-    model_config = {
-        "env_file": ".env",
-        "extra": "ignore",
-        "env_prefix": "VEDA_",
-    }
-
+    class Config:
+        env_file = ".env"
+        env_prefix = "VEDA_"
 
 features_lambda_settings = FeatureLambdaSettings()
