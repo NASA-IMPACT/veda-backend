@@ -27,7 +27,10 @@ class FeatureLambdaSettings(BaseSettings):
     )
 
     class Config:
+        """model config"""
+
         env_file = ".env"
         env_prefix = "VEDA_"
+
 
 features_lambda_settings = FeatureLambdaSettings()

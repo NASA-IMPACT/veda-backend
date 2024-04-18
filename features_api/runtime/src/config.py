@@ -1,11 +1,12 @@
 """Stack Configs."""
 
-from typing import Optional
-from functools import lru_cache
-import pydantic
-import boto3
-import json
 import base64
+import json
+from functools import lru_cache
+from typing import Optional
+
+import boto3
+import pydantic
 
 
 @lru_cache()
@@ -64,6 +65,7 @@ class FeaturesAPISettings(pydantic.BaseSettings):
             return PostgresSettings()
 
     class Config:
-        """"model config"""
+        """model config"""
+
         env_file = ".env"
         env_prefix = "VEDA_FEATURES_"
