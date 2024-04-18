@@ -9,14 +9,14 @@ from constructs import Construct
 from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
 from domain.infrastructure.construct import DomainConstruct
+from features_api.infrastructure.construct import FeaturesAPILambdaConstruct
+from features_api_database.infrastructure.construct import FeaturesRdsConstruct
 from ingest_api.infrastructure.config import IngestorConfig as ingest_config
 from ingest_api.infrastructure.construct import ApiConstruct as ingest_api_construct
 from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_construct
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
-from features_api.infrastructure.construct import FeaturesAPILambdaConstruct
-from features_api_database.infrastructure.construct import FeaturesRdsConstruct
 from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from s3_website.infrastructure.construct import VedaWebsite
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
