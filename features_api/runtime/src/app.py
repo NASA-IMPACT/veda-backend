@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from src.config import FeaturesAPISettings as APISettings
 from src.monitoring import logger
 
+import logging
+
 from tipg import __version__ as tipg_version
 from tipg.collections import register_collection_catalog
 from tipg.database import close_db_connection, connect_to_db
@@ -61,7 +63,7 @@ app = FastAPI(
     docs_url="/api.html",
     lifespan=lifespan,
     # TODO: this should be passing dynamically from `settings.root_path` but isn't working
-    root_path="/api/features",
+    root_path=settings.root_path,
 )
 
 ogc_api = Endpoints(
