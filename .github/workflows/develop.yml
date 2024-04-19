@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - develop
+    - feature/ingest_api/docs-auth-flow
 
 jobs:
   lint-dev:

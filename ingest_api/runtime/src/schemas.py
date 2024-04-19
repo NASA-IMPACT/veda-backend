@@ -87,6 +87,7 @@ class AuthResponse(BaseModel):
         ..., description="Token containing information about the authenticated user."
     )
 
+
 class Ingestion(BaseModel):
     id: str = Field(..., description="ID of the STAC item")
     status: Status = Field(..., description="Status of the ingestion")
