@@ -1,7 +1,7 @@
 # Waiting for https://github.com/stac-utils/stac-pydantic/pull/116 and 117
 cryptography>=42.0.5
 ddbcereal==2.1.1
-fastapi==0.109.1
+fastapi<=0.108.0
 fsspec==2023.3.0
 mangum>=0.15.0
 orjson>=3.6.8
