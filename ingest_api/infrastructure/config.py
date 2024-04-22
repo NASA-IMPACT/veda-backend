@@ -34,7 +34,7 @@ class IngestorConfig(BaseSettings):
     client_secret: Optional[str] = Field(
         "", description="The Cognito APP client secret"
     )
-    cognito_domain: AnyHttpUrl = Field(
+    userpool_domain_base_url: AnyHttpUrl = Field(
         description="The base url of the Cognito domain for authorization and token urls"
     )
     stac_db_security_group_id: str = Field(
