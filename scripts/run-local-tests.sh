@@ -30,3 +30,6 @@ docker exec veda.db /tmp/scripts/bin/load-data.sh
 
 # Run tests
 python -m pytest .github/workflows/tests/ -vv -s
+
+# Run ingest unit tests
+NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
