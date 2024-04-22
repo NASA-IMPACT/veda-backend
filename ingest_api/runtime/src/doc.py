@@ -11,9 +11,10 @@ It performs validation on the records, called STAC items, to ensure that they me
 ## Auth
 The auth API allows users to retrieve an access token and get information about the
  current user.
-To get an access token, the user must provide their username and password in the
- request body to the POST `/token` API.
+To get an access token, the user must provide their username and password via the Cognito UI (click the 'Authorize' button for a temporary login redirect).
 The current user's information can be retrieved using the GET `/auth/me` API.
+
+For programmatic access, post username and password in the request body to the POST `/token` API.
 
 Before using the API, user must ask a VEDA team member to create credentials (username
  and password) for VEDA auth.
