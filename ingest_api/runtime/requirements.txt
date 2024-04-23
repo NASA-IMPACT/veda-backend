@@ -18,3 +18,5 @@ xarray==2023.1.0
 xstac==1.1.0
 zarr==2.13.6
 boto3==1.24.59
+aws_xray_sdk>=2.6.0,<3
+aws-lambda-powertools>=1.18.0
