@@ -24,7 +24,7 @@ jwks_client = jwt.PyJWKClient(settings.jwks_url)  # Caches JWKS
 def validated_token(
     token_str: Annotated[str, Security(oauth2_scheme)],
     required_scopes: security.SecurityScopes,
-):
+)-> Dict:
     # Parse & validate token
     try:
         token = jwt.decode(
