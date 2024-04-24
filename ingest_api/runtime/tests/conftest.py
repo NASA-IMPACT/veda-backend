@@ -28,6 +28,7 @@ def test_environ():
     os.environ["USERPOOL_ID"] = "fake_id"
     os.environ["STAGE"] = "testing"
     os.environ["ROOT_PATH"] = "/"
+    os.environ["USERPOOL_DOMAIN_BASE_URL"] = "https://test-cognito.url"
 
 
 @pytest.fixture

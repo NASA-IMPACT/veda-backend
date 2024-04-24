@@ -1,3 +1,5 @@
+import os
+from getpass import getuser
 from typing import Optional
 
 from pydantic import AnyHttpUrl, BaseSettings, Field, constr
@@ -21,10 +23,23 @@ class Settings(BaseSettings):
 
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
 
+    userpool_domain_base_url: AnyHttpUrl = Field(
+        description="The base url of the Cognito domain for authorization and token urls"
+    )
     client_id: str = Field(description="The Cognito APP client ID")
     client_secret: str = Field("", description="The Cognito APP client secret")
     root_path: Optional[str] = Field(description="Root path of API")
     stage: Optional[str] = Field(description="API stage")
+
+    @property
+    def cognito_authorization_url(self) -> AnyHttpUrl:
+        """Cognito user pool authorization url"""
+        return f"{self.userpool_domain_base_url}/oauth2/authorize"
+
+    @property
+    def cognito_token_url(self) -> AnyHttpUrl:
+        """Cognito user pool token and refresh url"""
+        return f"{self.userpool_domain_base_url}/oauth2/token"
 
     class Config(AwsSsmSourceConfig):
         env_file = ".env"
@@ -32,3 +47,14 @@ class Settings(BaseSettings):
     @classmethod
     def from_ssm(cls, stack: str):
         return cls(_secrets_dir=f"/{stack}")
+
+
+settings = (
+    Settings()
+    if os.environ.get("NO_PYDANTIC_SSM_SETTINGS")
+    else Settings.from_ssm(
+        stack=os.environ.get(
+            "STACK", f"veda-stac-ingestion-system-{os.environ.get('STAGE', getuser())}"
+        ),
+    )
+)

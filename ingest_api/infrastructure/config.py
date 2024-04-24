@@ -2,7 +2,7 @@ from getpass import getuser
 from typing import Optional
 
 import aws_cdk
-from pydantic import BaseSettings, Field, constr
+from pydantic import AnyHttpUrl, BaseSettings, Field, constr
 
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
 
@@ -33,6 +33,9 @@ class IngestorConfig(BaseSettings):
     client_id: str = Field(description="The Cognito APP client ID")
     client_secret: Optional[str] = Field(
         "", description="The Cognito APP client secret"
+    )
+    userpool_domain_base_url: AnyHttpUrl = Field(
+        description="The base url of the Cognito domain for authorization and token urls"
     )
     stac_db_security_group_id: str = Field(
         description="ID of Security Group used by pgSTAC DB"

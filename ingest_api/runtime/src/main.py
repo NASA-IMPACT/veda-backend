@@ -1,14 +1,12 @@
-import os
-from getpass import getuser
 from typing import Dict
 
 import src.auth as auth
-import src.config as config
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
 from aws_lambda_powertools.metrics import MetricUnit
 from src.collection_publisher import CollectionPublisher, ItemPublisher
+from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 
@@ -17,17 +15,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
-
-settings = (
-    config.Settings()
-    if os.environ.get("NO_PYDANTIC_SSM_SETTINGS")
-    else config.Settings.from_ssm(
-        stack=os.environ.get(
-            "STACK", f"veda-stac-ingestion-system-{os.environ.get('STAGE', getuser())}"
-        ),
-    )
-)
-
 
 app = FastAPI(
     title="VEDA Ingestion API",
@@ -40,6 +27,11 @@ app = FastAPI(
     root_path=settings.root_path,
     openapi_url="/openapi.json",
     docs_url="/docs",
+    swagger_ui_init_oauth={
+        "appName": "Cognito",
+        "clientId": settings.client_id,
+        "usePkceWithAuthorizationCodeGrant": True,
+    },
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 
@@ -71,7 +63,7 @@ async def list_ingestions(
 )
 async def enqueue_ingestion(
     item: schemas.AccessibleItem,
-    username: str = Depends(auth.get_username),
+    username: str = Depends(auth.validated_token),
     db: services.Database = Depends(dependencies.get_db),
 ) -> schemas.Ingestion:
     """
@@ -142,7 +134,7 @@ def cancel_ingestion(
     "/collections",
     tags=["Collection"],
     status_code=201,
-    dependencies=[Depends(auth.get_username)],
+    dependencies=[Depends(auth.validated_token)],
 )
 def publish_collection(collection: schemas.DashboardCollection):
     """
@@ -162,7 +154,7 @@ def publish_collection(collection: schemas.DashboardCollection):
 @app.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
-    dependencies=[Depends(auth.get_username)],
+    dependencies=[Depends(auth.validated_token)],
 )
 def delete_collection(collection_id: str):
     """
@@ -180,7 +172,7 @@ def delete_collection(collection_id: str):
     "/items",
     tags=["Items"],
     status_code=201,
-    dependencies=[Depends(auth.get_username)],
+    dependencies=[Depends(auth.validated_token)],
 )
 def publish_item(item: schemas.Item):
     """
@@ -219,8 +211,8 @@ async def get_token(
         )
 
 
-@app.get("/auth/me", tags=["Auth"], response_model=schemas.WhoAmIResponse)
-def who_am_i(claims=Depends(auth.decode_token)):
+@app.get("/auth/me", tags=["Auth"])
+def who_am_i(claims=Depends(auth.validated_token)):
     """
     Return claims for the provided JWT
     """
