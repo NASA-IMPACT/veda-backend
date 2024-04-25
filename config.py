@@ -131,7 +131,7 @@ class vedaAppSettings(BaseSettings):
     def get_stac_catalog_url(self) -> Optional[str]:
         """Infer stac catalog url based on whether the app is configured to deploy the catalog to a custom subdomain or to a cloudfront route"""
         if self.veda_custom_host and self.veda_stac_root_path:
-            return f"https://{veda_app_settings.veda_custom_host}{veda_app_settings.veda_stac_root_path}/"
+            return f"https://{veda_app_settings.veda_custom_host}{veda_app_settings.veda_stac_root_path}"
         if (
             self.veda_domain_create_custom_subdomains
             and self.veda_domain_hosted_zone_name
