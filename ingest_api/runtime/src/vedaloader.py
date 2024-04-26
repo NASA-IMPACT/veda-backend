@@ -20,7 +20,6 @@ class VEDALoader(Loader):
         STAC-conformant bbox and temporal extent."""
         with self.conn.cursor() as cur:
             with self.conn.transaction():
-
                 # First update the spatial and temporal extents for all item records for the collection
                 logger.info(f"Updating extents for collection: {collection_id}.")
                 cur.execute(

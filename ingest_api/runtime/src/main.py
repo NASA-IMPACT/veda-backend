@@ -63,7 +63,7 @@ async def list_ingestions(
 )
 async def enqueue_ingestion(
     item: schemas.AccessibleItem,
-    username: str = Depends(auth.validated_token),
+    username: str = Depends(auth.get_username),
     db: services.Database = Depends(dependencies.get_db),
 ) -> schemas.Ingestion:
     """
