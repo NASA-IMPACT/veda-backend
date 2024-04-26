@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
 
-    userpool_domain_base_url: AnyHttpUrl = Field(
+    cognito_domain: AnyHttpUrl = Field(
         description="The base url of the Cognito domain for authorization and token urls"
     )
     client_id: str = Field(description="The Cognito APP client ID")
@@ -34,12 +34,12 @@ class Settings(BaseSettings):
     @property
     def cognito_authorization_url(self) -> AnyHttpUrl:
         """Cognito user pool authorization url"""
-        return f"{self.userpool_domain_base_url}/oauth2/authorize"
+        return f"{self.cognito_domain}/oauth2/authorize"
 
     @property
     def cognito_token_url(self) -> AnyHttpUrl:
         """Cognito user pool token and refresh url"""
-        return f"{self.userpool_domain_base_url}/oauth2/token"
+        return f"{self.cognito_domain}/oauth2/token"
 
     class Config(AwsSsmSourceConfig):
         env_file = ".env"
