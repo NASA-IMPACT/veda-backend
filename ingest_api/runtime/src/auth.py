@@ -58,6 +58,8 @@ def validated_token(
 def get_username(token: Annotated[Dict[Any, Any], Depends(validated_token)]) -> str:
     logger.info(f"\nToken {token}")
     result = token["username"] if "username" in token else token.get("sub", None)
+    if result is None:
+        raise KeyError(f"Neither 'username' nor 'sub' found in the token: {token}.")
     return result
 
 
