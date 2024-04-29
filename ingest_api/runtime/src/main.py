@@ -69,6 +69,8 @@ async def enqueue_ingestion(
     """
     Queues a STAC item for ingestion.
     """
+
+    logger.info(f"\nUsername {username}")
     return schemas.Ingestion(
         id=item.id,
         created_by=username,
