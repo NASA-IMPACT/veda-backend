@@ -26,12 +26,14 @@ def validated_token(
     required_scopes: security.SecurityScopes,
 ) -> Dict:
     # Parse & validate token
+    logger.info(f"\nToken String {token_str}")
     try:
         token = jwt.decode(
             token_str,
             jwks_client.get_signing_key_from_jwt(token_str).key,
             algorithms=["RS256"],
         )
+        logger.info(f"\nDecoded token {token}")
     except jwt.exceptions.InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -53,8 +55,10 @@ def validated_token(
     return token
 
 
-def get_username(token: Annotated[Dict[Any, Any], Depends(validated_token)]):
-    return token["username"]
+def get_username(token: Annotated[Dict[Any, Any], Depends(validated_token)]) -> str:
+    logger.info(f"\nToken {token}")
+    result = token["username"] if "username" in token else token.get("sub", None)
+    return result
 
 
 def _get_secret_hash(username: str, client_id: str, client_secret: str) -> str:
