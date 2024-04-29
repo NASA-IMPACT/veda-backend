@@ -33,7 +33,7 @@ def validated_token(
             jwks_client.get_signing_key_from_jwt(token_str).key,
             algorithms=["RS256"],
         )
-        logger.info(f"\Decoded token {token}")
+        logger.info(f"\nDecoded token {token}")
     except jwt.exceptions.InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
