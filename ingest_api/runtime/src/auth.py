@@ -55,7 +55,6 @@ def validated_token(
 
 
 def get_username(token: Annotated[Dict[Any, Any], Depends(validated_token)]) -> str:
-    logger.info(f"\nToken {token}")
     result = token["username"] if "username" in token else str(token.get("sub"))
     return result
 
