@@ -33,7 +33,6 @@ def validated_token(
             jwks_client.get_signing_key_from_jwt(token_str).key,
             algorithms=["RS256"],
         )
-        logger.info(f"\nDecoded token {token}")
     except jwt.exceptions.InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -57,7 +56,7 @@ def validated_token(
 
 def get_username(token: Annotated[Dict[Any, Any], Depends(validated_token)]) -> str:
     logger.info(f"\nToken {token}")
-    result = token["username"] if "username" in token else token.get("sub", None)
+    result = token["username"] if "username" in token else str(token.get("sub", None))
     return result
 
 
