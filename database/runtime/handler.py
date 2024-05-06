@@ -250,6 +250,51 @@ def create_collection_search_functions(cursor) -> None:
     cursor.execute(sql.SQL(search_collection_ids_sql))
 
 
+def create_collection_extents_functions(cursor) -> None:
+    """
+    Functions to update spatial and temporal extents off all items in a collection
+    This is slightly different from the inbuilt pgstac.update_collection_extents function which describes the range of nominal datetimes,
+    here we capture the maximum range which must include max end datetime.
+    """
+
+    collection_temporal_extent_max_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.collection_temporal_extent_max(id text) RETURNS jsonb
+    LANGUAGE sql
+    IMMUTABLE PARALLEL SAFE
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+        SELECT to_jsonb(array[array[min(datetime)::text, max(end_datetime)::text]])
+        FROM items WHERE collection=$1;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(collection_temporal_extent_max_sql))
+
+    update_collection_extents_max_sql = """
+    CREATE OR REPLACE FUNCTION dashboard.update_collection_extents_max(id text)
+    RETURNS void
+    LANGUAGE sql
+    SET search_path TO 'pgstac', 'public'
+    AS $function$
+        UPDATE collections SET
+            content = content ||
+            jsonb_build_object(
+                'extent', jsonb_build_object(
+                    'spatial', jsonb_build_object(
+                        'bbox', collection_bbox(collections.id)
+                    ),
+                    'temporal', jsonb_build_object(
+                        'interval', dashboard.collection_temporal_extent_max(collections.id)
+                    )
+                )
+            )
+        WHERE collections.id=$1;
+    $function$
+    ;
+    """
+    cursor.execute(sql.SQL(update_collection_extents_max_sql))
+
+
 def create_collection_summaries_functions(cursor) -> None:
     """
     Functions to summarize datetimes and raster statistics for 'default' collections of items
@@ -441,10 +486,13 @@ def handler(event, context):
                 print("Creating dashboard schema...")
                 create_dashboard_schema(cursor=cur, username=user_params["username"])
 
-                print(
-                    "Creating functions for summarizing default collection datetimes and cog_default statistics..."
-                )
+                print("Creating functions for summarizing collection datetimes...")
                 create_collection_summaries_functions(cursor=cur)
+
+                print(
+                    "Creating functions for setting the maximum end_datetime temporal extent of a collection..."
+                )
+                create_collection_extents_functions(cursor=cur)
 
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")

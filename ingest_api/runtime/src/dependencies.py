@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 token_scheme = security.HTTPBearer()
 
 
-def get_table(settings: config.Settings = Depends(auth.get_settings)):
+def get_table():
     client = boto3.resource("dynamodb")
-    return client.Table(settings.dynamodb_table)
+    return client.Table(config.settings.dynamodb_table)
 
 
 def get_db(table=Depends(get_table)) -> services.Database:

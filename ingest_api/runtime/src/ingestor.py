@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Iterator, List, Optional, Sequence
 
 from boto3.dynamodb.types import TypeDeserializer
 from pypgstac.db import PgstacDB
-from src.auth import get_settings
 from src.dependencies import get_table
 from src.schemas import Ingestion, Status
 from src.utils import IngestionType, get_db_credentials, load_into_pgstac
@@ -41,7 +40,7 @@ def update_dynamodb(
     """
     # Update records in DynamoDB
     print(f"Updating ingested items status in DynamoDB, marking as {status}...")
-    table = get_table(get_settings())
+    table = get_table()
     with table.batch_writer(overwrite_by_pkeys=["created_by", "id"]) as batch:
         for ingestion in ingestions:
             batch.put_item(

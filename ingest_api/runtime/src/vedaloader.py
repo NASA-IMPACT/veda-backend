@@ -20,30 +20,19 @@ class VEDALoader(Loader):
         STAC-conformant bbox and temporal extent."""
         with self.conn.cursor() as cur:
             with self.conn.transaction():
+                # First update the spatial and temporal extents for all item records for the collection
+                logger.info(f"Updating extents for collection: {collection_id}.")
+                cur.execute(
+                    "SELECT dashboard.update_collection_extents_max(%s)",
+                    (collection_id,),
+                )
+
+                # Next update default summaries which use the collection temporal extent for summaries of periodic items
                 logger.info(
                     f"Updating dashboard summaries for collection: {collection_id}."
                 )
                 cur.execute(
                     "SELECT dashboard.update_collection_default_summaries(%s)",
-                    (collection_id,),
-                )
-                logger.info(f"Updating extents for collection: {collection_id}.")
-                cur.execute(
-                    """
-                    UPDATE collections SET
-                    content = content ||
-                    jsonb_build_object(
-                        'extent', jsonb_build_object(
-                            'spatial', jsonb_build_object(
-                                'bbox', collection_bbox(collections.id)
-                            ),
-                            'temporal', jsonb_build_object(
-                                'interval', collection_temporal_extent(collections.id)
-                            )
-                        )
-                    )
-                    WHERE collections.id=%s;
-                    """,
                     (collection_id,),
                 )
 

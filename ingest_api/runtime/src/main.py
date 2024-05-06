@@ -1,30 +1,20 @@
-import os
-from getpass import getuser
 from typing import Dict
 
 import src.auth as auth
-import src.config as config
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
+from aws_lambda_powertools.metrics import MetricUnit
 from src.collection_publisher import CollectionPublisher, ItemPublisher
+from src.config import settings
 from src.doc import DESCRIPTION
+from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import APIRouter, Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
-
-settings = (
-    config.Settings()
-    if os.environ.get("NO_PYDANTIC_SSM_SETTINGS")
-    else config.Settings.from_ssm(
-        stack=os.environ.get(
-            "STACK", f"veda-stac-ingestion-system-{os.environ.get('STAGE', getuser())}"
-        ),
-    )
-)
-
+from starlette.requests import Request
 
 app = FastAPI(
     title="VEDA Ingestion API",
@@ -37,7 +27,14 @@ app = FastAPI(
     root_path=settings.root_path,
     openapi_url="/openapi.json",
     docs_url="/docs",
+    swagger_ui_init_oauth={
+        "appName": "Cognito",
+        "clientId": settings.client_id,
+        "usePkceWithAuthorizationCodeGrant": True,
+    },
+    router=APIRouter(route_class=LoggerRouteHandler),
 )
+
 
 collection_publisher = CollectionPublisher()
 item_publisher = ItemPublisher()
@@ -72,6 +69,8 @@ async def enqueue_ingestion(
     """
     Queues a STAC item for ingestion.
     """
+
+    logger.info(f"\nUsername {username}")
     return schemas.Ingestion(
         id=item.id,
         created_by=username,
@@ -137,7 +136,7 @@ def cancel_ingestion(
     "/collections",
     tags=["Collection"],
     status_code=201,
-    dependencies=[Depends(auth.get_username)],
+    dependencies=[Depends(auth.validated_token)],
 )
 def publish_collection(collection: schemas.DashboardCollection):
     """
@@ -157,7 +156,7 @@ def publish_collection(collection: schemas.DashboardCollection):
 @app.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
-    dependencies=[Depends(auth.get_username)],
+    dependencies=[Depends(auth.validated_token)],
 )
 def delete_collection(collection_id: str):
     """
@@ -175,7 +174,7 @@ def delete_collection(collection_id: str):
     "/items",
     tags=["Items"],
     status_code=201,
-    dependencies=[Depends(auth.get_username)],
+    dependencies=[Depends(auth.validated_token)],
 )
 def publish_item(item: schemas.Item):
     """
@@ -214,15 +213,50 @@ async def get_token(
         )
 
 
-@app.get("/auth/me", tags=["Auth"], response_model=schemas.WhoAmIResponse)
-def who_am_i(claims=Depends(auth.decode_token)):
+@app.get("/auth/me", tags=["Auth"])
+def who_am_i(claims=Depends(auth.validated_token)):
     """
     Return claims for the provided JWT
     """
     return claims
 
 
+# If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
+@app.middleware("http")
+async def add_correlation_id(request: Request, call_next):
+    """Add correlation ids to all requests and subsequent logs/traces"""
+    # Get correlation id from X-Correlation-Id header if provided
+    corr_id = request.headers.get("x-correlation-id")
+    if not corr_id:
+        try:
+            # If empty, use request id from aws context
+            corr_id = request.scope["aws.context"].aws_request_id
+        except KeyError:
+            # If empty, use uuid
+            corr_id = "local"
+
+    # Add correlation id to logs
+    logger.set_correlation_id(corr_id)
+
+    # Add correlation id to traces
+    tracer.put_annotation(key="correlation_id", value=corr_id)
+
+    response = await tracer.capture_method(call_next)(request)
+    # Return correlation header in response
+    response.headers["X-Correlation-Id"] = corr_id
+    logger.info("Request completed")
+    return response
+
+
 # exception handling
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
     return JSONResponse(str(exc), status_code=422)
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request, err):
+    """Handle exceptions that aren't caught elsewhere"""
+    metrics.add_metric(name="UnhandledExceptions", unit=MetricUnit.Count, value=1)
+    logger.exception("Unhandled exception")
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
