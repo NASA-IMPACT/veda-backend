@@ -3,11 +3,10 @@ from typing import Callable
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricUnit  # noqa: F401
+from src.config import ApiSettings
 
 from fastapi import Request, Response
 from fastapi.routing import APIRoute
-
-from src.config import ApiSettings
 
 settings = ApiSettings()
 
