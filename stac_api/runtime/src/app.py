@@ -49,7 +49,7 @@ api = VedaStacApi(
     search_post_request_model=POSTModel,
     response_class=ORJSONResponse,
     middlewares=[CompressionMiddleware],
-    router=APIRouter(route_class=LoggerRouteHandler)
+    router=APIRouter(route_class=LoggerRouteHandler),
 )
 app = api.app
 

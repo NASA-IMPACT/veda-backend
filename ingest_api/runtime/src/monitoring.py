@@ -9,8 +9,12 @@ from fastapi.routing import APIRoute
 
 from src.config import settings
 
-logger: Logger = Logger(service="ingest-api", namespace=f"veda-backend-{settings.stage}")
-metrics: Metrics = Metrics(service="ingest-api", namespace=f"veda-backend-{settings.stage}")
+logger: Logger = Logger(
+    service="ingest-api", namespace=f"veda-backend-{settings.stage}"
+)
+metrics: Metrics = Metrics(
+    service="ingest-api", namespace=f"veda-backend-{settings.stage}"
+)
 tracer: Tracer = Tracer()
 
 

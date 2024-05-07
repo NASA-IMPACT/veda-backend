@@ -84,9 +84,7 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_ROOT_PATH", veda_stac_settings.stac_root_path
         )
 
-        lambda_function.add_environment(
-            "VEDA_STAC_STAGE", stage
-        )
+        lambda_function.add_environment("VEDA_STAC_STAGE", stage)
 
         integration_kwargs = dict(handler=lambda_function)
         if veda_stac_settings.custom_host:

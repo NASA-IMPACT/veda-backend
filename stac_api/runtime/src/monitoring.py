@@ -12,12 +12,14 @@ from src.config import ApiSettings
 settings = ApiSettings()
 
 logger: Logger = Logger(service="stac-api", namespace=f"veda-backend-{settings.stage}")
-metrics: Metrics = Metrics(service="stac-api", namespace=f"veda-backend-{settings.stage}")
+metrics: Metrics = Metrics(
+    service="stac-api", namespace=f"veda-backend-{settings.stage}"
+)
 tracer: Tracer = Tracer()
 
 
 class LoggerRouteHandler(APIRoute):
-    """Extension of base APIRoute to add context to log statements, as well as record usage metricss"""
+    """Extension of base APIRoute to add context to log statements, as well as record usage metrics"""
 
     def get_route_handler(self) -> Callable:
         """Overide route handler method to add logs, metrics, tracing"""
@@ -27,7 +29,7 @@ class LoggerRouteHandler(APIRoute):
             # Add fastapi context to logs
             ctx = {
                 "path": request.url.path,
-                "path_params":request.path_params,
+                "path_params": request.path_params,
                 "route": self.path,
                 "method": request.method,
             }
