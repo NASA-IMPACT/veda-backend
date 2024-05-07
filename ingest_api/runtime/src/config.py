@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     )
     client_id: str = Field(description="The Cognito APP client ID")
     client_secret: str = Field("", description="The Cognito APP client secret")
-    root_path: Optional[str] = Field(description="Root path of API")
+    root_path: Optional[str] = None
     stage: Optional[str] = Field(description="API stage")
 
     @property
