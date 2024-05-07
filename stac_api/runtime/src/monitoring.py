@@ -7,8 +7,12 @@ from aws_lambda_powertools.metrics import MetricUnit  # noqa: F401
 from fastapi import Request, Response
 from fastapi.routing import APIRoute
 
-logger: Logger = Logger(service="stac-api", namespace="veda-backend")
-metrics: Metrics = Metrics(service="stac-api", namespace="veda-backend")
+from src.config import ApiSettings
+
+settings = ApiSettings()
+
+logger: Logger = Logger(service="stac-api", namespace=f"veda-backend-{settings.stage}")
+metrics: Metrics = Metrics(service="stac-api", namespace=f"veda-backend-{settings.stage}")
 tracer: Tracer = Tracer()
 
 
@@ -23,15 +27,14 @@ class LoggerRouteHandler(APIRoute):
             # Add fastapi context to logs
             ctx = {
                 "path": request.url.path,
+                "path_params":request.path_params,
                 "route": self.path,
                 "method": request.method,
             }
             logger.append_keys(fastapi=ctx)
             logger.info("Received request")
             metrics.add_metric(
-                name="/".join(
-                    str(request.url).split("/")[:2]
-                ),  # enough detail to capture search IDs, but not individual tile coords
+                name=self.path,
                 unit=MetricUnit.Count,
                 value=1,
             )

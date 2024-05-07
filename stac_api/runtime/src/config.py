@@ -56,6 +56,7 @@ class _ApiSettings(pydantic.BaseSettings):
     debug: bool = False
     root_path: Optional[str] = None
     pgstac_secret_arn: Optional[str]
+    stage: Optional[str] = None
 
     @pydantic.validator("cors_origins")
     def parse_cors_origin(cls, v):
