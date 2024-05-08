@@ -1,6 +1,6 @@
 """Observability utils"""
-from typing import Callable
 import json
+from typing import Callable
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricUnit  # noqa: F401
