@@ -12,9 +12,7 @@ from fastapi.routing import APIRoute
 settings = ApiSettings()
 
 logger: Logger = Logger(service="stac-api", namespace="veda-backend")
-metrics: Metrics = Metrics(
-    service="stac-api", namespace="veda-backend"
-)
+metrics: Metrics = Metrics(service="stac-api", namespace="veda-backend")
 metrics.set_default_dimensions(environment=settings.stage)
 tracer: Tracer = Tracer()
 
@@ -25,7 +23,7 @@ class LoggerRouteHandler(APIRoute):
     def get_route_handler(self) -> Callable:
         """Overide route handler method to add logs, metrics, tracing"""
         original_route_handler = super().get_route_handler()
-        
+
         async def route_handler(request: Request) -> Response:
             # Add fastapi context to logs
             body = await request.body()

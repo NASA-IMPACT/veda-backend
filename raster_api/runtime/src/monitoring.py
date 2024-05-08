@@ -11,12 +11,8 @@ from fastapi.routing import APIRoute
 
 settings = ApiSettings()
 
-logger: Logger = Logger(
-    service="raster-api", namespace="veda-backend"
-)
-metrics: Metrics = Metrics(
-    service="raster-api", namespace="veda-backend"
-)
+logger: Logger = Logger(service="raster-api", namespace="veda-backend")
+metrics: Metrics = Metrics(service="raster-api", namespace="veda-backend")
 metrics.set_default_dimensions(environment=settings.stage)
 tracer: Tracer = Tracer()
 
@@ -47,7 +43,7 @@ class LoggerRouteHandler(APIRoute):
             logger.info("Received request")
 
             metrics.add_metric(
-                name=self.path, 
+                name=self.path,
                 unit=MetricUnit.Count,
                 value=1,
             )

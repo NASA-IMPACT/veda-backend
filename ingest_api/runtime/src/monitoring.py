@@ -9,12 +9,8 @@ from src.config import settings
 from fastapi import Request, Response
 from fastapi.routing import APIRoute
 
-logger: Logger = Logger(
-    service="ingest-api", namespace="veda-backend"
-)
-metrics: Metrics = Metrics(
-    service="ingest-api", namespace="veda-backend"
-)
+logger: Logger = Logger(service="ingest-api", namespace="veda-backend")
+metrics: Metrics = Metrics(service="ingest-api", namespace="veda-backend")
 metrics.set_default_dimensions(environment=settings.stage)
 tracer: Tracer = Tracer()
 
@@ -43,9 +39,7 @@ class LoggerRouteHandler(APIRoute):
             logger.append_keys(fastapi=ctx)
             logger.info("Received request")
             metrics.add_metric(
-                name="/".join(
-                    str(request.url.path).split("/")[:2]
-                ),  # enough detail to capture search IDs, but not individual tile coords
+                name=self.path,
                 unit=MetricUnit.Count,
                 value=1,
             )
