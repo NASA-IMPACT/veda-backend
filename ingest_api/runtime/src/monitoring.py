@@ -1,5 +1,6 @@
 """Observability utils"""
 from typing import Callable
+import json
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricUnit  # noqa: F401
@@ -9,11 +10,12 @@ from fastapi import Request, Response
 from fastapi.routing import APIRoute
 
 logger: Logger = Logger(
-    service="ingest-api", namespace=f"veda-backend-{settings.stage}"
+    service="ingest-api", namespace="veda-backend"
 )
 metrics: Metrics = Metrics(
-    service="ingest-api", namespace=f"veda-backend-{settings.stage}"
+    service="ingest-api", namespace="veda-backend"
 )
+metrics.set_default_dimensions(environment=settings.stage)
 tracer: Tracer = Tracer()
 
 
@@ -26,8 +28,15 @@ class LoggerRouteHandler(APIRoute):
 
         async def route_handler(request: Request) -> Response:
             # Add fastapi context to logs
+            body = await request.body()
+            try:
+                body_json = json.loads(body)
+            except json.decoder.JSONDecodeError:
+                body_json = None
             ctx = {
                 "path": request.url.path,
+                "path_params": request.path_params,
+                "body": body_json,
                 "route": self.path,
                 "method": request.method,
             }

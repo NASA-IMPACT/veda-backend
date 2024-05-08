@@ -1,5 +1,6 @@
 """Observability utils"""
 from typing import Callable
+import json
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricUnit  # noqa: F401
@@ -11,11 +12,12 @@ from fastapi.routing import APIRoute
 settings = ApiSettings()
 
 logger: Logger = Logger(
-    service="raster-api", namespace=f"veda-backend-{settings.stage}"
+    service="raster-api", namespace="veda-backend"
 )
 metrics: Metrics = Metrics(
-    service="raster-api", namespace=f"veda-backend-{settings.stage}"
+    service="raster-api", namespace="veda-backend"
 )
+metrics.set_default_dimensions(environment=settings.stage)
 tracer: Tracer = Tracer()
 
 
@@ -28,21 +30,31 @@ class LoggerRouteHandler(APIRoute):
 
         async def route_handler(request: Request) -> Response:
             # Add fastapi context to logs
+            body = await request.body()
+            try:
+                body_json = json.loads(body)
+            except json.decoder.JSONDecodeError:
+                body_json = None
+
             ctx = {
                 "path": request.url.path,
                 "path_params": request.path_params,
+                "body": body_json,
                 "route": self.path,
                 "method": request.method,
             }
             logger.append_keys(fastapi=ctx)
             logger.info("Received request")
+
             metrics.add_metric(
-                name=self.path,  # enough detail to capture search IDs, but not individual tile coords
+                name=self.path, 
                 unit=MetricUnit.Count,
                 value=1,
             )
+
             tracer.put_annotation(key="path", value=request.url.path)
             tracer.capture_method(original_route_handler)(request)
+
             return await original_route_handler(request)
 
         return route_handler
