@@ -34,13 +34,13 @@ app = FastAPI(
     },
 )
 
-router = APIRouter(route_class=LoggerRouteHandler)
+app.router.route_class = LoggerRouteHandler
 
 collection_publisher = CollectionPublisher()
 item_publisher = ItemPublisher()
 
 
-@router.get(
+@app.get(
     "/ingestions", response_model=schemas.ListIngestionResponse, tags=["Ingestion"]
 )
 async def list_ingestions(
@@ -55,7 +55,7 @@ async def list_ingestions(
     )
 
 
-@router.post(
+@app.post(
     "/ingestions",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -79,7 +79,7 @@ async def enqueue_ingestion(
     ).enqueue(db)
 
 
-@router.get(
+@app.get(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -93,7 +93,7 @@ def get_ingestion(
     return ingestion
 
 
-@router.patch(
+@app.patch(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -110,7 +110,7 @@ def update_ingestion(
     return updated_item.save(db)
 
 
-@router.delete(
+@app.delete(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -132,7 +132,7 @@ def cancel_ingestion(
     return ingestion.cancel(db)
 
 
-@router.post(
+@app.post(
     "/collections",
     tags=["Collection"],
     status_code=201,
@@ -153,7 +153,7 @@ def publish_collection(collection: schemas.DashboardCollection):
         )
 
 
-@router.delete(
+@app.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
     dependencies=[Depends(auth.validated_token)],
@@ -170,7 +170,7 @@ def delete_collection(collection_id: str):
         raise HTTPException(status_code=400, detail=(f"{e}"))
 
 
-@router.post(
+@app.post(
     "/items",
     tags=["Items"],
     status_code=201,
@@ -191,7 +191,7 @@ def publish_item(item: schemas.Item):
         )
 
 
-@router.post("/token", tags=["Auth"], response_model=schemas.AuthResponse)
+@app.post("/token", tags=["Auth"], response_model=schemas.AuthResponse)
 async def get_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Dict:
@@ -213,7 +213,7 @@ async def get_token(
         )
 
 
-@router.get("/auth/me", tags=["Auth"])
+@app.get("/auth/me", tags=["Auth"])
 def who_am_i(claims=Depends(auth.validated_token)):
     """
     Return claims for the provided JWT
@@ -260,6 +260,3 @@ async def general_exception_handler(request, err):
     metrics.add_metric(name="UnhandledExceptions", unit=MetricUnit.Count, value=1)
     logger.exception("Unhandled exception")
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
-
-
-app.include_router(router)
