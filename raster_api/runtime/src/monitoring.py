@@ -2,7 +2,7 @@
 import json
 from typing import Callable
 
-from aws_lambda_powertools import Logger, Metrics, Tracer
+from aws_lambda_powertools import Logger, Metrics, Tracer, single_metric
 from aws_lambda_powertools.metrics import MetricUnit  # noqa: F401
 from src.config import ApiSettings
 
@@ -12,8 +12,8 @@ from fastapi.routing import APIRoute
 settings = ApiSettings()
 
 logger: Logger = Logger(service="raster-api", namespace="veda-backend")
-metrics: Metrics = Metrics(service="raster-api", namespace="veda-backend")
-metrics.set_default_dimensions(environment=settings.stage)
+metrics: Metrics = Metrics(namespace="veda-backend")
+metrics.set_default_dimensions(environment=settings.stage, service="raster-api")
 tracer: Tracer = Tracer()
 
 
@@ -42,11 +42,16 @@ class LoggerRouteHandler(APIRoute):
             logger.append_keys(fastapi=ctx)
             logger.info("Received request")
 
-            metrics.add_metric(
-                name=self.path,
+            with single_metric(
+                name="RequestCount",
                 unit=MetricUnit.Count,
                 value=1,
-            )
+                default_dimensions=metrics.default_dimensions,
+                namespace="veda-backend"
+            ) as metric:
+                metric.add_dimension(
+                    name="route", value=f"{request.method} {self.path}"
+                )
 
             tracer.put_annotation(key="path", value=request.url.path)
             tracer.capture_method(original_route_handler)(request)
