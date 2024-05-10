@@ -44,7 +44,7 @@ class LoggerRouteHandler(APIRoute):
                 unit=MetricUnit.Count,
                 value=1,
                 default_dimensions=metrics.default_dimensions,
-                namespace="veda-backend"
+                namespace="veda-backend",
             ) as metric:
                 metric.add_dimension(
                     name="route", value=f"{request.method} {self.path}"

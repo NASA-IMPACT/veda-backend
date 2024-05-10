@@ -32,15 +32,15 @@ app = FastAPI(
         "clientId": settings.client_id,
         "usePkceWithAuthorizationCodeGrant": True,
     },
-    router=APIRouter(route_class=LoggerRouteHandler),
 )
 
+router = APIRouter(route_class=LoggerRouteHandler)
 
 collection_publisher = CollectionPublisher()
 item_publisher = ItemPublisher()
 
 
-@app.get(
+@router.get(
     "/ingestions", response_model=schemas.ListIngestionResponse, tags=["Ingestion"]
 )
 async def list_ingestions(
@@ -55,7 +55,7 @@ async def list_ingestions(
     )
 
 
-@app.post(
+@router.post(
     "/ingestions",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -79,7 +79,7 @@ async def enqueue_ingestion(
     ).enqueue(db)
 
 
-@app.get(
+@router.get(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -93,7 +93,7 @@ def get_ingestion(
     return ingestion
 
 
-@app.patch(
+@router.patch(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -110,7 +110,7 @@ def update_ingestion(
     return updated_item.save(db)
 
 
-@app.delete(
+@router.delete(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
@@ -132,7 +132,7 @@ def cancel_ingestion(
     return ingestion.cancel(db)
 
 
-@app.post(
+@router.post(
     "/collections",
     tags=["Collection"],
     status_code=201,
@@ -153,7 +153,7 @@ def publish_collection(collection: schemas.DashboardCollection):
         )
 
 
-@app.delete(
+@router.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
     dependencies=[Depends(auth.validated_token)],
@@ -170,7 +170,7 @@ def delete_collection(collection_id: str):
         raise HTTPException(status_code=400, detail=(f"{e}"))
 
 
-@app.post(
+@router.post(
     "/items",
     tags=["Items"],
     status_code=201,
@@ -191,7 +191,7 @@ def publish_item(item: schemas.Item):
         )
 
 
-@app.post("/token", tags=["Auth"], response_model=schemas.AuthResponse)
+@router.post("/token", tags=["Auth"], response_model=schemas.AuthResponse)
 async def get_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Dict:
@@ -213,7 +213,7 @@ async def get_token(
         )
 
 
-@app.get("/auth/me", tags=["Auth"])
+@router.get("/auth/me", tags=["Auth"])
 def who_am_i(claims=Depends(auth.validated_token)):
     """
     Return claims for the provided JWT
@@ -260,3 +260,6 @@ async def general_exception_handler(request, err):
     metrics.add_metric(name="UnhandledExceptions", unit=MetricUnit.Count, value=1)
     logger.exception("Unhandled exception")
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
+
+app.include_router(router)
