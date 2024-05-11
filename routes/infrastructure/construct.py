@@ -66,6 +66,7 @@ class CloudfrontDistributionConstruct(Construct):
                 ),
                 certificate=domain_cert,
                 default_root_object='index.html',
+                enable_logging=True,
                 domain_names=[f"{stage}.{veda_route_settings.domain_hosted_zone_name}"]
                 if veda_route_settings.domain_hosted_zone_name
                 else None,
