@@ -8,7 +8,7 @@ from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware.cors import CORSMiddleware
@@ -19,7 +19,7 @@ from starlette_cramjam.middleware import CompressionMiddleware
 
 from .api import VedaStacApi
 from .core import VedaCrudClient
-from .monitoring import logger, metrics, tracer
+from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -49,6 +49,7 @@ api = VedaStacApi(
     search_post_request_model=POSTModel,
     response_class=ORJSONResponse,
     middlewares=[CompressionMiddleware],
+    router=APIRouter(route_class=LoggerRouteHandler),
 )
 app = api.app
 
