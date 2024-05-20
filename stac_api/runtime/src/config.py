@@ -7,7 +7,7 @@ from functools import lru_cache
 from typing import Optional
 
 import boto3
-import pydantic
+from pydantic import AnyHttpUrl, BaseSettings, Field, validator
 
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
@@ -51,7 +51,7 @@ def get_secret_dict(secret_name: str):
         return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
-class _ApiSettings(pydantic.BaseSettings):
+class _ApiSettings(BaseSettings):
     """API settings"""
 
     name: str = "veda-stac"
@@ -62,7 +62,27 @@ class _ApiSettings(pydantic.BaseSettings):
     pgstac_secret_arn: Optional[str]
     stage: Optional[str] = None
 
-    @pydantic.validator("cors_origins")
+    jwks_url: Optional[AnyHttpUrl] = Field(
+        description="URL of JWKS, e.g. https://cognito-idp.{region}.amazonaws.com/{userpool_id}/.well-known/jwks.json"  # noqa
+    )
+    userpool_id: str = Field(description="The Cognito Userpool used for authentication")
+    cognito_domain: Optional[AnyHttpUrl] = Field(
+        description="The base url of the Cognito domain for authorization and token urls"
+    )
+    client_id: str = Field(description="The Cognito APP client ID")
+    client_secret: str = Field("", description="The Cognito APP client secret")
+
+    @property
+    def cognito_authorization_url(self) -> AnyHttpUrl:
+        """Cognito user pool authorization url"""
+        return f"{self.userpool_domain_base_url}/oauth2/authorize"
+
+    @property
+    def cognito_token_url(self) -> AnyHttpUrl:
+        """Cognito user pool token and refresh url"""
+        return f"{self.userpool_domain_base_url}/oauth2/token"
+
+    @validator("cors_origins")
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
@@ -104,7 +124,7 @@ def ApiSettings() -> _ApiSettings:
     return _ApiSettings()
 
 
-class _TilesApiSettings(pydantic.BaseSettings):
+class _TilesApiSettings(BaseSettings):
     """Tile API settings"""
 
     titiler_endpoint: Optional[str]

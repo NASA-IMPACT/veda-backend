@@ -1,7 +1,8 @@
 """Configuration options for the Lambda backed API implementing `stac-fastapi`."""
+
 from typing import Dict, Optional
 
-from pydantic import BaseSettings, Field
+from pydantic import AnyHttpUrl, BaseSettings, Field
 
 
 class vedaSTACSettings(BaseSettings):
@@ -32,6 +33,16 @@ class vedaSTACSettings(BaseSettings):
         None,
         description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
+
+    jwks_url: Optional[AnyHttpUrl] = Field(
+        description="URL of JWKS, e.g. https://cognito-idp.{region}.amazonaws.com/{userpool_id}/.well-known/jwks.json"  # noqa
+    )
+    userpool_id: str = Field(description="The Cognito Userpool used for authentication")
+    cognito_domain: Optional[AnyHttpUrl] = Field(
+        description="The base url of the Cognito domain for authorization and token urls"
+    )
+    client_id: str = Field(description="The Cognito APP client ID")
+    client_secret: str = Field("", description="The Cognito APP client secret")
 
     class Config:
         """model config"""

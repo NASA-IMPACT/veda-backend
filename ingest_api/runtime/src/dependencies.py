@@ -1,15 +1,17 @@
 import logging
 
 import boto3
-import src.auth as auth
 import src.config as config
 import src.services as services
 
+from common.auth import Auth
 from fastapi import Depends, HTTPException, security
 
 logger = logging.getLogger(__name__)
 
 token_scheme = security.HTTPBearer()
+
+auth = Auth(config)
 
 
 def get_table():

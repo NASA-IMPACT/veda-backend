@@ -10,6 +10,7 @@ from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
 from fastapi import APIRouter, FastAPI
+from fastapi.params import Depends
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware.cors import CORSMiddleware
@@ -18,9 +19,11 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
+from common.auth import Auth
 from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
+from .routes import add_route_dependencies
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -28,6 +31,8 @@ except ImportError:
     # Try backported to PY<39 `importlib_resources`.
     from importlib_resources import files as resources_files  # type: ignore
 
+
+auth = Auth(ApiSettings)
 
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
@@ -40,6 +45,11 @@ api = VedaStacApi(
         openapi_url="/openapi.json",
         docs_url="/docs",
         root_path=api_settings.root_path,
+        swagger_ui_init_oauth={
+            "appName": "Cognito",
+            "clientId": api_settings.client_id,
+            "usePkceWithAuthorizationCodeGrant": True,
+        },
     ),
     title=api_settings.name,
     description=api_settings.name,
@@ -66,6 +76,24 @@ if api_settings.cors_origins:
         allow_methods=["GET", "POST", "PUT", "OPTIONS"],
         allow_headers=["*"],
     )
+
+# Require auth for all endpoints that create, modify or delete data.
+add_route_dependencies(
+    app.router.routes,
+    [
+        {"path": "/collections", "method": "POST", "type": "http"},
+        {"path": "/collections", "method": "PUT", "type": "http"},
+        {"path": "/collections/{collectionId}", "method": "DELETE", "type": "http"},
+        {"path": "/collections/{collectionId}/items", "method": "POST", "type": "http"},
+        {"path": "/collections/{collectionId}/items", "method": "PUT", "type": "http"},
+        {
+            "path": "/collections/{collectionId}/items/{itemId}",
+            "method": "DELETE",
+            "type": "http",
+        },
+    ],
+    [Depends(auth.validated_token)],
+)
 
 if tiles_settings.titiler_endpoint:
     # Register to the TiTiler extension to the api

@@ -1,6 +1,6 @@
 from typing import Dict
 
-import src.auth as auth
+
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
@@ -10,11 +10,16 @@ from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 
+from common.auth import Auth
+
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
+
+
+auth = Auth(settings)
 
 app = FastAPI(
     title="VEDA Ingestion API",
