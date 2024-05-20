@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
 
-    cognito_domain: AnyHttpUrl = Field(
+    cognito_domain: Optional[AnyHttpUrl] = Field(
         description="The base url of the Cognito domain for authorization and token urls"
     )
     client_id: str = Field(description="The Cognito APP client ID")
