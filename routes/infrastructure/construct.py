@@ -43,14 +43,16 @@ class CloudfrontDistributionConstruct(Construct):
             )
 
             # create the origin access control resource
-            cfn_origin_access_control = cf.CfnOriginAccessControl(self, "VedaCfnOriginAccessControl",
+            cfn_origin_access_control = cf.CfnOriginAccessControl(
+                self,
+                "VedaCfnOriginAccessControl",
                 origin_access_control_config=cf.CfnOriginAccessControl.OriginAccessControlConfigProperty(
                     name=f"veda-{stage}-oac",
                     origin_access_control_origin_type="s3",
                     signing_behavior="always",
                     signing_protocol="sigv4",
-                    description="Origin Access Control for STAC Browser"
-                )
+                    description="Origin Access Control for STAC Browser",
+                ),
             )
 
             self.distribution = cf.Distribution(
@@ -60,12 +62,12 @@ class CloudfrontDistributionConstruct(Construct):
                 default_behavior=cf.BehaviorOptions(
                     origin=origins.S3Origin(origin_bucket, origin_id="stac-browser"),
                     cache_policy=cf.CachePolicy.CACHING_DISABLED,
-                    origin_request_policy = cf.OriginRequestPolicy.CORS_S3_ORIGIN,
-                    response_headers_policy = cf.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
-                    viewer_protocol_policy = cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                    origin_request_policy=cf.OriginRequestPolicy.CORS_S3_ORIGIN,
+                    response_headers_policy=cf.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
+                    viewer_protocol_policy=cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 ),
                 certificate=domain_cert,
-                default_root_object='index.html',
+                default_root_object="index.html",
                 enable_logging=True,
                 domain_names=[f"{stage}.{veda_route_settings.domain_hosted_zone_name}"]
                 if veda_route_settings.domain_hosted_zone_name
@@ -75,17 +77,20 @@ class CloudfrontDistributionConstruct(Construct):
             # associate the created OAC with the distribution
             distribution_props = self.distribution.node.default_child
             if distribution_props is not None:
-                distribution_props.add_override('Properties.DistributionConfig.Origins.0.S3OriginConfig.OriginAccessIdentity', '')
+                distribution_props.add_override(
+                    "Properties.DistributionConfig.Origins.0.S3OriginConfig.OriginAccessIdentity",
+                    "",
+                )
                 distribution_props.add_property_override(
                     "DistributionConfig.Origins.0.OriginAccessControlId",
-                    cfn_origin_access_control.ref
+                    cfn_origin_access_control.ref,
                 )
 
             # remove the OAI reference from the distribution
             all_distribution_props = self.distribution.node.find_all()
             for child in all_distribution_props:
-                if child.node.id == 'S3Origin':
-                    child.node.try_remove_child('Resource')
+                if child.node.id == "S3Origin":
+                    child.node.try_remove_child("Resource")
 
             self.distribution.add_behavior(
                 path_pattern="/api/stac*",
