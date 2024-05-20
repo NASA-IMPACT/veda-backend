@@ -1,6 +1,7 @@
 """FastAPI application using PGStac.
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
+
 from aws_lambda_powertools.metrics import MetricUnit
 from src.config import ApiSettings, TilesApiSettings
 from src.config import extensions as PgStacExtensions
@@ -62,7 +63,7 @@ if api_settings.cors_origins:
         CORSMiddleware,
         allow_origins=api_settings.cors_origins,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "OPTIONS"],
         allow_headers=["*"],
     )
 
