@@ -5,6 +5,8 @@ from typing import Optional
 from pydantic import AnyHttpUrl, BaseSettings, Field, constr
 from pydantic_ssm_settings import AwsSsmSourceConfig
 
+from common.auth import Auth
+
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
 
 
@@ -58,3 +60,5 @@ settings = (
         ),
     )
 )
+
+auth = Auth(settings)
