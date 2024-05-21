@@ -1,4 +1,5 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
+
 import os
 import typing
 from typing import Optional
@@ -85,6 +86,12 @@ class StacApiLambdaConstruct(Construct):
         )
 
         lambda_function.add_environment("VEDA_STAC_STAGE", stage)
+        lambda_function.add_environment(
+            "VEDA_STAC_USERPOOL_ID", veda_stac_settings.userpool_id
+        )
+        lambda_function.add_environment(
+            "VEDA_STAC_CLIENT_ID", veda_stac_settings.client_id
+        )
 
         integration_kwargs = dict(handler=lambda_function)
         if veda_stac_settings.custom_host:
