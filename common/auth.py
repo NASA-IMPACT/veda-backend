@@ -22,44 +22,47 @@ class Auth:
 
         self.jwks_client = jwt.PyJWKClient(settings.jwks_url)  # Caches JWKS
 
-    def validated_token(
-        self,
-        token_str: Annotated[str, Security],
-        required_scopes: security.SecurityScopes,
-    ) -> Dict:
-        # Parse & validate token
-        logger.info(f"\nToken String {token_str}")
-        try:
-            token = jwt.decode(
-                token_str,
-                self.jwks_client.get_signing_key_from_jwt(token_str).key,
-                algorithms=["RS256"],
-            )
-        except jwt.exceptions.InvalidTokenError as e:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            ) from e
-
-        # Validate scopes (if required)
-        for scope in required_scopes.scopes:
-            if scope not in token["scope"]:
+        def validated_token(
+            token_str: Annotated[str, Security(self.oauth2_scheme)],
+            required_scopes: security.SecurityScopes,
+        ) -> Dict:
+            # Parse & validate token
+            logger.info(f"\nToken String {token_str}")
+            try:
+                token = jwt.decode(
+                    token_str,
+                    self.jwks_client.get_signing_key_from_jwt(token_str).key,
+                    algorithms=["RS256"],
+                )
+            except jwt.exceptions.InvalidTokenError as e:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Not enough permissions",
-                    headers={
-                        "WWW-Authenticate": f'Bearer scope="{required_scopes.scope_str}"'
-                    },
-                )
+                    detail="Could not validate credentials",
+                    headers={"WWW-Authenticate": "Bearer"},
+                ) from e
 
-        return token
+            # Validate scopes (if required)
+            for scope in required_scopes.scopes:
+                if scope not in token["scope"]:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Not enough permissions",
+                        headers={
+                            "WWW-Authenticate": f'Bearer scope="{required_scopes.scope_str}"'
+                        },
+                    )
 
-    def get_username(
-        self, token: Annotated[Dict[Any, Any], Depends(validated_token)]
-    ) -> str:
-        result = token["username"] if "username" in token else str(token.get("sub"))
-        return result
+            return token
+
+        self.validated_token = validated_token
+
+        def get_username(
+            token: Annotated[Dict[Any, Any], Depends(self.validated_token)]
+        ) -> str:
+            result = token["username"] if "username" in token else str(token.get("sub"))
+            return result
+
+        self.get_username = get_username
 
     def _get_secret_hash(
         self, username: str, client_id: str, client_secret: str
