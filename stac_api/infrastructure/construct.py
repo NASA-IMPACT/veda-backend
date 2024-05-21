@@ -92,6 +92,9 @@ class StacApiLambdaConstruct(Construct):
         lambda_function.add_environment(
             "VEDA_STAC_CLIENT_ID", veda_stac_settings.client_id
         )
+        lambda_function.add_environment(
+            "VEDA_STAC_COGNITO_DOMAIN", veda_stac_settings.cognito_domain
+        )
 
         integration_kwargs = dict(handler=lambda_function)
         if veda_stac_settings.custom_host:

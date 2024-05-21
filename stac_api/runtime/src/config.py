@@ -75,12 +75,12 @@ class _ApiSettings(BaseSettings):
     @property
     def cognito_authorization_url(self) -> AnyHttpUrl:
         """Cognito user pool authorization url"""
-        return f"{self.userpool_domain_base_url}/oauth2/authorize"
+        return f"{self.cognito_domain}/oauth2/authorize"
 
     @property
     def cognito_token_url(self) -> AnyHttpUrl:
         """Cognito user pool token and refresh url"""
-        return f"{self.userpool_domain_base_url}/oauth2/token"
+        return f"{self.cognito_domain}/oauth2/token"
 
     @validator("cors_origins")
     def parse_cors_origin(cls, v):

@@ -32,12 +32,12 @@ except ImportError:
     from importlib_resources import files as resources_files  # type: ignore
 
 
-auth = Auth(ApiSettings)
-
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 api_settings = ApiSettings()
 tiles_settings = TilesApiSettings()
+
+auth = Auth(api_settings)
 
 api = VedaStacApi(
     app=FastAPI(
