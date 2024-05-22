@@ -34,9 +34,6 @@ class vedaSTACSettings(BaseSettings):
         description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
 
-    jwks_url: Optional[AnyHttpUrl] = Field(
-        description="URL of JWKS, e.g. https://cognito-idp.{region}.amazonaws.com/{userpool_id}/.well-known/jwks.json"  # noqa
-    )
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
     cognito_domain: Optional[AnyHttpUrl] = Field(
         description="The base url of the Cognito domain for authorization and token urls"

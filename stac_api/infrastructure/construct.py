@@ -43,6 +43,17 @@ class StacApiLambdaConstruct(Construct):
         # TODO config
         stack_name = Stack.of(self).stack_name
 
+        lambda_env = {
+            "VEDA_STAC_ROOT_PATH": veda_stac_settings.stac_root_path,
+            "VEDA_STAC_STAGE": veda_stac_settings.jwks_url,
+            "VEDA_STAC_USERPOOL_ID": veda_stac_settings.userpool_id,
+            "VEDA_STAC_CLIENT_ID": veda_stac_settings.client_id,
+            "VEDA_STAC_COGNITO_DOMAIN": veda_stac_settings.cognito_domain,
+            "DB_MIN_CONN_SIZE": "0",
+            "DB_MAX_CONN_SIZE": "1",
+            **{k.upper(): v for k, v in veda_stac_settings.env.items()},
+        }
+
         lambda_function = aws_lambda.Function(
             self,
             "lambda",
@@ -56,11 +67,7 @@ class StacApiLambdaConstruct(Construct):
             allow_public_subnet=True,
             memory_size=veda_stac_settings.memory,
             timeout=Duration.seconds(veda_stac_settings.timeout),
-            environment={
-                "DB_MIN_CONN_SIZE": "0",
-                "DB_MAX_CONN_SIZE": "1",
-                **{k.upper(): v for k, v in veda_stac_settings.env.items()},
-            },
+            environment=lambda_env,
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
             tracing=aws_lambda.Tracing.ACTIVE,
         )
@@ -79,24 +86,6 @@ class StacApiLambdaConstruct(Construct):
 
         lambda_function.add_environment(
             "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
-        )
-
-        lambda_function.add_environment(
-            "VEDA_STAC_ROOT_PATH", veda_stac_settings.stac_root_path
-        )
-
-        lambda_function.add_environment("VEDA_STAC_STAGE", stage)
-        lambda_function.add_environment(
-            "VEDA_STAC_JWKS_URL", veda_stac_settings.userpool_id
-        )
-        lambda_function.add_environment(
-            "VEDA_STAC_USERPOOL_ID", veda_stac_settings.jwks_url
-        )
-        lambda_function.add_environment(
-            "VEDA_STAC_CLIENT_ID", veda_stac_settings.client_id
-        )
-        lambda_function.add_environment(
-            "VEDA_STAC_COGNITO_DOMAIN", veda_stac_settings.cognito_domain
         )
 
         integration_kwargs = dict(handler=lambda_function)

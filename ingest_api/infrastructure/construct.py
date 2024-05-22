@@ -43,7 +43,6 @@ class ApiConstruct(Construct):
         self.user_pool = cognito.UserPool.from_user_pool_id(
             self, "cognito-user-pool", config.userpool_id
         )
-        self.jwks_url = self.build_jwks_url(config.userpool_id)
         db_security_group = ec2.SecurityGroup.from_security_group_id(
             self,
             "db-security-group",
@@ -52,7 +51,6 @@ class ApiConstruct(Construct):
 
         lambda_env = {
             "DYNAMODB_TABLE": self.table.table_name,
-            "JWKS_URL": self.jwks_url,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.stac_api_url,
             "DATA_ACCESS_ROLE_ARN": config.raster_data_access_role_arn,
@@ -93,12 +91,6 @@ class ApiConstruct(Construct):
             value=self.api.url,
         )
 
-        register_ssm_parameter(
-            self,
-            name="jwks_url",
-            value=self.jwks_url,
-            description="JWKS URL for Cognito user pool",
-        )
         register_ssm_parameter(
             self,
             name="dynamodb_table",
@@ -214,13 +206,6 @@ class ApiConstruct(Construct):
             f"{stack_name}-{construct_id}",
             default_integration=ingest_api_integration,
             default_domain_mapping=domain_mapping,
-        )
-
-    def build_jwks_url(self, userpool_id: str) -> str:
-        region = userpool_id.split("_")[0]
-        return (
-            f"https://cognito-idp.{region}.amazonaws.com"
-            f"/{userpool_id}/.well-known/jwks.json"
         )
 
     # item ingest table, comsumed by ingestor

@@ -63,15 +63,18 @@ class _ApiSettings(BaseSettings):
     pgstac_secret_arn: Optional[str]
     stage: Optional[str] = None
 
-    jwks_url: Optional[AnyHttpUrl] = Field(
-        description="URL of JWKS, e.g. https://cognito-idp.{region}.amazonaws.com/{userpool_id}/.well-known/jwks.json"  # noqa
-    )
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
     cognito_domain: Optional[AnyHttpUrl] = Field(
         description="The base url of the Cognito domain for authorization and token urls"
     )
     client_id: str = Field(description="The Cognito APP client ID")
     client_secret: str = Field("", description="The Cognito APP client secret")
+
+    @property
+    def jwks_url(self) -> AnyHttpUrl:
+        """JWKS url"""
+        region = self.userpool_id.split("_")[0]
+        return f"https://cognito-idp.{region}.amazonaws.com/{self.userpool_id}/.well-known/jwks.json"
 
     @property
     def cognito_authorization_url(self) -> AnyHttpUrl:
