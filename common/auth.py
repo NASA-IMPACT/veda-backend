@@ -1,3 +1,5 @@
+"""Authentication handler for veda.stac and veda.ingest"""
+
 import base64
 import hashlib
 import hmac
@@ -13,7 +15,16 @@ logger = logging.getLogger(__name__)
 
 
 class Auth:
+    """Class for handling authentication"""
+
     def __init__(self, settings) -> None:
+        """
+        Args:
+            settings: pydantic settings object containing cognito details
+        Returns:
+            None
+
+        """
         self.oauth2_scheme = security.OAuth2AuthorizationCodeBearer(
             authorizationUrl=settings.cognito_authorization_url,
             tokenUrl=settings.cognito_token_url,
@@ -86,6 +97,7 @@ class Auth:
         app_client_id: str,
         app_client_secret: str,
     ) -> Dict:
+        """Authenticates the credentials and returns token"""
         client = boto3.client("cognito-idp")
         if app_client_secret:
             auth_params = {

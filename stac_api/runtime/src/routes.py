@@ -1,3 +1,5 @@
+"""Dependency injection in to fastapi routes"""
+
 from typing import List
 from fastapi.params import Depends
 from fastapi.dependencies.utils import get_parameterless_sub_dependant

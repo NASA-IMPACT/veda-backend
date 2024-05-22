@@ -1,3 +1,5 @@
+"""Middleware for validating transaction endpoints"""
+
 import json
 import re
 from typing import Dict
@@ -16,17 +18,23 @@ prepend_path = api_settings.root_path or ""
 
 
 class Items(BaseModel):
+    """Validation model for items used in BulkItems"""
+
     items: Dict[str, Item]
 
 
-class BulkItemsModel(BaseModel):
+class BulkItems(BaseModel):
+    """Validation model for bulk-items endpoint request"""
+
     items: Items
     method: str = Field(default="insert")
 
 
 class ValidationMiddleware(BaseHTTPMiddleware):
+    """Middleware that handles STAC collection and item validation in transaction endpoints"""
+
     async def dispatch(self, request: Request, call_next):
-        print("Request data", request)
+        """Middleware dispatch"""
         if request.method in ("POST", "PUT"):
             try:
                 body = await request.body()
@@ -45,7 +53,7 @@ class ValidationMiddleware(BaseHTTPMiddleware):
                     f"^{prepend_path}/collections/[^/]+/bulk-items$",
                     request.url.path,
                 ):
-                    BulkItemsModel(**request_data)
+                    BulkItems(**request_data)
             except ValidationError as e:
                 return JSONResponse(
                     status_code=400,
