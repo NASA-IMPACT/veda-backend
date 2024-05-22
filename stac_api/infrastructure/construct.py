@@ -45,7 +45,7 @@ class StacApiLambdaConstruct(Construct):
 
         lambda_env = {
             "VEDA_STAC_ROOT_PATH": veda_stac_settings.stac_root_path,
-            "VEDA_STAC_STAGE": veda_stac_settings.jwks_url,
+            "VEDA_STAC_STAGE": stage,
             "VEDA_STAC_USERPOOL_ID": veda_stac_settings.userpool_id,
             "VEDA_STAC_CLIENT_ID": veda_stac_settings.client_id,
             "VEDA_STAC_COGNITO_DOMAIN": veda_stac_settings.cognito_domain,
