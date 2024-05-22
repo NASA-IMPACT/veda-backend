@@ -22,8 +22,9 @@ from stac_fastapi.extensions.core import (
     TokenPaginationExtension,
     TransactionExtension,
 )
+from stac_fastapi.extensions.third_party import BulkTransactionExtension
 from stac_fastapi.pgstac.config import Settings
-from stac_fastapi.pgstac.transactions import TransactionsClient
+from stac_fastapi.pgstac.transactions import BulkTransactionsClient, TransactionsClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
 
@@ -146,6 +147,7 @@ def TilesApiSettings() -> _TilesApiSettings:
 
 
 extensions = [
+    BulkTransactionExtension(client=BulkTransactionsClient()),
     FilterExtension(),
     QueryExtension(),
     SortExtension(),

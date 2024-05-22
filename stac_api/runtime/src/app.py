@@ -24,6 +24,7 @@ from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 from .routes import add_route_dependencies
+from .validation import ValidationMiddleware
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -59,7 +60,7 @@ api = VedaStacApi(
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
     response_class=ORJSONResponse,
-    middlewares=[CompressionMiddleware],
+    middlewares=[CompressionMiddleware, ValidationMiddleware],
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 app = api.app
@@ -93,6 +94,11 @@ add_route_dependencies(
         {
             "path": "/collections/{collectionId}/items/{itemId}",
             "method": "DELETE",
+            "type": "http",
+        },
+        {
+            "path": "/collections/{collectionId}/bulk_items",
+            "method": "POST",
             "type": "http",
         },
     ],
