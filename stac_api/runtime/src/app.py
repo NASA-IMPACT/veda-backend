@@ -9,6 +9,7 @@ from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
+from common.auth import Auth
 from fastapi import APIRouter, FastAPI
 from fastapi.params import Depends
 from fastapi.responses import ORJSONResponse
@@ -19,7 +20,6 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
-from common.auth import Auth
 from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer

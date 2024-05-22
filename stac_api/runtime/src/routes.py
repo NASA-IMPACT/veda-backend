@@ -1,8 +1,9 @@
 """Dependency injection in to fastapi routes"""
 
 from typing import List
-from fastapi.params import Depends
+
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
+from fastapi.params import Depends
 from fastapi.routing import APIRoute
 from starlette.routing import Match
 from starlette.types import Scope

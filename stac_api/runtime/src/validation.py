@@ -4,14 +4,13 @@ import json
 import re
 from typing import Dict
 
+from pydantic import BaseModel, Field, ValidationError
+from src.config import ApiSettings
+from stac_pydantic import Collection, Item
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError, BaseModel, Field
-from stac_pydantic import Item, Collection
 from starlette.middleware.base import BaseHTTPMiddleware
-
-from src.config import ApiSettings
-
 
 api_settings = ApiSettings()
 prepend_path = api_settings.root_path or ""
