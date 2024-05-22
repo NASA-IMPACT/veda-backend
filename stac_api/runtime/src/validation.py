@@ -19,6 +19,7 @@ class BulkItemsModel(BaseModel):
 
 class ValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        print("Request data", request)
         if request.method in ("POST", "PUT"):
             try:
                 body = await request.body()
