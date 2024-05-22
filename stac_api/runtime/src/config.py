@@ -151,12 +151,12 @@ def TilesApiSettings() -> _TilesApiSettings:
 
 extensions = [
     BulkTransactionExtension(client=BulkTransactionsClient()),
+    ContextExtension(),
+    FieldsExtension(),
     FilterExtension(),
     QueryExtension(),
     SortExtension(),
-    FieldsExtension(),
     TokenPaginationExtension(),
-    ContextExtension(),
     TransactionExtension(
         client=TransactionsClient(),
         settings=ApiSettings().load_postgres_settings(),
