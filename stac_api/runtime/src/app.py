@@ -41,7 +41,7 @@ api = VedaStacApi(
         root_path=api_settings.root_path,
     ),
     title=api_settings.name,
-    description=api_settings.name,
+    description=api_settings.description,
     settings=api_settings.load_postgres_settings(),
     extensions=PgStacExtensions,
     client=VedaCrudClient(post_request_model=POSTModel),
