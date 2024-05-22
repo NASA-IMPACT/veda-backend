@@ -2,7 +2,8 @@ import json
 import re
 from typing import Dict
 
-from fastapi import Request, HTTPException
+from fastapi import Request
+from fastapi.responses import JSONResponse
 from pydantic import ValidationError, BaseModel, Field
 from stac_pydantic import Item, Collection
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -45,8 +46,11 @@ class ValidationMiddleware(BaseHTTPMiddleware):
                     request.url.path,
                 ):
                     BulkItemsModel(**request_data)
-            except (ValidationError, json.JSONDecodeError) as e:
-                raise HTTPException(status_code=400, detail=str(e))
+            except ValidationError as e:
+                return JSONResponse(
+                    status_code=400,
+                    content={"detail": "Validation Error", "errors": e.errors()},
+                )
 
         response = await call_next(request)
         return response
