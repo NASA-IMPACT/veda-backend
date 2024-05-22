@@ -11,6 +11,7 @@ from starlette.types import Scope
 def add_route_dependencies(
     routes: List[APIRoute], scopes: List[Scope], dependencies: List[Depends]
 ):
+    """Inject dependencies to routes"""
     for route in routes:
         if not any(route.matches(scope)[0] == Match.FULL for scope in scopes):
             continue
