@@ -87,7 +87,10 @@ class StacApiLambdaConstruct(Construct):
 
         lambda_function.add_environment("VEDA_STAC_STAGE", stage)
         lambda_function.add_environment(
-            "VEDA_STAC_USERPOOL_ID", veda_stac_settings.userpool_id
+            "VEDA_STAC_JWKS_URL", veda_stac_settings.userpool_id
+        )
+        lambda_function.add_environment(
+            "VEDA_STAC_USERPOOL_ID", veda_stac_settings.jwks_url
         )
         lambda_function.add_environment(
             "VEDA_STAC_CLIENT_ID", veda_stac_settings.client_id

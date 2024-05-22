@@ -82,10 +82,14 @@ add_route_dependencies(
     app.router.routes,
     [
         {"path": "/collections", "method": "POST", "type": "http"},
-        {"path": "/collections", "method": "PUT", "type": "http"},
+        {"path": "/collections/{collectionId}", "method": "PUT", "type": "http"},
         {"path": "/collections/{collectionId}", "method": "DELETE", "type": "http"},
         {"path": "/collections/{collectionId}/items", "method": "POST", "type": "http"},
-        {"path": "/collections/{collectionId}/items", "method": "PUT", "type": "http"},
+        {
+            "path": "/collections/{collectionId}/items/{itemId}",
+            "method": "PUT",
+            "type": "http",
+        },
         {
             "path": "/collections/{collectionId}/items/{itemId}",
             "method": "DELETE",
