@@ -36,10 +36,6 @@ class ApiConstruct(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         self.table = self.build_table()
-        self.data_access_role = iam.Role.from_role_arn(
-            self, "data-access-role", config.raster_data_access_role_arn
-        )
-
         self.user_pool = cognito.UserPool.from_user_pool_id(
             self, "cognito-user-pool", config.userpool_id
         )
@@ -55,7 +51,6 @@ class ApiConstruct(Construct):
             "JWKS_URL": self.jwks_url,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.stac_api_url,
-            "DATA_ACCESS_ROLE_ARN": config.raster_data_access_role_arn,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
@@ -65,16 +60,23 @@ class ApiConstruct(Construct):
             "COGNITO_DOMAIN": config.cognito_domain,
         }
 
+        build_api_lambda_params = {
+            "table": self.table,
+            "user_pool": self.user_pool,
+            "db_secret": db_secret,
+            "db_vpc": db_vpc,
+            "db_security_group": db_security_group,
+        }
+
+        if config.raster_data_access_role_arn:
+            lambda_env["DATA_ACCESS_ROLE_ARN"] = config.raster_data_access_role_arn
+            build_api_lambda_params["data_access_role"] = iam.Role.from_role_arn(
+                self, "data-access-role", config.raster_data_access_role_arn
+            )
+            build_api_lambda_params["env"] = lambda_env
+
         # create lambda
-        self.api_lambda = self.build_api_lambda(
-            table=self.table,
-            env=lambda_env,
-            data_access_role=self.data_access_role,
-            user_pool=self.user_pool,
-            db_secret=db_secret,
-            db_vpc=db_vpc,
-            db_security_group=db_security_group,
-        )
+        self.api_lambda = self.build_api_lambda(**build_api_lambda_params)
 
         # create API
         self.api: aws_apigatewayv2_alpha.HttpApi = self.build_api(
@@ -260,12 +262,14 @@ class IngestorConstruct(Construct):
             "DYNAMODB_TABLE": table.table_name,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.stac_api_url,
-            "DATA_ACCESS_ROLE_ARN": config.raster_data_access_role_arn,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
             "RASTER_URL": config.raster_api_url,
         }
+
+        if config.raster_data_access_role_arn:
+            lambda_env["DATA_ACCESS_ROLE_ARN"] = config.raster_data_access_role_arn
 
         db_security_group = ec2.SecurityGroup.from_security_group_id(
             self,
