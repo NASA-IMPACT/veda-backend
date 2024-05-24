@@ -1,6 +1,6 @@
 import os
 import typing
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
 from aws_cdk import aws_apigateway as apigateway
@@ -73,7 +73,7 @@ class ApiConstruct(Construct):
             build_api_lambda_params["data_access_role"] = iam.Role.from_role_arn(
                 self, "data-access-role", config.raster_data_access_role_arn
             )
-            build_api_lambda_params["env"] = lambda_env
+        build_api_lambda_params["env"] = lambda_env
 
         # create lambda
         self.api_lambda = self.build_api_lambda(**build_api_lambda_params)
@@ -113,11 +113,11 @@ class ApiConstruct(Construct):
         *,
         table: dynamodb.ITable,
         env: Dict[str, str],
-        data_access_role: iam.IRole,
         user_pool: cognito.IUserPool,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
+        data_access_role: Union[iam.IRole, None] = None,
         code_dir: str = "./",
     ) -> apigateway.LambdaRestApi:
         stack_name = Stack.of(self).stack_name
@@ -155,10 +155,11 @@ class ApiConstruct(Construct):
             log_format="JSON",
         )
         table.grant_read_write_data(handler)
-        data_access_role.grant(
-            handler.grant_principal,
-            "sts:AssumeRole",
-        )
+        if data_access_role:
+            data_access_role.grant(
+                handler.grant_principal,
+                "sts:AssumeRole",
+            )
 
         handler.add_to_role_policy(
             iam.PolicyStatement(
