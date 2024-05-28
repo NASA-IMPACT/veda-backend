@@ -9,8 +9,10 @@ import requests
 def get_s3_credentials():
     from src.main import settings
 
-    print("Fetching S3 Credentials...")
+    if not settings.data_access_role_arn:
+        return {}
 
+    print("Fetching S3 Credentials...")
     response = boto3.client("sts").assume_role(
         RoleArn=settings.data_access_role_arn,
         RoleSessionName="stac-ingestor-data-validation",

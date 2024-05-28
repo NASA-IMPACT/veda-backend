@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         description="URL of JWKS, e.g. https://cognito-idp.{region}.amazonaws.com/{userpool_id}/.well-known/jwks.json"  # noqa
     )
 
-    data_access_role_arn: AwsArn = Field(  # type: ignore
+    data_access_role_arn: Optional[AwsArn] = Field(  # type: ignore
         description="ARN of AWS Role used to validate access to S3 data"
     )
 
