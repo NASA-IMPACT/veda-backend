@@ -41,8 +41,8 @@ class IngestorConfig(BaseSettings):
         description="ID of Security Group used by pgSTAC DB"
     )
 
-    raster_data_access_role_arn: AwsArn = Field(  # type: ignore
-        description="ARN of AWS Role used to validate access to S3 data"
+    raster_data_access_role_arn: Optional[AwsArn] = Field(  # type: ignore
+        None, description="ARN of AWS Role used to validate access to S3 data"
     )
 
     stac_api_url: str = Field(description="URL of STAC API used to serve STAC Items")
