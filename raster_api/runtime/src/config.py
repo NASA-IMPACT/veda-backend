@@ -57,6 +57,7 @@ class ApiSettings(BaseSettings):
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False
     root_path: Optional[str] = None
+    stage: Optional[str] = None
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False

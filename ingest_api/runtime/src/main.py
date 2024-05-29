@@ -10,7 +10,7 @@ from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -32,9 +32,9 @@ app = FastAPI(
         "clientId": settings.client_id,
         "usePkceWithAuthorizationCodeGrant": True,
     },
-    router=APIRouter(route_class=LoggerRouteHandler),
 )
 
+app.router.route_class = LoggerRouteHandler
 
 collection_publisher = CollectionPublisher()
 item_publisher = ItemPublisher()
