@@ -40,7 +40,7 @@ class vedaSTACSettings(BaseSettings):
     )
 
     project_description: Optional[str] = Field(
-        "VEDA (Visualization, Exploration, and Data Analysis) is NASA's open-source Earth Science platform in the cloud",
+        "VEDA (Visualization, Exploration, and Data Analysis) is NASA's open-source Earth Science platform in the cloud.",
         description="Description of the STAC Catalog",
     )
 
