@@ -50,8 +50,8 @@ def get_secret_dict(secret_name: str):
 class _ApiSettings(pydantic.BaseSettings):
     """API settings"""
 
-    name: str = "VEDA (Visualization, Exploration, and Data Analysis) STAC API"
-    description: str = "VEDA (Visualization, Exploration, and Data Analysis) is NASA's open-source Earth Science platform in the cloud"
+    project_name: Optional[str] = "veda"
+    project_description: Optional[str] = None
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False

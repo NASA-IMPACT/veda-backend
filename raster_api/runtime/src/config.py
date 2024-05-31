@@ -52,7 +52,7 @@ def get_role_credentials(role_arn: str):
 class ApiSettings(BaseSettings):
     """API settings"""
 
-    name: str = "VEDA (Visualization, Exploration, and Data Analysis) Raster API"
+    project_name: str = "veda"
     cors_origins: str = "*"
     cachecontrol: str = "public, max-age=3600"
     debug: bool = False

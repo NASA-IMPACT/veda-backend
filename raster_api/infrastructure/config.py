@@ -79,6 +79,11 @@ class vedaRasterSettings(BaseSettings):
         description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
 
+    project_name: Optional[str] = Field(
+        "VEDA (Visualization, Exploration, and Data Analysis)",
+        description="Name of the STAC Catalog"
+    )
+
     class Config:
         """model config"""
 

@@ -56,9 +56,13 @@ class StacApiLambdaConstruct(Construct):
             memory_size=veda_stac_settings.memory,
             timeout=Duration.seconds(veda_stac_settings.timeout),
             environment={
+                **{k.upper(): v for k, v in veda_stac_settings.env.items()},
                 "DB_MIN_CONN_SIZE": "0",
                 "DB_MAX_CONN_SIZE": "1",
-                **{k.upper(): v for k, v in veda_stac_settings.env.items()},
+                "VEDA_STAC_ROOT_PATH":veda_stac_settings.stac_root_path,
+                "VEDA_STAC_STAGE":stage,
+                "VEDA_STAC_PROJECT_NAME":veda_stac_settings.project_name,
+                "VEDA_STAC_PROJECT_DESCRIPTION":veda_stac_settings.project_description
             },
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
             tracing=aws_lambda.Tracing.ACTIVE,
@@ -79,12 +83,6 @@ class StacApiLambdaConstruct(Construct):
         lambda_function.add_environment(
             "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
-
-        lambda_function.add_environment(
-            "VEDA_STAC_ROOT_PATH", veda_stac_settings.stac_root_path
-        )
-
-        lambda_function.add_environment("VEDA_STAC_STAGE", stage)
 
         integration_kwargs = dict(handler=lambda_function)
         if veda_stac_settings.custom_host:
