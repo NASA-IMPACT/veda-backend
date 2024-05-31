@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title=settings.name,
+    title=f"{settings.project_name} Raster API",
     version=veda_raster_version,
     openapi_url="/openapi.json",
     docs_url="/docs",
