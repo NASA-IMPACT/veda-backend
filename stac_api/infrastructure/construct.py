@@ -1,4 +1,5 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
+
 import os
 import typing
 from typing import Optional
@@ -59,10 +60,10 @@ class StacApiLambdaConstruct(Construct):
                 **{k.upper(): v for k, v in veda_stac_settings.env.items()},
                 "DB_MIN_CONN_SIZE": "0",
                 "DB_MAX_CONN_SIZE": "1",
-                "VEDA_STAC_ROOT_PATH":veda_stac_settings.stac_root_path,
-                "VEDA_STAC_STAGE":stage,
-                "VEDA_STAC_PROJECT_NAME":veda_stac_settings.project_name,
-                "VEDA_STAC_PROJECT_DESCRIPTION":veda_stac_settings.project_description
+                "VEDA_STAC_ROOT_PATH": veda_stac_settings.stac_root_path,
+                "VEDA_STAC_STAGE": stage,
+                "VEDA_STAC_PROJECT_NAME": veda_stac_settings.project_name,
+                "VEDA_STAC_PROJECT_DESCRIPTION": veda_stac_settings.project_description,
             },
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
             tracing=aws_lambda.Tracing.ACTIVE,

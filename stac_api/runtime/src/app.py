@@ -40,7 +40,7 @@ api = VedaStacApi(
         docs_url="/docs",
         root_path=api_settings.root_path,
     ),
-    title=f"{api_settings.project_name} STAC API",
+    title=f"{api_settings.project_name} STAC Catalog",
     description=api_settings.project_description,
     settings=api_settings.load_postgres_settings(),
     extensions=PgStacExtensions,

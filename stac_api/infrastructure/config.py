@@ -1,4 +1,5 @@
 """Configuration options for the Lambda backed API implementing `stac-fastapi`."""
+
 from typing import Dict, Optional
 
 from pydantic import BaseSettings, Field
@@ -35,12 +36,12 @@ class vedaSTACSettings(BaseSettings):
 
     project_name: Optional[str] = Field(
         "VEDA (Visualization, Exploration, and Data Analysis)",
-        description="Name of the STAC Catalog"
+        description="Name of the STAC Catalog",
     )
 
     project_description: Optional[str] = Field(
         "VEDA (Visualization, Exploration, and Data Analysis) is NASA's open-source Earth Science platform in the cloud",
-        description="Description of the STAC Catalog"
+        description="Description of the STAC Catalog",
     )
 
     class Config:
