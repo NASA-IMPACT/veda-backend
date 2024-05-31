@@ -1,5 +1,5 @@
 from getpass import getuser
-from typing import Optional, List
+from typing import List, Optional
 
 import aws_cdk
 from pydantic import AnyHttpUrl, BaseSettings, Field, constr
