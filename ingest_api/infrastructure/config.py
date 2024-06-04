@@ -45,6 +45,11 @@ class IngestorConfig(BaseSettings):
         None, description="ARN of AWS Role used to validate access to S3 data"
     )
 
+    raster_aws_request_payer: Optional[str] = Field(
+        None,
+        description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs",
+    )
+
     stac_api_url: str = Field(description="URL of STAC API used to serve STAC Items")
 
     raster_api_url: str = Field(

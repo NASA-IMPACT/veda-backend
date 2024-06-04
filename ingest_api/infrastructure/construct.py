@@ -73,6 +73,10 @@ class ApiConstruct(Construct):
             build_api_lambda_params["data_access_role"] = iam.Role.from_role_arn(
                 self, "data-access-role", config.raster_data_access_role_arn
             )
+
+        if config.raster_aws_request_payer:
+            lambda_env["AWS_REQUEST_PAYER"] = config.raster_aws_request_payer
+
         build_api_lambda_params["env"] = lambda_env
 
         # create lambda
