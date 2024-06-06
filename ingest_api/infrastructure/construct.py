@@ -81,6 +81,14 @@ class ApiConstruct(Construct):
 
         # create lambda
         self.api_lambda = self.build_api_lambda(**build_api_lambda_params)
+        self.api_lambda.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=["s3:GetObject"],
+                resources=[
+                    f"arn:aws:s3:::{bucket}/{config.key}" for bucket in config.buckets
+                ],
+            )
+        )
 
         # create API
         self.api: aws_apigatewayv2_alpha.HttpApi = self.build_api(

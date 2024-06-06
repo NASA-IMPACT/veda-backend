@@ -1,5 +1,5 @@
 from getpass import getuser
-from typing import Optional
+from typing import List, Optional
 
 import aws_cdk
 from pydantic import AnyHttpUrl, BaseSettings, Field, constr
@@ -8,6 +8,15 @@ AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
 
 
 class IngestorConfig(BaseSettings):
+    # S3 bucket names where TiTiler could do HEAD and GET Requests
+    # specific private and public buckets MUST be added if you want to use s3:// urls
+    # You can whitelist all bucket by setting `*`.
+    # ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-arn-format.html
+    buckets: List = ["*"]
+
+    # S3 key pattern to limit the access to specific items (e.g: "my_data/*.tif")
+    key: str = "*"
+
     stage: str = Field(
         description=" ".join(
             [
