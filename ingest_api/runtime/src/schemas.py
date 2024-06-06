@@ -7,7 +7,14 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 import src.validators as validators
-from pydantic import BaseModel, Field, Json, PositiveInt, error_wrappers, validator
+from pydantic import (
+    BaseModel,
+    Field,
+    Json,
+    PositiveInt,
+    error_wrappers,
+    validator,
+)
 from src.schema_helpers import SpatioTemporalExtent
 from stac_pydantic import Collection, Item, shared
 from stac_pydantic.links import Link
@@ -17,6 +24,10 @@ from fastapi.exceptions import RequestValidationError
 
 if TYPE_CHECKING:
     from src import services
+
+
+class Link(Link, extra="allow"):
+    pass
 
 
 class AccessibleAsset(shared.Asset):
