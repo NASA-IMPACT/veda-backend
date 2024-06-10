@@ -52,9 +52,9 @@ def get_role_credentials(role_arn: str):
 class ApiSettings(BaseSettings):
     """API settings"""
 
-    name: str = "veda-raster"
+    project_name: str = "veda"
     cors_origins: str = "*"
-    cachecontrol: str = "public, max-age=3600"
+    cachecontrol: str = "max-age=30,must-revalidate,s-maxage=604800"
     debug: bool = False
     root_path: Optional[str] = None
     stage: Optional[str] = None

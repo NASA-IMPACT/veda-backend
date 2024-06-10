@@ -1,4 +1,5 @@
 """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
+
 import os
 import typing
 from typing import Optional
@@ -58,7 +59,15 @@ class RasterApiLambdaConstruct(Construct):
             memory_size=veda_raster_settings.memory,
             timeout=Duration.seconds(veda_raster_settings.timeout),
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
-            environment=veda_raster_settings.env or {},
+            environment={
+                **veda_raster_settings.env,
+                "VEDA_RASTER_ENABLE_MOSAIC_SEARCH": str(
+                    veda_raster_settings.raster_enable_mosaic_search
+                ),
+                "VEDA_RASTER_ROOT_PATH": veda_raster_settings.raster_root_path,
+                "VEDA_RASTER_STAGE": stage,
+                "VEDA_RASTER_PROJECT_NAME": veda_raster_settings.project_name,
+            },
             tracing=aws_lambda.Tracing.ACTIVE,
         )
 
@@ -68,19 +77,8 @@ class RasterApiLambdaConstruct(Construct):
         )
 
         veda_raster_function.add_environment(
-            "VEDA_RASTER_ENABLE_MOSAIC_SEARCH",
-            str(veda_raster_settings.raster_enable_mosaic_search),
-        )
-
-        veda_raster_function.add_environment(
             "VEDA_RASTER_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
-
-        veda_raster_function.add_environment(
-            "VEDA_RASTER_ROOT_PATH", veda_raster_settings.raster_root_path
-        )
-
-        veda_raster_function.add_environment("VEDA_RASTER_STAGE", stage)
 
         # Optional AWS S3 requester pays global setting
         if veda_raster_settings.raster_aws_request_payer:

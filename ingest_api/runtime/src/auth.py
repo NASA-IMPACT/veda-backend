@@ -26,7 +26,6 @@ def validated_token(
     required_scopes: security.SecurityScopes,
 ) -> Dict:
     # Parse & validate token
-    logger.info(f"\nToken String {token_str}")
     try:
         token = jwt.decode(
             token_str,
