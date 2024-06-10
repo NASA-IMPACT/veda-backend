@@ -9,8 +9,10 @@ import requests
 def get_s3_credentials():
     from src.main import settings
 
-    print("Fetching S3 Credentials...")
+    if not settings.data_access_role_arn:
+        return {}
 
+    print("Fetching S3 Credentials...")
     response = boto3.client("sts").assume_role(
         RoleArn=settings.data_access_role_arn,
         RoleSessionName="stac-ingestor-data-validation",
@@ -26,9 +28,16 @@ def s3_object_is_accessible(bucket: str, key: str):
     """
     Ensure we can send HEAD requests to S3 objects.
     """
+    from src.main import settings
+
     client = boto3.client("s3", **get_s3_credentials())
     try:
-        client.head_object(Bucket=bucket, Key=key)
+        if settings.aws_request_payer:
+            client.head_object(
+                Bucket=bucket, Key=key, RequestPayer=settings.aws_request_payer
+            )
+        else:
+            client.head_object(Bucket=bucket, Key=key)
     except client.exceptions.ClientError as e:
         raise ValueError(
             f"Asset not accessible: {e.__dict__['response']['Error']['Message']}"

@@ -7,7 +7,15 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 import src.validators as validators
-from pydantic import BaseModel, Field, Json, PositiveInt, error_wrappers, validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    Json,
+    PositiveInt,
+    error_wrappers,
+    validator,
+)
 from src.schema_helpers import SpatioTemporalExtent
 from stac_pydantic import Collection, Item, shared
 from stac_pydantic.links import Link
@@ -17,6 +25,10 @@ from fastapi.exceptions import RequestValidationError
 
 if TYPE_CHECKING:
     from src import services
+
+
+class LinkWithExtraFields(Link):
+    model_config = ConfigDict(extra="allow")
 
 
 class AccessibleAsset(shared.Asset):
@@ -49,7 +61,7 @@ class DashboardCollection(Collection):
     is_periodic: Optional[bool] = Field(default=False, alias="dashboard:is_periodic")
     time_density: Optional[str] = Field(default=None, alias="dashboard:time_density")
     item_assets: Optional[Dict]
-    links: Optional[List[Link]]
+    links: Optional[List[LinkWithExtraFields]]
     assets: Optional[Dict]
     extent: SpatioTemporalExtent
 
