@@ -15,10 +15,8 @@ class TestList:
     def setup(
         self,
         api_client: "TestClient",
-        # pgstac_secret_arn = "app_secret"
     ):
         self.api_client = api_client
-        # self.pgstac_secret_arn = pgstac_secret_arn
 
     @pytest.mark.anyio
     async def test_index(self):
