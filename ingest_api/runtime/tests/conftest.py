@@ -2,7 +2,7 @@ import os
 
 import boto3
 import pytest
-from moto import mock_dynamodb, mock_ssm
+from moto import mock_aws
 from stac_pydantic import Item
 
 from fastapi.testclient import TestClient
@@ -33,7 +33,7 @@ def test_environ():
 
 @pytest.fixture
 def mock_ssm_parameter_store():
-    with mock_ssm():
+    with mock_aws():
         yield boto3.client("ssm", region_name="us-west-2")
 
 
@@ -53,7 +53,7 @@ def api_client(app):
 def mock_table(app, test_environ):
     from src import dependencies, main
 
-    with mock_dynamodb():
+    with mock_aws():
         client = boto3.resource("dynamodb", region_name="us-west-2")
         mock_table = client.create_table(
             TableName=main.settings.dynamodb_table,
