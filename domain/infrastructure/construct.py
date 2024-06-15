@@ -1,4 +1,5 @@
 """CDK Construct for a custom API domain."""
+
 from typing import Optional
 
 from aws_cdk import (
@@ -29,6 +30,7 @@ class DomainConstruct(Construct):
 
         self.stac_domain_name = None
         self.raster_domain_name = None
+        self.features_domain_name = None
         self.ingest_domain_name = None
 
         if veda_domain_settings.create_custom_subdomains:
@@ -60,13 +62,18 @@ class DomainConstruct(Construct):
                 raster_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-raster"
                 stac_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-stac"
                 ingest_url_prefix = f"{veda_domain_settings.api_prefix.lower()}-ingest"
+                features_url_prefix = (
+                    f"{veda_domain_settings.api_prefix.lower()}-features"
+                )
             else:
                 raster_url_prefix = f"{stage.lower()}-raster"
                 stac_url_prefix = f"{stage.lower()}-stac"
                 ingest_url_prefix = f"{stage.lower()}-ingest"
+                features_url_prefix = f"{stage.lower()}-features"
             raster_domain_name = f"{raster_url_prefix}.{hosted_zone_name}"
             stac_domain_name = f"{stac_url_prefix}.{hosted_zone_name}"
             ingest_domain_name = f"{ingest_url_prefix}.{hosted_zone_name}"
+            features_domain_name = f"{features_url_prefix}.{hosted_zone_name}"
 
             self.raster_domain_name = aws_apigatewayv2_alpha.DomainName(
                 self,
@@ -131,6 +138,27 @@ class DomainConstruct(Construct):
                 record_name=ingest_url_prefix,
             )
 
+            self.features_domain_name = aws_apigatewayv2_alpha.DomainName(
+                self,
+                "featuresApiCustomDomain",
+                domain_name=features_domain_name,
+                certificate=certificate,
+            )
+
+            aws_route53.ARecord(
+                self,
+                "features-api-dns-record",
+                zone=hosted_zone,
+                target=aws_route53.RecordTarget.from_alias(
+                    aws_route53_targets.ApiGatewayv2DomainProperties(
+                        regional_domain_name=self.features_domain_name.regional_domain_name,
+                        regional_hosted_zone_id=self.features_domain_name.regional_hosted_zone_id,
+                    )
+                ),
+                # Note: CDK will append the hosted zone name (eg: `veda-backend.xyz` to this record name)
+                record_name=ingest_url_prefix,
+            )
+
             CfnOutput(
                 self,
                 "raster-api",
@@ -145,4 +173,9 @@ class DomainConstruct(Construct):
                 self,
                 "ingest-api",
                 value=f"https://{ingest_url_prefix}.{hosted_zone_name}/",
+            )
+            CfnOutput(
+                self,
+                "features-api",
+                value=f"https://{features_url_prefix}.{hosted_zone_name}/",
             )

@@ -1,0 +1,15 @@
+ARG PYTHON_VERSION=3.10
+
+FROM ghcr.io/vincentsarago/uvicorn-gunicorn:${PYTHON_VERSION}
+
+ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
+
+# certain versions of cramjam/python/os are not finding wheels and need build it with rust cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+COPY features_api/runtime /tmp/features
+RUN pip install -e /tmp/features
+
+ENV MODULE_NAME src.app
+ENV VARIABLE_NAME app
