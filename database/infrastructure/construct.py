@@ -136,7 +136,7 @@ class RdsConstruct(Construct):
         rds_backups_bucket = aws_s3.Bucket(
             self,
             id=f"{stack_name}-rds-backups-bucket",
-            bucket_name=f"{stack_name}-rds_backups-bucket",
+            bucket_name=f"{stack_name}-rds-backups-bucket",
             removal_policy=RemovalPolicy.RETAIN,
             versioned=True,
             lifecycle_rules=[
