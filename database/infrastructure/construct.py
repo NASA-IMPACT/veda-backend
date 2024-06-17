@@ -212,10 +212,8 @@ class RdsConstruct(Construct):
             "publicly_accessible": veda_db_settings.publicly_accessible,
             "parameter_group": parameter_group,
             "preferred_maintenance_window": "sun:05:00-sun:06:00",
-            "backup": aws_rds.BackupProps(
-                retention=Duration.days(7),
-                preferred_window="02:00-03:00",
-            ),
+            "backup_retention": Duration.days(7),
+            "preferred_backup_window": "02:00-03:00",
             "s3_export_buckets": [rds_backups_bucket],
         }
 
