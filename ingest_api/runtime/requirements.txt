@@ -14,8 +14,6 @@ python-multipart==0.0.7
 requests>=2.27.1
 s3fs==2023.3.0
 stac-pydantic @ git+https://github.com/ividito/stac-pydantic.git@3f4cb381c85749bb4b15d1181179057ec0f51a94
-xarray==2023.1.0
-xstac==1.1.0
 zarr==2.13.6
 boto3==1.24.59
 aws_xray_sdk>=2.6.0,<3
