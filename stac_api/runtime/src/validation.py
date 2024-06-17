@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 api_settings = ApiSettings()
-prepend_path = api_settings.root_path or ""
+path_prefix = api_settings.root_path or ""
 
 
 class Items(BaseModel):
@@ -39,17 +39,17 @@ class ValidationMiddleware(BaseHTTPMiddleware):
                 body = await request.body()
                 request_data = json.loads(body)
                 if re.match(
-                    f"^{prepend_path}/collections(?:/[^/]+)?$",
+                    f"^{path_prefix}/collections(?:/[^/]+)?$",
                     request.url.path,
                 ):
                     Collection(**request_data)
                 elif re.match(
-                    f"^{prepend_path}/collections/[^/]+/items(?:/[^/]+)?$",
+                    f"^{path_prefix}/collections/[^/]+/items(?:/[^/]+)?$",
                     request.url.path,
                 ):
                     Item(**request_data)
                 elif re.match(
-                    f"^{prepend_path}/collections/[^/]+/bulk-items$",
+                    f"^{path_prefix}/collections/[^/]+/bulk-items$",
                     request.url.path,
                 ):
                     BulkItems(**request_data)
