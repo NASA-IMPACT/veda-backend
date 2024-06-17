@@ -39,12 +39,6 @@ class Settings(BaseSettings):
     stage: Optional[str] = Field(description="API stage")
 
     @property
-    def jwks_url(self) -> AnyHttpUrl:
-        """JWKS url"""
-        region = self.userpool_id.split("_")[0]
-        return f"https://cognito-idp.{region}.amazonaws.com/{self.userpool_id}/.well-known/jwks.json"
-
-    @property
     def cognito_authorization_url(self) -> AnyHttpUrl:
         """Cognito user pool authorization url"""
         return f"{self.cognito_domain}/oauth2/authorize"
