@@ -14,6 +14,11 @@ class vedaRouteSettings(BaseSettings):
         description="Boolean if Cloudfront Distribution should be deployed",
     )
 
+    cloudfront_oac: Optional[bool] = Field(
+        True,
+        description="Boolean that configures Cloufront STAC Browser Origin with Origin Access Control",
+    )
+
     # STAC S3 browser bucket name
     stac_browser_bucket: Optional[str] = Field(
         None, description="STAC browser S3 bucket name"

@@ -40,6 +40,15 @@ class vedaSTACSettings(BaseSettings):
     )
     client_id: str = Field(description="The Cognito APP client ID")
     client_secret: str = Field("", description="The Cognito APP client secret")
+    project_name: Optional[str] = Field(
+        "VEDA (Visualization, Exploration, and Data Analysis)",
+        description="Name of the STAC Catalog",
+    )
+
+    project_description: Optional[str] = Field(
+        "VEDA (Visualization, Exploration, and Data Analysis) is NASA's open-source Earth Science platform in the cloud.",
+        description="Description of the STAC Catalog",
+    )
 
     class Config:
         """model config"""

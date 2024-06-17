@@ -42,7 +42,7 @@ auth = Auth(api_settings)
 
 api = VedaStacApi(
     app=FastAPI(
-        title=api_settings.name,
+        title=f"{api_settings.project_name} STAC API",
         openapi_url="/openapi.json",
         docs_url="/docs",
         root_path=api_settings.root_path,
@@ -52,8 +52,8 @@ api = VedaStacApi(
             "usePkceWithAuthorizationCodeGrant": True,
         },
     ),
-    title=api_settings.name,
-    description=api_settings.name,
+    title=f"{api_settings.project_name} STAC API",
+    description=api_settings.project_description,
     settings=api_settings.load_postgres_settings(),
     extensions=PgStacExtensions,
     client=VedaCrudClient(post_request_model=POSTModel),

@@ -1,6 +1,7 @@
 """Settings for Raster API - any environment variables starting with
 `VEDA_RASTER_` will overwrite the values of variables in this file
 """
+
 from typing import Dict, List, Optional
 
 from pydantic import BaseSettings, Field
@@ -77,6 +78,11 @@ class vedaRasterSettings(BaseSettings):
     custom_host: str = Field(
         None,
         description="Complete url of custom host including subdomain. When provided, override host in api integration",
+    )
+
+    project_name: Optional[str] = Field(
+        "VEDA (Visualization, Exploration, and Data Analysis)",
+        description="Name of the STAC Catalog",
     )
 
     class Config:

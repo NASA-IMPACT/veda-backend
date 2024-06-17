@@ -44,6 +44,8 @@ class StacApiLambdaConstruct(Construct):
         stack_name = Stack.of(self).stack_name
 
         lambda_env = {
+            "VEDA_STAC_PROJECT_NAME": veda_stac_settings.project_name,
+            "VEDA_STAC_PROJECT_DESCRIPTION": veda_stac_settings.project_description,
             "VEDA_STAC_ROOT_PATH": veda_stac_settings.stac_root_path,
             "VEDA_STAC_STAGE": stage,
             "VEDA_STAC_USERPOOL_ID": veda_stac_settings.userpool_id,

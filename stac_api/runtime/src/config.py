@@ -55,9 +55,10 @@ def get_secret_dict(secret_name: str):
 class _ApiSettings(BaseSettings):
     """API settings"""
 
-    name: str = "veda-stac"
+    project_name: Optional[str] = "veda"
+    project_description: Optional[str] = None
     cors_origins: str = "*"
-    cachecontrol: str = "public, max-age=3600"
+    cachecontrol: str = "max-age=30,must-revalidate,s-maxage=604800"
     debug: bool = False
     root_path: Optional[str] = None
     pgstac_secret_arn: Optional[str]

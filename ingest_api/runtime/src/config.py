@@ -21,6 +21,11 @@ class Settings(BaseSettings):
         description="ARN of AWS Role used to validate access to S3 data"
     )
 
+    aws_request_payer: Optional[str] = Field(
+        None,
+        description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs",
+    )
+
     stac_url: AnyHttpUrl = Field(description="URL of STAC API")
 
     userpool_id: str = Field(description="The Cognito Userpool used for authentication")
