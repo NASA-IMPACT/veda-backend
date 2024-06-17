@@ -135,7 +135,7 @@ class RdsConstruct(Construct):
         # Then to Glacier in 6 months
         rds_backups_bucket = aws_s3.Bucket(
             self,
-            id=f"{stack_name}-rds_backups-bucket",
+            id=f"{stack_name}-rds-backups-bucket",
             bucket_name=f"{stack_name}-rds_backups-bucket",
             removal_policy=RemovalPolicy.RETAIN,
             versioned=True,
