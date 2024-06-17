@@ -16,6 +16,7 @@ from aws_cdk import (
     aws_logs,
     aws_rds,
     aws_secretsmanager,
+    aws_s3,
 )
 from constructs import Construct
 
@@ -129,6 +130,31 @@ class RdsConstruct(Construct):
 
         stack_name = Stack.of(self).stack_name
 
+        # Create a new S3 bucket for RDS backups
+        # The objects on this bucket will transition to IA in 7 days
+        # Then to Glacier in 6 months
+        rds_backups_bucket = aws_s3.Bucket(
+            self,
+            id=f"{stack_name}-rds_backups-bucket",
+            bucket_name=f"{stack_name}-rds_backups-bucket",
+            removal_policy=RemovalPolicy.RETAIN,
+            versioned=True,
+            lifecycle_rules=[
+                aws_s3.LifecycleRule(
+                    transitions=[
+                        aws_s3.Transition(
+                            storage_class=aws_s3.StorageClass.INFREQUENT_ACCESS,
+                            transition_after=Duration.days(7),
+                        ),
+                        aws_s3.Transition(
+                            storage_class=aws_s3.StorageClass.GLACIER,
+                            transition_after=Duration.days(182),
+                        ),
+                    ],
+                )
+            ],
+        )
+
         # Custom parameter group
         engine = aws_rds.DatabaseInstanceEngine.postgres(
             version=aws_rds.PostgresEngineVersion.of(
@@ -185,6 +211,12 @@ class RdsConstruct(Construct):
             "removal_policy": RemovalPolicy.RETAIN,
             "publicly_accessible": veda_db_settings.publicly_accessible,
             "parameter_group": parameter_group,
+            "preferred_maintenance_window": "sun:05:00-sun:06:00",
+            "backup": aws_rds.BackupProps(
+                retention=Duration.days(7),
+                preferred_window="02:00-03:00",
+            ),
+            "s3_export_buckets": [rds_backups_bucket],
         }
 
         # Only set storage_encrypted if creating a database instance not from snapshot. Use an encrypted snapshot when creating a new encrypted database from a snapshot.
