@@ -1,13 +1,15 @@
 """API settings.
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac"""
+
 import base64
 import json
 from functools import lru_cache
 from typing import Optional
 
 import boto3
-import pydantic
+from pydantic import AnyHttpUrl, BaseSettings, Field, validator
 
+from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
 
 # from stac_fastapi.pgstac.extensions import QueryExtension
@@ -18,8 +20,11 @@ from stac_fastapi.extensions.core import (
     QueryExtension,
     SortExtension,
     TokenPaginationExtension,
+    TransactionExtension,
 )
+from stac_fastapi.extensions.third_party import BulkTransactionExtension
 from stac_fastapi.pgstac.config import Settings
+from stac_fastapi.pgstac.transactions import BulkTransactionsClient, TransactionsClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
 
@@ -47,7 +52,7 @@ def get_secret_dict(secret_name: str):
         return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
-class _ApiSettings(pydantic.BaseSettings):
+class _ApiSettings(BaseSettings):
     """API settings"""
 
     project_name: Optional[str] = "veda"
@@ -59,7 +64,30 @@ class _ApiSettings(pydantic.BaseSettings):
     pgstac_secret_arn: Optional[str]
     stage: Optional[str] = None
 
-    @pydantic.validator("cors_origins")
+    userpool_id: str = Field(description="The Cognito Userpool used for authentication")
+    cognito_domain: Optional[AnyHttpUrl] = Field(
+        description="The base url of the Cognito domain for authorization and token urls"
+    )
+    client_id: str = Field(description="The Cognito APP client ID")
+    client_secret: str = Field("", description="The Cognito APP client secret")
+
+    @property
+    def jwks_url(self) -> AnyHttpUrl:
+        """JWKS url"""
+        region = self.userpool_id.split("_")[0]
+        return f"https://cognito-idp.{region}.amazonaws.com/{self.userpool_id}/.well-known/jwks.json"
+
+    @property
+    def cognito_authorization_url(self) -> AnyHttpUrl:
+        """Cognito user pool authorization url"""
+        return f"{self.cognito_domain}/oauth2/authorize"
+
+    @property
+    def cognito_token_url(self) -> AnyHttpUrl:
+        """Cognito user pool token and refresh url"""
+        return f"{self.cognito_domain}/oauth2/token"
+
+    @validator("cors_origins")
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
@@ -101,7 +129,7 @@ def ApiSettings() -> _ApiSettings:
     return _ApiSettings()
 
 
-class _TilesApiSettings(pydantic.BaseSettings):
+class _TilesApiSettings(BaseSettings):
     """Tile API settings"""
 
     titiler_endpoint: Optional[str]
@@ -123,12 +151,18 @@ def TilesApiSettings() -> _TilesApiSettings:
 
 
 extensions = [
+    BulkTransactionExtension(client=BulkTransactionsClient()),
+    ContextExtension(),
+    FieldsExtension(),
     FilterExtension(),
     QueryExtension(),
     SortExtension(),
-    FieldsExtension(),
     TokenPaginationExtension(),
-    ContextExtension(),
+    TransactionExtension(
+        client=TransactionsClient(),
+        settings=ApiSettings().load_postgres_settings(),
+        response_class=ORJSONResponse,
+    ),
 ]
 post_request_model = create_post_request_model(extensions, base_model=PgstacSearch)
 get_request_model = create_get_request_model(extensions)

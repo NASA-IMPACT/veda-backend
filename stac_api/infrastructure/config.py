@@ -2,7 +2,7 @@
 
 from typing import Dict, Optional
 
-from pydantic import BaseSettings, Field
+from pydantic import AnyHttpUrl, BaseSettings, Field
 
 
 class vedaSTACSettings(BaseSettings):
@@ -34,6 +34,12 @@ class vedaSTACSettings(BaseSettings):
         description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
 
+    userpool_id: str = Field(description="The Cognito Userpool used for authentication")
+    cognito_domain: Optional[AnyHttpUrl] = Field(
+        description="The base url of the Cognito domain for authorization and token urls"
+    )
+    client_id: str = Field(description="The Cognito APP client ID")
+    client_secret: str = Field("", description="The Cognito APP client secret")
     project_name: Optional[str] = Field(
         "VEDA (Visualization, Exploration, and Data Analysis)",
         description="Name of the STAC Catalog",

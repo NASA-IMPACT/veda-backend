@@ -7,6 +7,7 @@ RUN pip install -r /tmp/ingestor/requirements.txt -t /asset --no-binary pydantic
 RUN rm -rf /tmp/ingestor
 # TODO this is temporary until we use a real packaging system like setup.py or poetry
 COPY ingest_api/runtime/src /asset/src
+COPY common /asset/common
 
 # # Reduce package size and remove useless files
 RUN cd /asset && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[2-3][0-9]//'); cp $f $n; done;

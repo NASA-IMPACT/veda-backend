@@ -109,12 +109,6 @@ class ApiConstruct(Construct):
 
         register_ssm_parameter(
             self,
-            name="jwks_url",
-            value=self.jwks_url,
-            description="JWKS URL for Cognito user pool",
-        )
-        register_ssm_parameter(
-            self,
             name="dynamodb_table",
             value=self.table.table_name,
             description="Name of table used to store ingestions",

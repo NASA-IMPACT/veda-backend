@@ -1,6 +1,7 @@
 """FastAPI application using PGStac.
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
+
 from aws_lambda_powertools.metrics import MetricUnit
 from src.config import ApiSettings, TilesApiSettings
 from src.config import extensions as PgStacExtensions
@@ -8,7 +9,9 @@ from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
+from common.auth import Auth
 from fastapi import APIRouter, FastAPI
+from fastapi.params import Depends
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware.cors import CORSMiddleware
@@ -20,6 +23,8 @@ from starlette_cramjam.middleware import CompressionMiddleware
 from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
+from .routes import add_route_dependencies
+from .validation import ValidationMiddleware
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -33,12 +38,19 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 api_settings = ApiSettings()
 tiles_settings = TilesApiSettings()
 
+auth = Auth(api_settings)
+
 api = VedaStacApi(
     app=FastAPI(
         title=f"{api_settings.project_name} STAC API",
         openapi_url="/openapi.json",
         docs_url="/docs",
         root_path=api_settings.root_path,
+        swagger_ui_init_oauth={
+            "appName": "Cognito",
+            "clientId": api_settings.client_id,
+            "usePkceWithAuthorizationCodeGrant": True,
+        },
     ),
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
@@ -48,7 +60,7 @@ api = VedaStacApi(
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
     response_class=ORJSONResponse,
-    middlewares=[CompressionMiddleware],
+    middlewares=[CompressionMiddleware, ValidationMiddleware],
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 app = api.app
@@ -62,9 +74,36 @@ if api_settings.cors_origins:
         CORSMiddleware,
         allow_origins=api_settings.cors_origins,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "OPTIONS"],
         allow_headers=["*"],
     )
+
+# Require auth for all endpoints that create, modify or delete data.
+add_route_dependencies(
+    app.router.routes,
+    [
+        {"path": "/collections", "method": "POST", "type": "http"},
+        {"path": "/collections/{collectionId}", "method": "PUT", "type": "http"},
+        {"path": "/collections/{collectionId}", "method": "DELETE", "type": "http"},
+        {"path": "/collections/{collectionId}/items", "method": "POST", "type": "http"},
+        {
+            "path": "/collections/{collectionId}/items/{itemId}",
+            "method": "PUT",
+            "type": "http",
+        },
+        {
+            "path": "/collections/{collectionId}/items/{itemId}",
+            "method": "DELETE",
+            "type": "http",
+        },
+        {
+            "path": "/collections/{collectionId}/bulk_items",
+            "method": "POST",
+            "type": "http",
+        },
+    ],
+    [Depends(auth.validated_token)],
+)
 
 if tiles_settings.titiler_endpoint:
     # Register to the TiTiler extension to the api
