@@ -5,7 +5,7 @@ from typing import Optional
 from pydantic import AnyHttpUrl, BaseSettings, Field, constr
 from pydantic_ssm_settings import AwsSsmSourceConfig
 
-from common.auth import Auth
+from common_auth.auth import Auth
 
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
 
@@ -66,4 +66,9 @@ settings = (
     )
 )
 
-auth = Auth(settings)
+auth = Auth(
+    authorization_url = settings.cognito_authorization_url,
+    token_url = settings.cognito_token_url,
+    refresh_url = settings.cognito_token_url,
+    jwks_url = settings.jwks_url,
+)

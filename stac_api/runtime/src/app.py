@@ -9,7 +9,7 @@ from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
-from common.auth import Auth
+from common_auth.auth import Auth
 from fastapi import APIRouter, FastAPI
 from fastapi.params import Depends
 from fastapi.responses import ORJSONResponse
