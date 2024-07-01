@@ -1,0 +1,19 @@
+[project]
+name = "common_auth"
+description = "Common auth utilities"
+version = "0.1.0"
+dependencies = [
+    "fastapi<=0.108.0",
+    "pyjwt>=2.8.0",
+    "cryptography>=42.0.5",
+    "pydantic>=1.10.12",
+]
+requires-python = ">=3.8"
+authors = [
+  {name = "", email = ""},
+  {email = "veda@uah.edu"},
+]
+maintainers = [
+  {name = "", email = ""},
+  {email = "veda@uah.edu"},
+]
