@@ -12,7 +12,7 @@ search_endpoint = "search"
 
 def test_stac_health():
     """test stac health endpoint."""
-    # Ping
+
     assert httpx.get(f"{stac_endpoint}/{health_endpoint}").status_code == 200
 
 
