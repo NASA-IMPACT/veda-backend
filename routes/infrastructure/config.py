@@ -45,7 +45,7 @@ class vedaRouteSettings(BaseSettings):
     )
 
     shared_web_acl_id: Optional[str] = Field(
-        None, description="Shared Web ACL ID for CloudFront Distribution"
+        None, description="Shared Web ACL ID ARN for CloudFront Distribution"
     )
 
     class Config:
