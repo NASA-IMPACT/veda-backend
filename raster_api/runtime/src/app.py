@@ -7,7 +7,7 @@ from src.algorithms import PostProcessParams
 from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
 from src.dependencies import ColorMapParams, ItemPathParams
-from src.extensions import stacViewerExtension
+from src.extensions import searchInfoExtension, stacViewerExtension 
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 from src.version import __version__ as veda_raster_version
 
@@ -23,7 +23,7 @@ from titiler.core.resources.responses import JSONResponse
 from titiler.extensions import cogValidateExtension, cogViewerExtension
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
-from titiler.pgstac.factory import MosaicTilerFactory
+from titiler.pgstac.factory import MosaicTilerFactory, add_search_register_route, add_mosaic_register_route
 from titiler.pgstac.reader import PgSTACReader
 
 logging.getLogger("botocore.credentials").disabled = True
@@ -67,7 +67,8 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 # /mosaic - PgSTAC Mosaic titiler endpoint
 ###############################################################################
 mosaic = MosaicTilerFactory(
-    router_prefix="/mosaic",
+    router_prefix="/mosaic/{search_id}",
+    path_dependency=ItemPathParams,
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     process_dependency=PostProcessParams,
@@ -81,10 +82,32 @@ mosaic = MosaicTilerFactory(
     # add /bbox [GET] and /feature  [POST] (default to False)
     add_part=True,
     colormap_dependency=ColorMapParams,
+    extensions=[
+        searchInfoExtension(),
+    ]
 )
-app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
-# TODO
-# prefix will be replaced by `/mosaics/{search_id}` in titiler-pgstac 1.0.0
+app.include_router(mosaic.router, prefix="/mosaic/{search_id}", tags=["Mosaic"])
+
+add_search_register_route(
+    app,
+    # any dependency we want to validate
+    # when creating the tilejson/map links
+    tile_dependencies=[
+        mosaic.layer_dependency,
+        mosaic.dataset_dependency,
+        mosaic.pixel_selection_dependency,
+        mosaic.process_dependency,
+        mosaic.rescale_dependency,
+        mosaic.colormap_dependency,
+        mosaic.render_dependency,
+        mosaic.pgstac_dependency,
+        mosaic.reader_dependency,
+        mosaic.backend_dependency,
+    ],
+)
+# add /list endpoint
+add_search_register_route(app)
+
 
 ###############################################################################
 # /stac - Custom STAC titiler endpoint
