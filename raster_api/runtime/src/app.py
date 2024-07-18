@@ -25,7 +25,7 @@ from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
 from titiler.pgstac.factory import (
     MosaicTilerFactory,
-    add_mosaic_register_route,
+    add_search_list_route,
     add_search_register_route,
 )
 from titiler.pgstac.reader import PgSTACReader
@@ -110,7 +110,7 @@ add_search_register_route(
     ],
 )
 # add /list endpoint
-add_search_register_route(app)
+add_search_list_route(app)
 
 
 ###############################################################################
