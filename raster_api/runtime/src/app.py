@@ -7,7 +7,7 @@ from src.algorithms import PostProcessParams
 from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
 from src.dependencies import ColorMapParams, ItemPathParams
-from src.extensions import searchInfoExtension, stacViewerExtension 
+from src.extensions import searchInfoExtension, stacViewerExtension
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 from src.version import __version__ as veda_raster_version
 
@@ -23,7 +23,11 @@ from titiler.core.resources.responses import JSONResponse
 from titiler.extensions import cogValidateExtension, cogViewerExtension
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
-from titiler.pgstac.factory import MosaicTilerFactory, add_search_register_route, add_mosaic_register_route
+from titiler.pgstac.factory import (
+    MosaicTilerFactory,
+    add_mosaic_register_route,
+    add_search_register_route,
+)
 from titiler.pgstac.reader import PgSTACReader
 
 logging.getLogger("botocore.credentials").disabled = True
@@ -84,7 +88,7 @@ mosaic = MosaicTilerFactory(
     colormap_dependency=ColorMapParams,
     extensions=[
         searchInfoExtension(),
-    ]
+    ],
 )
 app.include_router(mosaic.router, prefix="/mosaic/{search_id}", tags=["Mosaic"])
 
