@@ -78,8 +78,6 @@ mosaic = MosaicTilerFactory(
     environment_dependency=settings.get_gdal_config,
     process_dependency=PostProcessParams,
     router=APIRouter(route_class=LoggerRouteHandler),
-    # add /list (default to False)
-    add_mosaic_list=settings.enable_mosaic_search,
     # add /statistics [POST] (default to False)
     add_statistics=True,
     # add /map viewer (default to False)
@@ -95,6 +93,7 @@ app.include_router(mosaic.router, prefix="/mosaic/{search_id}", tags=["Mosaic"])
 
 add_search_register_route(
     app,
+    prefix="/mosaic",
     # any dependency we want to validate
     # when creating the tilejson/map links
     tile_dependencies=[
@@ -109,9 +108,10 @@ add_search_register_route(
         mosaic.reader_dependency,
         mosaic.backend_dependency,
     ],
+    tags=["Mosaic"],
 )
 # add /list endpoint
-add_search_list_route(app)
+add_search_list_route(app, prefix="/mosaic", tags=["Mosaic"])
 
 
 ###############################################################################
