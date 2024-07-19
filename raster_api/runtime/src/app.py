@@ -23,6 +23,7 @@ from titiler.core.resources.responses import JSONResponse
 from titiler.extensions import cogValidateExtension, cogViewerExtension
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
+from titiler.pgstac.dependencies import SearchIdParams
 from titiler.pgstac.extensions import searchInfoExtension
 from titiler.pgstac.factory import (
     MosaicTilerFactory,
@@ -73,7 +74,7 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 ###############################################################################
 mosaic = MosaicTilerFactory(
     router_prefix="/mosaic/{search_id}",
-    path_dependency=ItemPathParams,
+    path_dependency=SearchIdParams,
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     process_dependency=PostProcessParams,
