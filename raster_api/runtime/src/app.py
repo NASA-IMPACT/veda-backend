@@ -3,10 +3,9 @@ import logging
 from contextlib import asynccontextmanager
 
 from aws_lambda_powertools.metrics import MetricUnit
-from src.algorithms import PostProcessParams
 from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
-from src.dependencies import ColorMapParams, ItemPathParams
+from src.dependencies import ItemPathParams
 from src.extensions import stacViewerExtension
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 from src.version import __version__ as veda_raster_version
@@ -16,7 +15,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_cramjam.middleware import CompressionMiddleware
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
-from titiler.core.factory import MultiBaseTilerFactory, TilerFactory, TMSFactory
+from titiler.core.factory import ColorMapFactory, MultiBaseTilerFactory, TilerFactory, TMSFactory
 from titiler.core.middleware import CacheControlMiddleware
 from titiler.core.resources.enums import OptionalHeader
 from titiler.core.resources.responses import JSONResponse
@@ -73,11 +72,10 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 # /mosaic - PgSTAC Mosaic titiler endpoint
 ###############################################################################
 mosaic = MosaicTilerFactory(
-    router_prefix="/mosaic/{search_id}",
+    router_prefix="/searches/{search_id}",
     path_dependency=SearchIdParams,
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
-    process_dependency=PostProcessParams,
     router=APIRouter(route_class=LoggerRouteHandler),
     # add /statistics [POST] (default to False)
     add_statistics=True,
@@ -85,34 +83,25 @@ mosaic = MosaicTilerFactory(
     add_viewer=False,
     # add /bbox [GET] and /feature  [POST] (default to False)
     add_part=True,
-    colormap_dependency=ColorMapParams,
     extensions=[
         searchInfoExtension(),
     ],
 )
-app.include_router(mosaic.router, prefix="/mosaic/{search_id}", tags=["Mosaic"])
+app.include_router(mosaic.router, prefix="/searches/{search_id}", tags=["Mosaic"])
 
 add_search_register_route(
     app,
-    prefix="/mosaic",
+    prefix="/searches",
     # any dependency we want to validate
     # when creating the tilejson/map links
     tile_dependencies=[
-        mosaic.layer_dependency,
-        mosaic.dataset_dependency,
-        mosaic.pixel_selection_dependency,
         mosaic.process_dependency,
-        mosaic.rescale_dependency,
-        mosaic.colormap_dependency,
-        mosaic.render_dependency,
-        mosaic.pgstac_dependency,
-        mosaic.reader_dependency,
-        mosaic.backend_dependency,
+        mosaic.colormap_dependency
     ],
     tags=["Mosaic"],
 )
 # add /list endpoint
-add_search_list_route(app, prefix="/mosaic", tags=["Mosaic"])
+add_search_list_route(app, prefix="/searches", tags=["Mosaic"])
 
 
 ###############################################################################
@@ -166,6 +155,11 @@ cog = TilerFactory(
 
 app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
 
+###############################################################################
+# Colormaps endpoints
+###############################################################################
+cmaps = ColorMapFactory()
+app.include_router(cmaps.router, tags=["ColorMaps"])
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])
 def ping():
