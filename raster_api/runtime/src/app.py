@@ -16,7 +16,12 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_cramjam.middleware import CompressionMiddleware
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
-from titiler.core.factory import ColorMapFactory, MultiBaseTilerFactory, TilerFactory, TMSFactory
+from titiler.core.factory import (
+    ColorMapFactory,
+    MultiBaseTilerFactory,
+    TilerFactory,
+    TMSFactory,
+)
 from titiler.core.middleware import CacheControlMiddleware
 from titiler.core.resources.enums import OptionalHeader
 from titiler.core.resources.responses import JSONResponse
@@ -97,10 +102,7 @@ add_search_register_route(
     prefix="/searches",
     # any dependency we want to validate
     # when creating the tilejson/map links
-    tile_dependencies=[
-        mosaic.process_dependency,
-        mosaic.colormap_dependency
-    ],
+    tile_dependencies=[mosaic.process_dependency, mosaic.colormap_dependency],
     tags=["Mosaic"],
 )
 # add /list endpoint
@@ -163,6 +165,7 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
 ###############################################################################
 cmaps = ColorMapFactory()
 app.include_router(cmaps.router, tags=["ColorMaps"])
+
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])
 def ping():
