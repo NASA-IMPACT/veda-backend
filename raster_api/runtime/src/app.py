@@ -3,9 +3,10 @@ import logging
 from contextlib import asynccontextmanager
 
 from aws_lambda_powertools.metrics import MetricUnit
+from src.algorithms import PostProcessParams
 from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
-from src.dependencies import ItemPathParams
+from src.dependencies import ColorMapParams, ItemPathParams
 from src.extensions import stacViewerExtension
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 from src.version import __version__ as veda_raster_version
@@ -76,6 +77,7 @@ mosaic = MosaicTilerFactory(
     path_dependency=SearchIdParams,
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
+    process_dependency=PostProcessParams,
     router=APIRouter(route_class=LoggerRouteHandler),
     # add /statistics [POST] (default to False)
     add_statistics=True,
@@ -83,6 +85,7 @@ mosaic = MosaicTilerFactory(
     add_viewer=False,
     # add /bbox [GET] and /feature  [POST] (default to False)
     add_part=True,
+    colormap_dependency=ColorMapParams,
     extensions=[
         searchInfoExtension(),
     ],
