@@ -33,7 +33,9 @@ def test_mosaic_api():
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
     assert resp.json()[0]["id"] == "20200307aC0853900w361030"
 
-    resp = httpx.get(f"{raster_endpoint}/searches/{searchid}/tiles/15/8589/12849/assets")
+    resp = httpx.get(
+        f"{raster_endpoint}/searches/{searchid}/tiles/15/8589/12849/assets"
+    )
     assert resp.status_code == 200
     assert len(resp.json()) == 1
     assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
@@ -127,7 +129,9 @@ def test_mosaic_search():
     assert links[1]["rel"] == "next"
     assert links[1]["href"] == f"{raster_endpoint}/searches/list?limit=10&offset=10"
 
-    resp = httpx.get(f"{raster_endpoint}/searches/list", params={"limit": 1, "offset": 1})
+    resp = httpx.get(
+        f"{raster_endpoint}/searches/list", params={"limit": 1, "offset": 1}
+    )
     assert resp.status_code == 200
     assert resp.json()["context"]["matched"] > 10
     assert resp.json()["context"]["limit"] == 1
