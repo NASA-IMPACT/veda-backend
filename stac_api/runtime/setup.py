@@ -20,6 +20,7 @@ inst_reqs = [
     "aws_xray_sdk>=2.6.0,<3",
     "cryptography>=42.0.5",
     "pyjwt>=2.8.0",
+    "pystac[validation]==1.10.1"
 ]
 
 extra_reqs = {
