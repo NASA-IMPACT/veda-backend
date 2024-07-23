@@ -3,7 +3,7 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
 from aws_lambda_powertools.metrics import MetricUnit
-from src.config import ApiSettings, TilesApiSettings
+from src.config import api_settings, TilesApiSettings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
@@ -35,7 +35,6 @@ except ImportError:
 
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
-api_settings = ApiSettings()
 tiles_settings = TilesApiSettings()
 
 auth = Auth(api_settings)
@@ -78,32 +77,33 @@ if api_settings.cors_origins:
         allow_headers=["*"],
     )
 
-# Require auth for all endpoints that create, modify or delete data.
-add_route_dependencies(
-    app.router.routes,
-    [
-        {"path": "/collections", "method": "POST", "type": "http"},
-        {"path": "/collections/{collectionId}", "method": "PUT", "type": "http"},
-        {"path": "/collections/{collectionId}", "method": "DELETE", "type": "http"},
-        {"path": "/collections/{collectionId}/items", "method": "POST", "type": "http"},
-        {
-            "path": "/collections/{collectionId}/items/{itemId}",
-            "method": "PUT",
-            "type": "http",
-        },
-        {
-            "path": "/collections/{collectionId}/items/{itemId}",
-            "method": "DELETE",
-            "type": "http",
-        },
-        {
-            "path": "/collections/{collectionId}/bulk_items",
-            "method": "POST",
-            "type": "http",
-        },
-    ],
-    [Depends(auth.validated_token)],
-)
+if api_settings.enable_transactions:
+    # Require auth for all endpoints that create, modify or delete data.
+    add_route_dependencies(
+        app.router.routes,
+        [
+            {"path": "/collections", "method": "POST", "type": "http"},
+            {"path": "/collections/{collectionId}", "method": "PUT", "type": "http"},
+            {"path": "/collections/{collectionId}", "method": "DELETE", "type": "http"},
+            {"path": "/collections/{collectionId}/items", "method": "POST", "type": "http"},
+            {
+                "path": "/collections/{collectionId}/items/{itemId}",
+                "method": "PUT",
+                "type": "http",
+            },
+            {
+                "path": "/collections/{collectionId}/items/{itemId}",
+                "method": "DELETE",
+                "type": "http",
+            },
+            {
+                "path": "/collections/{collectionId}/bulk_items",
+                "method": "POST",
+                "type": "http",
+            },
+        ],
+        [Depends(auth.validated_token)],
+    )
 
 if tiles_settings.titiler_endpoint:
     # Register to the TiTiler extension to the api
