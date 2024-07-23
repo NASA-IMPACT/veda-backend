@@ -5,27 +5,23 @@ import re
 from typing import Dict
 
 from pydantic import BaseModel, Field, ValidationError
-from src.config import ApiSettings
-from stac_pydantic import Collection, Item
+from src.config import api_settings
+
+from pystac import STACObjectType
+from pystac.validation import validate_dict
+from pystac.errors import STACValidationError
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-api_settings = ApiSettings()
 path_prefix = api_settings.root_path or ""
-
-
-class Items(BaseModel):
-    """Validation model for items used in BulkItems"""
-
-    items: Dict[str, Item]
 
 
 class BulkItems(BaseModel):
     """Validation model for bulk-items endpoint request"""
 
-    items: Items
+    items: Dict[str, dict]
     method: str = Field(default="insert")
 
 
@@ -42,21 +38,23 @@ class ValidationMiddleware(BaseHTTPMiddleware):
                     f"^{path_prefix}/collections(?:/[^/]+)?$",
                     request.url.path,
                 ):
-                    Collection(**request_data)
+                    validate_dict(request_data, STACObjectType.COLLECTION)
                 elif re.match(
                     f"^{path_prefix}/collections/[^/]+/items(?:/[^/]+)?$",
                     request.url.path,
                 ):
-                    Item(**request_data)
+                    validate_dict(request_data, STACObjectType.ITEM)
                 elif re.match(
                     f"^{path_prefix}/collections/[^/]+/bulk-items$",
                     request.url.path,
                 ):
-                    BulkItems(**request_data)
-            except ValidationError as e:
+                    bulk_items = BulkItems(**request_data)
+                    for item_data in bulk_items.items.items.values():
+                        validate_dict(item_data, STACObjectType.ITEM)
+            except STACValidationError as e:
                 return JSONResponse(
-                    status_code=400,
-                    content={"detail": "Validation Error", "errors": e.errors()},
+                    status_code=422,
+                    content={"detail": "Validation Error", "errors": str(e)},
                 )
 
         response = await call_next(request)
