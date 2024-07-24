@@ -44,6 +44,10 @@ class vedaRouteSettings(BaseSettings):
         description="Certificate’s ARN",
     )
 
+    shared_web_acl_id: Optional[str] = Field(
+        None, description="Shared Web ACL ID ARN for CloudFront Distribution"
+    )
+
     class Config:
         """model config"""
 
