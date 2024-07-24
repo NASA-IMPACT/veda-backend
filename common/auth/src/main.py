@@ -14,7 +14,7 @@ from fastapi import Depends, HTTPException, Security, security, status
 logger = logging.getLogger(__name__)
 
 
-class Auth:
+class VedaAuth:
     """Class for handling authentication"""
 
     def __init__(self, settings) -> None:
