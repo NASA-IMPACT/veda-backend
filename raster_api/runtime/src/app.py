@@ -28,7 +28,7 @@ from titiler.core.resources.responses import JSONResponse
 from titiler.extensions import cogValidateExtension, cogViewerExtension
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
-from titiler.pgstac.dependencies import CollectionIdParams, ItemPathParams, SearchIdParams
+from titiler.pgstac.dependencies import CollectionIdParams, ItemIdParams, SearchIdParams
 from titiler.pgstac.extensions import searchInfoExtension
 from titiler.pgstac.factory import (
     MosaicTilerFactory,
@@ -140,11 +140,11 @@ app.include_router(
 
 
 ###############################################################################
-# /stac - Custom STAC titiler endpoint
+# /collections/{collection_id}/items/{item_id} - Custom STAC titiler endpoint
 ###############################################################################
 stac = MultiBaseTilerFactory(
     reader=PgSTACReader,
-    path_dependency=ItemPathParams,
+    path_dependency=ItemIdParams,
     optional_headers=optional_headers,
     router_prefix="/collections/{collection_id}/items/{item_id}",
     environment_dependency=settings.get_gdal_config,
@@ -157,13 +157,13 @@ stac = MultiBaseTilerFactory(
 app.include_router(stac.router, tags=["Items"], prefix="/collections/{collection_id}/items/{item_id}")
 
 ###############################################################################
-# /stac-alt - Custom STAC titiler endpoint for alternate asset locations
+# /alt/collections/{collection_id}/items/{item_id} - Custom STAC titiler endpoint for alternate asset locations
 ###############################################################################
 stac_alt = MultiBaseTilerFactory(
     reader=PgSTACReaderAlt,
-    path_dependency=ItemPathParams,
+    path_dependency=ItemIdParams,
     optional_headers=optional_headers,
-    router_prefix="/stac-alt",
+    router_prefix="/alt/collections/{collection_id}/items/{item_id}",
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
     extensions=[
@@ -171,7 +171,7 @@ stac_alt = MultiBaseTilerFactory(
     ],
     colormap_dependency=ColorMapParams,
 )
-app.include_router(stac_alt.router, tags=["Items"], prefix="/stac-alt")
+app.include_router(stac_alt.router, tags=["Items"], prefix="/alt/collections/{collection_id}/items/{item_id}")
 
 ###############################################################################
 # /cog - External Cloud Optimized GeoTIFF endpoints
