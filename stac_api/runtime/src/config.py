@@ -85,8 +85,9 @@ class _ApiSettings(BaseSettings):
     @property
     def jwks_url(self) -> AnyHttpUrl:
         """JWKS url"""
-        region = self.userpool_id.split("_")[0]
-        return f"https://cognito-idp.{region}.amazonaws.com/{self.userpool_id}/.well-known/jwks.json"
+        if self.userpool_id:
+            region = self.userpool_id.split("_")[0]
+            return f"https://cognito-idp.{region}.amazonaws.com/{self.userpool_id}/.well-known/jwks.json"
 
     @property
     def cognito_authorization_url(self) -> AnyHttpUrl:
