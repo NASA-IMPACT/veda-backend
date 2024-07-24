@@ -28,7 +28,7 @@ from titiler.core.resources.responses import JSONResponse
 from titiler.extensions import cogValidateExtension, cogViewerExtension
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
-from titiler.pgstac.dependencies import SearchIdParams
+from titiler.pgstac.dependencies import CollectionIdParams, SearchIdParams
 from titiler.pgstac.extensions import searchInfoExtension
 from titiler.pgstac.factory import (
     MosaicTilerFactory,
@@ -75,7 +75,7 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 ###############################################################################
-# /mosaic - PgSTAC Mosaic titiler endpoint
+# /searches - PgSTAC Mosaic titiler endpoint
 ###############################################################################
 mosaic = MosaicTilerFactory(
     router_prefix="/searches/{search_id}",
@@ -107,6 +107,24 @@ add_search_register_route(
 )
 # add /list endpoint
 add_search_list_route(app, prefix="/searches", tags=["Mosaic"])
+
+###############################################################################
+# STAC COLLECTION Endpoints
+###############################################################################
+collection = MosaicTilerFactory(
+    path_dependency=CollectionIdParams,
+    optional_headers=optional_headers,
+    router_prefix="/collections/{collection_id}",
+    add_statistics=True,
+    add_viewer=True,
+    add_part=True,
+    extensions=[
+        searchInfoExtension(),
+    ],
+)
+app.include_router(
+    collection.router, tags=["STAC Collection"], prefix="/collections/{collection_id}"
+)
 
 
 ###############################################################################
