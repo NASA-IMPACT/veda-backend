@@ -182,6 +182,7 @@ app.include_router(
     stac_alt.router,
     tags=["Alt Href STAC Item"],
     prefix="/alt/collections/{collection_id}/items/{item_id}",
+    include_in_schema=False,
 )
 
 ###############################################################################

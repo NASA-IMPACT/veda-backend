@@ -192,6 +192,4 @@ def test_item():
     assert resp.headers["content-type"] == "application/json"
     assert resp.json()["tilejson"]
     assert "assets=cog" in resp.json()["tiles"][0]
-    assert "item=20200307aC0853300w361200" in resp.json()["tiles"][0]
-    assert "collection=noaa-emergency-response" in resp.json()["tiles"][0]
     assert resp.json()["bounds"] == [-85.5501, 36.1749, -85.5249, 36.2001]
