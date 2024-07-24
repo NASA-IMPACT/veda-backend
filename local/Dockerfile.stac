@@ -9,7 +9,9 @@ ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 RUN pip install boto3
 
 COPY stac_api/runtime /tmp/stac
-COPY common /tmp/stac/common
+
+COPY common/auth /tmp/stac/common/auth
+RUN pip install /tmp/stac/common/auth
 RUN pip install /tmp/stac 
 RUN rm -rf /tmp/stac
 

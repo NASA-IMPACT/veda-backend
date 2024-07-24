@@ -9,7 +9,7 @@ from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
-from common.auth import Auth
+from veda_auth import VedaAuth
 from fastapi import APIRouter, FastAPI
 from fastapi.params import Depends
 from fastapi.responses import ORJSONResponse
@@ -37,7 +37,7 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 
 tiles_settings = TilesApiSettings()
 
-auth = Auth(api_settings)
+auth = VedaAuth(api_settings)
 
 api = VedaStacApi(
     app=FastAPI(
