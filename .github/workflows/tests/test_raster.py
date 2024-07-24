@@ -183,7 +183,7 @@ def test_item():
     assert resp.json() == ["cog"]
 
     resp = httpx.get(
-        f"{raster_endpoint}/collections/{collection_id}/items/{item_id}/tilejson.json",
+        f"{raster_endpoint}/collections/{collection_id}/items/{item_id}/WebMercatorQuad/tilejson.json",
         params={
             "assets": "cog",
         },

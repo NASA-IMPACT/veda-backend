@@ -95,7 +95,7 @@ searches = MosaicTilerFactory(
         searchInfoExtension(),
     ],
 )
-app.include_router(searches.router, prefix="/searches/{search_id}", tags=["Mosaic"])
+app.include_router(searches.router, prefix="/searches/{search_id}", tags=["STAC Search"])
 
 # add /register endpoint
 add_search_register_route(
@@ -115,10 +115,11 @@ add_search_register_route(
         searches.reader_dependency,
         searches.backend_dependency,
     ],
+    tags=["STAC Search"]
 )
 # add /list endpoint
 if settings.enable_mosaic_search:
-    add_search_list_route(app, prefix="/searches", tags=["Mosaic"])
+    add_search_list_route(app, prefix="/searches", tags=["STAC Search"])
 
 ###############################################################################
 # STAC COLLECTION Endpoints
