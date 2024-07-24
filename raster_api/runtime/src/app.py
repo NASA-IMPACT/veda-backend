@@ -97,6 +97,7 @@ searches = MosaicTilerFactory(
 )
 app.include_router(searches.router, prefix="/searches/{search_id}", tags=["Mosaic"])
 
+# add /register endpoint
 add_search_register_route(
     app,
     prefix="/searches",
@@ -114,7 +115,6 @@ add_search_register_route(
         searches.reader_dependency,
         searches.backend_dependency,
     ],
-    tags=["Mosaic"],
 )
 # add /list endpoint
 if settings.enable_mosaic_search:
@@ -154,7 +154,11 @@ stac = MultiBaseTilerFactory(
     ],
     colormap_dependency=ColorMapParams,
 )
-app.include_router(stac.router, tags=["Items"], prefix="/collections/{collection_id}/items/{item_id}")
+app.include_router(
+    stac.router,
+    tags=["STAC Item"],
+    prefix="/collections/{collection_id}/items/{item_id}",
+)
 
 ###############################################################################
 # /alt/collections/{collection_id}/items/{item_id} - Custom STAC titiler endpoint for alternate asset locations
@@ -171,7 +175,11 @@ stac_alt = MultiBaseTilerFactory(
     ],
     colormap_dependency=ColorMapParams,
 )
-app.include_router(stac_alt.router, tags=["Items"], prefix="/alt/collections/{collection_id}/items/{item_id}")
+app.include_router(
+    stac_alt.router,
+    tags=["Alt STAC Item"],
+    prefix="/alt/collections/{collection_id}/items/{item_id}",
+)
 
 ###############################################################################
 # /cog - External Cloud Optimized GeoTIFF endpoints
