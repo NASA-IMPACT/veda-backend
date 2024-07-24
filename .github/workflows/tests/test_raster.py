@@ -173,8 +173,8 @@ def test_mosaic_search():
 
 def test_item():
     """test stac endpoints."""
-    collection_id="noaa-emergency-response"
-    item_id="20200307aC0853300w361200"
+    collection_id = "noaa-emergency-response"
+    item_id = "20200307aC0853300w361200"
     resp = httpx.get(
         f"{raster_endpoint}/collections/{collection_id}/items/{item_id}/assets"
     )
