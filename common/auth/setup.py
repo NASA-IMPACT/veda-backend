@@ -3,12 +3,7 @@
 
 from setuptools import find_packages, setup
 
-
-inst_reqs = [
-    "cryptography>=42.0.5",
-    "pyjwt>=2.8.0",
-    "fastapi>=0.111.1"
-]
+inst_reqs = ["cryptography>=42.0.5", "pyjwt>=2.8.0", "fastapi>=0.111.1"]
 
 setup(
     name="veda_auth",

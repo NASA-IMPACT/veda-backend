@@ -7,7 +7,7 @@ from functools import lru_cache
 from typing import Optional
 
 import boto3
-from pydantic import AnyHttpUrl, BaseSettings, Field, validator, root_validator
+from pydantic import AnyHttpUrl, BaseSettings, Field, root_validator, validator
 
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
@@ -64,22 +64,34 @@ class _ApiSettings(BaseSettings):
     pgstac_secret_arn: Optional[str]
     stage: Optional[str] = None
 
-    userpool_id: Optional[str] = Field("", description="The Cognito Userpool used for authentication")
+    userpool_id: Optional[str] = Field(
+        "", description="The Cognito Userpool used for authentication"
+    )
     cognito_domain: Optional[AnyHttpUrl] = Field(
         description="The base url of the Cognito domain for authorization and token urls"
     )
     client_id: Optional[str] = Field(description="The Cognito APP client ID")
-    client_secret: Optional[str] = Field("", description="The Cognito APP client secret")
-    enable_transactions: bool = Field(False, description="Whether to enable transactions")
+    client_secret: Optional[str] = Field(
+        "", description="The Cognito APP client secret"
+    )
+    enable_transactions: bool = Field(
+        False, description="Whether to enable transactions"
+    )
 
     @root_validator
     def check_transaction_fields(cls, values):
-        enable_transactions = values.get('enable_transactions')
+        enable_transactions = values.get("enable_transactions")
 
         if enable_transactions:
-            missing_fields = [field for field in ['userpool_id', 'cognito_domain', 'client_id'] if not values.get(field)]
+            missing_fields = [
+                field
+                for field in ["userpool_id", "cognito_domain", "client_id"]
+                if not values.get(field)
+            ]
             if missing_fields:
-                raise ValueError(f"When 'enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}")
+                raise ValueError(
+                    f"When 'enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
+                )
         return values
 
     @property
@@ -171,7 +183,7 @@ extensions = [
     FilterExtension(),
     QueryExtension(),
     SortExtension(),
-    TokenPaginationExtension()
+    TokenPaginationExtension(),
 ]
 
 if api_settings.enable_transactions:

@@ -44,25 +44,37 @@ class vedaSTACSettings(BaseSettings):
         description="Description of the STAC Catalog",
     )
 
-    userpool_id: Optional[str] = Field(description="The Cognito Userpool used for authentication")
+    userpool_id: Optional[str] = Field(
+        description="The Cognito Userpool used for authentication"
+    )
     cognito_domain: Optional[AnyHttpUrl] = Field(
         description="The base url of the Cognito domain for authorization and token urls"
     )
     client_id: Optional[str] = Field(description="The Cognito APP client ID")
-    client_secret: Optional[str] = Field("", description="The Cognito APP client secret")
-    enable_transactions: bool = Field(False, description="Whether to enable transactions")
+    client_secret: Optional[str] = Field(
+        "", description="The Cognito APP client secret"
+    )
+    enable_transactions: bool = Field(
+        False, description="Whether to enable transactions"
+    )
 
     @root_validator
     def check_transaction_fields(cls, values):
         """
-            Validates the existence of auth env vars in case enable_transactions is True
+        Validates the existence of auth env vars in case enable_transactions is True
         """
-        enable_transactions = values.get('enable_transactions')
+        enable_transactions = values.get("enable_transactions")
 
         if enable_transactions:
-            missing_fields = [field for field in ['userpool_id', 'cognito_domain', 'client_id'] if not values.get(field)]
+            missing_fields = [
+                field
+                for field in ["userpool_id", "cognito_domain", "client_id"]
+                if not values.get(field)
+            ]
             if missing_fields:
-                raise ValueError(f"When 'enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}")
+                raise ValueError(
+                    f"When 'enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
+                )
         return values
 
     class Config:

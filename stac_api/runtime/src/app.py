@@ -3,13 +3,13 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
 from aws_lambda_powertools.metrics import MetricUnit
-from src.config import api_settings, TilesApiSettings
+from src.config import TilesApiSettings, api_settings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
-
 from veda_auth import VedaAuth
+
 from fastapi import APIRouter, FastAPI
 from fastapi.params import Depends
 from fastapi.responses import ORJSONResponse
@@ -43,11 +43,15 @@ api = VedaStacApi(
         openapi_url="/openapi.json",
         docs_url="/docs",
         root_path=api_settings.root_path,
-        swagger_ui_init_oauth={
-            "appName": "Cognito",
-            "clientId": api_settings.client_id,
-            "usePkceWithAuthorizationCodeGrant": True,
-        } if api_settings.client_id else {},
+        swagger_ui_init_oauth=(
+            {
+                "appName": "Cognito",
+                "clientId": api_settings.client_id,
+                "usePkceWithAuthorizationCodeGrant": True,
+            }
+            if api_settings.client_id
+            else {}
+        ),
     ),
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
@@ -84,7 +88,11 @@ if api_settings.enable_transactions:
             {"path": "/collections", "method": "POST", "type": "http"},
             {"path": "/collections/{collectionId}", "method": "PUT", "type": "http"},
             {"path": "/collections/{collectionId}", "method": "DELETE", "type": "http"},
-            {"path": "/collections/{collectionId}/items", "method": "POST", "type": "http"},
+            {
+                "path": "/collections/{collectionId}/items",
+                "method": "POST",
+                "type": "http",
+            },
             {
                 "path": "/collections/{collectionId}/items/{itemId}",
                 "method": "PUT",
