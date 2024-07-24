@@ -49,7 +49,7 @@ class ValidationMiddleware(BaseHTTPMiddleware):
                     request.url.path,
                 ):
                     bulk_items = BulkItems(**request_data)
-                    for item_data in bulk_items.items.items.values():
+                    for item_data in bulk_items.items.values():
                         validate_dict(item_data, STACObjectType.ITEM)
             except STACValidationError as e:
                 return JSONResponse(

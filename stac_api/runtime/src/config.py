@@ -64,7 +64,7 @@ class _ApiSettings(BaseSettings):
     pgstac_secret_arn: Optional[str]
     stage: Optional[str] = None
 
-    userpool_id: Optional[str] = Field(description="The Cognito Userpool used for authentication")
+    userpool_id: Optional[str] = Field("", description="The Cognito Userpool used for authentication")
     cognito_domain: Optional[AnyHttpUrl] = Field(
         description="The base url of the Cognito domain for authorization and token urls"
     )

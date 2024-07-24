@@ -37,8 +37,6 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 
 tiles_settings = TilesApiSettings()
 
-auth = VedaAuth(api_settings)
-
 api = VedaStacApi(
     app=FastAPI(
         title=f"{api_settings.project_name} STAC API",
@@ -49,7 +47,7 @@ api = VedaStacApi(
             "appName": "Cognito",
             "clientId": api_settings.client_id,
             "usePkceWithAuthorizationCodeGrant": True,
-        },
+        } if api_settings.client_id else {},
     ),
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
@@ -78,6 +76,7 @@ if api_settings.cors_origins:
     )
 
 if api_settings.enable_transactions:
+    auth = VedaAuth(api_settings)
     # Require auth for all endpoints that create, modify or delete data.
     add_route_dependencies(
         app.router.routes,
