@@ -75,7 +75,7 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 ###############################################################################
-# /searches - PgSTAC Mosaic titiler endpoint
+# /searches - STAC Search endpoint
 ###############################################################################
 searches = MosaicTilerFactory(
     router_prefix="/searches/{search_id}",
@@ -95,7 +95,9 @@ searches = MosaicTilerFactory(
         searchInfoExtension(),
     ],
 )
-app.include_router(searches.router, prefix="/searches/{search_id}", tags=["STAC Search"])
+app.include_router(
+    searches.router, prefix="/searches/{search_id}", tags=["STAC Search"]
+)
 
 # add /register endpoint
 add_search_register_route(
@@ -115,7 +117,7 @@ add_search_register_route(
         searches.reader_dependency,
         searches.backend_dependency,
     ],
-    tags=["STAC Search"]
+    tags=["STAC Search"],
 )
 # add /list endpoint
 if settings.enable_mosaic_search:
@@ -178,7 +180,7 @@ stac_alt = MultiBaseTilerFactory(
 )
 app.include_router(
     stac_alt.router,
-    tags=["Alt STAC Item"],
+    tags=["Alt Href STAC Item"],
     prefix="/alt/collections/{collection_id}/items/{item_id}",
 )
 
