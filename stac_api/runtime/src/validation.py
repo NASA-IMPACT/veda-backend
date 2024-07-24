@@ -4,7 +4,7 @@ import json
 import re
 from typing import Dict
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 from src.config import api_settings
 
 from pystac import STACObjectType

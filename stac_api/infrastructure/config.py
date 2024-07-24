@@ -54,6 +54,9 @@ class vedaSTACSettings(BaseSettings):
 
     @root_validator
     def check_transaction_fields(cls, values):
+        """
+            Validates the existence of auth env vars in case enable_transactions is True
+        """
         enable_transactions = values.get('enable_transactions')
 
         if enable_transactions:
