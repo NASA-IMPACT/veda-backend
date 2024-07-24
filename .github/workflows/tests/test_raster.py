@@ -173,22 +173,18 @@ def test_mosaic_search():
 
 def test_item():
     """test stac endpoints."""
+    collection_id="noaa-emergency-response"
+    item_id="20200307aC0853300w361200"
     resp = httpx.get(
-        f"{raster_endpoint}/stac/assets",
-        params={
-            "collection": "noaa-emergency-response",
-            "item": "20200307aC0853300w361200",
-        },
+        f"{raster_endpoint}/collections/{collection_id}/items/{item_id}/assets"
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/json"
     assert resp.json() == ["cog"]
 
     resp = httpx.get(
-        f"{raster_endpoint}/stac/tilejson.json",
+        f"{raster_endpoint}/collections/{collection_id}/items/{item_id}/tilejson.json",
         params={
-            "collection": "noaa-emergency-response",
-            "item": "20200307aC0853300w361200",
             "assets": "cog",
         },
     )
