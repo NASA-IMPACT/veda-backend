@@ -5,7 +5,8 @@ WORKDIR /tmp
 COPY stac_api/runtime /tmp/stac
 COPY common/auth /tmp/stac/common/auth
 RUN pip install /tmp/stac/common/auth -t /asset
-RUN pip install "mangum>=0.14,<0.15" "plpygis>=0.2.1" /tmp/stac "pydantic<2" -t /asset --no-binary pydantic
+
+RUN pip install "mangum>=0.14,<0.15" "plpygis>=0.2.1" /tmp/stac -t /asset --no-binary pydantic
 RUN rm -rf /tmp/stac
 
 # Reduce package size and remove useless files
