@@ -6,7 +6,7 @@ from aws_lambda_powertools.metrics import MetricUnit
 from src.algorithms import PostProcessParams
 from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
-from src.dependencies import ColorMapParams, ItemPathParams
+from src.dependencies import ColorMapParams
 from src.extensions import stacViewerExtension
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 from src.version import __version__ as veda_raster_version
@@ -16,14 +16,25 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_cramjam.middleware import CompressionMiddleware
 from titiler.core.errors import DEFAULT_STATUS_CODES, add_exception_handlers
-from titiler.core.factory import MultiBaseTilerFactory, TilerFactory, TMSFactory
+from titiler.core.factory import (
+    ColorMapFactory,
+    MultiBaseTilerFactory,
+    TilerFactory,
+    TMSFactory,
+)
 from titiler.core.middleware import CacheControlMiddleware
 from titiler.core.resources.enums import OptionalHeader
 from titiler.core.resources.responses import JSONResponse
 from titiler.extensions import cogValidateExtension, cogViewerExtension
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.pgstac.db import close_db_connection, connect_to_db
-from titiler.pgstac.factory import MosaicTilerFactory
+from titiler.pgstac.dependencies import CollectionIdParams, ItemIdParams, SearchIdParams
+from titiler.pgstac.extensions import searchInfoExtension
+from titiler.pgstac.factory import (
+    MosaicTilerFactory,
+    add_search_list_route,
+    add_search_register_route,
+)
 from titiler.pgstac.reader import PgSTACReader
 
 logging.getLogger("botocore.credentials").disabled = True
@@ -64,16 +75,15 @@ add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
 ###############################################################################
-# /mosaic - PgSTAC Mosaic titiler endpoint
+# /searches - STAC Search endpoint
 ###############################################################################
-mosaic = MosaicTilerFactory(
-    router_prefix="/mosaic",
+searches = MosaicTilerFactory(
+    router_prefix="/searches/{search_id}",
+    path_dependency=SearchIdParams,
     optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     process_dependency=PostProcessParams,
     router=APIRouter(route_class=LoggerRouteHandler),
-    # add /list (default to False)
-    add_mosaic_list=settings.enable_mosaic_search,
     # add /statistics [POST] (default to False)
     add_statistics=True,
     # add /map viewer (default to False)
@@ -81,19 +91,65 @@ mosaic = MosaicTilerFactory(
     # add /bbox [GET] and /feature  [POST] (default to False)
     add_part=True,
     colormap_dependency=ColorMapParams,
+    extensions=[
+        searchInfoExtension(),
+    ],
 )
-app.include_router(mosaic.router, prefix="/mosaic", tags=["Mosaic"])
-# TODO
-# prefix will be replaced by `/mosaics/{search_id}` in titiler-pgstac 1.0.0
+app.include_router(
+    searches.router, prefix="/searches/{search_id}", tags=["STAC Search"]
+)
+
+# add /register endpoint
+add_search_register_route(
+    app,
+    prefix="/searches",
+    # any dependency we want to validate
+    # when creating the tilejson/map links
+    tile_dependencies=[
+        searches.layer_dependency,
+        searches.dataset_dependency,
+        searches.pixel_selection_dependency,
+        searches.process_dependency,
+        searches.rescale_dependency,
+        searches.colormap_dependency,
+        searches.render_dependency,
+        searches.pgstac_dependency,
+        searches.reader_dependency,
+        searches.backend_dependency,
+    ],
+    tags=["STAC Search"],
+)
+# add /list endpoint
+if settings.enable_mosaic_search:
+    add_search_list_route(app, prefix="/searches", tags=["STAC Search"])
 
 ###############################################################################
-# /stac - Custom STAC titiler endpoint
+# STAC COLLECTION Endpoints
+###############################################################################
+collection = MosaicTilerFactory(
+    path_dependency=CollectionIdParams,
+    optional_headers=optional_headers,
+    router_prefix="/collections/{collection_id}",
+    add_statistics=True,
+    add_viewer=True,
+    add_part=True,
+    extensions=[
+        searchInfoExtension(),
+    ],
+)
+app.include_router(
+    collection.router, tags=["STAC Collection"], prefix="/collections/{collection_id}"
+)
+
+
+###############################################################################
+# /collections/{collection_id}/items/{item_id} - Custom STAC titiler endpoint
 ###############################################################################
 stac = MultiBaseTilerFactory(
     reader=PgSTACReader,
-    path_dependency=ItemPathParams,
+    path_dependency=ItemIdParams,
     optional_headers=optional_headers,
-    router_prefix="/stac",
+    router_prefix="/collections/{collection_id}/items/{item_id}",
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
     extensions=[
@@ -101,16 +157,20 @@ stac = MultiBaseTilerFactory(
     ],
     colormap_dependency=ColorMapParams,
 )
-app.include_router(stac.router, tags=["Items"], prefix="/stac")
+app.include_router(
+    stac.router,
+    tags=["STAC Item"],
+    prefix="/collections/{collection_id}/items/{item_id}",
+)
 
 ###############################################################################
-# /stac-alt - Custom STAC titiler endpoint for alternate asset locations
+# /alt/collections/{collection_id}/items/{item_id} - Custom STAC titiler endpoint for alternate asset locations
 ###############################################################################
 stac_alt = MultiBaseTilerFactory(
     reader=PgSTACReaderAlt,
-    path_dependency=ItemPathParams,
+    path_dependency=ItemIdParams,
     optional_headers=optional_headers,
-    router_prefix="/stac-alt",
+    router_prefix="/alt/collections/{collection_id}/items/{item_id}",
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
     extensions=[
@@ -118,7 +178,12 @@ stac_alt = MultiBaseTilerFactory(
     ],
     colormap_dependency=ColorMapParams,
 )
-app.include_router(stac_alt.router, tags=["Items"], prefix="/stac-alt")
+app.include_router(
+    stac_alt.router,
+    tags=["Alt Href STAC Item"],
+    prefix="/alt/collections/{collection_id}/items/{item_id}",
+    include_in_schema=False,
+)
 
 ###############################################################################
 # /cog - External Cloud Optimized GeoTIFF endpoints
@@ -136,6 +201,12 @@ cog = TilerFactory(
 )
 
 app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
+
+###############################################################################
+# Colormaps endpoints
+###############################################################################
+cmaps = ColorMapFactory()
+app.include_router(cmaps.router, tags=["ColorMaps"])
 
 
 @app.get("/healthz", description="Health Check", tags=["Health Check"])
