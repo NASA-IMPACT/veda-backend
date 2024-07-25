@@ -1,9 +1,16 @@
+"""
+Test fixtures and data for STAC Transactions API testing.
+
+This module contains fixtures and mock data used for testing the STAC API.
+It includes valid and invalid STAC collections and items, as well as environment
+setup for testing with mock AWS and PostgreSQL configurations.
+"""
+
 import os
 
 import pytest
 
 from fastapi.testclient import TestClient
-
 
 VALID_COLLECTION = {
     "id": "CMIP245-winter-median-pr",
@@ -204,6 +211,12 @@ VALID_ITEM = {
 
 @pytest.fixture
 def test_environ():
+    """
+    Set up the test environment with mocked AWS and PostgreSQL credentials.
+
+    This fixture sets environment variables to mock AWS credentials and
+    PostgreSQL database configuration for testing purposes.
+    """
     # Mocked AWS Credentials for moto (best practice recommendation from moto)
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
@@ -220,13 +233,30 @@ def test_environ():
     os.environ["POSTGRES_PORT"] = "5432"
 
 
-# Mock dependency for bypassing authorization
 def override_validated_token():
+    """
+    Mock function to override validated token dependency.
+
+    Returns:
+        str: A fake token to bypass authorization in tests.
+    """
     return "fake_token"
 
 
 @pytest.fixture
 def app(test_environ):
+    """
+    Fixture to initialize the FastAPI application.
+
+    This fixture imports and returns the FastAPI application instance
+    for testing purposes.
+
+    Args:
+        test_environ: A fixture setting up the test environment.
+
+    Returns:
+        FastAPI: The FastAPI application instance.
+    """
     from src.app import app
 
     return app
@@ -234,6 +264,18 @@ def app(test_environ):
 
 @pytest.fixture
 def api_client(app):
+    """
+    Fixture to initialize the API client for making requests.
+
+    This fixture creates a TestClient instance for interacting with the
+    FastAPI application, and sets up dependency overrides for testing.
+
+    Args:
+        app: A fixture providing the FastAPI application instance.
+
+    Yields:
+        TestClient: The TestClient instance for API testing.
+    """
     app.dependency_overrides["auth.validated_token"] = override_validated_token
     yield TestClient(app)
     app.dependency_overrides.clear()
@@ -241,11 +283,23 @@ def api_client(app):
 
 @pytest.fixture
 def valid_stac_collection():
+    """
+    Fixture providing a valid STAC collection for testing.
+
+    Returns:
+        dict: A valid STAC collection.
+    """
     return VALID_COLLECTION
 
 
 @pytest.fixture
 def invalid_stac_collection():
+    """
+    Fixture providing an invalid STAC collection for testing.
+
+    Returns:
+        dict: An invalid STAC collection with the 'extent' field removed.
+    """
     invalid = VALID_COLLECTION.copy()
     invalid.pop("extent")
     return invalid
@@ -253,11 +307,23 @@ def invalid_stac_collection():
 
 @pytest.fixture
 def valid_stac_item():
+    """
+    Fixture providing a valid STAC item for testing.
+
+    Returns:
+        dict: A valid STAC item.
+    """
     return VALID_ITEM
 
 
 @pytest.fixture
 def invalid_stac_item():
+    """
+    Fixture providing an invalid STAC item for testing.
+
+    Returns:
+        dict: An invalid STAC item with the 'properties' field removed.
+    """
     invalid_item = VALID_ITEM.copy()
     invalid_item.pop("properties")
     return invalid_item
