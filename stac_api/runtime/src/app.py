@@ -80,6 +80,7 @@ if api_settings.cors_origins:
 
 if api_settings.enable_transactions:
     from veda_auth import VedaAuth
+
     auth = VedaAuth(api_settings)
     # Require auth for all endpoints that create, modify or delete data.
     add_route_dependencies(
