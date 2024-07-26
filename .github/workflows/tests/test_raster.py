@@ -25,10 +25,10 @@ def test_mosaic_api():
     resp = httpx.post(f"{raster_endpoint}/searches/register", json=query)
     assert resp.headers["content-type"] == "application/json"
     assert resp.status_code == 200
-    assert resp.json()["searchid"]
+    assert resp.json()["id"]
     assert resp.json()["links"]
 
-    searchid = resp.json()["searchid"]
+    searchid = resp.json()["id"]
     assert resp.status_code == 200
 
     resp = httpx.get(f"{raster_endpoint}/searches/{searchid}/-85.6358,36.1624/assets")
