@@ -8,7 +8,6 @@ from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
-from veda_auth import VedaAuth
 
 from fastapi import APIRouter, FastAPI
 from fastapi.params import Depends
@@ -80,6 +79,7 @@ if api_settings.cors_origins:
     )
 
 if api_settings.enable_transactions:
+    from veda_auth import VedaAuth
     auth = VedaAuth(api_settings)
     # Require auth for all endpoints that create, modify or delete data.
     add_route_dependencies(
