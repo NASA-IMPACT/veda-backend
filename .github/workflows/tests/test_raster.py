@@ -116,7 +116,7 @@ def test_mosaic_search():
     for search in searches:
         resp = httpx.post(f"{raster_endpoint}/searches/register", json=search)
         assert resp.status_code == 200
-        assert resp.json()["searchid"]
+        assert resp.json()["id"]
 
     resp = httpx.get(f"{raster_endpoint}/searches/list")
     assert resp.headers["content-type"] == "application/json"
