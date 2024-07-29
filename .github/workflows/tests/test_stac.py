@@ -14,45 +14,42 @@ class TestList:
     @pytest.fixture(autouse=True)
     def setup(
         self,
-        collections_endpoint,
-        docs_endpoint,
-        index_endpoint,
+        collections_route,
+        docs_route,
+        index_route,
+        search_route,
         seeded_collection,
         seeded_id,
         stac_endpoint,
         stac_health_endpoint,
-        stac_search_endpoint,
     ):
         """
         Set up the test environment with the required fixtures.
         """
-        self.collections_endpoint = collections_endpoint
-        self.docs_endpoint = docs_endpoint
-        self.index_endpoint = index_endpoint
+        self.collections_route = collections_route
+        self.docs_route = docs_route
+        self.index_route = index_route
+        self.search_route = search_route
         self.seeded_collection = seeded_collection
         self.seeded_id = seeded_id
         self.stac_endpoint = stac_endpoint
         self.stac_health_endpoint = stac_health_endpoint
-        self.stac_search_endpoint = stac_search_endpoint
 
     def test_stac_health(self):
         """test stac health endpoint."""
 
-        assert (
-            httpx.get(f"{self.stac_endpoint}/{self.stac_health_endpoint}").status_code
-            == 200
-        )
+        assert httpx.get(self.stac_health_endpoint).status_code == 200
 
     def test_stac_viewer(self):
         """test stac viewer."""
-        resp = httpx.get(f"{self.stac_endpoint}/{self.index_endpoint}")
+        resp = httpx.get(f"{self.stac_endpoint}/{self.index_route}")
         assert resp.status_code == 200
         assert resp.headers.get("x-correlation-id") == "local"
         assert "<title>Simple STAC API Viewer</title>" in resp.text
 
     def test_stac_docs(self):
         """test stac docs."""
-        resp = httpx.get(f"{self.stac_endpoint}/{self.docs_endpoint}")
+        resp = httpx.get(f"{self.stac_endpoint}/{self.docs_route}")
         assert resp.status_code == 200
         assert "Swagger UI" in resp.text
 
@@ -60,7 +57,7 @@ class TestList:
         """test stac get search."""
         default_limit_param = "?limit=10"
         resp = httpx.get(
-            f"{self.stac_endpoint}/{self.stac_search_endpoint}{default_limit_param}"
+            f"{self.stac_endpoint}/{self.search_route}{default_limit_param}"
         )
         assert resp.status_code == 200
         features = resp.json()["features"]
@@ -72,7 +69,7 @@ class TestList:
         """test stac post search."""
         request_body = {"collections": [self.seeded_collection]}
         resp = httpx.post(
-            f"{self.stac_endpoint}/{self.stac_search_endpoint}", json=request_body
+            f"{self.stac_endpoint}/{self.search_route}", json=request_body
         )
         assert resp.status_code == 200
         features = resp.json()["features"]
@@ -82,7 +79,7 @@ class TestList:
 
     def test_stac_get_collections(self):
         """test stac get collections"""
-        resp = httpx.get(f"{self.stac_endpoint}/{self.collections_endpoint}")
+        resp = httpx.get(f"{self.stac_endpoint}/{self.collections_route}")
         assert resp.status_code == 200
         collections = resp.json()["collections"]
         assert len(collections) > 0
@@ -92,7 +89,7 @@ class TestList:
     def test_stac_get_collections_by_id(self):
         """test stac get collection by id"""
         resp = httpx.get(
-            f"{self.stac_endpoint}/{self.collections_endpoint}/{self.seeded_collection}"
+            f"{self.stac_endpoint}/{self.collections_route}/{self.seeded_collection}"
         )
         assert resp.status_code == 200
         collection = resp.json()
@@ -101,7 +98,7 @@ class TestList:
     def test_stac_get_collection_items_by_id(self):
         """test stac get items in collection by collection id"""
         resp = httpx.get(
-            f"{self.stac_endpoint}/{self.collections_endpoint}/{self.seeded_collection}/items"
+            f"{self.stac_endpoint}/{self.collections_route}/{self.seeded_collection}/items"
         )
         assert resp.status_code == 200
         collection = resp.json()
@@ -111,7 +108,7 @@ class TestList:
         """test stac."""
 
         # Collections
-        resp = httpx.get(f"{self.stac_endpoint}/{self.collections_endpoint}")
+        resp = httpx.get(f"{self.stac_endpoint}/{self.collections_route}")
         assert resp.status_code == 200
         collections = resp.json()["collections"]
         assert len(collections) > 0
@@ -120,7 +117,7 @@ class TestList:
 
         # items
         resp = httpx.get(
-            f"{self.stac_endpoint}/{self.collections_endpoint}/{self.seeded_collection}/items"
+            f"{self.stac_endpoint}/{self.collections_route}/{self.seeded_collection}/items"
         )
         assert resp.status_code == 200
         items = resp.json()["features"]
@@ -128,7 +125,7 @@ class TestList:
 
         # item
         resp = httpx.get(
-            f"{self.stac_endpoint}/{self.collections_endpoint}/{self.seeded_collection}/items/{self.seeded_id}"
+            f"{self.stac_endpoint}/{self.collections_route}/{self.seeded_collection}/items/{self.seeded_id}"
         )
         assert resp.status_code == 200
         item = resp.json()
@@ -138,14 +135,14 @@ class TestList:
         """test link to raster api."""
         # tilejson
         resp = httpx.get(
-            f"{self.stac_endpoint}/{self.collections_endpoint}/{self.seeded_collection}/items/{self.seeded_id}/tilejson.json",
+            f"{self.stac_endpoint}/{self.collections_route}/{self.seeded_collection}/items/{self.seeded_id}/tilejson.json",
             params={"assets": "cog"},
         )
         assert resp.status_code == 307
 
         # viewer
         resp = httpx.get(
-            f"{self.stac_endpoint}/{self.collections_endpoint}/{self.seeded_collection}/items/{self.seeded_id}/viewer",
+            f"{self.stac_endpoint}/{self.collections_route}/{self.seeded_collection}/items/{self.seeded_id}/viewer",
             params={"assets": "cog"},
         )
         assert resp.status_code == 307

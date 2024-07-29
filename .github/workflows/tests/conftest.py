@@ -6,103 +6,105 @@ import pytest
 
 SEEDED_COLLECTION = "noaa-emergency-response"
 SEEDED_ID = "20200307aC0853900w361030"
-STAC_ENDPOINT = "http://0.0.0.0:8081"
-INDEX_ENDPOINT = "index.html"
-DOCS_ENDPOINT = "docs"
-STAC_HEALTH_ENDPOINT = "_mgmt/ping"
-STAC_SEARCH_ENDPOINT = "search"
-COLLECTIONS_ENDPOINT = "collections"
 
-RASTER_ENDPOINT = "http://0.0.0.0:8082"
-RASTER_HEALTH_ENDPOINT = "healthz"
+COLLECTIONS_ROUTE = "collections"
+INDEX_ROUTE = "index.html"
+DOCS_ROUTE = "docs"
+STAC_ENDPOINT = "http://0.0.0.0:8081"
+STAC_HEALTH_ENDPOINT = "http://0.0.0.0:8081/_mgmt/ping"
+SEARCH_ROUTE = "search"
+
+RASTER_ENDPOINT = "http://0.0.0.0:8082/searches"
+RASTER_HEALTH_ENDPOINT = "http://0.0.0.0:8082/healthz"
 TILEMATRIX = {"z": 15, "x": 8589, "y": 12849}
 
 SEARCHES = [
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection1"],
-                },
-                "metadata": {"owner": "vincent"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection2"],
-                },
-                "metadata": {"owner": "vincent"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection3"],
-                },
-                "metadata": {"owner": "vincent"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection4"],
-                },
-                "metadata": {"owner": "vincent"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection5"],
-                },
-                "metadata": {"owner": "vincent"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection6"],
-                },
-                "metadata": {"owner": "vincent"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection7"],
-                },
-                "metadata": {"owner": "vincent"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection8"],
-                },
-                "metadata": {"owner": "sean"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection9"],
-                },
-                "metadata": {"owner": "sean"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection10"],
-                },
-                "metadata": {"owner": "drew"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection11"],
-                },
-                "metadata": {"owner": "drew"},
-            },
-            {
-                "filter": {
-                    "op": "=",
-                    "args": [{"property": "collection"}, "collection12"],
-                },
-                "metadata": {"owner": "drew"},
-            },
-        ]
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection1"],
+        },
+        "metadata": {"owner": "vincent"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection2"],
+        },
+        "metadata": {"owner": "vincent"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection3"],
+        },
+        "metadata": {"owner": "vincent"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection4"],
+        },
+        "metadata": {"owner": "vincent"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection5"],
+        },
+        "metadata": {"owner": "vincent"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection6"],
+        },
+        "metadata": {"owner": "vincent"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection7"],
+        },
+        "metadata": {"owner": "vincent"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection8"],
+        },
+        "metadata": {"owner": "sean"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection9"],
+        },
+        "metadata": {"owner": "sean"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection10"],
+        },
+        "metadata": {"owner": "drew"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection11"],
+        },
+        "metadata": {"owner": "drew"},
+    },
+    {
+        "filter": {
+            "op": "=",
+            "args": [{"property": "collection"}, "collection12"],
+        },
+        "metadata": {"owner": "drew"},
+    },
+]
+
 
 @pytest.fixture
 def stac_endpoint():
@@ -113,7 +115,8 @@ def stac_endpoint():
         string: A valid STAC endpoint url.
     """
     return STAC_ENDPOINT
-  
+
+
 @pytest.fixture
 def stac_health_endpoint():
     """
@@ -123,37 +126,41 @@ def stac_health_endpoint():
         string: A valid url.
     """
     return STAC_HEALTH_ENDPOINT
-  
+
+
 @pytest.fixture
-def stac_search_endpoint():
+def search_route():
     """
     Fixture providing a search endpoint url for integration testing of STAC api.
 
     Returns:
         string: A valid url.
     """
-    return STAC_SEARCH_ENDPOINT
-  
+    return SEARCH_ROUTE
+
+
 @pytest.fixture
-def index_endpoint():
+def index_route():
     """
     Fixture providing a index endpoint url for integration testing.
 
     Returns:
         string: A valid url.
     """
-    return INDEX_ENDPOINT
-  
+    return INDEX_ROUTE
+
+
 @pytest.fixture
-def docs_endpoint():
+def docs_route():
     """
     Fixture providing a docs endpoint url for integration testing.
 
     Returns:
         string: A valid url.
     """
-    return DOCS_ENDPOINT
-  
+    return DOCS_ROUTE
+
+
 @pytest.fixture
 def seeded_collection():
     """
@@ -163,7 +170,8 @@ def seeded_collection():
         string: A collection
     """
     return SEEDED_COLLECTION
-  
+
+
 @pytest.fixture
 def seeded_id():
     """
@@ -173,17 +181,19 @@ def seeded_id():
         string: A collection ID
     """
     return SEEDED_ID
-  
+
+
 @pytest.fixture
-def collections_endpoint():
+def collections_route():
     """
     Fixture providing a collections endpoint url for integration testing.
 
     Returns:
         string: A valid url
     """
-    return COLLECTIONS_ENDPOINT
-  
+    return COLLECTIONS_ROUTE
+
+
 @pytest.fixture
 def raster_endpoint():
     """
@@ -193,7 +203,8 @@ def raster_endpoint():
         string: A valid url
     """
     return RASTER_ENDPOINT
-  
+
+
 @pytest.fixture
 def raster_health_endpoint():
     """
@@ -203,7 +214,8 @@ def raster_health_endpoint():
         string: A valid url
     """
     return RASTER_HEALTH_ENDPOINT
-  
+
+
 @pytest.fixture
 def seeded_tilematrix():
     """
@@ -214,11 +226,12 @@ def seeded_tilematrix():
     """
     return TILEMATRIX
 
+
 @pytest.fixture
 def searches():
     """
     Fake searches to register
-    
+
     Returns:
         dict: An array of searches
     """
