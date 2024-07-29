@@ -1,12 +1,12 @@
 FROM public.ecr.aws/sam/build-python3.9:latest
 
-ARG PGSTAC_VERSION=0.7.4
-RUN echo "Using PGSTAC Version ${PGSTAC_VERSION}"
+ENV VEDA_DB_PGSTAC_VERSION=0.7.4
+RUN echo "Using PGSTAC Version ${VEDA_DB_PGSTAC_VERSION}"
 
 WORKDIR /tmp
 
 COPY ingest_api/runtime/requirements.txt /tmp/ingestor/requirements.txt
-RUN pip install -r /tmp/ingestor/requirements.txt pypgstac==${PGSTAC_VERSION} -t /asset --no-binary pydantic uvicorn
+RUN pip install -r /tmp/ingestor/requirements.txt pypgstac==${VEDA_DB_PGSTAC_VERSION} -t /asset --no-binary pydantic uvicorn
 RUN rm -rf /tmp/ingestor
 # TODO this is temporary until we use a real packaging system like setup.py or poetry
 COPY ingest_api/runtime/src /asset/src
