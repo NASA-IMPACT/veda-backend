@@ -128,6 +128,7 @@ services:
       - PGPASSWORD=password
       - PGDATABASE=postgis
       - DYNAMODB_ENDPOINT=http://localhost:8085
+      - VEDA_DB_PGSTAC_VERSION=0.6.6
     ports:
       - "8083:8083"
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && python /asset/local.py"
