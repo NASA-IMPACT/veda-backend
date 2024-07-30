@@ -25,6 +25,7 @@ class TestList:
         stac_endpoint,
         stac_health_endpoint,
         collection_schema,
+        feature_schema,
     ):
         """
         Set up the test environment with the required fixtures.
@@ -38,18 +39,10 @@ class TestList:
         self.stac_endpoint = stac_endpoint
         self.stac_health_endpoint = stac_health_endpoint
         self.collection_schema = collection_schema
-
-        # with httpx.get("https://api.stacspec.org/v1.0.0/ogcapi-features/openapi.yaml") as response:
-        #     # Convert bytes to string
-        #     # content = response.content.decode("utf-8")
-        #     content = response.text
-        #     print("feature content: ", content)
-        #     # Load the yaml
-        #     feature_schema = yaml.safe_load(content)
+        self.feature_schema = feature_schema
 
     def test_stac_health(self):
         """test stac health endpoint."""
-
         assert httpx.get(self.stac_health_endpoint).status_code == 200
 
     def test_stac_viewer(self):
@@ -134,6 +127,7 @@ class TestList:
         )
         assert resp.status_code == 200
         items = resp.json()["features"]
+        validate(items[0], yaml.safe_load(self.feature_schema))
         assert len(items) == 10
 
         # item
@@ -143,6 +137,7 @@ class TestList:
         assert resp.status_code == 200
         item = resp.json()
         assert item["id"] == self.seeded_id
+        validate(item, yaml.safe_load(self.feature_schema))
 
     def test_stac_to_raster(self):
         """test link to raster api."""
