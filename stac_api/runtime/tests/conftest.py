@@ -223,6 +223,11 @@ def test_environ():
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_REGION"] = "us-west-2"
+    os.environ["VEDA_STAC_USERPOOL_ID"] = "us-west-2_FAKEUSERPOOL"
+    os.environ["VEDA_STAC_CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
+    os.environ["VEDA_STAC_CLIENT_SECRET"] = "dsakfjdsalfkjadslfjalksfj"
+    os.environ["VEDA_STAC_COGNITO_DOMAIN"] = "https://fake.auth.us-west-2.amazoncognito.com"
+    os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "TRUE"
 
     # Config mocks
     os.environ["POSTGRES_USER"] = "username"
@@ -276,7 +281,8 @@ def api_client(app):
     Yields:
         TestClient: The TestClient instance for API testing.
     """
-    app.dependency_overrides["auth.validated_token"] = override_validated_token
+    from src.app import auth
+    app.dependency_overrides[auth.validated_token] = override_validated_token
     yield TestClient(app)
     app.dependency_overrides.clear()
 
