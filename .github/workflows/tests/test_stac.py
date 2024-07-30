@@ -1,6 +1,8 @@
 """test veda-backend STAC."""
 import httpx
 import pytest
+import yaml
+from openapi_schema_validator import validate
 
 
 class TestList:
@@ -22,6 +24,7 @@ class TestList:
         seeded_id,
         stac_endpoint,
         stac_health_endpoint,
+        collection_schema,
     ):
         """
         Set up the test environment with the required fixtures.
@@ -34,6 +37,15 @@ class TestList:
         self.seeded_id = seeded_id
         self.stac_endpoint = stac_endpoint
         self.stac_health_endpoint = stac_health_endpoint
+        self.collection_schema = collection_schema
+
+        # with httpx.get("https://api.stacspec.org/v1.0.0/ogcapi-features/openapi.yaml") as response:
+        #     # Convert bytes to string
+        #     # content = response.content.decode("utf-8")
+        #     content = response.text
+        #     print("feature content: ", content)
+        #     # Load the yaml
+        #     feature_schema = yaml.safe_load(content)
 
     def test_stac_health(self):
         """test stac health endpoint."""
@@ -112,6 +124,7 @@ class TestList:
         assert resp.status_code == 200
         collections = resp.json()["collections"]
         assert len(collections) > 0
+        validate(collections[0], yaml.safe_load(self.collection_schema))
         ids = [c["id"] for c in collections]
         assert self.seeded_collection in ids
 

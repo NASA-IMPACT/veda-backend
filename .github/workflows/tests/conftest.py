@@ -2,6 +2,7 @@
 Test fixtures and data for STAC and Raster API integration testing.
 """
 
+import httpx
 import pytest
 
 SEEDED_COLLECTION = "noaa-emergency-response"
@@ -14,7 +15,7 @@ STAC_ENDPOINT = "http://0.0.0.0:8081"
 STAC_HEALTH_ENDPOINT = "http://0.0.0.0:8081/_mgmt/ping"
 SEARCH_ROUTE = "search"
 
-RASTER_ENDPOINT = "http://0.0.0.0:8082/searches"
+RASTER_ENDPOINT = "http://0.0.0.0:8082/mosaic"
 RASTER_HEALTH_ENDPOINT = "http://0.0.0.0:8082/healthz"
 TILEMATRIX = {"z": 15, "x": 8589, "y": 12849}
 
@@ -236,3 +237,18 @@ def searches():
         dict: An array of searches
     """
     return SEARCHES
+
+
+@pytest.fixture
+def collection_schema():
+    """Retrieve Collection Schema from
+
+    Returns:
+        String: A string representation of the yaml schema
+    """
+    response = httpx.get("https://api.stacspec.org/v1.0.0/collections/openapi.yaml")
+    # Convert bytes to string
+    # content = response.content.decode("utf-8")
+    content = response.text
+    print("feature content: ", content)
+    return content
