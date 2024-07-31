@@ -46,12 +46,16 @@ class LinkInjector:
         item_id = item.get("id", "")
         item["links"] = item.get("links", [])
         if self.tiler_href:
-            item["links"].append(self._get_item_map_link(item_id))
-            item["assets"]["rendered_preview"] = self._get_item_preview_link(item_id)
+            item["links"].append(self._get_item_map_link(item_id, self.collection_id))
+            item["assets"]["rendered_preview"] = self._get_item_preview_link(
+                item_id, self.collection_id
+            )
 
-    def _get_item_map_link(self, item_id: str) -> Dict[str, Any]:
-        qs = self.render_config.get_full_render_qs(self.collection_id, item_id)
-        href = urljoin(self.tiler_href, f"stac/map?{qs}")
+    def _get_item_map_link(self, item_id: str, collection_id: str) -> Dict[str, Any]:
+        qs = self.render_config.get_full_render_qs()
+        href = urljoin(
+            self.tiler_href, f"collections/{collection_id}/items/{item_id}/map?{qs}"
+        )
 
         return {
             "title": "Map of Item",
@@ -60,9 +64,14 @@ class LinkInjector:
             "type": "text/html",
         }
 
-    def _get_item_preview_link(self, item_id: str) -> Dict[str, Any]:
-        qs = self.render_config.get_full_render_qs(self.collection_id, item_id)
-        href = urljoin(self.tiler_href, f"stac/preview.png?{qs}")
+    def _get_item_preview_link(
+        self, item_id: str, collection_id: str
+    ) -> Dict[str, Any]:
+        qs = self.render_config.get_full_render_qs()
+        href = urljoin(
+            self.tiler_href,
+            f"collections/{collection_id}/items/{item_id}/preview.png?{qs}",
+        )
 
         return {
             "title": "Rendered preview",

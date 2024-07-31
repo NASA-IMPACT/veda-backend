@@ -42,21 +42,16 @@ class RenderConfig(BaseModel):
     mosaic_preview_zoom: Optional[int] = None
     mosaic_preview_coords: Optional[List[float]] = None
 
-    def get_full_render_qs(self, collection: str, item: Optional[str] = None) -> str:
+    def get_full_render_qs(self) -> str:
         """
-        Return the full render query string, including the
-        item, collection, render and assets parameters.
+        Return the full render query string including render and assets parameters.
         """
-        collection_part = f"collection={collection}" if collection else ""
-        item_part = f"&item={item}" if item else ""
-        render_part = self.get_render_params()
-
-        return "".join([collection_part, item_part, render_part])
+        return self.get_render_params()
 
     def get_render_params(self) -> str:
         """Get the render parameters as a query string."""
         params = self.render_params.copy()
-        return f"&{get_param_str(params)}"
+        return f"{get_param_str(params)}"
 
     class Config:
         """Pydantic config class for RenderConfig."""
