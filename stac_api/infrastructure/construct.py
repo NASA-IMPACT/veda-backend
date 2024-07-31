@@ -52,7 +52,7 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_CLIENT_ID": veda_stac_settings.client_id,
             "VEDA_STAC_COGNITO_DOMAIN": veda_stac_settings.cognito_domain,
             "VEDA_STAC_ENABLE_TRANSACTIONS": str(
-                veda_stac_settings.enable_transactions
+                veda_stac_settings.stac_enable_transactions
             ),
             "DB_MIN_CONN_SIZE": "0",
             "DB_MAX_CONN_SIZE": "1",
