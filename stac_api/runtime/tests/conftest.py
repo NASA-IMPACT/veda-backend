@@ -226,9 +226,9 @@ def test_environ():
     os.environ["VEDA_STAC_USERPOOL_ID"] = "us-west-2_FAKEUSERPOOL"
     os.environ["VEDA_STAC_CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
     os.environ["VEDA_STAC_CLIENT_SECRET"] = "dsakfjdsalfkjadslfjalksfj"
-    os.environ["VEDA_STAC_COGNITO_DOMAIN"] = (
-        "https://fake.auth.us-west-2.amazoncognito.com"
-    )
+    os.environ[
+        "VEDA_STAC_COGNITO_DOMAIN"
+    ] = "https://fake.auth.us-west-2.amazoncognito.com"
     os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "TRUE"
 
     # Config mocks
