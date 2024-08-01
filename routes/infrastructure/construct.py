@@ -72,6 +72,7 @@ class CloudfrontDistributionConstruct(Construct):
                     certificate=domain_cert,
                     default_root_object="index.html",
                     enable_logging=True,
+                    web_acl_id=veda_route_settings.shared_web_acl_id,
                     domain_names=[
                         f"{stage}.{veda_route_settings.domain_hosted_zone_name}"
                     ]
