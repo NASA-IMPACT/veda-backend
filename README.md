@@ -28,7 +28,7 @@ This project uses an AWS CDK [CloudFormation](https://docs.aws.amazon.com/AWSClo
 
 ### Enviroment variables
 
-An [.example.env](.example.env) template is supplied for for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `<app-name>-<stage>-env`, for example `veda-backend-dev-env`.
+An [.example.env](.example.env) template is supplied for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `<app-name>-<stage>-env`, for example `veda-backend-dev-env`.
 > **Warning** The environment variables stored as AWS secrets are manually maintained and should be reviewed before deploying updates to existing stacks.
 
 ### Fetch environment variables using AWS CLI
@@ -92,6 +92,8 @@ python3 -m pip install -e ".[dev,deploy,test]"
 #### Run the deployment
 
 ```
+# Login to ECR so that you can pull public docker images
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 # Review what infrastructure changes your deployment will cause
 cdk diff
 # Execute deployment and standby--security changes will require approval for deployment
