@@ -100,4 +100,4 @@ runs:
       working-directory: ${{ inputs.dir }}
       run: |
         echo $STAGE
-        cdk deploy --require-approval never --outputs-file ${HOME}/cdk-outputs.json
+        cdk deploy --require-approval never --outputs-file ${HOME}/veda-backend-cdk-outputs.json

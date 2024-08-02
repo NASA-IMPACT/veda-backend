@@ -120,4 +120,5 @@ class StacApiLambdaConstruct(Construct):
             "stac-api",
             value=self.stac_api.url,
             export_name=f"{stack_name}-stac-url",
+            key="stacapiurl"
         )
