@@ -104,7 +104,7 @@ class ApiConstruct(Construct):
             "stac-ingestor-api-url",
             export_name=f"{stack_name}-stac-ingestor-api-url",
             value=self.api.url,
-            key="ingestapiurl"
+            key="ingestapiurl",
         )
 
         register_ssm_parameter(

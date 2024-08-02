@@ -122,7 +122,7 @@ class RasterApiLambdaConstruct(Construct):
             "raster-api",
             value=self.raster_api.url,
             export_name=f"{stack_name}-raster-url",
-            key="rasterapiurl"
+            key="rasterapiurl",
         )
         CfnOutput(self, "raster-api-arn", value=veda_raster_function.function_arn)
 
