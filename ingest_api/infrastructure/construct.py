@@ -148,7 +148,8 @@ class ApiConstruct(Construct):
                 )
             ],
         )
-
+        pgstac_version = IngestorConfig.db_pgstac_version
+        
         handler = aws_lambda.Function(
             self,
             "api-handler",
@@ -156,6 +157,7 @@ class ApiConstruct(Construct):
                 path=os.path.abspath(code_dir),
                 file="ingest_api/runtime/Dockerfile",
                 platform="linux/amd64",
+                build_args={"PGSTAC_VERSION": pgstac_version},
             ),
             runtime=aws_lambda.Runtime.PYTHON_3_9,
             timeout=Duration.seconds(30),
