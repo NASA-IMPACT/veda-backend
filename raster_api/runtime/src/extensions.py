@@ -11,9 +11,10 @@ from starlette.templating import Jinja2Templates
 from titiler.core.factory import BaseTilerFactory, FactoryExtension
 
 DEFAULT_TEMPLATES = Jinja2Templates(
-    directory="",
-    loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
-)  # type:ignore
+    env=jinja2.Environment(
+        loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")])
+    )
+)
 
 
 @dataclass
@@ -32,9 +33,9 @@ class stacViewerExtension(FactoryExtension):
         ):
             """STAC Viewer."""
             return self.templates.TemplateResponse(
+                request,
                 name="stac-viewer.html",
                 context={
-                    "request": request,
                     "endpoint": request.url.path.replace("/viewer", ""),
                     "collection": item.collection_id,
                     "item": item.id,

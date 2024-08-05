@@ -143,3 +143,6 @@ cdk-dev.out
 stac-browser
 
 container_logs.log
+
+# Jetbrains IDEs
+.idea
