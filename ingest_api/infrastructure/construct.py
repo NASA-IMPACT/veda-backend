@@ -149,7 +149,7 @@ class ApiConstruct(Construct):
             ],
         )
         pgstac_version = IngestorConfig.db_pgstac_version
-        
+
         handler = aws_lambda.Function(
             self,
             "api-handler",
