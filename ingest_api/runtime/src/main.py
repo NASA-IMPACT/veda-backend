@@ -1,12 +1,11 @@
 from typing import Dict
 
-import src.auth as auth
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
 from aws_lambda_powertools.metrics import MetricUnit
 from src.collection_publisher import CollectionPublisher, ItemPublisher
-from src.config import settings
+from src.config import auth, settings
 from src.doc import DESCRIPTION
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 

@@ -4,10 +4,7 @@ import logging
 
 from mangum import Mangum
 from src.app import app
-from src.config import ApiSettings
 from src.monitoring import logger, metrics, tracer
-
-settings = ApiSettings()
 
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
 logging.getLogger("mangum.http").setLevel(logging.ERROR)
