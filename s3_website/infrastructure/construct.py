@@ -50,4 +50,5 @@ class VedaWebsite(Construct):
             self,
             "bucket-website",
             value=f"https://{self.bucket.bucket_website_domain_name}",
+            key="stacbrowserurl",
         )
