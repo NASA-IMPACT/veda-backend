@@ -57,12 +57,12 @@ class CloudfrontDistributionConstruct(Construct):
                 )
 
                 if stage == "production" and veda_route_settings.domain_hosted_zone_name == "openveda.cloud":
-                    cf_domain_names=[
+                    self.cf_domain_names=[
                           f"{stage}.{veda_route_settings.domain_hosted_zone_name}",
                           f"{veda_route_settings.domain_hosted_zone_name}"
                       ]
                 else:
-                    cf_domain_names=[
+                    self.cf_domain_names=[
                           f"{stage}.{veda_route_settings.domain_hosted_zone_name}"
                       ]
 
@@ -83,7 +83,7 @@ class CloudfrontDistributionConstruct(Construct):
                     default_root_object="index.html",
                     enable_logging=True,
                     web_acl_id=veda_route_settings.shared_web_acl_id,
-                    domain_names=cf_domain_names
+                    domain_names=self.cf_domain_names
                     if veda_route_settings.domain_hosted_zone_name
                     else None,
                 )
@@ -120,7 +120,7 @@ class CloudfrontDistributionConstruct(Construct):
                     certificate=domain_cert,
                     default_root_object="index.html",
                     enable_logging=True,
-                    domain_names=cf_domain_names
+                    domain_names=self.cf_domain_names
                     if veda_route_settings.domain_hosted_zone_name
                     else None,
                 )
