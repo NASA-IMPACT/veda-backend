@@ -56,15 +56,18 @@ class CloudfrontDistributionConstruct(Construct):
                     ),
                 )
 
-                if stage == "production" and veda_route_settings.domain_hosted_zone_name == "openveda.cloud":
-                    self.cf_domain_names=[
-                          f"{stage}.{veda_route_settings.domain_hosted_zone_name}",
-                          f"{veda_route_settings.domain_hosted_zone_name}"
-                      ]
+                if (
+                    stage == "production"
+                    and veda_route_settings.domain_hosted_zone_name == "openveda.cloud"
+                ):
+                    self.cf_domain_names = [
+                        f"{stage}.{veda_route_settings.domain_hosted_zone_name}",
+                        f"{veda_route_settings.domain_hosted_zone_name}",
+                    ]
                 else:
-                    self.cf_domain_names=[
-                          f"{stage}.{veda_route_settings.domain_hosted_zone_name}"
-                      ]
+                    self.cf_domain_names = [
+                        f"{stage}.{veda_route_settings.domain_hosted_zone_name}"
+                    ]
 
                 self.distribution = cf.Distribution(
                     self,
