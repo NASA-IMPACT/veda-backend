@@ -66,7 +66,7 @@ class ApiConstruct(Construct):
             "db_secret": db_secret,
             "db_vpc": db_vpc,
             "db_security_group": db_security_group,
-            "pgstac_version": config.db_pgstac_version
+            "pgstac_version": config.db_pgstac_version,
         }
 
         if config.raster_data_access_role_arn:
