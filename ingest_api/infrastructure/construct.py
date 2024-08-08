@@ -98,21 +98,15 @@ class ApiConstruct(Construct):
             custom_host=config.custom_host,
         )
 
-        # CfnOutput(self, "ingest-api", value=self.api.url)
         stack_name = Stack.of(self).stack_name
         CfnOutput(
             self,
             "stac-ingestor-api-url",
             export_name=f"{stack_name}-stac-ingestor-api-url",
             value=self.api.url,
+            key="ingestapiurl",
         )
 
-        register_ssm_parameter(
-            self,
-            name="jwks_url",
-            value=self.jwks_url,
-            description="JWKS URL for Cognito user pool",
-        )
         register_ssm_parameter(
             self,
             name="dynamodb_table",

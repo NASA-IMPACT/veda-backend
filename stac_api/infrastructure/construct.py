@@ -43,6 +43,22 @@ class StacApiLambdaConstruct(Construct):
         # TODO config
         stack_name = Stack.of(self).stack_name
 
+        lambda_env = {
+            "VEDA_STAC_PROJECT_NAME": veda_stac_settings.project_name,
+            "VEDA_STAC_PROJECT_DESCRIPTION": veda_stac_settings.project_description,
+            "VEDA_STAC_ROOT_PATH": veda_stac_settings.stac_root_path,
+            "VEDA_STAC_STAGE": stage,
+            "VEDA_STAC_USERPOOL_ID": veda_stac_settings.userpool_id,
+            "VEDA_STAC_CLIENT_ID": veda_stac_settings.client_id,
+            "VEDA_STAC_COGNITO_DOMAIN": veda_stac_settings.cognito_domain,
+            "VEDA_STAC_ENABLE_TRANSACTIONS": str(
+                veda_stac_settings.stac_enable_transactions
+            ),
+            "DB_MIN_CONN_SIZE": "0",
+            "DB_MAX_CONN_SIZE": "1",
+            **{k.upper(): v for k, v in veda_stac_settings.env.items()},
+        }
+
         lambda_function = aws_lambda.Function(
             self,
             "lambda",
@@ -56,15 +72,7 @@ class StacApiLambdaConstruct(Construct):
             allow_public_subnet=True,
             memory_size=veda_stac_settings.memory,
             timeout=Duration.seconds(veda_stac_settings.timeout),
-            environment={
-                **{k.upper(): v for k, v in veda_stac_settings.env.items()},
-                "DB_MIN_CONN_SIZE": "0",
-                "DB_MAX_CONN_SIZE": "1",
-                "VEDA_STAC_ROOT_PATH": veda_stac_settings.stac_root_path,
-                "VEDA_STAC_STAGE": stage,
-                "VEDA_STAC_PROJECT_NAME": veda_stac_settings.project_name,
-                "VEDA_STAC_PROJECT_DESCRIPTION": veda_stac_settings.project_description,
-            },
+            environment=lambda_env,
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
             tracing=aws_lambda.Tracing.ACTIVE,
         )
@@ -120,4 +128,5 @@ class StacApiLambdaConstruct(Construct):
             "stac-api",
             value=self.stac_api.url,
             export_name=f"{stack_name}-stac-url",
+            key="stacapiurl",
         )

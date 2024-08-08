@@ -1,9 +1,8 @@
 import logging
 
 import boto3
-import src.auth as auth
-import src.config as config
 import src.services as services
+from src.config import auth, settings
 
 from fastapi import Depends, HTTPException, security
 
@@ -14,7 +13,7 @@ token_scheme = security.HTTPBearer()
 
 def get_table():
     client = boto3.resource("dynamodb")
-    return client.Table(config.settings.dynamodb_table)
+    return client.Table(settings.dynamodb_table)
 
 
 def get_db(table=Depends(get_table)) -> services.Database:

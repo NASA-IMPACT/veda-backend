@@ -2,7 +2,7 @@
 
 from typing import Dict, Optional
 
-from pydantic import BaseSettings, Field
+from pydantic import AnyHttpUrl, BaseSettings, Field, root_validator
 
 
 class vedaSTACSettings(BaseSettings):
@@ -43,6 +43,37 @@ class vedaSTACSettings(BaseSettings):
         "VEDA (Visualization, Exploration, and Data Analysis) is NASA's open-source Earth Science platform in the cloud.",
         description="Description of the STAC Catalog",
     )
+
+    userpool_id: Optional[str] = Field(
+        description="The Cognito Userpool used for authentication"
+    )
+    cognito_domain: Optional[AnyHttpUrl] = Field(
+        description="The base url of the Cognito domain for authorization and token urls"
+    )
+    client_id: Optional[str] = Field(description="The Cognito APP client ID")
+    client_secret: Optional[str] = Field(
+        "", description="The Cognito APP client secret"
+    )
+    stac_enable_transactions: bool = Field(
+        False, description="Whether to enable transactions endpoints"
+    )
+
+    @root_validator
+    def check_transaction_fields(cls, values):
+        """
+        Validates the existence of auth env vars in case stac_enable_transactions is True
+        """
+        if values.get("stac_enable_transactions"):
+            missing_fields = [
+                field
+                for field in ["userpool_id", "cognito_domain", "client_id"]
+                if not values.get(field)
+            ]
+            if missing_fields:
+                raise ValueError(
+                    f"When 'stac_enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
+                )
+        return values
 
     class Config:
         """model config"""
