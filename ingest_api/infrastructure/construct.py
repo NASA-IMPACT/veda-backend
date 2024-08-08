@@ -66,6 +66,7 @@ class ApiConstruct(Construct):
             "db_secret": db_secret,
             "db_vpc": db_vpc,
             "db_security_group": db_security_group,
+            "pgstac_version": config.db_pgstac_version,
         }
 
         if config.raster_data_access_role_arn:
@@ -124,6 +125,7 @@ class ApiConstruct(Construct):
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
         data_access_role: Union[iam.IRole, None] = None,
+        pgstac_version: str,
         code_dir: str = "./",
     ) -> apigateway.LambdaRestApi:
         stack_name = Stack.of(self).stack_name
@@ -150,6 +152,7 @@ class ApiConstruct(Construct):
                 path=os.path.abspath(code_dir),
                 file="ingest_api/runtime/Dockerfile",
                 platform="linux/amd64",
+                build_args={"PGSTAC_VERSION": pgstac_version},
             ),
             runtime=aws_lambda.Runtime.PYTHON_3_9,
             timeout=Duration.seconds(30),

@@ -67,6 +67,10 @@ class IngestorConfig(BaseSettings):
 
     ingest_root_path: str = Field("", description="Root path for ingest API")
     custom_host: Optional[str] = Field(description="Custom host name")
+    db_pgstac_version: str = Field(
+        ...,
+        description="Version of PgStac database, i.e. 0.5",
+    )
 
     class Config:
         case_sensitive = False
