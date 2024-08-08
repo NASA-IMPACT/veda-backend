@@ -48,7 +48,7 @@ class VedaWebsite(Construct):
 
         CfnOutput(
             self,
-            "bucket-website",
-            value=f"https://{self.bucket.bucket_website_domain_name}",
-            key="stacbrowserurl",
+            "stac-browser-bucket-name",
+            value=self.bucket.bucket_name,
+            key="stacbrowserbucketname",
         )
