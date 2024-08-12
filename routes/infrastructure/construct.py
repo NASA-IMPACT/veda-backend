@@ -55,10 +55,9 @@ class CloudfrontDistributionConstruct(Construct):
                         description="Origin Access Control for STAC Browser",
                     ),
                 )
-
                 if (
-                    stage == "production"
-                    and veda_route_settings.domain_hosted_zone_name == "openveda.cloud"
+                    veda_route_settings.domain_hosted_zone_name == veda_route_settings.custom_host
+
                 ):
                     self.cf_domain_names = [
                         f"{stage}.{veda_route_settings.domain_hosted_zone_name}",

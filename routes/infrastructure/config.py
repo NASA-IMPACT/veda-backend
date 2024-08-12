@@ -48,6 +48,11 @@ class vedaRouteSettings(BaseSettings):
         None, description="Shared Web ACL ID ARN for CloudFront Distribution"
     )
 
+    custom_host: str = Field(
+        None,
+        description="Complete url of custom host including subdomain. Used to infer url of stac-api before app synthesis.",
+    )
+
     class Config:
         """model config"""
 
