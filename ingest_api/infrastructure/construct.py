@@ -294,6 +294,7 @@ class IngestorConstruct(Construct):
             db_vpc=db_vpc,
             db_security_group=db_security_group,
             db_vpc_subnets=db_vpc_subnets,
+            pgstac_version=config.db_pgstac_version,
         )
 
     def build_ingestor(
@@ -305,6 +306,7 @@ class IngestorConstruct(Construct):
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
         db_vpc_subnets: ec2.SubnetSelection,
+        pgstac_version: str,
         code_dir: str = "./",
     ) -> aws_lambda.Function:
         handler = aws_lambda.Function(
@@ -314,6 +316,7 @@ class IngestorConstruct(Construct):
                 path=os.path.abspath(code_dir),
                 file="ingest_api/runtime/Dockerfile",
                 platform="linux/amd64",
+                build_args={"PGSTAC_VERSION": pgstac_version},
             ),
             handler="ingestor.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_9,
