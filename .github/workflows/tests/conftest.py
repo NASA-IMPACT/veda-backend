@@ -15,7 +15,7 @@ STAC_ENDPOINT = "http://0.0.0.0:8081"
 STAC_HEALTH_ENDPOINT = "http://0.0.0.0:8081/_mgmt/ping"
 SEARCH_ROUTE = "search"
 
-RASTER_ENDPOINT = "http://0.0.0.0:8082/searches"
+RASTER_SEARCHES_ENDPOINT = "http://0.0.0.0:8082/searches"
 RASTER_HEALTH_ENDPOINT = "http://0.0.0.0:8082/healthz"
 TILEMATRIX = {"z": 15, "x": 8589, "y": 12849}
 
