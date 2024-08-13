@@ -17,7 +17,7 @@ class TestList:
         self,
         seeded_collection,
         seeded_id,
-        raster_endpoint,
+        raster_searches_endpoint,
         raster_health_endpoint,
         seeded_tilematrix,
         searches,
@@ -27,7 +27,7 @@ class TestList:
         """
         self.seeded_collection = seeded_collection
         self.seeded_id = seeded_id
-        self.raster_endpoint = raster_endpoint
+        self.raster_searches_endpoint = raster_searches_endpoint
         self.raster_health_endpoint = raster_health_endpoint
         self.seeded_tilematrix = seeded_tilematrix
         self.searches = searches
@@ -45,7 +45,7 @@ class TestList:
     def test_mosaic_api(self):
         """test mosaic."""
         query = {"collections": [self.seeded_collection], "filter-lang": "cql-json"}
-        resp = httpx.post(f"{self.raster_endpoint}/register", json=query)
+        resp = httpx.post(f"{self.raster_searches_endpoint}/register", json=query)
         assert resp.headers["content-type"] == "application/json"
         assert resp.status_code == 200
         assert resp.json()["id"]
@@ -54,14 +54,16 @@ class TestList:
         searchid = resp.json()["id"]
         assert resp.status_code == 200
 
-        resp = httpx.get(f"{self.raster_endpoint}/{searchid}/-85.6358,36.1624/assets")
+        resp = httpx.get(
+            f"{self.raster_searches_endpoint}/{searchid}/-85.6358,36.1624/assets"
+        )
         assert resp.status_code == 200
         assert len(resp.json()) == 1
         assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
         assert resp.json()[0]["id"] == self.seeded_id
 
         resp = httpx.get(
-            f"{self.raster_endpoint}/{searchid}/tiles/15/8589/12849/assets"
+            f"{self.raster_searches_endpoint}/{searchid}/tiles/15/8589/12849/assets"
         )
 
         assert resp.status_code == 200
@@ -70,7 +72,7 @@ class TestList:
         assert resp.json()[0]["id"] == self.seeded_id
 
         resp = httpx.get(
-            f"{self.raster_endpoint}/{searchid}/tiles/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}",
+            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}",
             params={"assets": "cog"},
             headers={"Accept-Encoding": "br, gzip"},
             timeout=10.0,
@@ -80,7 +82,7 @@ class TestList:
         assert "content-encoding" not in resp.headers
 
         resp = httpx.get(
-            f"{self.raster_endpoint}/{searchid}/tiles/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}/assets"
+            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}/assets"
         )
         assert resp.status_code == 200
 
@@ -88,11 +90,11 @@ class TestList:
         """test mosaic."""
         # register some fake mosaic
         for search in self.searches:
-            resp = httpx.post(f"{self.raster_endpoint}/register", json=search)
+            resp = httpx.post(f"{self.raster_searches_endpoint}/register", json=search)
             assert resp.status_code == 200
             assert resp.json()["id"]
 
-        resp = httpx.get(f"{self.raster_endpoint}/list")
+        resp = httpx.get(f"{self.raster_searches_endpoint}/list")
         assert resp.headers["content-type"] == "application/json"
         assert resp.status_code == 200
         assert (
@@ -108,10 +110,13 @@ class TestList:
         assert len(links) == 2
         assert links[0]["rel"] == "self"
         assert links[1]["rel"] == "next"
-        assert links[1]["href"] == f"{self.raster_endpoint}/list?limit=10&offset=10"
+        assert (
+            links[1]["href"]
+            == f"{self.raster_searches_endpoint}/list?limit=10&offset=10"
+        )
 
         resp = httpx.get(
-            f"{self.raster_endpoint}/list", params={"limit": 1, "offset": 1}
+            f"{self.raster_searches_endpoint}/list", params={"limit": 1, "offset": 1}
         )
         assert resp.status_code == 200
         assert resp.json()["context"]["matched"] > 10
@@ -122,32 +127,48 @@ class TestList:
         assert len(links) == 3
         assert links[0]["rel"] == "self"
 
-        assert links[0]["href"] == f"{self.raster_endpoint}/list?limit=1&offset=1"
+        assert (
+            links[0]["href"] == f"{self.raster_searches_endpoint}/list?limit=1&offset=1"
+        )
         assert links[1]["rel"] == "next"
-        assert links[1]["href"] == f"{self.raster_endpoint}/list?limit=1&offset=2"
+        assert (
+            links[1]["href"] == f"{self.raster_searches_endpoint}/list?limit=1&offset=2"
+        )
         assert links[2]["rel"] == "prev"
-        assert links[2]["href"] == f"{self.raster_endpoint}/list?limit=1&offset=0"
+        assert (
+            links[2]["href"] == f"{self.raster_searches_endpoint}/list?limit=1&offset=0"
+        )
 
         # Filter on mosaic metadata
-        resp = httpx.get(f"{self.raster_endpoint}/list", params={"owner": "vincent"})
+        resp = httpx.get(
+            f"{self.raster_searches_endpoint}/list", params={"owner": "vincent"}
+        )
         assert resp.status_code == 200
         assert resp.json()["context"]["matched"] == 7
         assert resp.json()["context"]["limit"] == 10
         assert resp.json()["context"]["returned"] == 7
 
         # sortBy
-        resp = httpx.get(f"{self.raster_endpoint}/list", params={"sortby": "lastused"})
+        resp = httpx.get(
+            f"{self.raster_searches_endpoint}/list", params={"sortby": "lastused"}
+        )
         assert resp.status_code == 200
 
-        resp = httpx.get(f"{self.raster_endpoint}/list", params={"sortby": "usecount"})
+        resp = httpx.get(
+            f"{self.raster_searches_endpoint}/list", params={"sortby": "usecount"}
+        )
         assert resp.status_code == 200
 
-        resp = httpx.get(f"{self.raster_endpoint}/list", params={"sortby": "-owner"})
+        resp = httpx.get(
+            f"{self.raster_searches_endpoint}/list", params={"sortby": "-owner"}
+        )
         assert resp.status_code == 200
         assert (
             "owner" not in resp.json()["searches"][0]["search"]["metadata"]
         )  # some mosaic don't have owners
 
-        resp = httpx.get(f"{self.raster_endpoint}/list", params={"sortby": "owner"})
+        resp = httpx.get(
+            f"{self.raster_searches_endpoint}/list", params={"sortby": "owner"}
+        )
         assert resp.status_code == 200
         assert "owner" in resp.json()["searches"][0]["search"]["metadata"]

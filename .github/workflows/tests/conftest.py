@@ -196,14 +196,14 @@ def collections_route():
 
 
 @pytest.fixture
-def raster_endpoint():
+def raster_searches_endpoint():
     """
     Fixture providing a collections endpoint url for integration testing.
 
     Returns:
         string: A valid url
     """
-    return RASTER_ENDPOINT
+    return RASTER_SEARCHES_ENDPOINT
 
 
 @pytest.fixture
