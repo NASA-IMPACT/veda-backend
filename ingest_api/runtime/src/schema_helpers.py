@@ -40,7 +40,7 @@ class BboxExtent(BaseModel):
 
 
 class TemporalExtent(BaseModel):
-    startdate: datetime
+    startdate: Union[datetime, None]
     enddate: Union[datetime, None]
 
     @root_validator
