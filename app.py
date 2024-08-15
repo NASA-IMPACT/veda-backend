@@ -109,7 +109,9 @@ if stac_catalog_url:
 db_secret_name = database.pgstac.secret.secret_name
 db_security_group = database.db_security_group
 
-base_api_url = f"https://{veda_app_settings.stage_name()}.{veda_app_settings.veda_custom_host}".strip("/")
+base_api_url = f"https://{veda_app_settings.stage_name()}.{veda_app_settings.veda_custom_host}".strip(
+    "/"
+)
 stac_api_url = f"{base_api_url}{veda_app_settings.veda_stac_root_path}/"
 raster_api_url = f"{base_api_url}{veda_app_settings.veda_raster_root_path}/"
 
