@@ -15,7 +15,6 @@ from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_co
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
-from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from s3_website.infrastructure.construct import VedaWebsite
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
@@ -96,16 +95,6 @@ website = VedaWebsite(
     veda_stack, "stac-browser-bucket", stage=veda_app_settings.stage_name()
 )
 
-veda_routes = CloudfrontDistributionConstruct(
-    veda_stack,
-    "routes",
-    stage=veda_app_settings.stage_name(),
-    raster_api_id=raster_api.raster_api.api_id,
-    stac_api_id=stac_api.stac_api.api_id,
-    origin_bucket=website.bucket,
-    region=veda_app_settings.cdk_default_region,
-)
-
 # Only create a stac browser if we can infer the catalog url from configuration before synthesis (API Gateway URL not yet available)
 stac_catalog_url = veda_app_settings.get_stac_catalog_url()
 if stac_catalog_url:
@@ -120,12 +109,16 @@ if stac_catalog_url:
 db_secret_name = database.pgstac.secret.secret_name
 db_security_group = database.db_security_group
 
+base_api_url = f"https://{veda_app_settings.stage_name()}.{veda_app_settings.veda_custom_host}".strip("/")
+stac_api_url = f"{base_api_url}{veda_app_settings.veda_stac_root_path}/"
+raster_api_url = f"{base_api_url}{veda_app_settings.veda_raster_root_path}/"
+
 # ingestor config requires references to other resources, but can be shared between ingest api and bulk ingestor
 ingestor_config = ingest_config(
     stage=veda_app_settings.stage_name(),
     stac_db_security_group_id=db_security_group.security_group_id,
-    stac_api_url=stac_api.stac_api.url,
-    raster_api_url=raster_api.raster_api.url,
+    stac_api_url=stac_api_url,
+    raster_api_url=raster_api_url,
 )
 
 
@@ -148,14 +141,6 @@ ingestor = ingestor_construct(
     db_vpc=vpc.vpc,
     db_vpc_subnets=database.vpc_subnets,
 )
-
-veda_routes.add_ingest_behavior(
-    ingest_api=ingest_api.api, stage=veda_app_settings.stage_name()
-)
-
-# Must be done after all CF behaviors exist
-veda_routes.create_route_records(stage=veda_app_settings.stage_name())
-
 
 # TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
 if veda_app_settings.alt_domain():

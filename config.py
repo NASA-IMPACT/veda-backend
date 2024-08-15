@@ -90,7 +90,12 @@ class vedaAppSettings(BaseSettings):
 
     veda_stac_root_path: str = Field(
         "",
-        description="Optional path prefix to add to all api endpoints. Used to infer url of stac-api before app synthesis.",
+        description="STAC API root path. Used to infer url of stac-api before app synthesis.",
+    )
+
+    veda_raster_root_path: str = Field(
+        "",
+        description="Raster API root path",
     )
 
     veda_domain_create_custom_subdomains: bool = Field(
