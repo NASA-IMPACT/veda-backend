@@ -1,8 +1,6 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
 
 import os
-import typing
-from typing import Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -17,6 +15,7 @@ from aws_cdk import (
 from constructs import Construct
 
 from .config import veda_stac_settings
+
 
 class StacApiLambdaConstruct(Construct):
     """CDK Construct for a Lambda backed API implementing stac-fastapi."""

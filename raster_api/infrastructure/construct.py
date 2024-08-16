@@ -1,8 +1,6 @@
 """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
 
 import os
-import typing
-from typing import Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -18,6 +16,7 @@ from aws_cdk import (
 from constructs import Construct
 
 from .config import veda_raster_settings
+
 
 class RasterApiLambdaConstruct(Construct):
     """CDK Construct for a Lambda based TiTiler API with pgstac extension."""

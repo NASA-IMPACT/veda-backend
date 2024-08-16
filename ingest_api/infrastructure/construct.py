@@ -1,5 +1,4 @@
 import os
-import typing
 from typing import Dict, Optional, Union
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
@@ -16,6 +15,7 @@ from aws_cdk import aws_ssm as ssm
 from constructs import Construct
 
 from .config import IngestorConfig
+
 
 class ApiConstruct(Construct):
     def __init__(
