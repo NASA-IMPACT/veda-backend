@@ -120,15 +120,6 @@ class vedaAppSettings(BaseSettings):
         else:
             return {}
 
-    def alt_domain(self) -> bool:
-        """True if alternative domain and host parameters provided"""
-        return all(
-            [
-                self.veda_domain_alt_hosted_zone_id,
-                self.veda_domain_alt_hosted_zone_name,
-            ]
-        )
-
     def stage_name(self) -> str:
         """Force lowercase stage name"""
         return self.stage.lower()

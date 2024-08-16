@@ -18,10 +18,6 @@ from constructs import Construct
 
 from .config import veda_stac_settings
 
-if typing.TYPE_CHECKING:
-    from domain.infrastructure.construct import DomainConstruct
-
-
 class StacApiLambdaConstruct(Construct):
     """CDK Construct for a Lambda backed API implementing stac-fastapi."""
 
@@ -34,7 +30,6 @@ class StacApiLambdaConstruct(Construct):
         database,
         raster_api,  # TODO: typing!
         code_dir: str = "./",
-        domain: Optional["DomainConstruct"] = None,
         **kwargs,
     ) -> None:
         """."""
@@ -108,19 +103,10 @@ class StacApiLambdaConstruct(Construct):
             )
         )
 
-        domain_mapping = None
-        # Legacy method to use a custom subdomain for this api (i.e. <stage>-stac.<domain-name>.com)
-        # If using a custom root path and/or a proxy server, do not use a custom subdomain
-        if domain and domain.stac_domain_name:
-            domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
-                domain_name=domain.stac_domain_name
-            )
-
         self.stac_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",
             default_integration=stac_api_integration,
-            default_domain_mapping=domain_mapping,
         )
 
         CfnOutput(

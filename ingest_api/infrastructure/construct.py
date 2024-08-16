@@ -17,10 +17,6 @@ from constructs import Construct
 
 from .config import IngestorConfig
 
-if typing.TYPE_CHECKING:
-    from domain.infrastructure.construct import DomainConstruct
-
-
 class ApiConstruct(Construct):
     def __init__(
         self,
@@ -30,7 +26,6 @@ class ApiConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_vpc_subnets=ec2.SubnetSelection,
-        domain: Optional["DomainConstruct"] = None,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -95,7 +90,6 @@ class ApiConstruct(Construct):
         self.api: aws_apigatewayv2_alpha.HttpApi = self.build_api(
             construct_id=construct_id,
             handler=self.api_lambda,
-            domain=domain,
             custom_host=config.custom_host,
         )
 
@@ -193,7 +187,6 @@ class ApiConstruct(Construct):
         *,
         construct_id: str,
         handler: aws_lambda.IFunction,
-        domain,
         custom_host: Optional[str],
     ) -> aws_apigatewayv2_alpha.HttpApi:
         integration_kwargs = dict(handler=handler)
@@ -212,20 +205,12 @@ class ApiConstruct(Construct):
             )
         )
 
-        domain_mapping = None
-        # Legacy method to use a custom subdomain for this api (i.e. <stage>-ingest.<domain-name>.com)
-        # If using a custom root path and/or a proxy server, do not use a custom subdomain
-        if domain and domain.ingest_domain_name:
-            domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
-                domain_name=domain.ingest_domain_name
-            )
         stack_name = Stack.of(self).stack_name
 
         return aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",
             default_integration=ingest_api_integration,
-            default_domain_mapping=domain_mapping,
         )
 
     def build_jwks_url(self, userpool_id: str) -> str:
