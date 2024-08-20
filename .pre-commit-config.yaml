@@ -28,4 +28,4 @@ repos:
     hooks:
       - id: mypy
         language_version: python
-        additional_dependencies: ['types-requests', 'types-cachetools']
+        additional_dependencies: ['types-requests', 'types-cachetools', 'types-PyYAML']
