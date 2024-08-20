@@ -9,8 +9,8 @@ setup for testing with mock AWS and PostgreSQL configurations.
 import os
 
 import pytest
+from httpx import ASGITransport, AsyncClient
 
-from fastapi.testclient import TestClient
 
 VALID_COLLECTION = {
     "id": "CMIP245-winter-median-pr",
@@ -269,8 +269,8 @@ def app(test_environ):
     return app
 
 
-@pytest.fixture
-def api_client(app):
+@pytest.fixture(scope="function")
+async def api_client(app):
     """
     Fixture to initialize the API client for making requests.
 
@@ -286,7 +286,11 @@ def api_client(app):
     from src.app import auth
 
     app.dependency_overrides[auth.validated_token] = override_validated_token
-    yield TestClient(app)
+    base_url = "http://test"
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url=base_url) as c:
+        yield c
+
     app.dependency_overrides.clear()
 
 
