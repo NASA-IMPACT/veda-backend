@@ -1,7 +1,9 @@
 # veda-backend
+
 This project deploys a complete backend for a [SpatioTemporal Asset Catalog](https://stacspec.org/) including a postgres database, a metadata API, and raster tiling API. Veda-backend is a non-forked version of the [eoAPI](https://github.com/developmentseed/eoAPI) demo project. Veda-backend is decoupled from the demo project to selectively incorporate new stable functionality from the fast moving development in eoAPI while providing a continuous baseline for veda-backend users and to support project specific business and deployment logic.
 
 The primary tools employed in the [eoAPI demo](https://github.com/developmentseed/eoAPI) and this project are:
+
 - [stac-spec](https://github.com/radiantearth/stac-spec)
 - [stac-api-spec](https://github.com/radiantearth/stac-api-spec)
 - [stac-fastapi](https://github.com/stac-utils/stac-fastapi)
@@ -11,6 +13,7 @@ The primary tools employed in the [eoAPI demo](https://github.com/developmentsee
 - [eoapi-cdk](https://github.com/developmentseed/eoapi-cdk/tree/main#eoapi-cdk-constructs) + [radiantearth/stac-browser](https://github.com/radiantearth/stac-browser)
 
 ## VEDA backend context
+
 ![architecture diagram](.readme/veda-overview-bw.svg)
 
 _Edit this diagram in VS Code using the [Draw.io Integration Extension](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) and export a new SVG_
@@ -35,10 +38,12 @@ An [.example.env](.example.env) template is supplied for local deployments. If u
 
 To retrieve the variables for a stage that has been previously deployed, the secrets manager can be used to quickly populate an .env file with [scripts/sync-env-local.sh](scripts/sync-env-local.sh).
 
-```
+```bash
 ./scripts/sync-env-local.sh <app-secret-name>
 ```
+
 ### Basic environment variables
+
 | Name | Explanation |
 | --- | --- |
 | `APP_NAME` | Optional app name used to name stack and resources, defaults to `veda-backend` |
@@ -48,6 +53,7 @@ To retrieve the variables for a stage that has been previously deployed, the sec
 | `VEDA_DB_SNAPSHOT_ID` | **Once used always REQUIRED** Optional RDS snapshot identifier to initialize RDS from a snapshot |
 
 ### Advanced configuration
+
 The constructs and applications in this project are configured using pydantic. The settings are defined in config.py files stored alongside the associated construct or application--for example the settings for the RDS PostgreSQL construct are defined in database/infrastructure/config.py. For custom configuration, use environment variables to override the pydantic defaults.
 
 | Construct | Env Prefix | Configuration |
@@ -64,24 +70,28 @@ The constructs and applications in this project are configured using pydantic. T
 ### Deploying to the cloud
 
 #### Install deployment pre-requisites
+
 - [Node](https://nodejs.org/)
 - [NVM](https://github.com/nvm-sh/nvm#node-version-manager---)
 - [jq](https://jqlang.github.io/jq/) (used for exporting environment variable secrets to `.env` in [scripts/sync-env-local.sh](/scripts/sync-env-local.sh))
 
 These can be installed with [homebrew](https://brew.sh/) on MacOS
-```
+
+```bash
 brew install node
 brew install nvm
 brew install jq
 ```
 
 #### Virtual environment example
-```
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
 #### Install requirements
+
 ```bash
 nvm use --lts
 npm install --location=global aws-cdk
@@ -112,24 +122,29 @@ If this is a development stack that is safe to delete, you can delete the stack 
 ## Custom deployments
 
 The default settings for this project generate a complete AWS environment including a VPC and gateways for the stack. See this guidance for adjusting the veda-backend stack for existing managed and/or shared AWS environments.
+
 - [Deploy to an existing managed AWS environment](docs/deploying_to_existing_environments.md)
 - [Creating a shared base VPC and AWS environment](docs/deploying_to_existing_environments.md#optional-deploy-standalone-base-infrastructure)
 
 ## Local Docker deployment
 
 Start up a local stack
-```
+
+```bash
 docker compose up
 ```
+
 Clean up after running locally
-```
+
+```bash
 docker compose down
 ```
 
 ## Running tests locally
 
 To run tests implicated in CI, a script is included that requires as little setup as possible
-```
+
+```bash
 ./scripts/run-local-tests.sh
 ```
 
@@ -145,11 +160,13 @@ The VEDA ecosystem includes tools specifially created for loading PgSTAC records
 
 ## Support scripts
 Support scripts are provided for manual system operations.
+
 - [Rotate pgstac password](support_scripts/README.md#rotate-pgstac-password)
 
 # VEDA ecosystem
 
 ## Projects
+
 | Name | Explanation |
 | --- | --- |
 | **veda-backend** | Central index (database) and APIs for recording, discovering, viewing, and using VEDA assets |
@@ -160,6 +177,7 @@ Support scripts are provided for manual system operations.
 | [**veda-data-airflow**](https://github.com/NASA-IMPACT/veda-data-airflow) | Cloud optimize data assets and submit records for publication to veda-stac-ingestor |
 | [**veda-docs**](https://github.com/NASA-IMPACT/veda-docs) | Documentation repository for end users of VEDA ecosystem data and tools |
 | [**veda-routes**](https://github.com/NASA-IMPACT/veda-routes)| Configuration for VEDA's Content Delivery Network |
+
 ## VEDA usage examples
 
 ### [VEDA documentation](https://nasa-impact.github.io/veda-docs)
@@ -169,7 +187,9 @@ Support scripts are provided for manual system operations.
 # STAC community resources
 
 ## STAC browser
+
 Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the veda-backend STAC catalog, paste the veda-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
 
 # License
+
 This project is licensed under **Apache 2**, see the [LICENSE](LICENSE) file for more details.
