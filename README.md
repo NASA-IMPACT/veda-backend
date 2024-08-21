@@ -33,7 +33,7 @@ An [.example.env](.example.env) template is supplied for local deployments. If u
 
 ### Fetch environment variables using AWS CLI
 
-To retrieve the variables for a stage that has been previously deployed, the secrets manager can be used to quickly populate an .env file with [scripts/sync-env-local.sh](scripts/sync-env-local.sh). 
+To retrieve the variables for a stage that has been previously deployed, the secrets manager can be used to quickly populate an .env file with [scripts/sync-env-local.sh](scripts/sync-env-local.sh).
 
 ```
 ./scripts/sync-env-local.sh <app-secret-name>
@@ -99,7 +99,7 @@ cdk diff
 # Execute deployment and standby--security changes will require approval for deployment
 cdk deploy
 ```
-  
+
 ## Deleting the CloudFormation stack
 
 If this is a development stack that is safe to delete, you can delete the stack in CloudFormation console or via `cdk destroy`, however, the additional manual steps were required to completely delete the stack resources:
@@ -137,7 +137,7 @@ In case of failure, all container logs will be written out to `container_logs.lo
 
 # Operations
 
-## Adding new data to veda-backend 
+## Adding new data to veda-backend
 
 > **Warning** PgSTAC records should be loaded in the database using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac) for proper indexing and partitioning.
 
@@ -159,7 +159,7 @@ Support scripts are provided for manual system operations.
 | [**veda-data**](https://github.com/NASA-IMPACT/veda-data) | Collection and asset discovery configuration |
 | [**veda-data-airflow**](https://github.com/NASA-IMPACT/veda-data-airflow) | Cloud optimize data assets and submit records for publication to veda-stac-ingestor |
 | [**veda-docs**](https://github.com/NASA-IMPACT/veda-docs) | Documentation repository for end users of VEDA ecosystem data and tools |
-
+| [**veda-routes**](https://github.com/NASA-IMPACT/veda-routes)| Configuration for VEDA's Content Delivery Network |
 ## VEDA usage examples
 
 ### [VEDA documentation](https://nasa-impact.github.io/veda-docs)
