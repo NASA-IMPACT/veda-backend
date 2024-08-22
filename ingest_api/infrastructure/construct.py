@@ -45,11 +45,11 @@ class ApiConstruct(Construct):
             "DYNAMODB_TABLE": self.table.table_name,
             "JWKS_URL": self.jwks_url,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
-            "STAC_URL": config.stac_api_url,
+            "STAC_URL": config.veda_stac_api_cf_url,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
-            "RASTER_URL": config.raster_api_url,
+            "RASTER_URL": config.veda_raster_api_cf_url,
             "ROOT_PATH": config.ingest_root_path,
             "STAGE": config.stage,
             "COGNITO_DOMAIN": config.cognito_domain,
@@ -256,11 +256,11 @@ class IngestorConstruct(Construct):
         lambda_env = {
             "DYNAMODB_TABLE": table.table_name,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
-            "STAC_URL": config.stac_api_url,
+            "STAC_URL": config.veda_stac_api_cf_url,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
-            "RASTER_URL": config.raster_api_url,
+            "RASTER_URL": config.veda_raster_api_cf_url,
         }
 
         if config.raster_data_access_role_arn:
