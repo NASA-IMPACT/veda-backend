@@ -65,17 +65,25 @@ class IngestorConfig(BaseSettings):
         description="Version of PgStac database, i.e. 0.5",
     )
 
-    custom_host: str = Field(
+    stac_api_url: str = Field(
+        description="URL of STAC API Gateway endpoint used to serve STAC Items"
+    )
+
+    raster_api_url: str = Field(
+        description="URL of Raster API Gateway endpoing used to serve asset tiles"
+    )
+
+    custom_host: Optional[str] = Field(
         None,
         description="Complete url of custom host including subdomain. Used to infer url of apis before app synthesis.",
     )
 
-    stac_root_path: str = Field(
+    stac_root_path: Optional[str] = Field(
         "",
         description="STAC API root path. Used to infer url of stac-api before app synthesis.",
     )
 
-    raster_root_path: str = Field(
+    raster_root_path: Optional[str] = Field(
         "",
         description="Raster API root path. Used to infer url of raster-api before app synthesis.",
     )
@@ -97,15 +105,15 @@ class IngestorConfig(BaseSettings):
         )
 
     @property
-    def veda_stac_api_cf_url(self) -> Optional[str]:
+    def veda_stac_api_cf_url(self) -> str:
         """inferred cloudfront url of the stac api if app is configured with a custom host and root path"""
         if self.custom_host and self.stac_root_path:
             return f"https://{self.custom_host}{self.stac_root_path}"
-        return None
+        return self.stac_api_url
 
     @property
-    def veda_raster_api_cf_url(self) -> Optional[str]:
+    def veda_raster_api_cf_url(self) -> str:
         """inferred cloudfront url of the raster api if app is configured with a custom host and root path"""
         if self.custom_host and self.stac_root_path:
             return f"https://{self.custom_host}{self.raster_root_path}"
-        return None
+        return self.raster_api_url

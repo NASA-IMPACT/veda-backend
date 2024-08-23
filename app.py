@@ -108,6 +108,8 @@ db_security_group = database.db_security_group
 ingestor_config = ingest_config(
     stage=veda_app_settings.stage_name(),
     stac_db_security_group_id=db_security_group.security_group_id,
+    stac_api_url=stac_api.stac_api.url,
+    raster_api_url=raster_api.raster_api.url,
 )
 
 ingest_api = ingest_api_construct(
