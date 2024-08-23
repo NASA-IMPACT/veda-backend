@@ -42,6 +42,19 @@ class CloudfrontDistributionConstruct(Construct):
                 else None
             )
 
+            if (
+                veda_route_settings.domain_hosted_zone_name
+                == veda_route_settings.custom_host
+                ):
+                self.cf_domain_names = [
+                    f"{stage}.{veda_route_settings.domain_hosted_zone_name}",
+                    f"{veda_route_settings.domain_hosted_zone_name}",
+                ]
+            else:
+                self.cf_domain_names = [
+                    f"{stage}.{veda_route_settings.domain_hosted_zone_name}"
+                ]
+
             if veda_route_settings.cloudfront_oac:
                 # create the origin access control resource
                 cfn_origin_access_control = cf.CfnOriginAccessControl(
@@ -55,19 +68,7 @@ class CloudfrontDistributionConstruct(Construct):
                         description="Origin Access Control for STAC Browser",
                     ),
                 )
-                if (
-                    veda_route_settings.domain_hosted_zone_name
-                    == veda_route_settings.custom_host
-                ):
-                    self.cf_domain_names = [
-                        f"{stage}.{veda_route_settings.domain_hosted_zone_name}",
-                        f"{veda_route_settings.domain_hosted_zone_name}",
-                    ]
-                else:
-                    self.cf_domain_names = [
-                        f"{stage}.{veda_route_settings.domain_hosted_zone_name}"
-                    ]
-
+        
                 self.distribution = cf.Distribution(
                     self,
                     stack_name,

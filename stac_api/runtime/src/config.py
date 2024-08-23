@@ -78,21 +78,21 @@ class _ApiSettings(BaseSettings):
         False, description="Whether to enable transactions"
     )
 
-    @root_validator
-    def check_transaction_fields(cls, values):
-        enable_transactions = values.get("enable_transactions")
+    # @root_validator
+    # def check_transaction_fields(cls, values):
+    #     enable_transactions = values.get("enable_transactions")
 
-        if enable_transactions:
-            missing_fields = [
-                field
-                for field in ["userpool_id", "cognito_domain", "client_id"]
-                if not values.get(field)
-            ]
-            if missing_fields:
-                raise ValueError(
-                    f"When 'enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
-                )
-        return values
+    #     if enable_transactions:
+    #         missing_fields = [
+    #             field
+    #             for field in ["userpool_id", "cognito_domain", "client_id"]
+    #             if not values.get(field)
+    #         ]
+    #         if missing_fields:
+    #             raise ValueError(
+    #                 f"When 'enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
+    #             )
+    #     return values
 
     @property
     def jwks_url(self) -> AnyHttpUrl:

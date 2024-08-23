@@ -54,26 +54,28 @@ class vedaSTACSettings(BaseSettings):
     client_secret: Optional[str] = Field(
         "", description="The Cognito APP client secret"
     )
+    stac_client_id: Optional[str] = Field(description="The Veda Auth Central client ID")
+    openid_configuration_url: Optional[AnyHttpUrl] = Field(description="OpenID config url")
     stac_enable_transactions: bool = Field(
         False, description="Whether to enable transactions endpoints"
     )
 
-    @root_validator
-    def check_transaction_fields(cls, values):
-        """
-        Validates the existence of auth env vars in case stac_enable_transactions is True
-        """
-        if values.get("stac_enable_transactions"):
-            missing_fields = [
-                field
-                for field in ["userpool_id", "cognito_domain", "client_id"]
-                if not values.get(field)
-            ]
-            if missing_fields:
-                raise ValueError(
-                    f"When 'stac_enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
-                )
-        return values
+    # @root_validator
+    # def check_transaction_fields(cls, values):
+    #     """
+    #     Validates the existence of auth env vars in case stac_enable_transactions is True
+    #     """
+    #     if values.get("stac_enable_transactions"):
+    #         missing_fields = [
+    #             field
+    #             for field in ["userpool_id", "cognito_domain", "client_id"]
+    #             if not values.get(field)
+    #         ]
+    #         if missing_fields:
+    #             raise ValueError(
+    #                 f"When 'stac_enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
+    #             )
+    #     return values
 
     class Config:
         """model config"""
