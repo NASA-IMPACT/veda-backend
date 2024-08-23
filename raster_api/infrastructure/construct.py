@@ -1,8 +1,6 @@
 """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
 
 import os
-import typing
-from typing import Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -19,9 +17,6 @@ from constructs import Construct
 
 from .config import veda_raster_settings
 
-if typing.TYPE_CHECKING:
-    from domain.infrastructure.construct import DomainConstruct
-
 
 class RasterApiLambdaConstruct(Construct):
     """CDK Construct for a Lambda based TiTiler API with pgstac extension."""
@@ -34,8 +29,6 @@ class RasterApiLambdaConstruct(Construct):
         vpc,
         database,
         code_dir: str = "./",
-        # domain_name: aws_apigatewayv2_alpha.DomainName = None,
-        domain: Optional["DomainConstruct"] = None,
         **kwargs,
     ) -> None:
         """."""
@@ -102,19 +95,10 @@ class RasterApiLambdaConstruct(Construct):
             )
         )
 
-        domain_mapping = None
-        # Legacy method to use a custom subdomain for this api (i.e. <stage>-raster.<domain-name>.com)
-        # If using a custom root path and/or a proxy server, do not use a custom subdomain
-        if domain and domain.raster_domain_name:
-            domain_mapping = aws_apigatewayv2_alpha.DomainMappingOptions(
-                domain_name=domain.raster_domain_name
-            )
-
         self.raster_api = aws_apigatewayv2_alpha.HttpApi(
             self,
             f"{stack_name}-{construct_id}",
             default_integration=raster_api_integration,
-            default_domain_mapping=domain_mapping,
         )
 
         CfnOutput(
