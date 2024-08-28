@@ -55,7 +55,9 @@ class vedaSTACSettings(BaseSettings):
         "", description="The Cognito APP client secret"
     )
     stac_client_id: Optional[str] = Field(description="The Veda Auth Central client ID")
-    openid_configuration_url: Optional[AnyHttpUrl] = Field(description="OpenID config url")
+    openid_configuration_url: Optional[AnyHttpUrl] = Field(
+        description="OpenID config url"
+    )
     stac_enable_transactions: bool = Field(
         False, description="Whether to enable transactions endpoints"
     )

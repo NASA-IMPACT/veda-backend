@@ -23,6 +23,7 @@ from starlette_cramjam.middleware import CompressionMiddleware
 from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
+
 # from .routes import add_route_dependencies
 from .validation import ValidationMiddleware
 
@@ -49,7 +50,7 @@ api = VedaStacApi(
                 "appName": "STAC Api",
                 "clientId": auth_settings.client_id,
                 "usePkceWithAuthorizationCodeGrant": True,
-                "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete"
+                "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
             }
             if auth_settings.client_id
             else {}
@@ -83,9 +84,9 @@ if api_settings.cors_origins:
 
 if api_settings.enable_transactions and auth_settings.client_id:
     oidc_auth = OpenIdConnectAuth(
-        openid_configuration_url=auth_settings.openid_configuration_url, 
+        openid_configuration_url=auth_settings.openid_configuration_url,
     )
-    
+
     restricted_prefixes_methods = {
         "/collections": ("POST", "stac:collection:create"),
         "/collections/{collection_id}": ("PUT", "stac:collection:update"),
@@ -93,13 +94,13 @@ if api_settings.enable_transactions and auth_settings.client_id:
         "/collections/{collection_id}/items": ("POST", "stac:item:create"),
         "/collections/{collection_id}/items/{item_id}": ("PUT", "stac:item:update"),
         "/collections/{collection_id}/items/{item_id}": ("DELETE", "stac:item:delete"),
-        "/collections/{collectionId}/bulk_items": ("POST", "stac:item:create")
+        "/collections/{collectionId}/bulk_items": ("POST", "stac:item:create"),
     }
-    
+
     api_routes = {
         route.path: route for route in app.router.routes if isinstance(route, APIRoute)
     }
-    
+
     for route in app.router.routes:
         method_scope = restricted_prefixes_methods.get(route.path)
         if not method_scope:
@@ -108,7 +109,7 @@ if api_settings.enable_transactions and auth_settings.client_id:
         if method not in route.methods:
             continue
         oidc_auth.apply_auth_dependencies(route, required_token_scopes=[scope])
-    
+
 if tiles_settings.titiler_endpoint:
     # Register to the TiTiler extension to the api
     extension = TiTilerExtension()

@@ -45,7 +45,7 @@ class CloudfrontDistributionConstruct(Construct):
             if (
                 veda_route_settings.domain_hosted_zone_name
                 == veda_route_settings.custom_host
-                ):
+            ):
                 self.cf_domain_names = [
                     f"{stage}.{veda_route_settings.domain_hosted_zone_name}",
                     f"{veda_route_settings.domain_hosted_zone_name}",
@@ -68,7 +68,7 @@ class CloudfrontDistributionConstruct(Construct):
                         description="Origin Access Control for STAC Browser",
                     ),
                 )
-        
+
                 self.distribution = cf.Distribution(
                     self,
                     stack_name,

@@ -140,12 +140,14 @@ class _ApiSettings(BaseSettings):
         env_file = ".env"
         env_prefix = "VEDA_STAC_"
 
+
 class VedaOpenIdConnectSettings(OpenIdConnectSettings):
     """eoapi-auth-utils settings subclass needed for Pydantic v1 compatibility"""
-    
+
     class Config:
         env_prefix = "VEDA_STAC_"
-        extra="ignore"
+        extra = "ignore"
+
 
 @lru_cache()
 def ApiSettings() -> _ApiSettings:
@@ -161,6 +163,7 @@ def ApiSettings() -> _ApiSettings:
 
 
 api_settings = ApiSettings()
+
 
 class _TilesApiSettings(BaseSettings):
     """Tile API settings"""
