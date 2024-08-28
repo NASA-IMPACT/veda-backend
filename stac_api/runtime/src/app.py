@@ -3,13 +3,13 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
 from aws_lambda_powertools.metrics import MetricUnit
-from src.config import TilesApiSettings, api_settings
+from src.config import TilesApiSettings, api_settings, VedaOpenIdConnectSettings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
-from eoapi.auth_utils import AuthSettings, OpenIdConnectAuth
+from eoapi.auth_utils import OpenIdConnectAuth
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
 from fastapi.routing import APIRoute
@@ -36,7 +36,7 @@ except ImportError:
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 tiles_settings = TilesApiSettings()
-auth_settings = AuthSettings(_env_prefix="VEDA_STAC_")
+auth_settings = VedaOpenIdConnectSettings()
 
 api = VedaStacApi(
     app=FastAPI(
@@ -49,6 +49,7 @@ api = VedaStacApi(
                 "appName": "STAC Api",
                 "clientId": auth_settings.client_id,
                 "usePkceWithAuthorizationCodeGrant": True,
+                "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete"
             }
             if auth_settings.client_id
             else {}
@@ -81,7 +82,9 @@ if api_settings.cors_origins:
     )
 
 if api_settings.enable_transactions and auth_settings.client_id:
-    oidc_auth = OpenIdConnectAuth.from_settings(auth_settings)
+    oidc_auth = OpenIdConnectAuth(
+        openid_configuration_url=auth_settings.openid_configuration_url, 
+    )
     
     restricted_prefixes_methods = {
         "/collections": ("POST", "stac:collection:create"),

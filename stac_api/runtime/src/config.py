@@ -9,6 +9,7 @@ from typing import Optional
 import boto3
 from pydantic import AnyHttpUrl, BaseSettings, Field, root_validator, validator
 
+from eoapi.auth_utils import OpenIdConnectSettings
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
 
@@ -139,6 +140,12 @@ class _ApiSettings(BaseSettings):
         env_file = ".env"
         env_prefix = "VEDA_STAC_"
 
+class VedaOpenIdConnectSettings(OpenIdConnectSettings):
+    """eoapi-auth-utils settings subclass needed for Pydantic v1 compatibility"""
+    
+    class Config:
+        env_prefix = "VEDA_STAC_"
+        extra="ignore"
 
 @lru_cache()
 def ApiSettings() -> _ApiSettings:
@@ -154,7 +161,6 @@ def ApiSettings() -> _ApiSettings:
 
 
 api_settings = ApiSettings()
-
 
 class _TilesApiSettings(BaseSettings):
     """Tile API settings"""

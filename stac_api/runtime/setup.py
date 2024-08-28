@@ -19,7 +19,7 @@ inst_reqs = [
     "aws-lambda-powertools>=1.18.0",
     "aws_xray_sdk>=2.6.0,<3",
     "pystac[validation]==1.10.1",
-    "eoapi.auth-utils"
+    "eoapi-auth-utils>=0.4.0"
 ]
 
 extra_reqs = {

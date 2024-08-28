@@ -50,7 +50,7 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_STAGE": stage,
             "VEDA_STAC_USERPOOL_ID": veda_stac_settings.userpool_id,
             "VEDA_STAC_CLIENT_ID": veda_stac_settings.stac_client_id,
-            "VEDA_STAC_OPENID_CONFIGURATION_URL": veda_stac_settings.openid_configuration_url
+            "VEDA_STAC_OPENID_CONFIGURATION_URL": veda_stac_settings.openid_configuration_url,
             "VEDA_STAC_COGNITO_DOMAIN": veda_stac_settings.cognito_domain,
             "VEDA_STAC_ENABLE_TRANSACTIONS": str(
                 veda_stac_settings.stac_enable_transactions
