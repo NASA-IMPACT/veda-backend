@@ -2,9 +2,9 @@ import os
 from getpass import getuser
 from typing import Optional
 
+from eoapi.auth_utils import OpenIdConnectSettings
 from pydantic import AnyHttpUrl, BaseSettings, Field, constr
 from pydantic_ssm_settings import AwsSsmSourceConfig
-from veda_auth import VedaAuth
 
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
 
@@ -55,6 +55,14 @@ class Settings(BaseSettings):
         return cls(_secrets_dir=f"/{stack}")
 
 
+class VedaOpenIdConnectSettings(OpenIdConnectSettings):
+    """eoapi-auth-utils settings subclass needed for Pydantic v1 compatibility"""
+
+    class Config:
+        env_prefix = "STAC_"
+        extra = "ignore"
+
+
 settings = (
     Settings()
     if os.environ.get("NO_PYDANTIC_SSM_SETTINGS")
@@ -64,5 +72,3 @@ settings = (
         ),
     )
 )
-
-auth = VedaAuth(settings)

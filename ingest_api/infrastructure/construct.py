@@ -54,6 +54,8 @@ class ApiConstruct(Construct):
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
+            "STAC_CLIENT_ID": config.stac_client_id,
+            "STAC_OPENID_CONFIGURATION_URL": config.openid_configuration_url,
             "RASTER_URL": config.raster_api_url,
             "ROOT_PATH": config.ingest_root_path,
             "STAGE": config.stage,

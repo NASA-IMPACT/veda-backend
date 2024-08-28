@@ -5,15 +5,22 @@ import src.schemas as schemas
 import src.services as services
 from aws_lambda_powertools.metrics import MetricUnit
 from src.collection_publisher import CollectionPublisher, ItemPublisher
-from src.config import auth, settings
+from src.config import settings, VedaOpenIdConnectSettings
 from src.doc import DESCRIPTION
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 
+from eoapi.auth_utils import OpenIdConnectAuth
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
+
+
+auth_settings = VedaOpenIdConnectSettings()
+oidc_auth = OpenIdConnectAuth(
+    openid_configuration_url=auth_settings.openid_configuration_url,
+)
 
 app = FastAPI(
     title="VEDA Ingestion API",
@@ -27,9 +34,10 @@ app = FastAPI(
     openapi_url="/openapi.json",
     docs_url="/docs",
     swagger_ui_init_oauth={
-        "appName": "Cognito",
-        "clientId": settings.client_id,
+        "appName": "Ingest API",
+        "clientId": auth_settings.client_id,
         "usePkceWithAuthorizationCodeGrant": True,
+        "scopes": "openid",
     },
 )
 
@@ -135,7 +143,7 @@ def cancel_ingestion(
     "/collections",
     tags=["Collection"],
     status_code=201,
-    dependencies=[Depends(auth.validated_token)],
+    dependencies=[Depends(oidc_auth.valid_token_dependency)],
 )
 def publish_collection(collection: schemas.DashboardCollection):
     """
@@ -155,7 +163,7 @@ def publish_collection(collection: schemas.DashboardCollection):
 @app.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
-    dependencies=[Depends(auth.validated_token)],
+    dependencies=[Depends(oidc_auth.valid_token_dependency)],
 )
 def delete_collection(collection_id: str):
     """
@@ -173,7 +181,7 @@ def delete_collection(collection_id: str):
     "/items",
     tags=["Items"],
     status_code=201,
-    dependencies=[Depends(auth.validated_token)],
+    dependencies=[Depends(oidc_auth.valid_token_dependency)],
 )
 def publish_item(item: schemas.Item):
     """

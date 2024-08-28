@@ -64,6 +64,10 @@ class IngestorConfig(BaseSettings):
     raster_api_url: str = Field(
         description="URL of Raster API used to serve asset tiles"
     )
+    stac_client_id: Optional[str] = Field(description="The Veda Auth Central client ID")
+    openid_configuration_url: Optional[AnyHttpUrl] = Field(
+        description="OpenID config url"
+    )
 
     ingest_root_path: str = Field("", description="Root path for ingest API")
     custom_host: Optional[str] = Field(description="Custom host name")

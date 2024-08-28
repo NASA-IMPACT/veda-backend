@@ -15,3 +15,4 @@ stac-pydantic @ git+https://github.com/ividito/stac-pydantic.git@3f4cb381c85749b
 boto3==1.24.59
 aws_xray_sdk>=2.6.0,<3
 aws-lambda-powertools>=1.18.0
+eoapi-auth-utils>=0.4.0
