@@ -11,7 +11,6 @@ import os
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-
 VALID_COLLECTION = {
     "id": "CMIP245-winter-median-pr",
     "type": "Collection",
