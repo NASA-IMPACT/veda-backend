@@ -4,23 +4,19 @@ import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
 from aws_lambda_powertools.metrics import MetricUnit
+from src.auth import auth_settings, get_username, oidc_auth
 from src.collection_publisher import CollectionPublisher, ItemPublisher
-from src.config import settings, VedaOpenIdConnectSettings
+from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 
-from eoapi.auth_utils import OpenIdConnectAuth
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 
-
-auth_settings = VedaOpenIdConnectSettings()
-oidc_auth = OpenIdConnectAuth(
-    openid_configuration_url=auth_settings.openid_configuration_url,
-)
+from eoapi.auth_utils import OpenIdConnectAuth
 
 app = FastAPI(
     title="VEDA Ingestion API",
@@ -37,7 +33,7 @@ app = FastAPI(
         "appName": "Ingest API",
         "clientId": auth_settings.client_id,
         "usePkceWithAuthorizationCodeGrant": True,
-        "scopes": "openid",
+        "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
     },
 )
 
@@ -67,10 +63,13 @@ async def list_ingestions(
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
     status_code=201,
+    dependencies=[
+        Security(oidc_auth.valid_token_dependency, scopes="stac:item:create")
+    ],
 )
 async def enqueue_ingestion(
     item: schemas.AccessibleItem,
-    username: str = Depends(auth.get_username),
+    username: str = Depends(get_username),
     db: services.Database = Depends(dependencies.get_db),
 ) -> schemas.Ingestion:
     """
@@ -104,6 +103,9 @@ def get_ingestion(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
+    dependencies=[
+        Security(oidc_auth.valid_token_dependency, scopes="stac:item:update")
+    ],
 )
 def update_ingestion(
     update: schemas.UpdateIngestionRequest,
@@ -121,6 +123,9 @@ def update_ingestion(
     "/ingestions/{ingestion_id}",
     response_model=schemas.Ingestion,
     tags=["Ingestion"],
+    dependencies=[
+        Security(oidc_auth.valid_token_dependency, scopes="stac:item:delete")
+    ],
 )
 def cancel_ingestion(
     ingestion: schemas.Ingestion = Depends(dependencies.fetch_ingestion),
@@ -143,7 +148,9 @@ def cancel_ingestion(
     "/collections",
     tags=["Collection"],
     status_code=201,
-    dependencies=[Depends(oidc_auth.valid_token_dependency)],
+    dependencies=[
+        Security(oidc_auth.valid_token_dependency, scopes="stac:collection:create")
+    ],
 )
 def publish_collection(collection: schemas.DashboardCollection):
     """
@@ -163,7 +170,9 @@ def publish_collection(collection: schemas.DashboardCollection):
 @app.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
-    dependencies=[Depends(oidc_auth.valid_token_dependency)],
+    dependencies=[
+        Security(oidc_auth.valid_token_dependency, scopes="stac:collection:delete")
+    ],
 )
 def delete_collection(collection_id: str):
     """
@@ -181,7 +190,9 @@ def delete_collection(collection_id: str):
     "/items",
     tags=["Items"],
     status_code=201,
-    dependencies=[Depends(oidc_auth.valid_token_dependency)],
+    dependencies=[
+        Security(oidc_auth.valid_token_dependency, scopes="stac:item:create")
+    ],
 )
 def publish_item(item: schemas.Item):
     """
@@ -221,7 +232,7 @@ async def get_token(
 
 
 @app.get("/auth/me", tags=["Auth"])
-def who_am_i(claims=Depends(auth.validated_token)):
+def who_am_i(claims=Depends(oidc_auth.valid_token_dependency)):
     """
     Return claims for the provided JWT
     """

@@ -94,7 +94,7 @@ if api_settings.enable_transactions and auth_settings.client_id:
         "/collections/{collection_id}/items": ("POST", "stac:item:create"),
         "/collections/{collection_id}/items/{item_id}": ("PUT", "stac:item:update"),
         "/collections/{collection_id}/items/{item_id}": ("DELETE", "stac:item:delete"),
-        "/collections/{collectionId}/bulk_items": ("POST", "stac:item:create"),
+        "/collections/{collection_id}/bulk_items": ("POST", "stac:item:create"),
     }
 
     api_routes = {
