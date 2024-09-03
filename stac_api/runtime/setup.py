@@ -19,10 +19,11 @@ inst_reqs = [
     "aws-lambda-powertools>=1.18.0",
     "aws_xray_sdk>=2.6.0,<3",
     "pystac[validation]==1.10.1",
+    "boto3",
 ]
 
 extra_reqs = {
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests"],
+    "test": ["pytest", "pytest-cov", "pytest-asyncio", "requests", "httpx"],
 }
 
 

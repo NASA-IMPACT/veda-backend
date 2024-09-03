@@ -9,7 +9,8 @@ setup for testing with mock AWS and PostgreSQL configurations.
 import os
 
 import pytest
-from httpx import ASGITransport, AsyncClient
+
+from starlette.testclient import TestClient
 
 VALID_COLLECTION = {
     "id": "CMIP245-winter-median-pr",
@@ -249,27 +250,8 @@ def override_validated_token():
     return "fake_token"
 
 
-@pytest.fixture
-def app(test_environ):
-    """
-    Fixture to initialize the FastAPI application.
-
-    This fixture imports and returns the FastAPI application instance
-    for testing purposes.
-
-    Args:
-        test_environ: A fixture setting up the test environment.
-
-    Returns:
-        FastAPI: The FastAPI application instance.
-    """
-    from src.app import app
-
-    return app
-
-
-@pytest.fixture(scope="function")
-async def api_client(app):
+@pytest.fixture(autouse=True)
+def api_client(test_environ):
     """
     Fixture to initialize the API client for making requests.
 
@@ -282,12 +264,12 @@ async def api_client(app):
     Yields:
         TestClient: The TestClient instance for API testing.
     """
-    from src.app import auth
+    from src.app import app, auth
 
     app.dependency_overrides[auth.validated_token] = override_validated_token
     base_url = "http://test"
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url=base_url) as c:
+    with TestClient(app, base_url=base_url) as c:
         yield c
 
     app.dependency_overrides.clear()
