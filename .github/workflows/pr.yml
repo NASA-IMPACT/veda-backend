@@ -34,7 +34,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
-    needs: [lint, lint-conventional-pr]
+    # needs: [lint, lint-conventional-pr]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
