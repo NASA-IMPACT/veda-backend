@@ -7,7 +7,12 @@ from functools import lru_cache
 from typing import Optional
 
 import boto3
-from pydantic import AnyHttpUrl, BaseSettings, Field, root_validator, validator
+
+from pydantic.v1.env_settings import BaseSettings
+from pydantic.v1.fields import Field
+from pydantic.v1.class_validators import root_validator, validator
+from pydantic import AnyHttpUrl
+
 
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
@@ -78,7 +83,7 @@ class _ApiSettings(BaseSettings):
         False, description="Whether to enable transactions"
     )
 
-    @root_validator
+    @validator
     def check_transaction_fields(cls, values):
         enable_transactions = values.get("enable_transactions")
 
@@ -111,7 +116,7 @@ class _ApiSettings(BaseSettings):
         """Cognito user pool token and refresh url"""
         return f"{self.cognito_domain}/oauth2/token"
 
-    @validator("cors_origins")
+    @root_validator("cors_origins")
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]

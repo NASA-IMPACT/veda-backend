@@ -2,8 +2,10 @@
 
 from typing import Dict, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings, Field, root_validator
-
+from pydantic.v1.env_settings import BaseSettings
+from pydantic.v1.fields import Field
+from pydantic.v1.class_validators import root_validator
+from pydantic.v1 import AnyHttpUrl
 
 class vedaSTACSettings(BaseSettings):
     """Application settings"""

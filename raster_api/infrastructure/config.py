@@ -4,8 +4,8 @@
 
 from typing import Dict, List, Optional
 
-from pydantic import BaseSettings, Field
-
+from pydantic.v1.env_settings import BaseSettings
+from pydantic.v1.fields import Field
 
 class vedaRasterSettings(BaseSettings):
     """Application settings"""

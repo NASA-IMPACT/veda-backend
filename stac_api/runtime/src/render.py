@@ -4,8 +4,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
 import orjson
-from pydantic import BaseModel
-
+from pydantic.v1 import BaseModel
 
 def orjson_dumps(v: Dict[str, Any], *args: Any, default: Any) -> str:
     """orjson.dumps returns bytes, to match standard json.dumps we need to decode."""

@@ -2,7 +2,9 @@
 from getpass import getuser
 from typing import List, Optional
 
-from pydantic import BaseSettings, Field, constr
+from pydantic.v1.env_settings import BaseSettings
+from pydantic.v1.types import constr
+from pydantic.v1.fields import Field
 
 AwsSubnetId = constr(regex=r"^subnet-[a-z0-9]{17}$")
 

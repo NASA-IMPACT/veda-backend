@@ -2,7 +2,11 @@ import os
 from getpass import getuser
 from typing import Optional
 
-from pydantic import AnyHttpUrl, BaseSettings, Field, constr
+from pydantic import AnyHttpUrl
+from pydantic.v1.fields import Field
+from pydantic.v1.env_settings import BaseSettings
+from pydantic.v1.types import constr
+
 from pydantic_ssm_settings import AwsSsmSourceConfig
 from veda_auth import VedaAuth
 

@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 import orjson
 from asyncpg.exceptions import InvalidDatetimeFormatError
 from buildpg import render
-from pydantic import ValidationError
+from pydantic.v1.error_wrappers import ValidationError
 from pygeofilter.backends.cql2_json import to_cql2
 from pygeofilter.parsers.cql2_text import parse as parse_cql2_text
 

@@ -1,8 +1,7 @@
 """Configuration options for the VPC."""
 from typing import Dict
 
-from pydantic import BaseSettings
-
+from pydantic.v1.env_settings import BaseSettings
 
 # https://medium.com/aws-activate-startup-blog/practical-vpc-design-8412e1a18dcc#.bmeh8m3si
 # https://www.admin-magazine.com/Articles/The-AWS-CDK-for-software-defined-deployments/(offset)/6

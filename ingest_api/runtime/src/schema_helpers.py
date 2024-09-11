@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import List, Union
 
-from pydantic import BaseModel, root_validator
+from pydantic.v1 import BaseModel
+from pydantic.v1.class_validators import root_validator
 from stac_pydantic.collection import Extent, TimeInterval
 
 # Smaller utility models to support the larger models in schemas.py

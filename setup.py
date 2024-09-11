@@ -12,7 +12,7 @@ extra_reqs = {
         "constructs>=10.0.0,<11.0.0",
         "aws-cdk.aws_apigatewayv2_alpha~=2.47.0.a0",
         "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.47.0.a0",
-        "pydantic~=1.0",
+        "pydantic~=2.8.2",
         "eoapi-cdk==5.4.0",
     ],
     "test": [
@@ -20,7 +20,7 @@ extra_reqs = {
         "pytest-asyncio",
         "pytest-cov",
         "httpx==0.23.3",
-        "pypgstac==0.7.4",
+        "pypgstac==0.9.1",
         "psycopg[binary, pool]",
         "fastapi",
         "openapi-schema-validator",

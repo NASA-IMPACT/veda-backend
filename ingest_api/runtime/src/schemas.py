@@ -7,15 +7,13 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 import src.validators as validators
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    Json,
-    PositiveInt,
-    error_wrappers,
-    validator,
-)
+
+from pydantic.v1 import BaseModel, Json, PositiveInt
+from pydantic.v1.config import ConfigDict
+from pydantic.v1.fields import Field
+from pydantic.v1.class_validators import validator
+from pydantic.v1.error_wrappers import ErrorWrapper
+
 from src.schema_helpers import SpatioTemporalExtent
 from stac_pydantic import Collection, Item, shared
 from stac_pydantic.links import Link
@@ -157,7 +155,7 @@ class ListIngestionRequest(BaseModel):
         except (UnicodeDecodeError, binascii.Error):
             raise RequestValidationError(
                 [
-                    error_wrappers.ErrorWrapper(
+                    ErrorWrapper(
                         ValueError(
                             "Unable to decode next token. Should be base64 encoded JSON"
                         ),
