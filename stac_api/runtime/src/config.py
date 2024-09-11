@@ -83,7 +83,7 @@ class _ApiSettings(BaseSettings):
         False, description="Whether to enable transactions"
     )
 
-    @validator
+    @root_validator
     def check_transaction_fields(cls, values):
         enable_transactions = values.get("enable_transactions")
 
@@ -116,7 +116,7 @@ class _ApiSettings(BaseSettings):
         """Cognito user pool token and refresh url"""
         return f"{self.cognito_domain}/oauth2/token"
 
-    @root_validator("cors_origins")
+    @validator("cors_origins")
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
