@@ -3,12 +3,10 @@ from typing import List, Optional
 
 import aws_cdk
 
-from pydantic import AnyHttpUrl
-from pydantic.v1.env_settings import BaseSettings
-from pydantic.v1.fields import Field
-from pydantic.v1.types import constr
+from pydantic import AnyHttpUrl, Field, constr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
+AwsArn = constr(pattern=r"^arn:aws:iam::\d{12}:role/.+")
 
 
 class IngestorConfig(BaseSettings):
@@ -92,10 +90,7 @@ class IngestorConfig(BaseSettings):
         description="Raster API root path. Used to infer url of raster-api before app synthesis.",
     )
 
-    class Config:
-        case_sensitive = False
-        env_file = ".env"
-        env_prefix = "VEDA_"
+    model_config = SettingsConfigDict(case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore")
 
     @property
     def stack_name(self) -> str:
