@@ -236,8 +236,8 @@ def test_environ():
     os.environ["POSTGRES_USER"] = "username"
     os.environ["POSTGRES_PASS"] = "password"
     os.environ["POSTGRES_DBNAME"] = "postgis"
-    os.environ["POSTGRES_HOST_READER"] = "database"
-    os.environ["POSTGRES_HOST_WRITER"] = "database"
+    os.environ["POSTGRES_HOST_READER"] = "0.0.0.0"
+    os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
     os.environ["POSTGRES_PORT"] = "5432"
 
 
