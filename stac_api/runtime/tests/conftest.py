@@ -11,6 +11,8 @@ import os
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
+
 VALID_COLLECTION = {
     "id": "CMIP245-winter-median-pr",
     "type": "Collection",
@@ -208,7 +210,7 @@ VALID_ITEM = {
 }
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def test_environ():
     """
     Set up the test environment with mocked AWS and PostgreSQL credentials.
@@ -250,7 +252,7 @@ def override_validated_token():
 
 
 @pytest.fixture
-def app(test_environ):
+async def app():
     """
     Fixture to initialize the FastAPI application.
 
@@ -265,7 +267,9 @@ def app(test_environ):
     """
     from src.app import app
 
-    return app
+    await connect_to_db(app)
+    yield app
+    await close_db_connection(app)
 
 
 @pytest.fixture(scope="function")
