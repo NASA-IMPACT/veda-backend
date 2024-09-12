@@ -87,7 +87,7 @@ jobs:
         run: NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest ingest_api/runtime/tests/ -vv -s
 
       - name: Stac-api transactions unit tests
-        run: python -m pytest stac_api/runtime/tests/ -vv -s
+        run: python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
 
       - name: Stop services
         run: docker compose stop
