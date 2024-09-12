@@ -6,15 +6,12 @@ from typing import Dict
 
 from pydantic import BaseModel, Field
 from pystac import STACObjectType
-from pystac.errors import STACValidationError
+from pystac.errors import STACTypeError, STACValidationError
 from pystac.validation import validate_dict
-from src.config import api_settings
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-
-path_prefix = api_settings.root_path or ""
 
 
 class BulkItems(BaseModel):
@@ -33,24 +30,25 @@ class ValidationMiddleware(BaseHTTPMiddleware):
             try:
                 body = await request.body()
                 request_data = json.loads(body)
+
                 if re.match(
-                    f"^{path_prefix}/collections(?:/[^/]+)?$",
+                    "^.*?/collections(?:/[^/]+)?$",
                     request.url.path,
                 ):
                     validate_dict(request_data, STACObjectType.COLLECTION)
                 elif re.match(
-                    f"^{path_prefix}/collections/[^/]+/items(?:/[^/]+)?$",
+                    "^.*?/collections/[^/]+/items(?:/[^/]+)?$",
                     request.url.path,
                 ):
                     validate_dict(request_data, STACObjectType.ITEM)
                 elif re.match(
-                    f"^{path_prefix}/collections/[^/]+/bulk-items$",
+                    "^.*?/collections/[^/]+/bulk_items$",
                     request.url.path,
                 ):
                     bulk_items = BulkItems(**request_data)
                     for item_data in bulk_items.items.values():
                         validate_dict(item_data, STACObjectType.ITEM)
-            except STACValidationError as e:
+            except (STACValidationError, STACTypeError) as e:
                 return JSONResponse(
                     status_code=422,
                     content={"detail": "Validation Error", "errors": str(e)},

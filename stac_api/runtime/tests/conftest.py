@@ -291,8 +291,10 @@ async def api_client(app):
     app.dependency_overrides[auth.validated_token] = override_validated_token
     base_url = "http://test"
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url=base_url) as c:
-        yield c
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=base_url
+    ) as client:
+        yield client
 
     app.dependency_overrides.clear()
 
