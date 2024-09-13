@@ -10,6 +10,8 @@ AwsArn = constr(pattern=r"^arn:aws:iam::\d{12}:role/.+")
 
 
 class IngestorConfig(BaseSettings):
+    model_config = SettingsConfigDict(case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore")
+
     # S3 bucket names where TiTiler could do HEAD and GET Requests
     # specific private and public buckets MUST be added if you want to use s3:// urls
     # You can whitelist all bucket by setting `*`.
@@ -89,8 +91,6 @@ class IngestorConfig(BaseSettings):
         "",
         description="Raster API root path. Used to infer url of raster-api before app synthesis.",
     )
-
-    model_config = SettingsConfigDict(case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore")
 
     @property
     def stack_name(self) -> str:
