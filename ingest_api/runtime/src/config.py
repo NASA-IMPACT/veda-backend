@@ -6,7 +6,6 @@ from pydantic import AnyHttpUrl
 from pydantic.v1.env_settings import BaseSettings
 from pydantic.v1.fields import Field
 from pydantic.v1.types import constr
-from pydantic_ssm_settings import AwsSsmSourceConfig
 from veda_auth import VedaAuth
 
 AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
@@ -50,8 +49,9 @@ class Settings(BaseSettings):
         """Cognito user pool token and refresh url"""
         return f"{self.cognito_domain}/oauth2/token"
 
-    class Config(AwsSsmSourceConfig):
+    class Config():
         env_file = ".env"
+
 
     @classmethod
     def from_ssm(cls, stack: str):
