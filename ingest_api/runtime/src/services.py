@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, List, Optional
 import src.schemas as schemas
 from boto3.dynamodb import conditions
 from boto3.dynamodb.types import DYNAMODB_CONTEXT
-
 from pydantic.v1 import parse_obj_as
 
 if TYPE_CHECKING:

@@ -6,7 +6,6 @@ from typing import Dict
 
 from pydantic.v1 import BaseModel
 from pydantic.v1.fields import Field
-
 from pystac import STACObjectType
 from pystac.errors import STACValidationError
 from pystac.validation import validate_dict

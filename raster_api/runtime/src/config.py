@@ -7,10 +7,8 @@ from functools import lru_cache
 from typing import Optional
 
 import boto3
-
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
-
 from rasterio.session import AWSSession
 from typing_extensions import Annotated
 

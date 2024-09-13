@@ -15,7 +15,6 @@ from geojson_pydantic.geometries import (  # type: ignore
 )
 from pydantic.v1 import BaseModel
 from pydantic.v1.class_validators import validator
-
 from stac_pydantic.shared import BBox
 
 from stac_fastapi.types.rfc3339 import rfc3339_str_to_datetime, str_to_interval

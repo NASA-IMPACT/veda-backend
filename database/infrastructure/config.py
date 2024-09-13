@@ -2,10 +2,10 @@
 from typing import Optional
 
 from aws_cdk import aws_ec2, aws_rds
-
+from pydantic.v1.class_validators import validator
 from pydantic.v1.env_settings import BaseSettings
 from pydantic.v1.fields import Field
-from pydantic.v1.class_validators import validator
+
 
 class vedaDBSettings(BaseSettings):
     """Application settings."""

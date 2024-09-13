@@ -7,12 +7,10 @@ from functools import lru_cache
 from typing import Optional
 
 import boto3
-
+from pydantic import AnyHttpUrl
+from pydantic.v1.class_validators import root_validator, validator
 from pydantic.v1.env_settings import BaseSettings
 from pydantic.v1.fields import Field
-from pydantic.v1.class_validators import root_validator, validator
-from pydantic import AnyHttpUrl
-
 
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model

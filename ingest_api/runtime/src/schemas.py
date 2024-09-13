@@ -7,13 +7,11 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 import src.validators as validators
-
 from pydantic.v1 import BaseModel, Json, PositiveInt
-from pydantic.v1.config import ConfigDict
-from pydantic.v1.fields import Field
 from pydantic.v1.class_validators import validator
+from pydantic.v1.config import ConfigDict
 from pydantic.v1.error_wrappers import ErrorWrapper
-
+from pydantic.v1.fields import Field
 from src.schema_helpers import SpatioTemporalExtent
 from stac_pydantic import Collection, Item, shared
 from stac_pydantic.links import Link

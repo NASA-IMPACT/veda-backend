@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic.v1.env_settings import BaseSettings
 from pydantic.v1.fields import Field
 
+
 class baseSettings(BaseSettings):
     """Settings for standalone base infrastructure"""
 
