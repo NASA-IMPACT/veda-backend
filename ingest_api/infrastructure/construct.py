@@ -138,8 +138,6 @@ class ApiConstruct(Construct):
                 )
             ],
         )
-        print(f"DB SECRET {db_secret.secret_arn}")
-        print(f"ENV {env}")
 
         handler = aws_lambda.Function(
             self,
