@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 import src.validators as validators
-from pydantic.v1 import BaseModel, Json, PositiveInt
-from pydantic.v1.class_validators import validator
-from pydantic.v1.config import ConfigDict
-from pydantic.v1.error_wrappers import ErrorWrapper
-from pydantic.v1.fields import Field
+from pydantic import BaseModel, Json, PositiveInt
+from pydantic import field_validator, ConfigDict, error_wrappers, Field
+
 from src.schema_helpers import SpatioTemporalExtent
-from stac_pydantic import Collection, Item, shared
+from stac_pydantic import shared
+from stac_pydantic.collection import Collection
+from stac_pydantic.item import Item
 from stac_pydantic.links import Link
 
 from fastapi.encoders import jsonable_encoder
@@ -28,7 +28,7 @@ class LinkWithExtraFields(Link):
 
 
 class AccessibleAsset(shared.Asset):
-    @validator("href")
+    @field_validator("href")
     def is_accessible(cls, href):
         url = urlparse(href)
 
@@ -47,7 +47,7 @@ class AccessibleAsset(shared.Asset):
 class AccessibleItem(Item):
     assets: Dict[str, AccessibleAsset]
 
-    @validator("collection")
+    @field_validator("collection")
     def exists(cls, collection):
         validators.collection_exists(collection_id=collection)
         return collection
@@ -61,8 +61,7 @@ class DashboardCollection(Collection):
     assets: Optional[Dict]
     extent: SpatioTemporalExtent
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config: ConfigDict = ConfigDict(populate_by_name = True)
 
 
 class Status(str, enum.Enum):
@@ -99,17 +98,14 @@ class AuthResponse(BaseModel):
 class Ingestion(BaseModel):
     id: str = Field(..., description="ID of the STAC item")
     status: Status = Field(..., description="Status of the ingestion")
-    message: Optional[str] = Field(
-        None, description="Message returned from the step function."
-    )
+    message: Optional[str] = None # Message returned from the step function.
     created_by: str = Field(..., description="User who created the ingestion")
     created_at: datetime = Field(None, description="Timestamp of ingestion creation")
     updated_at: datetime = Field(None, description="Timestamp of ingestion update")
 
     item: Union[Item, Json[Item]] = Field(..., description="STAC item to ingest")
 
-    @validator("created_at", pre=True, always=True, allow_reuse=True)
-    @validator("updated_at", pre=True, always=True, allow_reuse=True)
+    @field_validator("created_at","updated_at", mode="before")
     def set_ts_now(cls, v):
         return v or datetime.now()
 
@@ -129,7 +125,7 @@ class Ingestion(BaseModel):
     def dynamodb_dict(self, by_alias=True):
         """DynamoDB-friendly serialization"""
         # convert to dictionary
-        output = self.dict(exclude={"item"})
+        output = self.model_dump(exclude={"item"}, by_alias=by_alias)
 
         # add STAC item as string
         output["item"] = self.item.json()
@@ -137,11 +133,13 @@ class Ingestion(BaseModel):
         # make JSON-friendly (will be able to do with Pydantic V2, https://github.com/pydantic/pydantic/issues/1409#issuecomment-1423995424)
         return jsonable_encoder(output)
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
 
 class ListIngestionRequest(BaseModel):
     status: Status = Field(Status.queued, description="Status of the ingestion")
-    limit: PositiveInt = Field(None, description="Limit number of results")
-    next: Optional[str] = Field(None, description="Next token (json) to load")
+    limit: Optional[PositiveInt] = None
+    next: Optional[str] = None # Next token (json) to load
 
     def __post_init_post_parse__(self) -> None:
         # https://github.com/tiangolo/fastapi/issues/1474#issuecomment-1049987786
@@ -153,7 +151,7 @@ class ListIngestionRequest(BaseModel):
         except (UnicodeDecodeError, binascii.Error):
             raise RequestValidationError(
                 [
-                    ErrorWrapper(
+                    error_wrappers.ErrorWrapper(
                         ValueError(
                             "Unable to decode next token. Should be base64 encoded JSON"
                         ),
@@ -161,15 +159,16 @@ class ListIngestionRequest(BaseModel):
                     )
                 ]
             )
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class ListIngestionResponse(BaseModel):
     items: List[Ingestion] = Field(
         ..., description="List of STAC items from ingestion."
     )
-    next: Optional[str] = Field(None, description="Next token (json) to load")
+    next: Optional[str] = None # Next token (json) to load
 
-    @validator("next", pre=True)
+    @field_validator("next", mode="before")
     def b64_encode_next(cls, next):
         """
         Base64 encode next parameter for easier transportability

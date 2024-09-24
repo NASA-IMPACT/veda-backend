@@ -4,7 +4,7 @@ from pypgstac.db import PgstacDB
 from src.schemas import DashboardCollection
 from src.utils import IngestionType, get_db_credentials, load_into_pgstac
 from src.vedaloader import VEDALoader
-from stac_pydantic import Item
+from stac_pydantic.item import Item
 
 
 class CollectionPublisher:
