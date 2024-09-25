@@ -256,11 +256,11 @@ class IngestorConstruct(Construct):
         lambda_env = {
             "DYNAMODB_TABLE": table.table_name,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
-            "STAC_URL": config.veda_stac_api_cf_url,
+            "STAC_URL": config.veda_stac_api_url,
             "USERPOOL_ID": config.userpool_id,
             "CLIENT_ID": config.client_id,
             "CLIENT_SECRET": config.client_secret,
-            "RASTER_URL": config.veda_raster_api_cf_url,
+            "RASTER_URL": config.veda_raster_api_url,
         }
 
         if config.raster_data_access_role_arn:
