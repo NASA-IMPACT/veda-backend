@@ -9,8 +9,9 @@ setup for testing with mock AWS and PostgreSQL configurations.
 import os
 
 import pytest
+from httpx import ASGITransport, AsyncClient
 
-from fastapi.testclient import TestClient
+from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 
 VALID_COLLECTION = {
     "id": "CMIP245-winter-median-pr",
@@ -209,7 +210,7 @@ VALID_ITEM = {
 }
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def test_environ():
     """
     Set up the test environment with mocked AWS and PostgreSQL credentials.
@@ -235,8 +236,8 @@ def test_environ():
     os.environ["POSTGRES_USER"] = "username"
     os.environ["POSTGRES_PASS"] = "password"
     os.environ["POSTGRES_DBNAME"] = "postgis"
-    os.environ["POSTGRES_HOST_READER"] = "database"
-    os.environ["POSTGRES_HOST_WRITER"] = "database"
+    os.environ["POSTGRES_HOST_READER"] = "0.0.0.0"
+    os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
     os.environ["POSTGRES_PORT"] = "5432"
 
 
@@ -251,7 +252,7 @@ def override_validated_token():
 
 
 @pytest.fixture
-def app(test_environ):
+async def app():
     """
     Fixture to initialize the FastAPI application.
 
@@ -266,11 +267,13 @@ def app(test_environ):
     """
     from src.app import app
 
-    return app
+    await connect_to_db(app)
+    yield app
+    await close_db_connection(app)
 
 
-@pytest.fixture
-def api_client(app):
+@pytest.fixture(scope="function")
+async def api_client(app):
     """
     Fixture to initialize the API client for making requests.
 
@@ -286,7 +289,13 @@ def api_client(app):
     from src.app import auth
 
     app.dependency_overrides[auth.validated_token] = override_validated_token
-    yield TestClient(app)
+    base_url = "http://test"
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=base_url
+    ) as client:
+        yield client
+
     app.dependency_overrides.clear()
 
 
