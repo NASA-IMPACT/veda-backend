@@ -103,3 +103,17 @@ class IngestorConfig(BaseSettings):
             account=self.aws_account,
             region=self.aws_region,
         )
+
+    @property
+    def veda_stac_api_cf_url(self) -> str:
+        """inferred cloudfront url of the stac api if app is configured with a custom host and root path"""
+        if self.custom_host and self.stac_root_path:
+            return f"https://{self.custom_host}{self.stac_root_path}"
+        return self.stac_api_url
+
+    @property
+    def veda_raster_api_cf_url(self) -> str:
+        """inferred cloudfront url of the raster api if app is configured with a custom host and root path"""
+        if self.custom_host and self.raster_root_path:
+            return f"https://{self.custom_host}{self.raster_root_path}"
+        return self.raster_api_url
