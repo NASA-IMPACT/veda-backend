@@ -40,11 +40,11 @@ class BboxExtent(BaseModel):
 
 
 class TemporalExtent(BaseModel):
-    startdate: datetime
-    enddate: datetime
+    startdate: Union[datetime, None]
+    enddate: Union[datetime, None]
 
     @root_validator
     def check_dates(cls, v):
-        if v["startdate"] >= v["enddate"]:
+        if (v["enddate"] is not None) and (v["startdate"] >= v["enddate"]):
             raise ValueError("Invalid extent - startdate must be before enddate")
         return v
