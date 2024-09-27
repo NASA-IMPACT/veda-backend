@@ -114,6 +114,6 @@ class IngestorConfig(BaseSettings):
     @property
     def veda_raster_api_cf_url(self) -> str:
         """inferred cloudfront url of the raster api if app is configured with a custom host and root path"""
-        if self.custom_host and self.stac_root_path:
+        if self.custom_host and self.raster_root_path:
             return f"https://{self.custom_host}{self.raster_root_path}"
         return self.raster_api_url
