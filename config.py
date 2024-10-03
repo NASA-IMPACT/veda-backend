@@ -90,7 +90,12 @@ class vedaAppSettings(BaseSettings):
 
     veda_stac_root_path: str = Field(
         "",
-        description="Optional path prefix to add to all api endpoints. Used to infer url of stac-api before app synthesis.",
+        description="STAC API root path. Used to infer url of stac-api before app synthesis.",
+    )
+
+    veda_raster_root_path: str = Field(
+        "",
+        description="Raster API root path",
     )
 
     veda_domain_create_custom_subdomains: bool = Field(
@@ -114,15 +119,6 @@ class vedaAppSettings(BaseSettings):
             }
         else:
             return {}
-
-    def alt_domain(self) -> bool:
-        """True if alternative domain and host parameters provided"""
-        return all(
-            [
-                self.veda_domain_alt_hosted_zone_id,
-                self.veda_domain_alt_hosted_zone_name,
-            ]
-        )
 
     def stage_name(self) -> str:
         """Force lowercase stage name"""
