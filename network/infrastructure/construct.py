@@ -67,7 +67,7 @@ class VpcConstruct(Construct):
                 "cloudwatch-logs": aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
                 "s3": aws_ec2.GatewayVpcEndpointAwsService.S3,
                 "dynamodb": aws_ec2.GatewayVpcEndpointAwsService.DYNAMODB,
-                "ecr":aws_ec2.InterfaceVpcEndpointAwsService.ECR,
+                "ecr": aws_ec2.InterfaceVpcEndpointAwsService.ECR,
             }
 
             for id, service in vpc_endpoints.items():
