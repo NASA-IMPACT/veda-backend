@@ -69,6 +69,7 @@ class VpcConstruct(Construct):
                 "dynamodb": aws_ec2.GatewayVpcEndpointAwsService.DYNAMODB,
                 "ecr": aws_ec2.InterfaceVpcEndpointAwsService.ECR,
                 "ecr-docker": aws_ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER,
+                "sts": aws_ec2.InterfaceVpcEndpointAwsService.STS,
             }
 
             for id, service in vpc_endpoints.items():
