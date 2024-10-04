@@ -42,6 +42,9 @@ class BaseVpcConstruct(Construct):
             "cloudwatch-logs": aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
             "s3": aws_ec2.GatewayVpcEndpointAwsService.S3,
             "dynamodb": aws_ec2.GatewayVpcEndpointAwsService.DYNAMODB,
+            "ecr": aws_ec2.InterfaceVpcEndpointAwsService.ECR,  # allows airflow to pull task images
+            "ecr-docker": aws_ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER,  # allows airflow to pull task images
+            "sts": aws_ec2.InterfaceVpcEndpointAwsService.STS,  # allows airflow tasks to assume access roles
         }
 
         for id, service in vpc_endpoints.items():
