@@ -1,4 +1,4 @@
-name: Pre-Production - Test, and Deploy Workflow from Veda-Deploy
+name: Test and Deploy Workflow
 
 inputs:
   env_aws_secret_name:
