@@ -49,7 +49,7 @@ jobs:
           role-session-name: "veda-backend-github-${{ needs.define-environment.outputs.env_name }}-deployment"
           aws-region: us-west-2
 
-      - name: Run veda-routes deployment
+      - name: Run veda-backend deployment
         uses: "./.github/actions/cdk-deploy"
         with:
           env_aws_secret_name: ${{ vars.ENV_AWS_SECRET_NAME }}
