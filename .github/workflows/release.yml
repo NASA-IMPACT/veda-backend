@@ -1,0 +1,29 @@
+name: Release Workflow
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+    - develop
+    - main
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        concurrency: release
+        permissions:
+          id-token: write
+          contents: write
+    
+        steps:
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+        - name: Python Semantic Release
+          uses: python-semantic-release/python-semantic-release@master
+          with:
+            changelog: "false"
+            github_token: ${{ secrets.GITHUB_TOKEN }}
