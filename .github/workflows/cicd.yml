@@ -1,0 +1,55 @@
+name: CDK Deploy Dev Workflow 🚀
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  define-environment:
+    name: Set ✨ environment ✨
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set the environment based on the branch
+        id: define_environment
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+            echo "env_name=dev" >> $GITHUB_OUTPUT
+          fi
+      - name: Print the environment
+        run: echo "The environment is ${{ steps.define_environment.outputs.env_name }}"
+
+    outputs:
+      env_name: ${{ steps.define_environment.outputs.env_name }}
+
+  deploy:
+
+    name: Deploy to ${{ needs.define-environment.outputs.env_name }} 🚀
+    runs-on: ubuntu-latest
+    if: ${{ needs.define-environment.outputs.env_name }}
+    needs: [define-environment]
+    environment: ${{ needs.define-environment.outputs.env_name }}
+    concurrency: ${{ needs.define-environment.outputs.env_name }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: "true"
+          submodules: "false"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEPLOYMENT_ROLE_ARN }}
+          role-session-name: "veda-backend-github-${{ needs.define-environment.outputs.env_name }}-deployment"
+          aws-region: us-west-2
+
+      - name: Run veda-backend deployment
+        uses: "./.github/actions/cdk-deploy"
+        with:
+          env_aws_secret_name: ${{ vars.ENV_AWS_SECRET_NAME }}
