@@ -17,7 +17,7 @@ jobs:
       - name: Set the environment based on the branch
         id: define_environment
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+          if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
             echo "env_name=dev" >> $GITHUB_OUTPUT
           fi
       - name: Print the environment
