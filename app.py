@@ -8,14 +8,12 @@ from constructs import Construct
 
 from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
-from domain.infrastructure.construct import DomainConstruct
 from ingest_api.infrastructure.config import IngestorConfig as ingest_config
 from ingest_api.infrastructure.construct import ApiConstruct as ingest_api_construct
 from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_construct
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
-from routes.infrastructure.construct import CloudfrontDistributionConstruct
 from s3_website.infrastructure.construct import VedaWebsite
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
 
@@ -71,15 +69,12 @@ database = RdsConstruct(
     stage=veda_app_settings.stage_name(),
 )
 
-domain = DomainConstruct(veda_stack, "domain", stage=veda_app_settings.stage_name())
-
 raster_api = RasterApiLambdaConstruct(
     veda_stack,
     "raster-api",
     stage=veda_app_settings.stage_name(),
     vpc=vpc.vpc,
     database=database,
-    domain=domain,
 )
 
 stac_api = StacApiLambdaConstruct(
@@ -89,21 +84,10 @@ stac_api = StacApiLambdaConstruct(
     vpc=vpc.vpc,
     database=database,
     raster_api=raster_api,
-    domain=domain,
 )
 
 website = VedaWebsite(
     veda_stack, "stac-browser-bucket", stage=veda_app_settings.stage_name()
-)
-
-veda_routes = CloudfrontDistributionConstruct(
-    veda_stack,
-    "routes",
-    stage=veda_app_settings.stage_name(),
-    raster_api_id=raster_api.raster_api.api_id,
-    stac_api_id=stac_api.stac_api.api_id,
-    origin_bucket=website.bucket,
-    region=veda_app_settings.cdk_default_region,
 )
 
 # Only create a stac browser if we can infer the catalog url from configuration before synthesis (API Gateway URL not yet available)
@@ -128,7 +112,6 @@ ingestor_config = ingest_config(
     raster_api_url=raster_api.raster_api.url,
 )
 
-
 ingest_api = ingest_api_construct(
     veda_stack,
     "ingest-api",
@@ -136,7 +119,6 @@ ingest_api = ingest_api_construct(
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
     db_vpc_subnets=database.vpc_subnets,
-    domain=domain,
 )
 
 ingestor = ingestor_construct(
@@ -148,51 +130,6 @@ ingestor = ingestor_construct(
     db_vpc=vpc.vpc,
     db_vpc_subnets=database.vpc_subnets,
 )
-
-veda_routes.add_ingest_behavior(
-    ingest_api=ingest_api.api, stage=veda_app_settings.stage_name()
-)
-
-# Must be done after all CF behaviors exist
-veda_routes.create_route_records(stage=veda_app_settings.stage_name())
-
-
-# TODO this conditional supports deploying a second set of APIs to a separate custom domain and should be removed if no longer necessary
-if veda_app_settings.alt_domain():
-    alt_domain = DomainConstruct(
-        veda_stack,
-        "alt-domain",
-        stage=veda_app_settings.stage_name(),
-        alt_domain=True,
-    )
-
-    alt_raster_api = RasterApiLambdaConstruct(
-        veda_stack,
-        "alt-raster-api",
-        stage=veda_app_settings.stage_name(),
-        vpc=vpc.vpc,
-        database=database,
-        domain_name=alt_domain.raster_domain_name,
-    )
-
-    alt_stac_api = StacApiLambdaConstruct(
-        veda_stack,
-        "alt-stac-api",
-        stage=veda_app_settings.stage_name(),
-        vpc=vpc.vpc,
-        database=database,
-        raster_api=raster_api,
-        domain_name=alt_domain.stac_domain_name,
-    )
-
-    alt_ingest_api = ingest_api_construct(
-        veda_stack,
-        "alt-ingest-api",
-        config=ingestor_config,
-        db_secret=database.pgstac.secret,
-        db_vpc=vpc.vpc,
-        domain_name=alt_domain.ingest_domain_name,
-    )
 
 git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
 try:
