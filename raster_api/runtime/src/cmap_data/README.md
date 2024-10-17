@@ -80,3 +80,33 @@ for c, v in internal_colormap.items():
 
 np.save("nlcd.npy", cmap)
 ```
+
+##### Soil texture colormap
+
+```python
+from rio_tiler.colormap import parse_color
+import numpy as np
+
+# These categories are based on a USGS soil texture chart, not an official set of color mappings for soil texture categories
+texture_categories = {
+    "1": "#F89E61", 
+    "2": "#BA8560", 
+    "3": "#D8D2B4", 
+    "4": "#AE734C", 
+    "5": "#9E8478", 
+    "6": "#C6A365",
+    "7": "#B4A67D", 
+    "8": "#E1D4C4", 
+    "9": "#BEB56D", 
+    "10": "#777C7A", 
+    "11": "#A89B6F", 
+    "12": "#E9E2AF"
+}
+
+cmap = np.zeros((256, 4), dtype=np.uint8)
+cmap[:] = np.array([0, 0, 0, 255])
+for k in texture_categories.keys():
+    cmap[int(k)] = np.array(parse_color(texture_categories[k]))
+
+np.save("soil_texture.npy", cmap)
+```
