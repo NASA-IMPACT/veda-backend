@@ -211,6 +211,7 @@ class ApiConstruct(Construct):
             self,
             f"{stack_name}-{construct_id}",
             default_integration=ingest_api_integration,
+            disable_execute_api_endpoint=True,
         )
 
     def build_jwks_url(self, userpool_id: str) -> str:

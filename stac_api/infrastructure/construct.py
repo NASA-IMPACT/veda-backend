@@ -106,6 +106,7 @@ class StacApiLambdaConstruct(Construct):
             self,
             f"{stack_name}-{construct_id}",
             default_integration=stac_api_integration,
+            disable_execute_api_endpoint=True,
         )
 
         CfnOutput(
