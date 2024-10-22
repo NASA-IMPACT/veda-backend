@@ -111,7 +111,7 @@ class vedaAppSettings(BaseSettings):
 
     disable_default_apigw_endpoint: Optional[bool] = Field(
         False,
-        description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false."
+        description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
 
     def cdk_env(self) -> dict:
