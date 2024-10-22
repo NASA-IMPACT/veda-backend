@@ -91,6 +91,7 @@ class ApiConstruct(Construct):
             construct_id=construct_id,
             handler=self.api_lambda,
             custom_host=config.custom_host,
+            disable_default_apigw_endpoint=config.disable_default_apigw_endpoint,
         )
 
         stack_name = Stack.of(self).stack_name
@@ -188,6 +189,7 @@ class ApiConstruct(Construct):
         construct_id: str,
         handler: aws_lambda.IFunction,
         custom_host: Optional[str],
+        disable_default_apigw_endpoint: Optional[bool],
     ) -> aws_apigatewayv2_alpha.HttpApi:
         integration_kwargs = dict(handler=handler)
         if custom_host:
@@ -211,7 +213,7 @@ class ApiConstruct(Construct):
             self,
             f"{stack_name}-{construct_id}",
             default_integration=ingest_api_integration,
-            disable_execute_api_endpoint=True,
+            disable_execute_api_endpoint=disable_default_apigw_endpoint,
         )
 
     def build_jwks_url(self, userpool_id: str) -> str:

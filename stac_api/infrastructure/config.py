@@ -57,6 +57,10 @@ class vedaSTACSettings(BaseSettings):
     stac_enable_transactions: bool = Field(
         False, description="Whether to enable transactions endpoints"
     )
+    disable_default_apigw_endpoint: Optional[bool] = Field(
+        False,
+        description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false."
+    )
 
     @root_validator
     def check_transaction_fields(cls, values):

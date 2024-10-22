@@ -88,6 +88,11 @@ class IngestorConfig(BaseSettings):
         description="Raster API root path. Used to infer url of raster-api before app synthesis.",
     )
 
+    disable_default_apigw_endpoint: Optional[bool] = Field(
+        False,
+        description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false."
+    )
+
     class Config:
         case_sensitive = False
         env_file = ".env"
