@@ -99,6 +99,7 @@ class RasterApiLambdaConstruct(Construct):
             self,
             f"{stack_name}-{construct_id}",
             default_integration=raster_api_integration,
+            disable_execute_api_endpoint=veda_raster_settings.disable_default_apigw_endpoint,
         )
 
         CfnOutput(
