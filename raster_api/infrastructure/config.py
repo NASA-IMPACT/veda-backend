@@ -84,6 +84,10 @@ class vedaRasterSettings(BaseSettings):
         "VEDA (Visualization, Exploration, and Data Analysis)",
         description="Name of the STAC Catalog",
     )
+    disable_default_apigw_endpoint: Optional[bool] = Field(
+        False,
+        description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
+    )
 
     class Config:
         """model config"""
