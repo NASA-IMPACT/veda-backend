@@ -8,7 +8,11 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "stac-fastapi-pgstac==2.5.0",
+    "fastapi==0.115.0",
+    "stac-fastapi.api~=2.4",
+    "stac-fastapi.types~=2.4",
+    "stac-fastapi.extensions~=2.4",
+    "stac-fastapi.pgstac~=2.4",
     "jinja2>=2.11.2,<4.0.0",
     "starlette-cramjam>=0.1.0.a0,<0.2",
     "importlib_resources>=1.1.0;python_version<='3.9'",  # https://github.com/cogeotiff/rio-tiler/pull/379
@@ -16,7 +20,6 @@ inst_reqs = [
     "aws-lambda-powertools>=1.18.0",
     "aws_xray_sdk>=2.6.0,<3",
     "pystac[validation]==1.10.1",
-    "pydantic[dotenv]>1.10.8,<2",
 ]
 
 extra_reqs = {
