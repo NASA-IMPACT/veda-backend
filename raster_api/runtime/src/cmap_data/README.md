@@ -110,3 +110,28 @@ for k in texture_categories.keys():
 
 np.save("soil_texture.npy", cmap)
 ```
+
+##### Tornadoes colormap
+
+```python
+from rio_tiler.colormap import parse_color
+import numpy as np
+
+# Colormap for Enhanced Fujita (EF) scale ratings
+tornado_ef_scale = {
+    "-1": "#b3bcc9", 
+    "0": "#add8e6", 
+    "1": "#90ee90", 
+    "2": "#ffe71f", 
+    "3": "#ffa500", 
+    "4": "#ff0000", 
+    "5": "#ff00ff"
+}
+
+cmap = np.zeros((256, 4), dtype=np.uint8)
+cmap[:] = np.array([0, 0, 0, 255])
+for k in tornado_ef_scale.keys():
+    cmap[int(k)] = np.array(parse_color(tornado_ef_scale[k]))
+
+np.save("tornadoes.npy", cmap)
+```
