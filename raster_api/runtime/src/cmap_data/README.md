@@ -115,7 +115,7 @@ np.save("soil_texture.npy", cmap)
 
 ```python
 from rio_tiler.colormap import parse_color
-import numpy as np
+import json
 
 # Colormap for Enhanced Fujita (EF) scale ratings
 tornado_ef_scale = {
@@ -128,10 +128,7 @@ tornado_ef_scale = {
     "5": "#ff00ff"
 }
 
-cmap = np.zeros((256, 4), dtype=np.uint8)
-cmap[:] = np.array([0, 0, 0, 255])
-for k in tornado_ef_scale.keys():
-    cmap[int(k)] = np.array(parse_color(tornado_ef_scale[k]))
+cmap = {int(i):parse_color(tornado_ef_scale[i]) for i in tornado_ef_scale}
 
-np.save("tornadoes.npy", cmap)
-```
+with open('tornado_ef_scale.json', 'w') as f:
+    json.dump(cmap, f)

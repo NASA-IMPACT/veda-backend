@@ -7,7 +7,7 @@ with open("README.md") as f:
 
 inst_reqs = [
     "boto3",
-    "rio-tiler==6.5.0",
+    "rio-tiler==7.2.2",
     "titiler.pgstac==1.3.0",
     "titiler.core>=0.18.5,<0.19",
     "titiler.mosaic>=0.18.5,<0.19",
