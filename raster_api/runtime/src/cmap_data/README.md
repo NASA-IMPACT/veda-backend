@@ -119,13 +119,13 @@ import numpy as np
 
 # Colormap for Enhanced Fujita (EF) scale ratings
 tornado_ef_scale = {
-    "-1": "#b3bcc9", 
-    "0": "#add8e6", 
-    "1": "#90ee90", 
-    "2": "#ffe71f", 
-    "3": "#ffa500", 
-    "4": "#ff0000", 
-    "5": "#ff00ff"
+    "0": "#add8e6", #EF0
+    "1": "#90ee90", #EF1
+    "2": "#ffe71f", #EF2
+    "3": "#ffa500", #EF3
+    "4": "#ff0000", #EF4
+    "5": "#ff00ff", #EF5
+    "6": "#b3bcc9", #EFU
 }
 
 cmap = np.zeros((256, 4), dtype=np.uint8)
@@ -133,5 +133,5 @@ cmap[:] = np.array([0, 0, 0, 255])
 for k in tornado_ef_scale.keys():
     cmap[int(k)] = np.array(parse_color(tornado_ef_scale[k]))
 
-np.save("tornadoes.npy", cmap)
+np.save("tornado_ef_scale.npy", cmap)
 ```
