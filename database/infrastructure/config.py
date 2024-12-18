@@ -2,7 +2,7 @@
 from typing import Optional
 
 from aws_cdk import aws_ec2, aws_rds
-from pydantic import BaseSettings, Field, validator
+from pydantic import BaseSettings, Field, field_validator
 
 
 class vedaDBSettings(BaseSettings):
@@ -91,14 +91,14 @@ class vedaDBSettings(BaseSettings):
         description="Boolean if the RDS should be encrypted",
     )
 
-    @validator("rds_instance_class", pre=True, always=True)
+    @field_validator("rds_instance_class", mode="before", validate_default=True)
     def convert_rds_class_to_uppercase(cls, value):
         """Convert to uppercase."""
         if isinstance(value, str):
             return value.upper()
         return value
 
-    @validator("rds_instance_size", pre=True, always=True)
+    @field_validator("rds_instance_size", mode="before", validate_default=True)
     def convert_rds_size_to_uppercase(cls, value):
         """Convert to uppercase."""
         if isinstance(value, str):

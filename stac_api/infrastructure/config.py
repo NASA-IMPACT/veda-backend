@@ -2,7 +2,7 @@
 
 from typing import Dict, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings, Field, root_validator
+from pydantic import AnyHttpUrl, BaseSettings, Field, model_validator
 
 
 class vedaSTACSettings(BaseSettings):
@@ -62,7 +62,7 @@ class vedaSTACSettings(BaseSettings):
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
 
-    @root_validator
+    @model_validator(mode="before")
     def check_transaction_fields(cls, values):
         """
         Validates the existence of auth env vars in case stac_enable_transactions is True

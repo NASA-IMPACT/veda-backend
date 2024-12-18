@@ -71,6 +71,7 @@ class ApiSettings(BaseSettings):
     }
 
     @field_validator("cors_origins")
+    @classmethod
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]

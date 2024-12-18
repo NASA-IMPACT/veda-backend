@@ -14,7 +14,7 @@ from pydantic import (
     Json,
     PositiveInt,
     error_wrappers,
-    validator,
+    field_validator,
 )
 from src.schema_helpers import SpatioTemporalExtent
 from stac_pydantic import Collection, Item, shared
@@ -32,7 +32,8 @@ class LinkWithExtraFields(Link):
 
 
 class AccessibleAsset(shared.Asset):
-    @validator("href")
+    @field_validator("href")
+    @classmethod
     def is_accessible(cls, href):
         url = urlparse(href)
 
@@ -51,7 +52,8 @@ class AccessibleAsset(shared.Asset):
 class AccessibleItem(Item):
     assets: Dict[str, AccessibleAsset]
 
-    @validator("collection")
+    @field_validator("collection")
+    @classmethod
     def exists(cls, collection):
         validators.collection_exists(collection_id=collection)
         return collection
@@ -64,9 +66,7 @@ class DashboardCollection(Collection):
     links: Optional[List[LinkWithExtraFields]]
     assets: Optional[Dict]
     extent: SpatioTemporalExtent
-
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class Status(str, enum.Enum):
@@ -112,8 +112,7 @@ class Ingestion(BaseModel):
 
     item: Union[Item, Json[Item]] = Field(..., description="STAC item to ingest")
 
-    @validator("created_at", pre=True, always=True, allow_reuse=True)
-    @validator("updated_at", pre=True, always=True, allow_reuse=True)
+    @field_validator("updated_at", "created_at", mode="before")
     def set_ts_now(cls, v):
         return v or datetime.now()
 
@@ -173,7 +172,8 @@ class ListIngestionResponse(BaseModel):
     )
     next: Optional[str] = Field(None, description="Next token (json) to load")
 
-    @validator("next", pre=True)
+    @field_validator("next", mode="before")
+    @classmethod
     def b64_encode_next(cls, next):
         """
         Base64 encode next parameter for easier transportability

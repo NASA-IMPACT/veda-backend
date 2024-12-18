@@ -1,11 +1,14 @@
-ARG PYTHON_VERSION=3.9
+ARG PYTHON_VERSION=3.11
 
 FROM ghcr.io/vincentsarago/uvicorn-gunicorn:${PYTHON_VERSION}
 
 ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 
+# fixes rust toolchain error
+RUN pip install --upgrade pip 
 # Installing boto3, which isn't needed in the lambda container instance
 # since lambda execution environment includes boto3 by default
+
 RUN pip install boto3
 
 COPY stac_api/runtime /tmp/stac

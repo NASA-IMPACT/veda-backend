@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
 import orjson
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 def orjson_dumps(v: Dict[str, Any], *args: Any, default: Any) -> str:
@@ -53,11 +53,9 @@ class RenderConfig(BaseModel):
         params = self.render_params.copy()
         return f"{get_param_str(params)}"
 
-    class Config:
-        """Pydantic config class for RenderConfig."""
-
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
+    # TODO[pydantic]: The following keys were removed: `json_loads`, `json_dumps`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = ConfigDict(json_loads=orjson.loads, json_dumps=orjson_dumps)
 
 
 def get_render_config(render_params) -> RenderConfig:
