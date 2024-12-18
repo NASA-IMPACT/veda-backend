@@ -32,7 +32,6 @@ class VedaStacApi(StacApi):
             endpoint=create_async_endpoint(
                 self.client.collection_id_post_search,
                 CollectionSearchPost,
-                self.response_class,
             ),
             include_in_schema=False,
         )
@@ -54,7 +53,6 @@ class VedaStacApi(StacApi):
             endpoint=create_async_endpoint(
                 self.client.collection_id_get_search,
                 CollectionSearchGet,
-                self.response_class,
             ),
             include_in_schema=False,
         )
