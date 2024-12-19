@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Union
 
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, model_validator
 from stac_pydantic.collection import Extent, TimeInterval
 
 # Smaller utility models to support the larger models in schemas.py
@@ -24,7 +24,7 @@ class BboxExtent(BaseModel):
     xmax: float
     ymax: float
 
-    @root_validator
+    @model_validator(mode="before")
     def check_extent(cls, v):
         # mins must be below maxes
         if v["xmin"] >= v["xmax"] or v["ymin"] >= v["ymax"]:
@@ -40,10 +40,10 @@ class BboxExtent(BaseModel):
 
 
 class TemporalExtent(BaseModel):
-    startdate: Union[datetime, None]
-    enddate: Union[datetime, None]
+    startdate: Union[datetime, None] = None
+    enddate: Union[datetime, None] = None
 
-    @root_validator
+    @model_validator(mode="before")
     def check_dates(cls, v):
         if (v["enddate"] is not None) and (v["startdate"] >= v["enddate"]):
             raise ValueError("Invalid extent - startdate must be before enddate")

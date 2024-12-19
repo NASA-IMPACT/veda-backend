@@ -1,4 +1,4 @@
-FROM public.ecr.aws/sam/build-python3.9:latest
+FROM public.ecr.aws/sam/build-python3.11:latest
 
 ARG PGSTAC_VERSION
 RUN echo "Using PGSTAC Version ${PGSTAC_VERSION}"

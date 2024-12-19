@@ -129,6 +129,12 @@ services:
       - PGDATABASE=postgis
       - DYNAMODB_ENDPOINT=http://localhost:8085
       - VEDA_DB_PGSTAC_VERSION=0.7.10
+      - AWS_REGION=us-west-2
+      - AWS_DEFAULT_REGION=us-west-2
+      - DYNAMODB_TABLE=veda
+      - STAC_URL=http://0.0.0.0:8081
+      - USERPOOL_ID=us-west-2_123456789
+      - CLIENT_ID=123456789
     ports:
       - "8083:8083"
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && python /asset/local.py"

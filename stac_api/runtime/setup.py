@@ -8,17 +8,18 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
-    "stac-fastapi.api~=2.4",
-    "stac-fastapi.types~=2.4",
-    "stac-fastapi.extensions~=2.4",
-    "stac-fastapi.pgstac~=2.4",
+    "stac-fastapi.api~=3.0",
+    "stac-fastapi.types~=3.0",
+    "stac-fastapi.extensions~=3.0",
+    "stac-fastapi.pgstac~=3.0",
     "jinja2>=2.11.2,<4.0.0",
-    "starlette-cramjam>=0.1.0.a0,<0.2",
-    "importlib_resources>=1.1.0;python_version<='3.9'",  # https://github.com/cogeotiff/rio-tiler/pull/379
+    "starlette-cramjam>=0.3.2,<0.4",
+    "importlib_resources>=1.1.0;python_version<='3.11'",  # https://github.com/cogeotiff/rio-tiler/pull/379
     "pygeoif<=0.8",  # newest release (1.0+ / 09-22-2022) breaks a number of other geo libs
     "aws-lambda-powertools>=1.18.0",
     "aws_xray_sdk>=2.6.0,<3",
     "pystac[validation]==1.10.1",
+    "pydantic>2",
 ]
 
 extra_reqs = {
@@ -29,7 +30,7 @@ extra_reqs = {
 setup(
     name="veda.stac_api",
     description="",
-    python_requires=">=3.7",
+    python_requires=">=3.11",
     packages=find_namespace_packages(exclude=["tests*"]),
     package_data={"veda": ["stac/templates/*.html"]},
     include_package_data=True,
