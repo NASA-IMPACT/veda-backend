@@ -18,7 +18,7 @@ class Database:
         self.table = table
 
     def write(self, ingestion: schemas.Ingestion):
-        self.table.put_item(Item=ingestion.dynamodb_dict())
+        self.table.put_item(Item=ingestion.dynamo_db_dict())
 
     def fetch_one(self, username: str, ingestion_id: str):
         response = self.table.get_item(

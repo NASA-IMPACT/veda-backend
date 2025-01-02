@@ -114,18 +114,21 @@ def example_stac_item():
         "links": [
             {
                 "rel": "collection",
+                "label": None,
                 "href": "./collection.json",
                 "type": "application/json",
                 "title": "Simple Example Collection",
             },
             {
                 "rel": "root",
+                "label": None,
                 "href": "./collection.json",
                 "type": "application/json",
                 "title": "Simple Example Collection",
             },
             {
                 "rel": "parent",
+                "label": None,
                 "href": "./collection.json",
                 "type": "application/json",
                 "title": "Simple Example Collection",
@@ -150,6 +153,8 @@ def example_stac_item():
 
 @pytest.fixture
 def example_ingestion(example_stac_item):
+    from datetime import datetime
+
     from src import schemas
 
     return schemas.Ingestion(
@@ -157,4 +162,5 @@ def example_ingestion(example_stac_item):
         created_by="test-user",
         status=schemas.Status.queued,
         item=Item.parse_obj(example_stac_item),
+        created_at=datetime.now(),
     )
