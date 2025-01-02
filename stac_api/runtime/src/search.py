@@ -52,8 +52,6 @@ class CollectionSearchPost(BaseModel):
         interval = str_to_interval(self.datetime)
         return interval[1] if interval else None
 
-    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
-    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @field_validator("intersects")
     def validate_spatial(cls, v, values):
         """Check bbox and intersects are not both supplied."""

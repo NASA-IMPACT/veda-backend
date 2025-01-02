@@ -48,7 +48,9 @@ class Settings(BaseSettings):
         """Cognito user pool token and refresh url"""
         return f"{self.cognito_domain}/oauth2/token"
 
-    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = ConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
 
 settings = Settings()

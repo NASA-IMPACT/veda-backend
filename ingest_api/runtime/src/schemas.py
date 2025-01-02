@@ -132,10 +132,10 @@ class Ingestion(BaseModel):
     def dynamodb_dict(self, by_alias=True):
         """DynamoDB-friendly serialization"""
         # convert to dictionary
-        output = self.dict(exclude={"item"})
+        output = self.model_dump(exclude={"item"})
 
         # add STAC item as string
-        output["item"] = self.item.json()
+        output["item"] = self.item.model_dump_json()
 
         # make JSON-friendly (will be able to do with Pydantic V2, https://github.com/pydantic/pydantic/issues/1409#issuecomment-1423995424)
         return jsonable_encoder(output)
@@ -143,7 +143,7 @@ class Ingestion(BaseModel):
 
 class ListIngestionRequest(BaseModel):
     status: Status = Field(Status.queued, description="Status of the ingestion")
-    limit: PositiveInt = Field(None, description="Limit number of results")
+    limit: PositiveInt = Field(10, description="Limit number of results")
     next: Optional[str] = Field(None, description="Next token (json) to load")
 
     def __post_init_post_parse__(self) -> None:
