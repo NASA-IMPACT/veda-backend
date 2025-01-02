@@ -135,7 +135,9 @@ class _ApiSettings(BaseSettings):
         else:
             return Settings()
 
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="VEDA_STAC_")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_prefix="VEDA_STAC_", extra="ignore"
+    )
 
 
 @lru_cache()
@@ -157,8 +159,8 @@ api_settings = ApiSettings()
 class _TilesApiSettings(BaseSettings):
     """Tile API settings"""
 
-    titiler_endpoint: Optional[str]
-    model_config = SettingsConfigDict(env_file=".env")
+    titiler_endpoint: Optional[str] = None
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 @lru_cache()
