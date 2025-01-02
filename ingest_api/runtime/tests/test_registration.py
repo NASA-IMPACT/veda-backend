@@ -1,6 +1,6 @@
 import base64
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, List
 
 import pytest
@@ -32,7 +32,7 @@ class TestList:
         for i in range(count):
             ingestion = self.example_ingestion.copy()
             ingestion.id = str(i)
-            ingestion.created_at = ingestion.created_at + timedelta(hours=i)
+            ingestion.created_at = datetime.now() + timedelta(hours=i)
             self.mock_table.put_item(Item=ingestion.dynamodb_dict())
             example_ingestions.append(ingestion)
         return example_ingestions
