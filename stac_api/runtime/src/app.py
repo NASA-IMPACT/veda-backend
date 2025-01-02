@@ -2,6 +2,8 @@
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
+from contextlib import asynccontextmanager
+
 from aws_lambda_powertools.metrics import MetricUnit
 from src.config import TilesApiSettings, api_settings
 from src.config import extensions as PgStacExtensions
@@ -13,6 +15,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.params import Depends
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
+from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -36,6 +39,15 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 
 tiles_settings = TilesApiSettings()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Get a database connection on startup, close it on shutdown."""
+    await connect_to_db(app)
+    yield
+    await close_db_connection(app)
+
+
 api = VedaStacApi(
     app=FastAPI(
         title=f"{api_settings.project_name} STAC API",
@@ -51,6 +63,7 @@ api = VedaStacApi(
             if api_settings.client_id
             else {}
         ),
+        lifespan=lifespan,
     ),
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
@@ -60,13 +73,10 @@ api = VedaStacApi(
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
     response_class=ORJSONResponse,
-    middlewares=[CompressionMiddleware, ValidationMiddleware],
+    middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 app = api.app
-
-# see https://github.com/stac-utils/stac-fastapi/issues/265
-# app.add_middleware(CompressionMiddleware)
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
@@ -161,15 +171,3 @@ async def validation_exception_handler(request, err):
     metrics.add_metric(name="UnhandledExceptions", unit=MetricUnit.Count, value=1)
     logger.error("Unhandled exception")
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Connect to database on startup."""
-    await connect_to_db(app)
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Close database connection."""
-    await close_db_connection(app)
