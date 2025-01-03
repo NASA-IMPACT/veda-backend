@@ -54,7 +54,7 @@ class BootstrapPgStac(Construct):
                 file="database/runtime/Dockerfile",
                 build_args={"PGSTAC_VERSION": pgstac_version},
             ),
-            timeout=Duration.minutes(2),
+            timeout=Duration.minutes(5),
             vpc=database.vpc,
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
