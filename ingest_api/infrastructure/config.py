@@ -95,7 +95,7 @@ class IngestorConfig(BaseSettings):
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
     model_config = SettingsConfigDict(
-        case_sensitive=False, env_file=".env", env_prefix="VEDA_"
+        case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"
     )
 
     @property

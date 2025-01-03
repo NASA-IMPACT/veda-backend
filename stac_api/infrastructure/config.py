@@ -2,7 +2,8 @@
 
 from typing import Dict, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings, Field, model_validator
+from pydantic import AnyHttpUrl, Field, model_validator
+from pydantic_settings import BaseSettings
 
 
 class vedaSTACSettings(BaseSettings):
@@ -84,6 +85,7 @@ class vedaSTACSettings(BaseSettings):
 
         env_file = ".env"
         env_prefix = "VEDA_"
+        extra = "ignore"
 
 
 veda_stac_settings = vedaSTACSettings()

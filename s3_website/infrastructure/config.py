@@ -3,7 +3,8 @@ Any environment variables starting with `VEDA_` will overwrite the values of var
 """
 from typing import Optional
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class vedaS3WebsiteSettings(BaseSettings):
@@ -22,6 +23,7 @@ class vedaS3WebsiteSettings(BaseSettings):
 
         env_file = ".env"
         env_prefix = "VEDA_"
+        extra = "ignore"
 
 
 veda_s3_website_settings = vedaS3WebsiteSettings()
