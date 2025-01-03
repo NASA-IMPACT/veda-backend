@@ -2,9 +2,10 @@
 from getpass import getuser
 from typing import List, Optional
 
-from pydantic import BaseSettings, Field, constr
+from pydantic import Field, constr
+from pydantic_settings import BaseSettings
 
-AwsSubnetId = constr(regex=r"^subnet-[a-z0-9]{17}$")
+AwsSubnetId = constr(pattern=r"^subnet-[a-z0-9]{17}$")
 
 
 class vedaAppSettings(BaseSettings):
@@ -146,6 +147,7 @@ class vedaAppSettings(BaseSettings):
         """model config."""
 
         env_file = ".env"
+        extra = "ignore"
 
 
 veda_app_settings = vedaAppSettings()
