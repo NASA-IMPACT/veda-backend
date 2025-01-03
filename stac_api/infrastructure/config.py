@@ -46,12 +46,13 @@ class vedaSTACSettings(BaseSettings):
     )
 
     userpool_id: Optional[str] = Field(
-        description="The Cognito Userpool used for authentication"
+        "None", description="The Cognito Userpool used for authentication"
     )
     cognito_domain: Optional[AnyHttpUrl] = Field(
-        description="The base url of the Cognito domain for authorization and token urls"
+        None,
+        description="The base url of the Cognito domain for authorization and token urls",
     )
-    client_id: Optional[str] = Field(description="The Cognito APP client ID")
+    client_id: Optional[str] = Field(None, description="The Cognito APP client ID")
     client_secret: Optional[str] = Field(
         "", description="The Cognito APP client secret"
     )

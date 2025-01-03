@@ -52,7 +52,7 @@ class ApiConstruct(Construct):
             "RASTER_URL": config.veda_raster_api_cf_url,
             "ROOT_PATH": config.ingest_root_path,
             "STAGE": config.stage,
-            "COGNITO_DOMAIN": config.cognito_domain,
+            "COGNITO_DOMAIN": str(config.cognito_domain),
         }
 
         build_api_lambda_params = {
