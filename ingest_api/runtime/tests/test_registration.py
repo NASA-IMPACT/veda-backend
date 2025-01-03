@@ -32,7 +32,7 @@ class TestList:
         for i in range(count):
             ingestion = self.example_ingestion.copy()
             ingestion.id = str(i)
-            ingestion.created_at = datetime.now() + timedelta(hours=i)
+            ingestion.created_at = datetime.utcnow() + timedelta(hours=i)
             self.mock_table.put_item(Item=ingestion.dynamodb_dict())
             example_ingestions.append(ingestion)
         return example_ingestions
