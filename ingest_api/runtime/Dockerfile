@@ -25,4 +25,7 @@ RUN rm -rdf /asset/numpy/doc/ /asset/boto3* /asset/botocore* /asset/bin /asset/g
 COPY ingest_api/runtime/handler.py /asset/handler.py
 COPY ingest_api/runtime/ingestor.py /asset/ingestor.py
 
+WORKDIR /asset
+RUN python -c "from handler import handler; print('All Good')"
+
 CMD ["echo", "hello world"]
