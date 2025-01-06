@@ -4,7 +4,7 @@ WORKDIR /tmp
 
 COPY stac_api/runtime /tmp/stac
 
-RUN pip install "mangum>=0.14,<0.15" "plpygis>=0.2.1" /tmp/stac -t /asset --no-binary pydantic
+RUN pip install "mangum" "plpygis>=0.2.1" /tmp/stac -t /asset --no-binary pydantic
 COPY common/auth /tmp/stac/common/auth
 RUN pip install /tmp/stac/common/auth -t /asset
 RUN rm -rf /tmp/stac
@@ -16,5 +16,8 @@ RUN cd /asset && find . -type f -a -name '*.py' -print0 | xargs -0 rm -f
 RUN find /asset -type d -a -name 'tests' -print0 | xargs -0 rm -rf
 
 COPY stac_api/runtime/handler.py /asset/handler.py
+
+WORKDIR /asset
+RUN python -c "from handler import handler; print('All Good')"
 
 CMD ["echo", "hello world"]
