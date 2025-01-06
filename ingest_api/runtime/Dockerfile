@@ -16,7 +16,7 @@ RUN rm -rf /tmp/ingestor
 COPY ingest_api/runtime/src /asset/src
 
 # # Reduce package size and remove useless files
-RUN cd /asset && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[2-3][0-9]//'); cp $f $n; done;
+RUN cd /asset && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[0-9]*//'); cp $f $n; done;
 RUN cd /asset && find . -type d -a -name '__pycache__' -print0 | xargs -0 rm -rf
 #RUN cd /asset && find . -type f -a -name '*.py' -print0 | xargs -0 rm -f
 RUN find /asset -type d -a -name 'tests' -print0 | xargs -0 rm -rf
@@ -24,8 +24,5 @@ RUN rm -rdf /asset/numpy/doc/ /asset/boto3* /asset/botocore* /asset/bin /asset/g
 
 COPY ingest_api/runtime/handler.py /asset/handler.py
 COPY ingest_api/runtime/ingestor.py /asset/ingestor.py
-
-WORKDIR /asset
-RUN python -c "from handler import handler; print('All Good')"
 
 CMD ["echo", "hello world"]
