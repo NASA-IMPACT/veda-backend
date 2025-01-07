@@ -8,12 +8,14 @@ from urllib.parse import urlparse
 
 import src.validators as validators
 from pydantic import (
+    AnyUrl,
     BaseModel,
     ConfigDict,
     Field,
     Json,
     PositiveInt,
     error_wrappers,
+    field_serializer,
     field_validator,
 )
 from src.schema_helpers import SpatioTemporalExtent
@@ -67,6 +69,13 @@ class DashboardCollection(Collection):
     assets: Optional[Dict]
     extent: SpatioTemporalExtent
     model_config = ConfigDict(populate_by_name=True)
+    # workaround for https://github.com/pydantic/pydantic/discussions/8211 and https://github.com/pydantic/pydantic/issues/7186 (changes expected on pydantic 3 roadmap)
+    # URL types don't serialize properly to JSON - stac-pydantic uses those types for stac-extensions
+    stac_extensions: Optional[List[AnyUrl]] = []
+
+    @field_serializer("stac_extensions")
+    def serialize_url(self, urls: List[AnyUrl], _info):
+        return [str(url) for url in urls]
 
 
 class Status(str, enum.Enum):
