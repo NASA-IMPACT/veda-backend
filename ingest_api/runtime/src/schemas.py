@@ -126,6 +126,7 @@ class Ingestion(BaseModel):
         return v or datetime.now()
 
     def enqueue(self, db: "services.Database"):
+        self.created_at = datetime.now()
         self.status = Status.queued
         return self.save(db)
 
