@@ -135,3 +135,36 @@ for k in tornado_ef_scale.keys():
 
 np.save("tornado_ef_scale.npy", cmap)
 ```
+
+###### Surface Temperature Colormap
+
+```python
+from matplotlib import colors
+import numpy as np
+
+stops = [
+    "#3CCBCE",  
+    "#C5F8FF",  
+    "#FEC5FF",   
+    "#E079FB",   
+    "#094FC9",  
+    "#009FFF",   
+    "#44E2FF",   
+    "#147F4F",  
+    "#79B32C",  
+    "#FDFE00",   
+    "#FF8700",   
+    "#FF0F00",  
+    "#9D0F2B",   
+    "#4D0000",   
+    "#BA2E6D", 
+]
+
+st_cmap = colors.LinearSegmentedColormap.from_list(name='st_cmap',colors=stops, N=256)
+x = np.arange(0, 256, 1, dtype=int)
+st_cmap_vals = (st_cmap(x)[:, :] * 255).astype('uint8')
+
+np.save("surface_temperature.npy", st_cmap_vals)
+
+```
+
