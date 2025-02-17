@@ -165,6 +165,4 @@ x = np.arange(0, 256, 1, dtype=int)
 st_cmap_vals = (st_cmap(x)[:, :] * 255).astype('uint8')
 
 np.save("surface_temperature.npy", st_cmap_vals)
-
 ```
-
