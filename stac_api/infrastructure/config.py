@@ -2,7 +2,8 @@
 
 from typing import Dict, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings, Field, root_validator
+from pydantic import AnyHttpUrl, Field, model_validator
+from pydantic_settings import BaseSettings
 
 
 class vedaSTACSettings(BaseSettings):
@@ -45,12 +46,13 @@ class vedaSTACSettings(BaseSettings):
     )
 
     userpool_id: Optional[str] = Field(
-        description="The Cognito Userpool used for authentication"
+        None, description="The Cognito Userpool used for authentication"
     )
     cognito_domain: Optional[AnyHttpUrl] = Field(
-        description="The base url of the Cognito domain for authorization and token urls"
+        None,
+        description="The base url of the Cognito domain for authorization and token urls",
     )
-    client_id: Optional[str] = Field(description="The Cognito APP client ID")
+    client_id: Optional[str] = Field(None, description="The Cognito APP client ID")
     client_secret: Optional[str] = Field(
         "", description="The Cognito APP client secret"
     )
@@ -62,7 +64,7 @@ class vedaSTACSettings(BaseSettings):
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
 
-    @root_validator
+    @model_validator(mode="before")
     def check_transaction_fields(cls, values):
         """
         Validates the existence of auth env vars in case stac_enable_transactions is True
@@ -84,6 +86,7 @@ class vedaSTACSettings(BaseSettings):
 
         env_file = ".env"
         env_prefix = "VEDA_"
+        extra = "ignore"
 
 
 veda_stac_settings = vedaSTACSettings()

@@ -7,14 +7,14 @@ from functools import lru_cache
 from typing import Optional
 
 import boto3
-from pydantic import AnyHttpUrl, BaseSettings, Field, root_validator, validator
+from pydantic import AnyHttpUrl, Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
 
 # from stac_fastapi.pgstac.extensions import QueryExtension
 from stac_fastapi.extensions.core import (
-    ContextExtension,
     FieldsExtension,
     FilterExtension,
     QueryExtension,
@@ -61,16 +61,17 @@ class _ApiSettings(BaseSettings):
     cachecontrol: str = "max-age=30,must-revalidate,s-maxage=604800"
     debug: bool = False
     root_path: Optional[str] = None
-    pgstac_secret_arn: Optional[str]
+    pgstac_secret_arn: Optional[str] = None
     stage: Optional[str] = None
 
     userpool_id: Optional[str] = Field(
         "", description="The Cognito Userpool used for authentication"
     )
     cognito_domain: Optional[AnyHttpUrl] = Field(
-        description="The base url of the Cognito domain for authorization and token urls"
+        None,
+        description="The base url of the Cognito domain for authorization and token urls",
     )
-    client_id: Optional[str] = Field(description="The Cognito APP client ID")
+    client_id: Optional[str] = Field(None, description="The Cognito APP client ID")
     client_secret: Optional[str] = Field(
         "", description="The Cognito APP client secret"
     )
@@ -78,7 +79,7 @@ class _ApiSettings(BaseSettings):
         False, description="Whether to enable transactions"
     )
 
-    @root_validator
+    @model_validator(mode="before")
     def check_transaction_fields(cls, values):
         enable_transactions = values.get("enable_transactions")
 
@@ -111,7 +112,8 @@ class _ApiSettings(BaseSettings):
         """Cognito user pool token and refresh url"""
         return f"{self.cognito_domain}/oauth2/token"
 
-    @validator("cors_origins")
+    @field_validator("cors_origins")
+    @classmethod
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
@@ -133,11 +135,9 @@ class _ApiSettings(BaseSettings):
         else:
             return Settings()
 
-    class Config:
-        """model config"""
-
-        env_file = ".env"
-        env_prefix = "VEDA_STAC_"
+    model_config = SettingsConfigDict(
+        env_file=".env", env_prefix="VEDA_STAC_", extra="ignore"
+    )
 
 
 @lru_cache()
@@ -159,12 +159,8 @@ api_settings = ApiSettings()
 class _TilesApiSettings(BaseSettings):
     """Tile API settings"""
 
-    titiler_endpoint: Optional[str]
-
-    class Config:
-        """model config"""
-
-        env_file = ".env"
+    titiler_endpoint: Optional[str] = None
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 @lru_cache()
@@ -178,7 +174,6 @@ def TilesApiSettings() -> _TilesApiSettings:
 
 
 extensions = [
-    ContextExtension(),
     FieldsExtension(),
     FilterExtension(),
     QueryExtension(),

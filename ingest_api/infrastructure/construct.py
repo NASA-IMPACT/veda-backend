@@ -52,7 +52,7 @@ class ApiConstruct(Construct):
             "RASTER_URL": config.veda_raster_api_cf_url,
             "ROOT_PATH": config.ingest_root_path,
             "STAGE": config.stage,
-            "COGNITO_DOMAIN": config.cognito_domain,
+            "COGNITO_DOMAIN": str(config.cognito_domain),
         }
 
         build_api_lambda_params = {
@@ -149,7 +149,7 @@ class ApiConstruct(Construct):
                 platform="linux/amd64",
                 build_args={"PGSTAC_VERSION": pgstac_version},
             ),
-            runtime=aws_lambda.Runtime.PYTHON_3_9,
+            runtime=aws_lambda.Runtime.PYTHON_3_11,
             timeout=Duration.seconds(30),
             handler="handler.handler",
             role=handler_role,
@@ -307,7 +307,7 @@ class IngestorConstruct(Construct):
                 build_args={"PGSTAC_VERSION": pgstac_version},
             ),
             handler="ingestor.handler",
-            runtime=aws_lambda.Runtime.PYTHON_3_9,
+            runtime=aws_lambda.Runtime.PYTHON_3_11,
             timeout=Duration.seconds(180),
             environment={"DB_SECRET_ARN": db_secret.secret_arn, **env},
             vpc=db_vpc,

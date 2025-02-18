@@ -76,7 +76,7 @@ class TestList:
             collections_endpoint, json=self.valid_stac_collection
         )
         # assert response.json() == {}
-        assert response.status_code == 200
+        assert response.status_code == 201
 
     async def test_post_invalid_item(self):
         """
@@ -103,7 +103,7 @@ class TestList:
             json=self.valid_stac_item,
         )
         # assert response.json() == {}
-        assert response.status_code == 200
+        assert response.status_code == 201
 
     async def test_post_invalid_bulk_items(self):
         """

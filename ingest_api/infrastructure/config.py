@@ -2,9 +2,11 @@ from getpass import getuser
 from typing import List, Optional
 
 import aws_cdk
-from pydantic import AnyHttpUrl, BaseSettings, Field, constr
+from pydantic import AnyHttpUrl, Field, StringConstraints
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing_extensions import Annotated
 
-AwsArn = constr(regex=r"^arn:aws:iam::\d{12}:role/.+")
+AwsArn = Annotated[str, StringConstraints(pattern=r"^arn:aws:iam::\d{12}:role/.+")]
 
 
 class IngestorConfig(BaseSettings):
@@ -92,11 +94,9 @@ class IngestorConfig(BaseSettings):
         False,
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
-
-    class Config:
-        case_sensitive = False
-        env_file = ".env"
-        env_prefix = "VEDA_"
+    model_config = SettingsConfigDict(
+        case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"
+    )
 
     @property
     def stack_name(self) -> str:

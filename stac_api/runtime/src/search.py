@@ -13,7 +13,7 @@ from geojson_pydantic.geometries import (  # type: ignore
     Polygon,
     _GeometryBase,
 )
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from stac_pydantic.shared import BBox
 
 from stac_fastapi.types.rfc3339 import rfc3339_str_to_datetime, str_to_interval
@@ -35,9 +35,9 @@ class CollectionSearchPost(BaseModel):
     The class for STAC API collection searches.
     """
 
-    bbox: Optional[BBox]
-    intersects: Optional[Intersection]
-    datetime: Optional[str]
+    bbox: Optional[BBox] = None
+    intersects: Optional[Intersection] = None
+    datetime: Optional[str] = None
     conf: Optional[Dict] = None
 
     @property
@@ -52,14 +52,15 @@ class CollectionSearchPost(BaseModel):
         interval = str_to_interval(self.datetime)
         return interval[1] if interval else None
 
-    @validator("intersects")
+    @field_validator("intersects")
     def validate_spatial(cls, v, values):
         """Check bbox and intersects are not both supplied."""
         if v and values["bbox"]:
             raise ValueError("intersects and bbox parameters are mutually exclusive")
         return v
 
-    @validator("bbox")
+    @field_validator("bbox")
+    @classmethod
     def validate_bbox(cls, v: BBox):
         """Check order of supplied bbox coordinates."""
         if v:
@@ -89,7 +90,8 @@ class CollectionSearchPost(BaseModel):
 
         return v
 
-    @validator("datetime")
+    @field_validator("datetime")
+    @classmethod
     def validate_datetime(cls, v):
         """Validate datetime."""
         if "/" in v:

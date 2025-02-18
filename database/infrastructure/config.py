@@ -2,7 +2,8 @@
 from typing import Optional
 
 from aws_cdk import aws_ec2, aws_rds
-from pydantic import BaseSettings, Field, validator
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings
 
 
 class vedaDBSettings(BaseSettings):
@@ -42,17 +43,17 @@ class vedaDBSettings(BaseSettings):
     max_locks_per_transaction: Optional[str] = Field(
         "1024",
         description="Number of database objects that can be locked simultaneously",
-        regex=r"^[1-9]\d*$",
+        pattern=r"^[1-9]\d*$",
     )
     work_mem: Optional[str] = Field(
         "64000",
         description="Maximum amount of memory to be used by a query operation before writing to temporary disk files",
-        regex=r"^[1-9]\d*$",
+        pattern=r"^[1-9]\d*$",
     )
     temp_buffers: Optional[str] = Field(
         "32000",
         description="maximum number of temporary buffers used by each session",
-        regex=r"^[1-9]\d*$",
+        pattern=r"^[1-9]\d*$",
     )
     use_rds_proxy: Optional[bool] = Field(
         False,
@@ -64,6 +65,7 @@ class vedaDBSettings(BaseSettings):
             "The instance class of the RDS instance "
             "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_ec2/InstanceClass.html"
         ),
+        validate_default=True,
     )
     rds_instance_size: Optional[str] = Field(
         aws_ec2.InstanceSize.SMALL.value,
@@ -71,6 +73,7 @@ class vedaDBSettings(BaseSettings):
             "The size of the RDS instance "
             "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_ec2/InstanceSize.html"
         ),
+        validate_default=True,
     )
     rds_engine_full_version: Optional[str] = Field(
         aws_rds.PostgresEngineVersion.VER_14.postgres_full_version,
@@ -91,14 +94,14 @@ class vedaDBSettings(BaseSettings):
         description="Boolean if the RDS should be encrypted",
     )
 
-    @validator("rds_instance_class", pre=True, always=True)
+    @field_validator("rds_instance_class", mode="before")
     def convert_rds_class_to_uppercase(cls, value):
         """Convert to uppercase."""
         if isinstance(value, str):
             return value.upper()
         return value
 
-    @validator("rds_instance_size", pre=True, always=True)
+    @field_validator("rds_instance_size", mode="before")
     def convert_rds_size_to_uppercase(cls, value):
         """Convert to uppercase."""
         if isinstance(value, str):
@@ -110,6 +113,7 @@ class vedaDBSettings(BaseSettings):
 
         env_file = ".env"
         env_prefix = "VEDA_DB_"
+        extra = "ignore"
 
 
 veda_db_settings = vedaDBSettings()

@@ -4,7 +4,8 @@
 
 from typing import Dict, List, Optional
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class vedaRasterSettings(BaseSettings):
@@ -94,6 +95,7 @@ class vedaRasterSettings(BaseSettings):
 
         env_file = ".env"
         env_prefix = "VEDA_"
+        extra = "ignore"
 
 
 veda_raster_settings = vedaRasterSettings()
