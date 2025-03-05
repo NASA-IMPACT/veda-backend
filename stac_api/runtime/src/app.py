@@ -12,7 +12,6 @@ from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
 from fastapi import APIRouter, FastAPI
-from fastapi.params import Depends
 from fastapi.responses import ORJSONResponse
 from fastapi.routing import APIRoute
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
@@ -99,11 +98,11 @@ if api_settings.enable_transactions and auth_settings.client_id:
 
     restricted_prefixes_methods = {
         "/collections": ("POST", "stac:collection:create"),
-        "/collections/{collection_id}": ("PUT", "stac:collection:update"),
-        "/collections/{collection_id}": ("DELETE", "stac:collection:delete"),
-        "/collections/{collection_id}/items": ("POST", "stac:item:create"),
-        "/collections/{collection_id}/items/{item_id}": ("PUT", "stac:item:update"),
-        "/collections/{collection_id}/items/{item_id}": ("DELETE", "stac:item:delete"),
+        "/collections/{collection_id}": ("PUT", "stac:collection:update"), # noqa: F601
+        "/collections/{collection_id}": ("DELETE", "stac:collection:delete"), # noqa: F601
+        "/collections/{collection_id}/items": ("POST", "stac:item:create"), # noqa: F601
+        "/collections/{collection_id}/items/{item_id}": ("PUT", "stac:item:update"), # noqa: F601
+        "/collections/{collection_id}/items/{item_id}": ("DELETE", "stac:item:delete"), # noqa: F601
         "/collections/{collection_id}/bulk_items": ("POST", "stac:item:create"),
     }
 
