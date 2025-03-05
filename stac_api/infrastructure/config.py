@@ -45,23 +45,16 @@ class vedaSTACSettings(BaseSettings):
         description="Description of the STAC Catalog",
     )
 
-    userpool_id: Optional[str] = Field(
-        None, description="The Cognito Userpool used for authentication"
-    )
-    cognito_domain: Optional[AnyHttpUrl] = Field(
-        None,
-        description="The base url of the Cognito domain for authorization and token urls",
-    )
-    client_id: Optional[str] = Field(None, description="The Cognito APP client ID")
-    client_secret: Optional[str] = Field(
-        "", description="The Cognito APP client secret"
-    )
     stac_enable_transactions: bool = Field(
         False, description="Whether to enable transactions endpoints"
     )
     disable_default_apigw_endpoint: Optional[bool] = Field(
         False,
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
+    )
+    client_id: Optional[str] = Field(description="Auth client ID")
+    openid_configuration_url: Optional[AnyHttpUrl] = Field(
+        description="OpenID config url"
     )
 
     @model_validator(mode="before")
@@ -72,7 +65,7 @@ class vedaSTACSettings(BaseSettings):
         if values.get("stac_enable_transactions"):
             missing_fields = [
                 field
-                for field in ["userpool_id", "cognito_domain", "client_id"]
+                for field in ["openid_configuration_url", "client_id"]
                 if not values.get(field)
             ]
             if missing_fields:

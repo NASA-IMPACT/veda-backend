@@ -64,16 +64,9 @@ class _ApiSettings(BaseSettings):
     pgstac_secret_arn: Optional[str] = None
     stage: Optional[str] = None
 
-    userpool_id: Optional[str] = Field(
-        "", description="The Cognito Userpool used for authentication"
-    )
-    cognito_domain: Optional[AnyHttpUrl] = Field(
-        None,
-        description="The base url of the Cognito domain for authorization and token urls",
-    )
-    client_id: Optional[str] = Field(None, description="The Cognito APP client ID")
-    client_secret: Optional[str] = Field(
-        "", description="The Cognito APP client secret"
+    client_id: Optional[str] = Field(description="Auth client ID")
+    openid_configuration_url: Optional[AnyHttpUrl] = Field(
+        description="OpenID config url"
     )
     enable_transactions: bool = Field(
         False, description="Whether to enable transactions"
@@ -86,7 +79,7 @@ class _ApiSettings(BaseSettings):
         if enable_transactions:
             missing_fields = [
                 field
-                for field in ["userpool_id", "cognito_domain", "client_id"]
+                for field in ["openid_configuration_url", "client_id"]
                 if not values.get(field)
             ]
             if missing_fields:

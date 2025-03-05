@@ -6,7 +6,7 @@ from fastapi import Depends
 
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
-auth_settings = OpenIdConnectSettings(_env_prefix="STAC_")
+auth_settings = OpenIdConnectSettings(_env_prefix="")
 
 oidc_auth = OpenIdConnectAuth(
     openid_configuration_url=auth_settings.openid_configuration_url,
@@ -16,5 +16,9 @@ oidc_auth = OpenIdConnectAuth(
 def get_username(
     token: Annotated[Dict[Any, Any], Depends(oidc_auth.valid_token_dependency)],
 ) -> str:
-    result = token["username"] if "username" in token else str(token.get("sub"))
+    result = (
+        token["preferred_username"]
+        if "preferred_username" in token
+        else str(token.get("sub"))
+    )
     return result

@@ -3,7 +3,6 @@ from typing import Optional
 from pydantic import AnyHttpUrl, ConfigDict, Field, StringConstraints
 from pydantic_settings import BaseSettings
 from typing_extensions import Annotated
-from veda_auth import VedaAuth
 
 AwsArn = Annotated[str, StringConstraints(pattern=r"^arn:aws:iam::\d{12}:role/.+")]
 
@@ -26,15 +25,6 @@ class Settings(BaseSettings):
     )
 
     stac_url: AnyHttpUrl = Field(description="URL of STAC API")
-
-    userpool_id: str = Field(description="The Cognito Userpool used for authentication")
-
-    cognito_domain: Optional[AnyHttpUrl] = Field(
-        None,
-        description="The base url of the Cognito domain for authorization and token urls",
-    )
-    client_id: str = Field(None, description="The Cognito APP client ID")
-    client_secret: str = Field("", description="The Cognito APP client secret")
     root_path: Optional[str] = None
     stage: Optional[str] = Field(None, description="API stage")
 
@@ -54,5 +44,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-auth = VedaAuth(settings)
