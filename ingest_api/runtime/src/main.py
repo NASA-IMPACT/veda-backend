@@ -16,8 +16,6 @@ from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 
-from eoapi.auth_utils import OpenIdConnectAuth
-
 app = FastAPI(
     title="VEDA Ingestion API",
     description=DESCRIPTION,

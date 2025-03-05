@@ -53,7 +53,7 @@ class IngestorConfig(BaseSettings):
     )
 
     ingest_root_path: str = Field("", description="Root path for ingest API")
-    
+
     db_pgstac_version: str = Field(
         ...,
         description="Version of PgStac database, i.e. 0.5",
@@ -86,13 +86,13 @@ class IngestorConfig(BaseSettings):
         False,
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
-    
+
     client_id: Optional[str] = Field(description="The auth client ID")
-    
+
     openid_configuration_url: Optional[AnyHttpUrl] = Field(
         description="OpenID config url"
     )
-    
+
     model_config = SettingsConfigDict(
         case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"
     )
