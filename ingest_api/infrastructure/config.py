@@ -39,15 +39,6 @@ class IngestorConfig(BaseSettings):
         ),
         default_factory=getuser,
     )
-
-    userpool_id: str = Field(description="The Cognito Userpool used for authentication")
-    client_id: str = Field(description="The Cognito APP client ID")
-    client_secret: Optional[str] = Field(
-        "", description="The Cognito APP client secret"
-    )
-    cognito_domain: AnyHttpUrl = Field(
-        description="The base url of the Cognito domain for authorization and token urls"
-    )
     stac_db_security_group_id: str = Field(
         description="ID of Security Group used by pgSTAC DB"
     )
@@ -62,6 +53,7 @@ class IngestorConfig(BaseSettings):
     )
 
     ingest_root_path: str = Field("", description="Root path for ingest API")
+    
     db_pgstac_version: str = Field(
         ...,
         description="Version of PgStac database, i.e. 0.5",
@@ -94,6 +86,13 @@ class IngestorConfig(BaseSettings):
         False,
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
+    
+    client_id: Optional[str] = Field(description="The auth client ID")
+    
+    openid_configuration_url: Optional[AnyHttpUrl] = Field(
+        description="OpenID config url"
+    )
+    
     model_config = SettingsConfigDict(
         case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"
     )
