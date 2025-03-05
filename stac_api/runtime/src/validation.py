@@ -13,6 +13,8 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+path_prefix = api_settings.root_path or ""
+
 
 class BulkItems(BaseModel):
     """Validation model for bulk-items endpoint request"""
@@ -30,25 +32,24 @@ class ValidationMiddleware(BaseHTTPMiddleware):
             try:
                 body = await request.body()
                 request_data = json.loads(body)
-
                 if re.match(
-                    "^.*?/collections(?:/[^/]+)?$",
+                    f"^{path_prefix}/collections(?:/[^/]+)?$",
                     request.url.path,
                 ):
                     validate_dict(request_data, STACObjectType.COLLECTION)
                 elif re.match(
-                    "^.*?/collections/[^/]+/items(?:/[^/]+)?$",
+                    f"^{path_prefix}/collections/[^/]+/items(?:/[^/]+)?$",
                     request.url.path,
                 ):
                     validate_dict(request_data, STACObjectType.ITEM)
                 elif re.match(
-                    "^.*?/collections/[^/]+/bulk_items$",
+                    f"^{path_prefix}/collections/[^/]+/bulk-items$",
                     request.url.path,
                 ):
                     bulk_items = BulkItems(**request_data)
                     for item_data in bulk_items.items.values():
                         validate_dict(item_data, STACObjectType.ITEM)
-            except (STACValidationError, STACTypeError) as e:
+            except STACValidationError as e:
                 return JSONResponse(
                     status_code=422,
                     content={"detail": "Validation Error", "errors": str(e)},
