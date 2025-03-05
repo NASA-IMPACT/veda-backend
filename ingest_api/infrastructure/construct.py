@@ -46,7 +46,7 @@ class ApiConstruct(Construct):
             "JWKS_URL": self.jwks_url,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.veda_stac_api_cf_url,
-            "CLIENT_ID": config.stac_client_id,
+            "CLIENT_ID": config.client_id,
             "OPENID_CONFIGURATION_URL": config.openid_configuration_url,
             "RASTER_URL": config.veda_raster_api_cf_url,
             "ROOT_PATH": config.ingest_root_path,
