@@ -1,4 +1,4 @@
-""" Script used to run the API locally"""
+"""Script used to run the API locally"""
 
 import uvicorn
 from src import main
