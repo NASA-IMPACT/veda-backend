@@ -6,7 +6,7 @@ from aws_lambda_powertools.metrics import MetricUnit
 from src.algorithms import PostProcessParams
 from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
-from src.dependencies import ColorMapParams
+from src.dependencies import ColorMapParams, cmap
 from src.extensions import stacViewerExtension
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 from src.version import __version__ as veda_raster_version
@@ -36,6 +36,7 @@ from titiler.pgstac.factory import (
     add_search_register_route,
 )
 from titiler.pgstac.reader import PgSTACReader
+from rio_tiler.types import ColorMapType
 
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
@@ -206,6 +207,8 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
 # Colormaps endpoints
 ###############################################################################
 cmaps = ColorMapFactory()
+# Set supported colormaps to be the modified cmap list with added colormaps
+cmaps.supported_colormaps=cmap
 app.include_router(cmaps.router, tags=["ColorMaps"])
 
 
