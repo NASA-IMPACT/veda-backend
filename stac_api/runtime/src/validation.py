@@ -6,8 +6,9 @@ from typing import Dict
 
 from pydantic import BaseModel, Field
 from pystac import STACObjectType
-from pystac.errors import STACTypeError, STACValidationError
+from pystac.errors import STACValidationError
 from pystac.validation import validate_dict
+from src.config import api_settings
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
