@@ -4,7 +4,6 @@ from typing import Dict, Optional, Union
 from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
 from aws_cdk import aws_apigateway as apigateway
 from aws_cdk import aws_apigatewayv2_alpha, aws_apigatewayv2_integrations_alpha
-from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_iam as iam
@@ -31,10 +30,6 @@ class ApiConstruct(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         self.table = self.build_table()
-        self.user_pool = cognito.UserPool.from_user_pool_id(
-            self, "cognito-user-pool", config.userpool_id
-        )
-        self.jwks_url = self.build_jwks_url(config.userpool_id)
         db_security_group = ec2.SecurityGroup.from_security_group_id(
             self,
             "db-security-group",
@@ -43,20 +38,17 @@ class ApiConstruct(Construct):
 
         lambda_env = {
             "DYNAMODB_TABLE": self.table.table_name,
-            "JWKS_URL": self.jwks_url,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.veda_stac_api_cf_url,
             "CLIENT_ID": config.client_id,
-            "OPENID_CONFIGURATION_URL": config.openid_configuration_url,
+            "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
             "RASTER_URL": config.veda_raster_api_cf_url,
             "ROOT_PATH": config.ingest_root_path,
             "STAGE": config.stage,
-            "COGNITO_DOMAIN": str(config.cognito_domain),
         }
 
         build_api_lambda_params = {
             "table": self.table,
-            "user_pool": self.user_pool,
             "db_secret": db_secret,
             "db_vpc": db_vpc,
             "db_security_group": db_security_group,
@@ -114,7 +106,6 @@ class ApiConstruct(Construct):
         *,
         table: dynamodb.ITable,
         env: Dict[str, str],
-        user_pool: cognito.IUserPool,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
@@ -164,13 +155,6 @@ class ApiConstruct(Construct):
                 "sts:AssumeRole",
             )
 
-        handler.add_to_role_policy(
-            iam.PolicyStatement(
-                actions=["cognito-idp:AdminInitiateAuth"],
-                resources=[user_pool.user_pool_arn],
-            )
-        )
-
         # Allow handler to read DB secret
         db_secret.grant_read(handler)
 
@@ -215,13 +199,6 @@ class ApiConstruct(Construct):
             disable_execute_api_endpoint=disable_default_apigw_endpoint,
         )
 
-    def build_jwks_url(self, userpool_id: str) -> str:
-        region = userpool_id.split("_")[0]
-        return (
-            f"https://cognito-idp.{region}.amazonaws.com"
-            f"/{userpool_id}/.well-known/jwks.json"
-        )
-
     # item ingest table, comsumed by ingestor
     def build_table(self) -> dynamodb.ITable:
         table = dynamodb.Table(
@@ -259,9 +236,6 @@ class IngestorConstruct(Construct):
             "DYNAMODB_TABLE": table.table_name,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.veda_stac_api_cf_url,
-            "USERPOOL_ID": config.userpool_id,
-            "CLIENT_ID": config.client_id,
-            "CLIENT_SECRET": config.client_secret,
             "RASTER_URL": config.veda_raster_api_cf_url,
         }
 

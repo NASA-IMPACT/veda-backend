@@ -74,36 +74,15 @@ class _ApiSettings(BaseSettings):
 
     @model_validator(mode="before")
     def check_transaction_fields(cls, values):
-        enable_transactions = values.get("enable_transactions")
-
-        if enable_transactions:
-            missing_fields = [
-                field
-                for field in ["openid_configuration_url", "client_id"]
-                if not values.get(field)
-            ]
-            if missing_fields:
+        if values.get("enable_transactions") == "True":
+            if (
+                values.get("openid_configuration_url") is None
+                or values.get("client_id") is None
+            ):
                 raise ValueError(
-                    f"When 'enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
+                    "When 'stac_enable_transactions' is True, the following fields must be provided: openid_configuration_url, client_id"
                 )
         return values
-
-    @property
-    def jwks_url(self) -> AnyHttpUrl:
-        """JWKS url"""
-        if self.userpool_id:
-            region = self.userpool_id.split("_")[0]
-            return f"https://cognito-idp.{region}.amazonaws.com/{self.userpool_id}/.well-known/jwks.json"
-
-    @property
-    def cognito_authorization_url(self) -> AnyHttpUrl:
-        """Cognito user pool authorization url"""
-        return f"{self.cognito_domain}/oauth2/authorize"
-
-    @property
-    def cognito_token_url(self) -> AnyHttpUrl:
-        """Cognito user pool token and refresh url"""
-        return f"{self.cognito_domain}/oauth2/token"
 
     @field_validator("cors_origins")
     @classmethod

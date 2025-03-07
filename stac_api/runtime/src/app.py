@@ -39,7 +39,7 @@ except ImportError:
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 tiles_settings = TilesApiSettings()
-auth_settings = OpenIdConnectSettings(_env_prefix="VEDA_STAC_")
+auth_settings = OpenIdConnectSettings(env_prefix="VEDA_STAC_")
 
 
 @asynccontextmanager

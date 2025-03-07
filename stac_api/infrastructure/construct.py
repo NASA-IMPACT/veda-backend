@@ -46,7 +46,9 @@ class StacApiLambdaConstruct(Construct):
                 veda_stac_settings.stac_enable_transactions
             ),
             "VEDA_STAC_CLIENT_ID": veda_stac_settings.client_id,
-            "VEDA_STAC_OPENID_CONFIGURATION_URL": veda_stac_settings.openid_configuration_url,
+            "VEDA_STAC_OPENID_CONFIGURATION_URL": str(
+                veda_stac_settings.openid_configuration_url
+            ),
             "DB_MIN_CONN_SIZE": "0",
             "DB_MAX_CONN_SIZE": "1",
             **{k.upper(): v for k, v in veda_stac_settings.env.items()},

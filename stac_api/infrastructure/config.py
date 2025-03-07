@@ -52,9 +52,9 @@ class vedaSTACSettings(BaseSettings):
         False,
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
-    client_id: Optional[str] = Field(description="Auth client ID")
+    client_id: Optional[str] = Field(None, description="Auth client ID")
     openid_configuration_url: Optional[AnyHttpUrl] = Field(
-        description="OpenID config url"
+        None, description="OpenID config url"
     )
 
     @model_validator(mode="before")
@@ -62,15 +62,13 @@ class vedaSTACSettings(BaseSettings):
         """
         Validates the existence of auth env vars in case stac_enable_transactions is True
         """
-        if values.get("stac_enable_transactions"):
-            missing_fields = [
-                field
-                for field in ["openid_configuration_url", "client_id"]
-                if not values.get(field)
-            ]
-            if missing_fields:
+        if values.get("stac_enable_transactions") == "True":
+            if (
+                values.get("openid_configuration_url") is None
+                or values.get("client_id") is None
+            ):
                 raise ValueError(
-                    f"When 'stac_enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
+                    "When 'stac_enable_transactions' is True, the following fields must be provided: openid_configuration_url, client_id"
                 )
         return values
 

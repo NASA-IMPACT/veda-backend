@@ -1,5 +1,3 @@
-from typing import Dict
-
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
@@ -13,7 +11,6 @@ from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 
 app = FastAPI(
@@ -207,28 +204,6 @@ def publish_item(item: schemas.Item):
         raise HTTPException(
             status_code=400,
             detail=(f"Unable to publish item: {e}"),
-        )
-
-
-@app.post("/token", tags=["Auth"], response_model=schemas.AuthResponse)
-async def get_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-) -> Dict:
-    """
-    Get token from username and password
-    """
-    try:
-        return auth.authenticate_and_get_token(
-            form_data.username,
-            form_data.password,
-            settings.userpool_id,
-            settings.client_id,
-            settings.client_secret,
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=(f"Unable to get token: {e}"),
         )
 
 

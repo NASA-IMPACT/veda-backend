@@ -6,7 +6,7 @@ from fastapi import Depends
 
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
-auth_settings = OpenIdConnectSettings(_env_prefix="")
+auth_settings = OpenIdConnectSettings(env_prefix="")
 
 oidc_auth = OpenIdConnectAuth(
     openid_configuration_url=auth_settings.openid_configuration_url,
