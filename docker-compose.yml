@@ -32,9 +32,12 @@ services:
       # https://github.com/developmentseed/eoAPI/issues/16
       # - TITILER_ENDPOINT=raster
       - TITILER_ENDPOINT=http://0.0.0.0:8082
+      - VEDA_STAC_OPENID_CONFIGURATION_URL=https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration
+      - VEDA_STAC_CLIENT_ID=stac
+      - VEDA_STAC_ENABLE_TRANSACTIONS=True
     depends_on:
       - database
-      - raster
+      # - raster
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts

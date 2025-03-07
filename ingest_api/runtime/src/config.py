@@ -1,5 +1,6 @@
 from typing import Optional
 
+from eoapi.auth_utils import OpenIdConnectSettings
 from pydantic import AnyHttpUrl, ConfigDict, Field, StringConstraints
 from pydantic_settings import BaseSettings
 from typing_extensions import Annotated
@@ -26,6 +27,15 @@ class Settings(BaseSettings):
     model_config = ConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
+
+
+class VedaOpenIdConnectSettings(OpenIdConnectSettings):
+    """eoapi-auth-utils settings subclass"""
+
+    model_config = {
+        "env_prefix": "",
+        "extra": "allow",
+    }
 
 
 settings = Settings()

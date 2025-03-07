@@ -2,11 +2,12 @@ from typing import Any, Dict
 
 from typing_extensions import Annotated
 
+from src.config import VedaOpenIdConnectSettings
 from fastapi import Depends
 
-from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
+from eoapi.auth_utils import OpenIdConnectAuth
 
-auth_settings = OpenIdConnectSettings(env_prefix="")
+auth_settings = VedaOpenIdConnectSettings()
 
 oidc_auth = OpenIdConnectAuth(
     openid_configuration_url=auth_settings.openid_configuration_url,

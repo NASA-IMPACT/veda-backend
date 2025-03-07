@@ -5,7 +5,7 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 from contextlib import asynccontextmanager
 
 from aws_lambda_powertools.metrics import MetricUnit
-from src.config import TilesApiSettings, api_settings
+from src.config import TilesApiSettings, api_settings, VedaOpenIdConnectSettings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
@@ -27,7 +27,7 @@ from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 from .validation import ValidationMiddleware
 
-from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
+from eoapi.auth_utils import OpenIdConnectAuth
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -39,7 +39,7 @@ except ImportError:
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 tiles_settings = TilesApiSettings()
-auth_settings = OpenIdConnectSettings(env_prefix="VEDA_STAC_")
+auth_settings = VedaOpenIdConnectSettings()
 
 
 @asynccontextmanager
