@@ -27,8 +27,6 @@ from stac_fastapi.pgstac.config import Settings
 from stac_fastapi.pgstac.transactions import BulkTransactionsClient, TransactionsClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
-from eoapi.auth_utils import OpenIdConnectSettings
-
 
 @lru_cache()
 def get_secret_dict(secret_name: str):

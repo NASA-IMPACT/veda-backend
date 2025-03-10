@@ -4,8 +4,6 @@ from pydantic import AnyHttpUrl, ConfigDict, Field, StringConstraints
 from pydantic_settings import BaseSettings
 from typing_extensions import Annotated
 
-from eoapi.auth_utils import OpenIdConnectSettings
-
 AwsArn = Annotated[str, StringConstraints(pattern=r"^arn:aws:iam::\d{12}:role/.+")]
 
 
