@@ -205,9 +205,8 @@ app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
 ###############################################################################
 # Colormaps endpoints
 ###############################################################################
-cmaps = ColorMapFactory()
 # Set supported colormaps to be the modified cmap list with added colormaps
-cmaps.supported_colormaps = cmap
+cmaps = ColorMapFactory(supported_colormaps=cmap)
 app.include_router(cmaps.router, tags=["ColorMaps"])
 
 
