@@ -14,4 +14,4 @@ boto3==1.24.59
 aws_xray_sdk>=2.6.0,<3
 aws-lambda-powertools>=1.18.0
 pydantic-settings>=2.4.1
-eoapi-auth-utils>=0.4.0
+eoapi-auth-utils==0.3.0

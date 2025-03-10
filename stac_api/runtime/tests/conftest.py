@@ -224,12 +224,10 @@ def test_environ():
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_REGION"] = "us-west-2"
-    os.environ["VEDA_STAC_USERPOOL_ID"] = "us-west-2_FAKEUSERPOOL"
     os.environ["VEDA_STAC_CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
-    os.environ["VEDA_STAC_CLIENT_SECRET"] = "dsakfjdsalfkjadslfjalksfj"
     os.environ[
-        "VEDA_STAC_COGNITO_DOMAIN"
-    ] = "https://fake.auth.us-west-2.amazoncognito.com"
+        "VEDA_OPENID_CONFIGURATION_URL"
+    ] = "https://fake.auth/realms/veda/.well-known/openid-configuration"
     os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "TRUE"
 
     # Config mocks

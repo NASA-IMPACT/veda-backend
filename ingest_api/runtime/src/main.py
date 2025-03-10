@@ -4,7 +4,7 @@ import src.services as services
 from aws_lambda_powertools.metrics import MetricUnit
 from src.auth import auth_settings, get_username, oidc_auth
 from src.collection_publisher import CollectionPublisher, ItemPublisher
-from src.config import auth, settings
+from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
 
@@ -143,7 +143,6 @@ def cancel_ingestion(
     "/collections",
     tags=["Collection"],
     status_code=201,
-    dependencies=[Depends(auth.validated_token)],
     dependencies=[
         Security(oidc_auth.valid_token_dependency, scopes="stac:collection:create")
     ],
@@ -166,7 +165,6 @@ def publish_collection(collection: schemas.DashboardCollection):
 @app.delete(
     "/collections/{collection_id}",
     tags=["Collection"],
-    dependencies=[Depends(auth.validated_token)],
     dependencies=[
         Security(oidc_auth.valid_token_dependency, scopes="stac:collection:delete")
     ],
@@ -187,7 +185,6 @@ def delete_collection(collection_id: str):
     "/items",
     tags=["Items"],
     status_code=201,
-    dependencies=[Depends(auth.validated_token)],
     dependencies=[
         Security(oidc_auth.valid_token_dependency, scopes="stac:item:create")
     ],

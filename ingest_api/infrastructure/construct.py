@@ -40,11 +40,11 @@ class ApiConstruct(Construct):
             "DYNAMODB_TABLE": self.table.table_name,
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.veda_stac_api_cf_url,
-            "CLIENT_ID": config.client_id,
-            "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
             "RASTER_URL": config.veda_raster_api_cf_url,
             "ROOT_PATH": config.ingest_root_path,
             "STAGE": config.stage,
+            "INGEST_CLIENT_ID": config.client_id,
+            "INGEST_OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
         }
 
         build_api_lambda_params = {

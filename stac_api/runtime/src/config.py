@@ -10,7 +10,6 @@ import boto3
 from pydantic import AnyHttpUrl, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from eoapi.auth_utils import OpenIdConnectSettings
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import create_get_request_model, create_post_request_model
 
@@ -27,6 +26,8 @@ from stac_fastapi.extensions.third_party import BulkTransactionExtension
 from stac_fastapi.pgstac.config import Settings
 from stac_fastapi.pgstac.transactions import BulkTransactionsClient, TransactionsClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
+
+from eoapi.auth_utils import OpenIdConnectSettings
 
 
 @lru_cache()
@@ -111,15 +112,6 @@ class _ApiSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_prefix="VEDA_STAC_", extra="ignore"
     )
-
-
-class VedaOpenIdConnectSettings(OpenIdConnectSettings):
-    """eoapi-auth-utils settings subclass"""
-
-    model_config = {
-        "env_prefix": "VEDA_STAC_",
-        "extra": "allow",
-    }
 
 
 @lru_cache()
