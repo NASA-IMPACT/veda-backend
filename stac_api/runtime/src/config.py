@@ -7,7 +7,7 @@ from functools import lru_cache
 from typing import Optional
 
 import boto3
-from pydantic import AnyHttpUrl, Field, field_validator, model_validator
+from pydantic import AnyHttpUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from fastapi.responses import ORJSONResponse
@@ -64,25 +64,13 @@ class _ApiSettings(BaseSettings):
     pgstac_secret_arn: Optional[str] = None
     stage: Optional[str] = None
 
-    client_id: Optional[str] = Field(description="Auth client ID")
+    client_id: Optional[str] = Field(None, description="Auth client ID")
     openid_configuration_url: Optional[AnyHttpUrl] = Field(
-        description="OpenID config url"
+        None, description="OpenID config url"
     )
     enable_transactions: bool = Field(
         False, description="Whether to enable transactions"
     )
-
-    @model_validator(mode="before")
-    def check_transaction_fields(cls, values):
-        if values.get("enable_transactions") == "True":
-            if (
-                values.get("openid_configuration_url") is None
-                or values.get("client_id") is None
-            ):
-                raise ValueError(
-                    "When 'stac_enable_transactions' is True, the following fields must be provided: openid_configuration_url, client_id"
-                )
-        return values
 
     @field_validator("cors_origins")
     @classmethod
