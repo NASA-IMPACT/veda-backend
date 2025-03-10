@@ -26,10 +26,9 @@ def test_environ():
     os.environ["RASTER_URL"] = "https://test-raster.url"
     os.environ["STAGE"] = "testing"
     os.environ["ROOT_PATH"] = ""
-    os.environ["CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
     os.environ[
         "OPENID_CONFIGURATION_URL"
-    ] = "https://fake.auth/realms/veda/.well-known/openid-configuration"
+    ] = "https://test.auth.com/realms/veda/.well-known/openid-configuration"
 
 
 @pytest.fixture

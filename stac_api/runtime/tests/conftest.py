@@ -224,11 +224,11 @@ def test_environ():
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_REGION"] = "us-west-2"
-    os.environ["VEDA_STAC_CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
+    os.environ["VEDA_STAC_CLIENT_ID"] = "stac"
     os.environ[
-        "VEDA_OPENID_CONFIGURATION_URL"
-    ] = "https://fake.auth/realms/veda/.well-known/openid-configuration"
-    os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "TRUE"
+        "VEDA_STAC_OPENID_CONFIGURATION_URL"
+    ] = "https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration"
+    os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
 
     # Config mocks
     os.environ["POSTGRES_USER"] = "username"
@@ -284,9 +284,9 @@ async def api_client(app):
     Yields:
         TestClient: The TestClient instance for API testing.
     """
-    from src.app import auth
+    from src.app import oidc_auth
 
-    app.dependency_overrides[auth.validated_token] = override_validated_token
+    app.dependency_overrides[oidc_auth.valid_token_dependency] = override_validated_token
     base_url = "http://test"
 
     async with AsyncClient(
