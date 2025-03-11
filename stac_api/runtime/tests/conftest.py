@@ -286,7 +286,9 @@ async def api_client(app):
     """
     from src.app import oidc_auth
 
-    app.dependency_overrides[oidc_auth.valid_token_dependency] = override_validated_token
+    app.dependency_overrides[
+        oidc_auth.valid_token_dependency
+    ] = override_validated_token
     base_url = "http://test"
 
     async with AsyncClient(
