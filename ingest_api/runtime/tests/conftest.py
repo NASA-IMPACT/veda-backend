@@ -19,7 +19,6 @@ def test_environ():
 
     # Config mocks
     os.environ["CLIENT_ID"] = "fake_client_id"
-    os.environ["CLIENT_SECRET"] = "fake_client_secret"
     os.environ["DATA_ACCESS_ROLE_ARN"] = "arn:aws:iam::123456789012:role/test-role"
     os.environ["DYNAMODB_TABLE"] = "test_table"
     os.environ["STAC_URL"] = "https://test-stac.url"
@@ -28,7 +27,7 @@ def test_environ():
     os.environ["ROOT_PATH"] = ""
     os.environ[
         "OPENID_CONFIGURATION_URL"
-    ] = "https://test.auth.com/realms/veda/.well-known/openid-configuration"
+    ] = "https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration"
 
 
 @pytest.fixture
