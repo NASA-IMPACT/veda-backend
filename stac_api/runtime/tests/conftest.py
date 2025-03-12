@@ -228,7 +228,7 @@ def test_environ():
     os.environ[
         "VEDA_STAC_OPENID_CONFIGURATION_URL"
     ] = "https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration"
-    os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "TRUE"
+    os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
 
     # Config mocks
     os.environ["POSTGRES_USER"] = "username"
