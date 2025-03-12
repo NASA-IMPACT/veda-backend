@@ -20,6 +20,7 @@ inst_reqs = [
     "aws_xray_sdk>=2.6.0,<3",
     "pystac[validation]==1.10.1",
     "pydantic>2",
+    "eoapi-auth-utils==0.3.0",
 ]
 
 extra_reqs = {
