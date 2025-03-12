@@ -65,7 +65,7 @@ class vedaSTACSettings(BaseSettings):
         if values.get("stac_enable_transactions") == "True":
             if (
                 values.get("openid_configuration_url") is None
-                or values.get("client_id") is None
+                or values.get("keycloak_client_id") is None
             ):
                 raise ValueError(
                     "When 'stac_enable_transactions' is True, the following fields must be provided: openid_configuration_url, client_id"
