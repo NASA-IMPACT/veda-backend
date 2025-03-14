@@ -15,7 +15,7 @@ class CollectionPublisher:
         and loads into the PgSTAC collection table
         """
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
-        collection = [collection.to_dict()]
+        collection = [collection.to_dict(exclude_none=True)]
         with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
             load_into_pgstac(
                 db=db, ingestions=collection, table=IngestionType.collections
