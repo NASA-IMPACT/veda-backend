@@ -13,7 +13,6 @@ from src.extension import TiTilerExtension
 
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
-from fastapi.routing import APIRoute
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware

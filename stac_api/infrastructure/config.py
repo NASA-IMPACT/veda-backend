@@ -63,12 +63,14 @@ class vedaSTACSettings(BaseSettings):
         Validates the existence of auth env vars in case stac_enable_transactions is True
         """
         if values.get("stac_enable_transactions") == "True":
-            if (
-                values.get("openid_configuration_url") is None
-                or values.get("keycloak_client_id") is None
-            ):
+            missing_fields = [
+                field
+                for field in ["keycloak_client_id", "openid_configuration_url"]
+                if not values.get(field)
+            ]
+            if missing_fields:
                 raise ValueError(
-                    "When 'stac_enable_transactions' is True, the following fields must be provided: openid_configuration_url, client_id"
+                    f"When 'stac_enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
                 )
         return values
 
