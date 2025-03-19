@@ -97,39 +97,27 @@ if api_settings.enable_transactions and auth_settings.client_id:
     )
 
     restricted_prefixes_methods = {
-        "/collections": ("POST", "stac:collection:create"),
-        "/collections/{collection_id}": ("PUT", "stac:collection:update"),  # noqa: F601
-        "/collections/{collection_id}": (
-            "DELETE",
-            "stac:collection:delete",
-        ),  # noqa: F601
-        "/collections/{collection_id}/items": (
-            "POST",
-            "stac:item:create",
-        ),  # noqa: F601
-        "/collections/{collection_id}/items/{item_id}": (
-            "PUT",
-            "stac:item:update",
-        ),  # noqa: F601
-        "/collections/{collection_id}/items/{item_id}": (
-            "DELETE",
-            "stac:item:delete",
-        ),  # noqa: F601
-        "/collections/{collection_id}/bulk_items": ("POST", "stac:item:create"),
-    }
-
-    api_routes = {
-        route.path: route for route in app.router.routes if isinstance(route, APIRoute)
+        "/collections": [("POST", "stac:collection:create")],
+        "/collections/{collection_id}": [
+            ("PUT", "stac:collection:update"),
+            ("DELETE", "stac:collection:delete"),
+        ],
+        "/collections/{collection_id}/items": [("POST", "stac:item:create")],
+        "/collections/{collection_id}/items/{item_id}": [
+            ("PUT", "stac:item:update"),
+            ("DELETE", "stac:item:delete"),
+        ],
+        "/collections/{collection_id}/bulk_items": [("POST", "stac:item:create")],
     }
 
     for route in app.router.routes:
-        method_scope = restricted_prefixes_methods.get(route.path)
-        if not method_scope:
+        method_scopes = restricted_prefixes_methods.get(route.path)
+        if not method_scopes:
             continue
-        [method, scope] = method_scope
-        if method not in route.methods:
-            continue
-        oidc_auth.apply_auth_dependencies(route, required_token_scopes=[scope])
+        for method, scope in method_scopes:
+            if method not in route.methods:
+                continue
+            oidc_auth.apply_auth_dependencies(route, required_token_scopes=[scope])
 
 if tiles_settings.titiler_endpoint:
     # Register to the TiTiler extension to the api
