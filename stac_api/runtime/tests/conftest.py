@@ -7,6 +7,7 @@ setup for testing with mock AWS and PostgreSQL configurations.
 """
 
 import os
+from unittest.mock import MagicMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -227,7 +228,7 @@ def test_environ():
     os.environ["VEDA_STAC_CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
     os.environ[
         "VEDA_STAC_OPENID_CONFIGURATION_URL"
-    ] = "https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration"
+    ] = "https://example.com/.well-known/openid-configuration"
     os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
 
     # Config mocks
@@ -247,6 +248,28 @@ def override_validated_token():
         str: A fake token to bypass authorization in tests.
     """
     return "fake_token"
+
+
+def override_jwks_client():
+    """
+    Mock function to override jwks uri.
+
+    Returns:
+        str: A fake jwks url.
+    """
+    return "https://example.com/jwks"
+
+
+@pytest.fixture()
+def mock_auth():
+    """Mock the OpenIdConnectAuth class to bypass actual OIDC calls."""
+    with patch("src.app.OpenIdConnectAuth") as mock:
+        # Create a mock instance
+        mock_instance = MagicMock()
+        mock_instance.valid_token_dependency = override_validated_token
+        mock_instance.jwks_client = override_jwks_client
+        mock.return_value = mock_instance
+        yield mock_instance
 
 
 @pytest.fixture
