@@ -260,10 +260,10 @@ def override_jwks_client():
     return "https://example.com/jwks"
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def mock_auth():
     """Mock the OpenIdConnectAuth class to bypass actual OIDC calls."""
-    with patch("src.app.OpenIdConnectAuth") as mock:
+    with patch("eoapi.auth_utils.OpenIdConnectAuth") as mock:
         # Create a mock instance
         mock_instance = MagicMock()
         mock_instance.valid_token_dependency = override_validated_token
