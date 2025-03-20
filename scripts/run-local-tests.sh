@@ -5,7 +5,7 @@ set -e
 pre-commit run --all-files
 
 # Bring up stack for testing; ingestor not required
-docker compose up -d stac database
+docker compose up -d stac raster database dynamodb
 
 # cleanup, logging in case of failure
 cleanup() {
@@ -29,10 +29,10 @@ trap cleanup EXIT
 docker exec veda.db /tmp/scripts/bin/load-data.sh
 
 # Run tests
-# python -m pytest .github/workflows/tests/ -vv -s
+python -m pytest .github/workflows/tests/ -vv -s
 
 # Run ingest unit tests
-# NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
+NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
 
 # Transactions tests
 python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
