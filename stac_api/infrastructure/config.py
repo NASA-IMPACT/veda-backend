@@ -45,16 +45,9 @@ class vedaSTACSettings(BaseSettings):
         description="Description of the STAC Catalog",
     )
 
-    userpool_id: Optional[str] = Field(
-        None, description="The Cognito Userpool used for authentication"
-    )
-    cognito_domain: Optional[AnyHttpUrl] = Field(
-        None,
-        description="The base url of the Cognito domain for authorization and token urls",
-    )
-    client_id: Optional[str] = Field(None, description="The Cognito APP client ID")
-    client_secret: Optional[str] = Field(
-        "", description="The Cognito APP client secret"
+    keycloak_client_id: Optional[str] = Field(None, description="Auth client ID")
+    openid_configuration_url: Optional[AnyHttpUrl] = Field(
+        None, description="OpenID config url"
     )
     stac_enable_transactions: bool = Field(
         False, description="Whether to enable transactions endpoints"
@@ -69,10 +62,10 @@ class vedaSTACSettings(BaseSettings):
         """
         Validates the existence of auth env vars in case stac_enable_transactions is True
         """
-        if values.get("stac_enable_transactions"):
+        if values.get("stac_enable_transactions") == "True":
             missing_fields = [
                 field
-                for field in ["userpool_id", "cognito_domain", "client_id"]
+                for field in ["keycloak_client_id", "openid_configuration_url"]
                 if not values.get(field)
             ]
             if missing_fields:

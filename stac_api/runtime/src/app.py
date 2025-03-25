@@ -12,7 +12,6 @@ from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
 from fastapi import APIRouter, FastAPI
-from fastapi.params import Depends
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware import Middleware
@@ -25,8 +24,9 @@ from starlette_cramjam.middleware import CompressionMiddleware
 from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
-from .routes import add_route_dependencies
 from .validation import ValidationMiddleware
+
+from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -38,6 +38,7 @@ except ImportError:
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 tiles_settings = TilesApiSettings()
+auth_settings = OpenIdConnectSettings(_env_prefix="VEDA_STAC_")
 
 
 @asynccontextmanager
@@ -56,11 +57,12 @@ api = VedaStacApi(
         root_path=api_settings.root_path,
         swagger_ui_init_oauth=(
             {
-                "appName": "Cognito",
-                "clientId": api_settings.client_id,
+                "appName": "STAC API",
+                "clientId": auth_settings.client_id,
                 "usePkceWithAuthorizationCodeGrant": True,
+                "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
             }
-            if api_settings.client_id
+            if auth_settings.client_id
             else {}
         ),
         lifespan=lifespan,
@@ -88,40 +90,34 @@ if api_settings.cors_origins:
         allow_headers=["*"],
     )
 
-if api_settings.enable_transactions:
-    from veda_auth import VedaAuth
-
-    auth = VedaAuth(api_settings)
-    # Require auth for all endpoints that create, modify or delete data.
-    add_route_dependencies(
-        app.router.routes,
-        [
-            {"path": "/collections", "method": "POST", "type": "http"},
-            {"path": "/collections/{collectionId}", "method": "PUT", "type": "http"},
-            {"path": "/collections/{collectionId}", "method": "DELETE", "type": "http"},
-            {
-                "path": "/collections/{collectionId}/items",
-                "method": "POST",
-                "type": "http",
-            },
-            {
-                "path": "/collections/{collectionId}/items/{itemId}",
-                "method": "PUT",
-                "type": "http",
-            },
-            {
-                "path": "/collections/{collectionId}/items/{itemId}",
-                "method": "DELETE",
-                "type": "http",
-            },
-            {
-                "path": "/collections/{collectionId}/bulk_items",
-                "method": "POST",
-                "type": "http",
-            },
-        ],
-        [Depends(auth.validated_token)],
+if api_settings.enable_transactions and auth_settings.client_id:
+    oidc_auth = OpenIdConnectAuth(
+        openid_configuration_url=auth_settings.openid_configuration_url,
+        allowed_jwt_audiences="account",
     )
+
+    restricted_prefixes_methods = {
+        "/collections": [("POST", "stac:collection:create")],
+        "/collections/{collection_id}": [
+            ("PUT", "stac:collection:update"),
+            ("DELETE", "stac:collection:delete"),
+        ],
+        "/collections/{collection_id}/items": [("POST", "stac:item:create")],
+        "/collections/{collection_id}/items/{item_id}": [
+            ("PUT", "stac:item:update"),
+            ("DELETE", "stac:item:delete"),
+        ],
+        "/collections/{collection_id}/bulk_items": [("POST", "stac:item:create")],
+    }
+
+    for route in app.router.routes:
+        method_scopes = restricted_prefixes_methods.get(route.path)
+        if not method_scopes:
+            continue
+        for method, scope in method_scopes:
+            if method not in route.methods:
+                continue
+            oidc_auth.apply_auth_dependencies(route, required_token_scopes=[scope])
 
 if tiles_settings.titiler_endpoint:
     # Register to the TiTiler extension to the api
