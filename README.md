@@ -79,13 +79,17 @@ These can be installed with [homebrew](https://brew.sh/) on MacOS
 
 ```bash
 brew install node
-brew install nvm
+brew install nvm # Make sure to add nvm to your path
 brew install jq
+nvm install 20 # .github/workflows/pr.yml users node version 20
 ```
 
 #### Virtual environment example
 
 ```bash
+# `pipes` package required by the `fire` package deprecrated in python >3.11
+pyenv install 3.11
+pyenv shell 3.11
 python3 -m venv .venv
 source .venv/bin/activate
 ```
