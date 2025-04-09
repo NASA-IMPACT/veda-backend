@@ -81,7 +81,7 @@ These can be installed with [homebrew](https://brew.sh/) on MacOS
 brew install node
 brew install nvm # Make sure to add nvm to your path
 brew install jq
-nvm install 20 # .github/workflows/pr.yml users node version 20
+nvm install 20 # .github/workflows/pr.yml uses node version 20
 ```
 
 #### Virtual environment example
