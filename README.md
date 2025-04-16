@@ -97,7 +97,7 @@ source .venv/bin/activate
 #### Install requirements
 
 ```bash
-nvm use --lts
+nvm use 20
 npm install --location=global aws-cdk
 python3 -m pip install --upgrade pip
 python3 -m pip install -e ".[dev,deploy,test]"
