@@ -9,11 +9,13 @@ from src.config import TilesApiSettings, api_settings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import post_request_model as POSTModel
+from src.config import items_get_request_model
 from src.extension import TiTilerExtension
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Depends
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
+from stac_fastapi.types.stac import ItemCollection
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -74,6 +76,7 @@ api = VedaStacApi(
     client=VedaCrudClient(post_request_model=POSTModel),
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
+    items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
     middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
     router=APIRouter(route_class=LoggerRouteHandler),
