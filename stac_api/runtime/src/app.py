@@ -12,10 +12,9 @@ from src.config import post_request_model as POSTModel
 from src.config import items_get_request_model
 from src.extension import TiTilerExtension
 
-from fastapi import APIRouter, FastAPI, Depends
+from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
-from stac_fastapi.types.stac import ItemCollection
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
