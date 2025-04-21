@@ -11,7 +11,12 @@ from pydantic import AnyHttpUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from fastapi.responses import ORJSONResponse
-from stac_fastapi.api.models import create_get_request_model, create_post_request_model, ItemCollectionUri, create_request_model
+from stac_fastapi.api.models import (
+    ItemCollectionUri,
+    create_get_request_model,
+    create_post_request_model,
+    create_request_model,
+)
 
 # from stac_fastapi.pgstac.extensions import QueryExtension
 from stac_fastapi.extensions.core import (

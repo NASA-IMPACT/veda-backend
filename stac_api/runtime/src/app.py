@@ -8,8 +8,8 @@ from aws_lambda_powertools.metrics import MetricUnit
 from src.config import TilesApiSettings, api_settings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
-from src.config import post_request_model as POSTModel
 from src.config import items_get_request_model
+from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
 from fastapi import APIRouter, FastAPI
