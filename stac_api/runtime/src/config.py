@@ -11,7 +11,12 @@ from pydantic import AnyHttpUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from fastapi.responses import ORJSONResponse
-from stac_fastapi.api.models import create_get_request_model, create_post_request_model
+from stac_fastapi.api.models import (
+    ItemCollectionUri,
+    create_get_request_model,
+    create_post_request_model,
+    create_request_model,
+)
 
 # from stac_fastapi.pgstac.extensions import QueryExtension
 from stac_fastapi.extensions.core import (
@@ -132,13 +137,21 @@ def TilesApiSettings() -> _TilesApiSettings:
     return _TilesApiSettings()
 
 
+pagination_extension = TokenPaginationExtension()
+
 extensions = [
     FieldsExtension(),
     FilterExtension(),
     QueryExtension(),
     SortExtension(),
-    TokenPaginationExtension(),
+    pagination_extension,
 ]
+
+items_get_request_model = create_request_model(
+    "ItemCollectionURI",
+    base_model=ItemCollectionUri,
+    mixins=[pagination_extension.GET],
+)
 
 if api_settings.enable_transactions:
     extensions.extend(

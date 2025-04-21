@@ -8,6 +8,7 @@ from aws_lambda_powertools.metrics import MetricUnit
 from src.config import TilesApiSettings, api_settings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
+from src.config import items_get_request_model
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
 
@@ -74,6 +75,7 @@ api = VedaStacApi(
     client=VedaCrudClient(post_request_model=POSTModel),
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
+    items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
     middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
     router=APIRouter(route_class=LoggerRouteHandler),
