@@ -17,9 +17,9 @@ runs:
   using: "composite"
   steps:
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
       with:
         python-version: '3.11'
         cache: 'pip'
@@ -28,11 +28,11 @@ runs:
           ${{ inputs.dir }}/setup.cfg
 
     - name: Setup Node
-      uses: actions/setup-node@v4
-      with: 
+      uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e4 #v4.3.0
+      with:
         node-version: 20
 
-    - uses: actions/cache@v4
+    - uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
       with:
         path: ~/.npm
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
@@ -41,7 +41,7 @@ runs:
       shell: bash
       run: npm install -g aws-cdk@2
 
-    - uses: actions/cache@v4
+    - uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
       with:
         path: ${{ env.pythonLocation }}
         key:  ${{ env.pythonLocation }}-${{ hashFiles('${{ inputs.dir }}/setup.py') }}

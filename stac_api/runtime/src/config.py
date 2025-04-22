@@ -7,11 +7,16 @@ from functools import lru_cache
 from typing import Optional
 
 import boto3
-from pydantic import AnyHttpUrl, Field, field_validator, model_validator
+from pydantic import AnyHttpUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from fastapi.responses import ORJSONResponse
-from stac_fastapi.api.models import create_get_request_model, create_post_request_model
+from stac_fastapi.api.models import (
+    ItemCollectionUri,
+    create_get_request_model,
+    create_post_request_model,
+    create_request_model,
+)
 
 # from stac_fastapi.pgstac.extensions import QueryExtension
 from stac_fastapi.extensions.core import (
@@ -63,54 +68,13 @@ class _ApiSettings(BaseSettings):
     root_path: Optional[str] = None
     pgstac_secret_arn: Optional[str] = None
     stage: Optional[str] = None
-
-    userpool_id: Optional[str] = Field(
-        "", description="The Cognito Userpool used for authentication"
-    )
-    cognito_domain: Optional[AnyHttpUrl] = Field(
-        None,
-        description="The base url of the Cognito domain for authorization and token urls",
-    )
-    client_id: Optional[str] = Field(None, description="The Cognito APP client ID")
-    client_secret: Optional[str] = Field(
-        "", description="The Cognito APP client secret"
+    client_id: Optional[str] = Field(None, description="Auth client ID")
+    openid_configuration_url: Optional[AnyHttpUrl] = Field(
+        None, description="OpenID config url"
     )
     enable_transactions: bool = Field(
         False, description="Whether to enable transactions"
     )
-
-    @model_validator(mode="before")
-    def check_transaction_fields(cls, values):
-        enable_transactions = values.get("enable_transactions")
-
-        if enable_transactions:
-            missing_fields = [
-                field
-                for field in ["userpool_id", "cognito_domain", "client_id"]
-                if not values.get(field)
-            ]
-            if missing_fields:
-                raise ValueError(
-                    f"When 'enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
-                )
-        return values
-
-    @property
-    def jwks_url(self) -> AnyHttpUrl:
-        """JWKS url"""
-        if self.userpool_id:
-            region = self.userpool_id.split("_")[0]
-            return f"https://cognito-idp.{region}.amazonaws.com/{self.userpool_id}/.well-known/jwks.json"
-
-    @property
-    def cognito_authorization_url(self) -> AnyHttpUrl:
-        """Cognito user pool authorization url"""
-        return f"{self.cognito_domain}/oauth2/authorize"
-
-    @property
-    def cognito_token_url(self) -> AnyHttpUrl:
-        """Cognito user pool token and refresh url"""
-        return f"{self.cognito_domain}/oauth2/token"
 
     @field_validator("cors_origins")
     @classmethod
@@ -173,13 +137,21 @@ def TilesApiSettings() -> _TilesApiSettings:
     return _TilesApiSettings()
 
 
+pagination_extension = TokenPaginationExtension()
+
 extensions = [
     FieldsExtension(),
     FilterExtension(),
     QueryExtension(),
     SortExtension(),
-    TokenPaginationExtension(),
+    pagination_extension,
 ]
+
+items_get_request_model = create_request_model(
+    "ItemCollectionURI",
+    base_model=ItemCollectionUri,
+    mixins=[pagination_extension.GET],
+)
 
 if api_settings.enable_transactions:
     extensions.extend(

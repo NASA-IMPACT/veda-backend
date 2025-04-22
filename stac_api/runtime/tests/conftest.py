@@ -7,6 +7,7 @@ setup for testing with mock AWS and PostgreSQL configurations.
 """
 
 import os
+from unittest.mock import MagicMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -224,13 +225,11 @@ def test_environ():
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_REGION"] = "us-west-2"
-    os.environ["VEDA_STAC_USERPOOL_ID"] = "us-west-2_FAKEUSERPOOL"
     os.environ["VEDA_STAC_CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
-    os.environ["VEDA_STAC_CLIENT_SECRET"] = "dsakfjdsalfkjadslfjalksfj"
     os.environ[
-        "VEDA_STAC_COGNITO_DOMAIN"
-    ] = "https://fake.auth.us-west-2.amazoncognito.com"
-    os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "TRUE"
+        "VEDA_STAC_OPENID_CONFIGURATION_URL"
+    ] = "https://example.com/.well-known/openid-configuration"
+    os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
 
     # Config mocks
     os.environ["POSTGRES_USER"] = "username"
@@ -249,6 +248,28 @@ def override_validated_token():
         str: A fake token to bypass authorization in tests.
     """
     return "fake_token"
+
+
+def override_jwks_client():
+    """
+    Mock function to override jwks uri.
+
+    Returns:
+        str: A fake jwks url.
+    """
+    return "https://example.com/jwks"
+
+
+@pytest.fixture(autouse=True)
+def mock_auth():
+    """Mock the OpenIdConnectAuth class to bypass actual OIDC calls."""
+    with patch("eoapi.auth_utils.OpenIdConnectAuth") as mock:
+        # Create a mock instance
+        mock_instance = MagicMock()
+        mock_instance.valid_token_dependency = override_validated_token
+        mock_instance.jwks_client = override_jwks_client
+        mock.return_value = mock_instance
+        yield mock_instance
 
 
 @pytest.fixture
@@ -286,9 +307,11 @@ async def api_client(app):
     Yields:
         TestClient: The TestClient instance for API testing.
     """
-    from src.app import auth
+    from src.app import oidc_auth
 
-    app.dependency_overrides[auth.validated_token] = override_validated_token
+    app.dependency_overrides[
+        oidc_auth.valid_token_dependency
+    ] = override_validated_token
     base_url = "http://test"
 
     async with AsyncClient(

@@ -66,7 +66,7 @@ class DashboardCollection(Collection):
     time_density: Optional[str] = Field(default=None, alias="dashboard:time_density")
     item_assets: Optional[Dict]
     links: Optional[List[LinkWithExtraFields]]
-    assets: Optional[Dict]
+    assets: Optional[Dict] = None
     extent: SpatioTemporalExtent
     model_config = ConfigDict(populate_by_name=True)
     # workaround for https://github.com/pydantic/pydantic/discussions/8211 and https://github.com/pydantic/pydantic/issues/7186 (changes expected on pydantic 3 roadmap)

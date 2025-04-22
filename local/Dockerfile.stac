@@ -12,9 +12,6 @@ RUN pip install --upgrade pip
 RUN pip install boto3
 
 COPY stac_api/runtime /tmp/stac
-
-COPY common/auth /tmp/stac/common/auth
-RUN pip install /tmp/stac/common/auth
 RUN pip install /tmp/stac 
 RUN rm -rf /tmp/stac
 
