@@ -37,9 +37,13 @@ class StacApiLambdaConstruct(Construct):
         # TODO config
         stack_name = Stack.of(self).stack_name
 
-        print(f"DEBUG - stac_enable_transactions: {veda_stac_settings.stac_enable_transactions}")
+        print(
+            f"DEBUG - stac_enable_transactions: {veda_stac_settings.stac_enable_transactions}"
+        )
         print(f"DEBUG - keycloak_client_id: {veda_stac_settings.keycloak_client_id}")
-        print(f"DEBUG - openid_configuration_url: {veda_stac_settings.openid_configuration_url}")
+        print(
+            f"DEBUG - openid_configuration_url: {veda_stac_settings.openid_configuration_url}"
+        )
 
         lambda_env = {
             "VEDA_STAC_PROJECT_NAME": veda_stac_settings.project_name,
