@@ -11,7 +11,7 @@ auth_settings = OpenIdConnectSettings(_env_prefix="")
 
 oidc_auth = OpenIdConnectAuth(
     openid_configuration_url=auth_settings.openid_configuration_url,
-    allowed_jwt_audiences="account"
+    allowed_jwt_audiences="account",
 )
 
 
