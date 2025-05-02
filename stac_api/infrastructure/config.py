@@ -45,7 +45,9 @@ class vedaSTACSettings(BaseSettings):
         description="Description of the STAC Catalog",
     )
 
-    keycloak_client_id: Optional[str] = Field(None, description="Auth client ID")
+    keycloak_stac_api_client_id: Optional[str] = Field(
+        None, description="Auth client ID"
+    )
     openid_configuration_url: Optional[AnyHttpUrl] = Field(
         None, description="OpenID config url"
     )
