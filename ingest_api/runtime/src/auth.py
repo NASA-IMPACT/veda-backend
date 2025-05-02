@@ -4,7 +4,6 @@ from typing_extensions import Annotated
 
 from fastapi import Depends
 
-# from src.config import VedaOpenIdConnectSettings
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
 auth_settings = OpenIdConnectSettings(_env_prefix="")
