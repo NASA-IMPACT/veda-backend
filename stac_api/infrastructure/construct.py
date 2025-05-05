@@ -50,8 +50,10 @@ class StacApiLambdaConstruct(Construct):
             **{k.upper(): v for k, v in veda_stac_settings.env.items()},
         }
 
-        if veda_stac_settings.keycloak_client_id is not None:
-            lambda_env["VEDA_STAC_CLIENT_ID"] = veda_stac_settings.keycloak_client_id
+        if veda_stac_settings.keycloak_stac_api_client_id is not None:
+            lambda_env[
+                "VEDA_STAC_CLIENT_ID"
+            ] = veda_stac_settings.keycloak_stac_api_client_id
         if veda_stac_settings.openid_configuration_url is not None:
             lambda_env["VEDA_STAC_OPENID_CONFIGURATION_URL"] = str(
                 veda_stac_settings.openid_configuration_url

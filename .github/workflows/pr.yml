@@ -80,9 +80,6 @@ jobs:
       - name: Install reqs for stac api
         run: python -m pip install stac_api/runtime/
 
-      - name: Install veda auth for ingest api
-        run: python -m pip install common/auth
-
       - name: Ingest unit tests
         run: NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest ingest_api/runtime/tests/ -vv -s
 
