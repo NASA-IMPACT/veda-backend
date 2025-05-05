@@ -236,6 +236,8 @@ class IngestorConstruct(Construct):
             "NO_PYDANTIC_SSM_SETTINGS": "1",
             "STAC_URL": config.veda_stac_api_cf_url,
             "RASTER_URL": config.veda_raster_api_cf_url,
+            "CLIENT_ID": config.keycloak_ingest_api_client_id,
+            "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
         }
 
         if config.raster_data_access_role_arn:
