@@ -59,7 +59,9 @@ async def list_ingestions(
     tags=["Ingestion"],
     status_code=201,
     dependencies=[
-        Security(oidc_auth.valid_token_dependency, scopes="stac:item:create stac:item:update")
+        Security(
+            oidc_auth.valid_token_dependency, scopes="stac:item:create stac:item:update"
+        )
     ],
 )
 async def enqueue_ingestion(
@@ -144,7 +146,10 @@ def cancel_ingestion(
     tags=["Collection"],
     status_code=201,
     dependencies=[
-        Security(oidc_auth.valid_token_dependency, scopes="stac:collection:create stac:collection:update")
+        Security(
+            oidc_auth.valid_token_dependency,
+            scopes="stac:collection:create stac:collection:update",
+        )
     ],
 )
 def publish_collection(collection: schemas.DashboardCollection):

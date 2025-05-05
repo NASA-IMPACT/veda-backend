@@ -86,13 +86,9 @@ class IngestorConfig(BaseSettings):
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
 
-    keycloak_ingest_api_client_id: str = Field(
-        description="Auth client ID"
-    )
+    keycloak_ingest_api_client_id: str = Field(description="Auth client ID")
 
-    openid_configuration_url: AnyHttpUrl = Field(
-        description="OpenID config url"
-    )
+    openid_configuration_url: AnyHttpUrl = Field(description="OpenID config url")
     model_config = SettingsConfigDict(
         case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"
     )
