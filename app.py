@@ -118,7 +118,6 @@ ingest_api = ingest_api_construct(
     config=ingestor_config,
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
-    db_vpc_subnets=database.vpc_subnets,
 )
 
 ingestor = ingestor_construct(
@@ -128,7 +127,6 @@ ingestor = ingestor_construct(
     table=ingest_api.table,
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
-    db_vpc_subnets=database.vpc_subnets,
 )
 
 git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()

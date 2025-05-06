@@ -69,7 +69,6 @@ class StacApiLambdaConstruct(Construct):
                 file="stac_api/runtime/Dockerfile",
             ),
             vpc=vpc,
-            allow_public_subnet=True,
             memory_size=veda_stac_settings.memory,
             timeout=Duration.seconds(veda_stac_settings.timeout),
             environment=lambda_env,
