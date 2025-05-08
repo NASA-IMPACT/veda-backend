@@ -24,7 +24,6 @@ class ApiConstruct(Construct):
         config: IngestorConfig,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
-        db_vpc_subnets=ec2.SubnetSelection,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -226,7 +225,6 @@ class IngestorConstruct(Construct):
         table: dynamodb.ITable,
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
-        db_vpc_subnets=ec2.SubnetSelection,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -255,7 +253,6 @@ class IngestorConstruct(Construct):
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
-            db_vpc_subnets=db_vpc_subnets,
             pgstac_version=config.db_pgstac_version,
         )
 
@@ -267,7 +264,6 @@ class IngestorConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
-        db_vpc_subnets: ec2.SubnetSelection,
         pgstac_version: str,
         code_dir: str = "./",
     ) -> aws_lambda.Function:
@@ -285,8 +281,6 @@ class IngestorConstruct(Construct):
             timeout=Duration.seconds(180),
             environment={"DB_SECRET_ARN": db_secret.secret_arn, **env},
             vpc=db_vpc,
-            vpc_subnets=db_vpc_subnets,
-            allow_public_subnet=True,
             memory_size=2048,
         )
 

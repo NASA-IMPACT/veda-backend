@@ -47,7 +47,6 @@ class RasterApiLambdaConstruct(Construct):
                 platform="linux/amd64",
             ),
             vpc=vpc,
-            allow_public_subnet=True,
             handler="handler.handler",
             memory_size=veda_raster_settings.memory,
             timeout=Duration.seconds(veda_raster_settings.timeout),
