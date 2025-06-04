@@ -18,6 +18,7 @@ SEARCH_ROUTE = "search"
 RASTER_SEARCHES_ENDPOINT = "http://0.0.0.0:8082/searches"
 RASTER_HEALTH_ENDPOINT = "http://0.0.0.0:8082/healthz"
 TILEMATRIX = {"z": 15, "x": 8589, "y": 12849}
+TMS_ID = "WebMercatorQuad"
 
 SEARCHES = [
     {
@@ -226,6 +227,17 @@ def seeded_tilematrix():
         dict: A [z, x, y] set of dimensions
     """
     return TILEMATRIX
+
+
+@pytest.fixture
+def seeded_tms_id():
+    """
+    Fixture providing a matrix of seeded data for integration testing.
+
+    Returns:
+        dict: A [z, x, y] set of dimensions
+    """
+    return TMS_ID
 
 
 @pytest.fixture
