@@ -23,6 +23,7 @@ from titiler.core.factory import (
     TMSFactory,
 )
 from titiler.core.middleware import CacheControlMiddleware
+from titiler.core.resources.enums import OptionalHeader
 from titiler.core.resources.responses import JSONResponse
 from titiler.extensions import cogValidateExtension, cogViewerExtension
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
@@ -43,11 +44,10 @@ logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 settings = ApiSettings()
 
 
-#  TODO - it's unclear how to use these in newer titiler versions
-# if settings.debug:
-#     optional_headers = [OptionalHeader.server_timing, OptionalHeader.x_assets]
-# else:
-#     optional_headers = []
+if settings.debug:
+    optional_headers = [OptionalHeader.server_timing, OptionalHeader.x_assets]
+else:
+    optional_headers = []
 
 
 @asynccontextmanager
@@ -93,6 +93,7 @@ searches = MosaicTilerFactory(
     extensions=[
         searchInfoExtension(),
     ],
+    optional_headers=optional_headers,
 )
 app.include_router(
     searches.router, prefix="/searches/{search_id}", tags=["STAC Search"]
@@ -134,6 +135,7 @@ collection = MosaicTilerFactory(
     extensions=[
         searchInfoExtension(),
     ],
+    optional_headers=optional_headers,
 )
 app.include_router(
     collection.router, tags=["STAC Collection"], prefix="/collections/{collection_id}"
@@ -153,6 +155,7 @@ stac = MultiBaseTilerFactory(
         stacViewerExtension(),
     ],
     colormap_dependency=ColorMapParams,
+    # optional_headers=optional_headers,
 )
 app.include_router(
     stac.router,
@@ -173,6 +176,7 @@ stac_alt = MultiBaseTilerFactory(
         stacViewerExtension(),
     ],
     colormap_dependency=ColorMapParams,
+    # optional_headers=optional_headers,
 )
 app.include_router(
     stac_alt.router,
@@ -193,6 +197,7 @@ cog = TilerFactory(
         cogViewerExtension(),
     ],
     colormap_dependency=ColorMapParams,
+    # optional_headers=optional_headers,
 )
 
 app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")

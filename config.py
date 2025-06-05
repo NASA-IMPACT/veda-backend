@@ -84,7 +84,7 @@ class vedaAppSettings(BaseSettings):
         description="Boolean if Cloudfront Distribution should be deployed",
     )
 
-    veda_custom_host: str = Field(
+    veda_custom_host: Optional[str] = Field(
         None,
         description="Complete url of custom host including subdomain. Used to infer url of stac-api before app synthesis.",
     )

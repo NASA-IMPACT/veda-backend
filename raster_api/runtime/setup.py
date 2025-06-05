@@ -11,7 +11,7 @@ inst_reqs = [
     "rio-tiler>=7.0,<8.0",
     "titiler.pgstac==1.5.0",
     # use highest available titiler based on rio-tiler and titiler-pgstac pins
-    "titiler.core",
+    "titiler.core<0.20",
     "titiler.mosaic",
     "titiler.extensions[cogeo]",
     "starlette-cramjam>=0.3,<0.4",
