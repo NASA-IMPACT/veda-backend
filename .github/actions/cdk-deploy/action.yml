@@ -12,6 +12,10 @@ inputs:
     required: false
     type: string
     default: "."
+  skip_tests:
+    required: false
+    type: boolean
+    default: false
 
 runs:
   using: "composite"
@@ -54,33 +58,42 @@ runs:
         python -m pip install -e .[dev,deploy,test]
         python -m pip install boto3
 
+     # === Only run these steps if skip_tests is false ===
+
     - name: Launch services
+      if: ${{ inputs.skip_tests == false }}
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: docker compose up --build -d
 
     - name: Ingest Stac Items/Collection
+      if: ${{ inputs.skip_tests == false }}
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
         ./scripts/load-data-container.sh
 
     - name: Sleep for 10 seconds
-      run: sleep 10s
+      if: ${{ inputs.skip_tests == false }}
       shell: bash
       working-directory: ${{ inputs.dir }}
+      run: sleep 10s
 
     - name: Integrations tests
+      if: ${{ inputs.skip_tests == false }}
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: python -m pytest .github/workflows/tests/ -vv -s
 
     - name: Stop services
+      if: ${{ inputs.skip_tests == false }}
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
         docker compose down --rmi all --volumes
         sudo rm -rf .pgdata
+
+    # ===================================================
 
     - name: Get relevant environment configuration from aws secrets
       shell: bash
