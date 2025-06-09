@@ -32,6 +32,7 @@ app = FastAPI(
     },
 )
 
+
 app.router.route_class = LoggerRouteHandler
 
 collection_publisher = CollectionPublisher()
@@ -199,6 +200,7 @@ def publish_item(item: schemas.Item):
     Publish an item to the STAC database.
     """
     # pgstac create item
+    item_publisher.ingest(item)
     try:
         item_publisher.ingest(item)
         return {f"Successfully published: {item.id}"}

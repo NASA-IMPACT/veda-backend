@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   stac:
     container_name: veda.stac
@@ -34,70 +32,70 @@ services:
       - TITILER_ENDPOINT=http://0.0.0.0:8082
     depends_on:
       - database
-      - raster
+      #- raster
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
 
-  raster:
-    container_name: veda.raster
-    platform: linux/amd64
-    build:
-      context: .
-      dockerfile: local/Dockerfile.raster
-    ports:
-      - "8082:8082"
-    environment:
-      # Application
-      - HOST=0.0.0.0
-      - PORT=8082
-      # https://github.com/tiangolo/uvicorn-gunicorn-docker#web_concurrency
-      - WEB_CONCURRENCY=1
-      # https://github.com/tiangolo/uvicorn-gunicorn-docker#workers_per_core
-      - WORKERS_PER_CORE=1
-      # https://github.com/tiangolo/uvicorn-gunicorn-docker#max_workers
-      - MAX_WORKERS=10
-      # Postgres connection
-      - POSTGRES_USER=username
-      - POSTGRES_PASS=password
-      - POSTGRES_DBNAME=postgis
-      - POSTGRES_HOST=database
-      - POSTGRES_PORT=5432
-      - DB_MIN_CONN_SIZE=1
-      - DB_MAX_CONN_SIZE=10
-      # - DB_MAX_QUERIES=10
-      # - DB_MAX_IDLE=10
-      # GDAL Config
-      - CPL_TMPDIR=/tmp
-      - GDAL_CACHEMAX=75%
-      - GDAL_INGESTED_BYTES_AT_OPEN=32768
-      - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
-      - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
-      - GDAL_HTTP_MULTIPLEX=YES
-      - GDAL_HTTP_VERSION=2
-      - VSI_CACHE=TRUE
-      - VSI_CACHE_SIZE=536870912
-      # TiTiler Config
-      - MOSAIC_CONCURRENCY=1
-      # AWS S3 endpoint config
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      # API Config
-      - VEDA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
-      - VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS=TRUE
+  # raster:
+  #   container_name: veda.raster
+  #   platform: linux/amd64
+  #   build:
+  #     context: .
+  #     dockerfile: local/Dockerfile.raster
+  #   ports:
+  #     - "8082:8082"
+  #   environment:
+  #     # Application
+  #     - HOST=0.0.0.0
+  #     - PORT=8082
+  #     # https://github.com/tiangolo/uvicorn-gunicorn-docker#web_concurrency
+  #     - WEB_CONCURRENCY=1
+  #     # https://github.com/tiangolo/uvicorn-gunicorn-docker#workers_per_core
+  #     - WORKERS_PER_CORE=1
+  #     # https://github.com/tiangolo/uvicorn-gunicorn-docker#max_workers
+  #     - MAX_WORKERS=10
+  #     # Postgres connection
+  #     - POSTGRES_USER=username
+  #     - POSTGRES_PASS=password
+  #     - POSTGRES_DBNAME=postgis
+  #     - POSTGRES_HOST=database
+  #     - POSTGRES_PORT=5432
+  #     - DB_MIN_CONN_SIZE=1
+  #     - DB_MAX_CONN_SIZE=10
+  #     # - DB_MAX_QUERIES=10
+  #     # - DB_MAX_IDLE=10
+  #     # GDAL Config
+  #     - CPL_TMPDIR=/tmp
+  #     - GDAL_CACHEMAX=75%
+  #     - GDAL_INGESTED_BYTES_AT_OPEN=32768
+  #     - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+  #     - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
+  #     - GDAL_HTTP_MULTIPLEX=YES
+  #     - GDAL_HTTP_VERSION=2
+  #     - VSI_CACHE=TRUE
+  #     - VSI_CACHE_SIZE=536870912
+  #     # TiTiler Config
+  #     - MOSAIC_CONCURRENCY=1
+  #     # AWS S3 endpoint config
+  #     - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+  #     - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+  #     # API Config
+  #     - VEDA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
+  #     - VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS=TRUE
 
 
-    depends_on:
-      - database
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
-    volumes:
-      - ./scripts:/tmp/scripts
-      - $HOME/.aws/credentials:/root/.aws/credentials
+  #   depends_on:
+  #     - database
+  #   command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
+  #   volumes:
+  #     - ./scripts:/tmp/scripts
+  #     - $HOME/.aws/credentials:/root/.aws/credentials
 
   database:
     container_name: veda.db
     platform: linux/amd64
-    image: ghcr.io/stac-utils/pgstac:v0.7.10
+    image: ghcr.io/stac-utils/pgstac:v0.9.6
     environment:
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
@@ -111,9 +109,10 @@ services:
     volumes:
       - ./scripts:/tmp/scripts
       - ./.github/workflows/data:/tmp/data
+      - ./.pgdata:/var/lib/postgresql/data
     # broken in github actions (definitely when run in act, possibly in tests involving ingest-api)? re-enable to persist local database
     #  - ./.pgdata:/var/lib/postgresql/data
-
+#python /asset/local.py
   ingestor:
     container_name: veda.ingestor
     platform: linux/amd64
@@ -134,13 +133,18 @@ services:
       - DYNAMODB_TABLE=veda
       - STAC_URL=http://0.0.0.0:8081
       - USERPOOL_ID=us-west-2_123456789
-      - CLIENT_ID=123456789
+      - CLIENT_ID=ingest-api
+      # - OPENID_CONFIGURATION_URL=http://oidc:8888/.well-known/openid-configuration
+      # - OIDC_DISCOVERY_URL=http://oidc:8888/.well-known/openid-configuration
+      # - OIDC_DISCOVERY_INTERNAL_URL=http://oidc:8888/.well-known/openid-configuration
+      - DEV_MODE=true
     ports:
-      - "8083:8083"
+      - "8083:8000"
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && python /asset/local.py"
     volumes:
       - ./scripts:/tmp/scripts
       - $HOME/.aws/credentials:/root/.aws/credentials
+      - /Users/abdelhakmarouane/workstation/github/veda-backend/ingest_api/runtime/src:/asset/src
 
   dynamodb:
     image:  amazon/dynamodb-local
@@ -153,7 +157,36 @@ services:
       - 8085:8000 # skip 8084 for github actions to work
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
 
+  oidc:
+    image: ghcr.io/alukach/mock-oidc-server:latest
+    environment:
+      ISSUER: http://localhost:8888
+      SCOPES: item:create,item:update,item:delete,collection:create,collection:update,collection:delete,collection:list
+      PORT: 8888
+    ports:
+      - "8888:8888"
 
+
+  proxy:
+    container_name: veda.auth_proxy
+    depends_on:
+      - stac
+    build:
+      context: .
+      dockerfile: local/Dockerfile.auth_proxy
+    environment:
+      UPSTREAM_URL: http://stac:8081
+      OIDC_DISCOVERY_URL: http://localhost:8888/.well-known/openid-configuration
+      OIDC_DISCOVERY_INTERNAL_URL: http://oidc:8888/.well-known/openid-configuration
+      DEFAULT_PUBLIC: true
+      OPENAPI_SPEC_ENDPOINT: /openapi.json
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "8086:8000"
+    volumes:
+      - ./stac-auth-proxy/src:/app/src
 networks:
   default:
     name: veda-network

@@ -1,0 +1,57 @@
+[project]
+authors = [{name = "Anthony Lukach", email = "anthonylukach@gmail.com"}]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+  "boto3>=1.37.16",
+  "brotli>=1.1.0",
+  "cql2>=0.3.6",
+  "cryptography>=44.0.1",
+  "fastapi>=0.115.5",
+  "httpx[http2]>=0.28.0",
+  "jinja2>=3.1.4",
+  "pydantic-settings>=2.6.1",
+  "pyjwt>=2.10.1",
+  "starlette-cramjam>=0.4.0",
+  "uvicorn>=0.32.1",
+]
+description = "STAC authentication proxy with FastAPI"
+keywords = ["STAC", "FastAPI", "Authentication", "Proxy"]
+license = {file = "LICENSE"}
+name = "stac-auth-proxy"
+readme = "README.md"
+requires-python = ">=3.9"
+version = "0.1.0"
+
+[tool.coverage.run]
+branch = true
+
+[tool.isort]
+known_first_party = ["stac_auth_proxy"]
+profile = "black"
+
+[tool.ruff]
+ignore = ["E501", "D203", "D205", "D212"]
+select = ["D", "E", "F"]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling>=1.12.0"]
+
+[dependency-groups]
+dev = [
+  "jwcrypto>=1.5.6",
+  "pre-commit>=3.5.0",
+  "pytest-asyncio>=0.25.1",
+  "pytest-cov>=5.0.0",
+  "pytest-xdist>=3.6.1",
+  "pytest>=8.3.3",
+  "starlette-cramjam>=0.4.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"

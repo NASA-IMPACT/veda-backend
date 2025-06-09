@@ -13,7 +13,7 @@ RUN pip install boto3
 
 COPY stac_api/runtime /tmp/stac
 RUN pip install /tmp/stac 
-RUN rm -rf /tmp/stac
+#RUN rm -rf /tmp/stac
 
 ENV MODULE_NAME src.app
 ENV VARIABLE_NAME app

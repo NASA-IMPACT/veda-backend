@@ -49,25 +49,26 @@ async def lifespan(app: FastAPI):
     yield
     await close_db_connection(app)
 
+app=FastAPI(
+    title=f"{api_settings.project_name} STAC API",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    root_path=api_settings.root_path,
+    swagger_ui_init_oauth=(
+        {
+            "appName": "STAC API",
+            "clientId": auth_settings.client_id,
+            "usePkceWithAuthorizationCodeGrant": True,
+            "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
+        }
+        if auth_settings.client_id
+        else {}
+    ),
+    lifespan=lifespan,
+)
 
 api = VedaStacApi(
-    app=FastAPI(
-        title=f"{api_settings.project_name} STAC API",
-        openapi_url="/openapi.json",
-        docs_url="/docs",
-        root_path=api_settings.root_path,
-        swagger_ui_init_oauth=(
-            {
-                "appName": "STAC API",
-                "clientId": auth_settings.client_id,
-                "usePkceWithAuthorizationCodeGrant": True,
-                "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
-            }
-            if auth_settings.client_id
-            else {}
-        ),
-        lifespan=lifespan,
-    ),
+    app=app,
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
     settings=api_settings.load_postgres_settings(),
@@ -80,7 +81,7 @@ api = VedaStacApi(
     middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
     router=APIRouter(route_class=LoggerRouteHandler),
 )
-app = api.app
+# app = api.app
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:

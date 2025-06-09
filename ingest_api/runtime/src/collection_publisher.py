@@ -14,9 +14,13 @@ class CollectionPublisher:
         does necessary preprocessing,
         and loads into the PgSTAC collection table
         """
-        creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
+        if os.environ.get("DB_SECRET_ARN"):
+            creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
+            dsn = creds.dsn_string
+        else:
+            dsn="postgres://username:password@database:5432/postgis"
         collection = [collection.to_dict(exclude_unset=True)]
-        with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
+        with PgstacDB(dsn=dsn, debug=True) as db:
             load_into_pgstac(
                 db=db, ingestions=collection, table=IngestionType.collections
             )
@@ -38,7 +42,11 @@ class ItemPublisher:
         does necessary preprocessing,
         and loads into the PgSTAC item table
         """
-        creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
+        if os.environ.get("DB_SECRET_ARN"):
+            creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
+            dsn = creds.dsn_string
+        else:
+            dsn="postgres://username:password@database:5432/postgis"
         item = [item.to_dict()]
-        with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
+        with PgstacDB(dsn=dsn, debug=True) as db:
             load_into_pgstac(db=db, ingestions=item, table=IngestionType.items)
