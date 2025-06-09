@@ -141,6 +141,9 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             collections_filter=(
                 settings.collections_filter() if settings.collections_filter else None
             ),
+            # TODO: this is a hack to allow the collections filter to work for all paths
+            # We should update STAC Auth Proxy to support customized filter path expressions
+            collections_filter_path=r"^.*?/collections(/[^/]+)?$",
         )
 
     app.add_middleware(

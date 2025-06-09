@@ -5,15 +5,16 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 from contextlib import asynccontextmanager
 
 from aws_lambda_powertools.metrics import MetricUnit
+from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
+from fastapi import APIRouter, FastAPI
+from fastapi.responses import ORJSONResponse
 from src.config import TilesApiSettings, api_settings
 from src.config import extensions as PgStacExtensions
 from src.config import get_request_model as GETModel
 from src.config import items_get_request_model
 from src.config import post_request_model as POSTModel
 from src.extension import TiTilerExtension
-
-from fastapi import APIRouter, FastAPI
-from fastapi.responses import ORJSONResponse
+from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
@@ -23,11 +24,8 @@ from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from .api import VedaStacApi
-from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 from .validation import ValidationMiddleware
-
-from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -49,7 +47,8 @@ async def lifespan(app: FastAPI):
     yield
     await close_db_connection(app)
 
-app=FastAPI(
+
+app = FastAPI(
     title=f"{api_settings.project_name} STAC API",
     openapi_url="/openapi.json",
     docs_url="/docs",
@@ -67,20 +66,31 @@ app=FastAPI(
     lifespan=lifespan,
 )
 
+router = APIRouter(route_class=LoggerRouteHandler)
+client = CoreCrudClient(post_request_model=POSTModel)
+
 api = VedaStacApi(
     app=app,
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
     settings=api_settings.load_postgres_settings(),
     extensions=PgStacExtensions,
-    client=VedaCrudClient(post_request_model=POSTModel),
+    client=client,
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
     middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
-    router=APIRouter(route_class=LoggerRouteHandler),
+    router=router,
 )
+
+
+@app.get("/{tenant}/collections")
+async def get_collections(request: Request):
+    print(f"{request.query_params.get('filter')=}")
+    return await client.all_collections(request)
+
+
 # app = api.app
 
 # Set all CORS enabled origins

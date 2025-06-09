@@ -36,6 +36,7 @@ services:
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
+      - ./stac_api/runtime/src:/app/src
 
   # raster:
   #   container_name: veda.raster
@@ -84,7 +85,6 @@ services:
   #     - VEDA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
   #     - VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS=TRUE
 
-
   #   depends_on:
   #     - database
   #   command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
@@ -112,47 +112,47 @@ services:
       - ./.pgdata:/var/lib/postgresql/data
     # broken in github actions (definitely when run in act, possibly in tests involving ingest-api)? re-enable to persist local database
     #  - ./.pgdata:/var/lib/postgresql/data
-#python /asset/local.py
-  ingestor:
-    container_name: veda.ingestor
-    platform: linux/amd64
-    build:
-      context: .
-      dockerfile: local/Dockerfile.ingest
-    environment:
-      - POSTGRES_USER=username
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=postgis
-      - PGUSER=username
-      - PGPASSWORD=password
-      - PGDATABASE=postgis
-      - DYNAMODB_ENDPOINT=http://localhost:8085
-      - VEDA_DB_PGSTAC_VERSION=0.7.10
-      - AWS_REGION=us-west-2
-      - AWS_DEFAULT_REGION=us-west-2
-      - DYNAMODB_TABLE=veda
-      - STAC_URL=http://0.0.0.0:8081
-      - USERPOOL_ID=us-west-2_123456789
-      - CLIENT_ID=ingest-api
-      # - OPENID_CONFIGURATION_URL=http://oidc:8888/.well-known/openid-configuration
-      # - OIDC_DISCOVERY_URL=http://oidc:8888/.well-known/openid-configuration
-      # - OIDC_DISCOVERY_INTERNAL_URL=http://oidc:8888/.well-known/openid-configuration
-      - DEV_MODE=true
-    ports:
-      - "8083:8000"
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && python /asset/local.py"
-    volumes:
-      - ./scripts:/tmp/scripts
-      - $HOME/.aws/credentials:/root/.aws/credentials
-      - /Users/abdelhakmarouane/workstation/github/veda-backend/ingest_api/runtime/src:/asset/src
+  #python /asset/local.py
+  # ingestor:
+  #   container_name: veda.ingestor
+  #   platform: linux/amd64
+  #   build:
+  #     context: .
+  #     dockerfile: local/Dockerfile.ingest
+  #   environment:
+  #     - POSTGRES_USER=username
+  #     - POSTGRES_PASSWORD=password
+  #     - POSTGRES_DB=postgis
+  #     - PGUSER=username
+  #     - PGPASSWORD=password
+  #     - PGDATABASE=postgis
+  #     - DYNAMODB_ENDPOINT=http://localhost:8085
+  #     - VEDA_DB_PGSTAC_VERSION=0.7.10
+  #     - AWS_REGION=us-west-2
+  #     - AWS_DEFAULT_REGION=us-west-2
+  #     - DYNAMODB_TABLE=veda
+  #     - STAC_URL=http://0.0.0.0:8081
+  #     - USERPOOL_ID=us-west-2_123456789
+  #     - CLIENT_ID=ingest-api
+  #     # - OPENID_CONFIGURATION_URL=http://oidc:8888/.well-known/openid-configuration
+  #     # - OIDC_DISCOVERY_URL=http://oidc:8888/.well-known/openid-configuration
+  #     # - OIDC_DISCOVERY_INTERNAL_URL=http://oidc:8888/.well-known/openid-configuration
+  #     - DEV_MODE=true
+  #   ports:
+  #     - "8083:8000"
+  #   command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && python /asset/local.py"
+  #   # volumes:
+  #   #   - ./scripts:/tmp/scripts
+  #   #   - $HOME/.aws/credentials:/root/.aws/credentials
+  #   #   - /Users/abdelhakmarouane/workstation/github/veda-backend/ingest_api/runtime/src:/asset/src
 
   dynamodb:
-    image:  amazon/dynamodb-local
+    image: amazon/dynamodb-local
     container_name: veda.dynamodb
     hostname: dynamodb
     restart: always
     volumes:
-      -  ./dynamodb-data:/home/dynamodblocal/data
+      - ./dynamodb-data:/home/dynamodblocal/data
     ports:
       - 8085:8000 # skip 8084 for github actions to work
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
@@ -165,7 +165,6 @@ services:
       PORT: 8888
     ports:
       - "8888:8888"
-
 
   proxy:
     container_name: veda.auth_proxy
@@ -180,6 +179,9 @@ services:
       OIDC_DISCOVERY_INTERNAL_URL: http://oidc:8888/.well-known/openid-configuration
       DEFAULT_PUBLIC: true
       OPENAPI_SPEC_ENDPOINT: /openapi.json
+      COLLECTIONS_FILTER_CLS: stac_auth_proxy.filters:Template
+      COLLECTIONS_FILTER_ARGS: '["tenant={{ req.path.split(\"/\")[1] }}"]'
+      CHECK_CONFORMANCE: 0
     env_file:
       - path: .env
         required: false
