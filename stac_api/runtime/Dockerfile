@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 public.ecr.aws/sam/build-python3.11:latest
+FROM --platform=linux/amd64 public.ecr.aws/sam/build-python3.12:latest
 
 WORKDIR /tmp
 

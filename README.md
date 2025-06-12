@@ -87,9 +87,9 @@ nvm install 20 # .github/workflows/pr.yml uses node version 20
 #### Virtual environment example
 
 ```bash
-# `pipes` package required by the `fire` package deprecated in python >3.11
-pyenv install 3.11
-pyenv shell 3.11
+# `pipes` package required by the `fire` package deprecated in python >3.12
+pyenv install 3.12
+pyenv shell 3.12
 python3 -m venv .venv
 source .venv/bin/activate
 ```
