@@ -31,7 +31,7 @@ extra_reqs = {
 setup(
     name="veda.stac_api",
     description="",
-    python_requires=">=3.11",
+    python_requires=">=3.12",
     packages=find_namespace_packages(exclude=["tests*"]),
     package_data={"veda": ["stac/templates/*.html"]},
     include_package_data=True,
