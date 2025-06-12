@@ -63,7 +63,7 @@ class StacApiLambdaConstruct(Construct):
             self,
             "lambda",
             handler="handler.handler",
-            runtime=aws_lambda.Runtime.PYTHON_3_11,
+            runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
                 file="stac_api/runtime/Dockerfile",
