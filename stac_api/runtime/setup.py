@@ -8,6 +8,7 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
+    "boto3",
     "stac-fastapi.api~=3.0",
     "stac-fastapi.types~=3.0",
     "stac-fastapi.extensions~=3.0",
