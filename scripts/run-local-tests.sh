@@ -6,7 +6,6 @@ pre-commit run --all-files
 
 # Bring up stack for testing; ingestor not required
 docker compose up -d stac raster database dynamodb
-sleep 40
 
 # cleanup, logging in case of failure
 cleanup() {
