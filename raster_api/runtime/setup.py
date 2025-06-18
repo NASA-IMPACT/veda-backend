@@ -16,6 +16,8 @@ inst_reqs = [
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
     "python-multipart==0.0.7",
+    "numpy<2.3.0",
+    "numexpr<2.10.1"
 ]
 
 extra_reqs = {
