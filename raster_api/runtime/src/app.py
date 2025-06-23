@@ -155,7 +155,6 @@ stac = MultiBaseTilerFactory(
         stacViewerExtension(),
     ],
     colormap_dependency=ColorMapParams,
-    # optional_headers=optional_headers,
 )
 app.include_router(
     stac.router,
@@ -176,7 +175,6 @@ stac_alt = MultiBaseTilerFactory(
         stacViewerExtension(),
     ],
     colormap_dependency=ColorMapParams,
-    # optional_headers=optional_headers,
 )
 app.include_router(
     stac_alt.router,
@@ -197,7 +195,6 @@ cog = TilerFactory(
         cogViewerExtension(),
     ],
     colormap_dependency=ColorMapParams,
-    # optional_headers=optional_headers,
 )
 
 app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"], prefix="/cog")
