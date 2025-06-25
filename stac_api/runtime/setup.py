@@ -9,9 +9,9 @@ with open("README.md") as f:
 
 inst_reqs = [
     "boto3",
-    "stac-fastapi.api~=6.0",
-    "stac-fastapi.types~=6.0",
-    "stac-fastapi.extensions~=6.0",
+    "stac-fastapi.api~=5.0",
+    "stac-fastapi.types~=5.0",
+    "stac-fastapi.extensions~=5.0",
     "stac-fastapi.pgstac~=5.0",
     "jinja2>=2.11.2,<4.0.0",
     "starlette-cramjam>=0.3.2,<0.4",
