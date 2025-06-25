@@ -128,22 +128,6 @@ def create_permissions(cursor, db_name: str, username: str) -> None:
         )
     )
 
-
-def enable_context(cursor) -> None:
-    """Enable context extension for actual and estimated matches in item search and associated optimizations."""
-    cursor.execute(
-        sql.SQL(
-            "INSERT INTO pgstac.pgstac_settings (name, value) "
-            "   VALUES "
-            "       ('context', 'auto'),"
-            "       ('context_estimated_count', '100000'),"
-            "       ('context_estimated_cost', '100000'),"
-            "       ('context_stats_ttl', '1 day')"
-            "   ON CONFLICT ON CONSTRAINT pgstac_settings_pkey DO UPDATE SET value = excluded.value;"
-        )
-    )
-
-
 def register_extensions(cursor) -> None:
     """Add PostGIS extension."""
     cursor.execute(sql.SQL("CREATE EXTENSION IF NOT EXISTS postgis;"))
@@ -452,15 +436,6 @@ def handler(event, context):
                     cursor=cur,
                     db_name=user_params["dbname"],
                     username=user_params["username"],
-                )
-
-        with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
-            with conn.cursor() as cur:
-                print(
-                    "Enabling and configuring item search context in pgstac_settings..."
-                )
-                enable_context(
-                    cursor=cur,
                 )
 
         print("Adding mosaic index...")
