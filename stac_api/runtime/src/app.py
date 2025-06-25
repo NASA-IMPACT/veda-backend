@@ -72,7 +72,7 @@ api = VedaStacApi(
     description=api_settings.project_description,
     settings=api_settings.load_postgres_settings(),
     extensions=PgStacExtensions,
-    client=VedaCrudClient(post_request_model=POSTModel),
+    client=VedaCrudClient(pgstac_search_model=POSTModel),
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
     items_get_request_model=items_get_request_model,
