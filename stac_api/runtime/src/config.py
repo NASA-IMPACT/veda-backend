@@ -28,7 +28,7 @@ from stac_fastapi.extensions.core import (
     TransactionExtension,
 )
 from stac_fastapi.extensions.third_party import BulkTransactionExtension
-from stac_fastapi.pgstac.config import PostgresSettings
+from stac_fastapi.pgstac.config import PostgresSettings, Settings
 from stac_fastapi.pgstac.transactions import BulkTransactionsClient, TransactionsClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
@@ -57,7 +57,7 @@ def get_secret_dict(secret_name: str):
         return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
-class _ApiSettings(BaseSettings):
+class _ApiSettings(Settings):
     """API settings"""
 
     project_name: Optional[str] = "veda"
@@ -82,12 +82,11 @@ class _ApiSettings(BaseSettings):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
 
-    def load_postgres_settings(self) -> "PostgresSettings":
-        """Load postgres connection params from AWS secret"""
-
+    @property
+    def postgres_settings(self) -> PostgresSettings:
+        """Load postgres connection params from AWS secret."""
         if self.pgstac_secret_arn:
             secret = get_secret_dict(self.pgstac_secret_arn)
-
             return PostgresSettings(
                 postgres_host_reader=secret["host"],
                 postgres_host_writer=secret["host"],
@@ -96,8 +95,7 @@ class _ApiSettings(BaseSettings):
                 postgres_pass=secret["password"],
                 postgres_port=secret["port"],
             )
-        else:
-            return PostgresSettings()
+        return PostgresSettings()
 
     model_config = SettingsConfigDict(
         env_file=".env", env_prefix="VEDA_STAC_", extra="ignore"
@@ -159,7 +157,7 @@ if api_settings.enable_transactions:
             BulkTransactionExtension(client=BulkTransactionsClient()),
             TransactionExtension(
                 client=TransactionsClient(),
-                settings=ApiSettings().load_postgres_settings(),
+                settings=api_settings.postgres_settings,
                 response_class=ORJSONResponse,
             ),
         ]

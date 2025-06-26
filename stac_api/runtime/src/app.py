@@ -45,7 +45,7 @@ auth_settings = OpenIdConnectSettings(_env_prefix="VEDA_STAC_")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Get a database connection on startup, close it on shutdown."""
-    await connect_to_db(app)
+    await connect_to_db(app, postgres_settings=api_settings.postgres_settings)
     yield
     await close_db_connection(app)
 
@@ -70,7 +70,7 @@ api = VedaStacApi(
     ),
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
-    settings=api_settings.load_postgres_settings(),
+    settings=api_settings,
     extensions=PgStacExtensions,
     client=VedaCrudClient(pgstac_search_model=POSTModel),
     search_get_request_model=GETModel,
