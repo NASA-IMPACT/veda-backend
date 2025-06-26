@@ -76,7 +76,7 @@ class vedaRasterSettings(BaseSettings):
         description="Optional root path for all api endpoints",
     )
 
-    custom_host: str = Field(
+    custom_host: Optional[str] = Field(
         None,
         description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )

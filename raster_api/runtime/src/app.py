@@ -80,7 +80,6 @@ add_exception_handlers(app, MOSAIC_STATUS_CODES)
 searches = MosaicTilerFactory(
     router_prefix="/searches/{search_id}",
     path_dependency=SearchIdParams,
-    optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     process_dependency=PostProcessParams,
     router=APIRouter(route_class=LoggerRouteHandler),
@@ -94,6 +93,7 @@ searches = MosaicTilerFactory(
     extensions=[
         searchInfoExtension(),
     ],
+    optional_headers=optional_headers,
 )
 app.include_router(
     searches.router, prefix="/searches/{search_id}", tags=["STAC Search"]
@@ -128,7 +128,6 @@ if settings.enable_mosaic_search:
 ###############################################################################
 collection = MosaicTilerFactory(
     path_dependency=CollectionIdParams,
-    optional_headers=optional_headers,
     router_prefix="/collections/{collection_id}",
     add_statistics=True,
     add_viewer=True,
@@ -136,6 +135,7 @@ collection = MosaicTilerFactory(
     extensions=[
         searchInfoExtension(),
     ],
+    optional_headers=optional_headers,
 )
 app.include_router(
     collection.router, tags=["STAC Collection"], prefix="/collections/{collection_id}"
@@ -148,7 +148,6 @@ app.include_router(
 stac = MultiBaseTilerFactory(
     reader=PgSTACReader,
     path_dependency=ItemIdParams,
-    optional_headers=optional_headers,
     router_prefix="/collections/{collection_id}/items/{item_id}",
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
@@ -169,7 +168,6 @@ app.include_router(
 stac_alt = MultiBaseTilerFactory(
     reader=PgSTACReaderAlt,
     path_dependency=ItemIdParams,
-    optional_headers=optional_headers,
     router_prefix="/alt/collections/{collection_id}/items/{item_id}",
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
@@ -190,7 +188,6 @@ app.include_router(
 ###############################################################################
 cog = TilerFactory(
     router_prefix="/cog",
-    optional_headers=optional_headers,
     environment_dependency=settings.get_gdal_config,
     router=APIRouter(route_class=LoggerRouteHandler),
     extensions=[

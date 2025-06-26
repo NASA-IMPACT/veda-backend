@@ -7,12 +7,15 @@ with open("README.md") as f:
 
 inst_reqs = [
     "boto3",
-    "rio-tiler==6.5.0",
-    "titiler.pgstac==1.3.0",
-    "titiler.core>=0.18.5,<0.19",
-    "titiler.mosaic>=0.18.5,<0.19",
-    "titiler.extensions[cogeo]>=0.18.5,<0.19",
+    # highest-tested versions of raster_api dependencies
+    "rio-tiler>=7.0,<8.0",
+    "titiler.pgstac==1.5.0",
+    # use highest available titiler based on rio-tiler and titiler-pgstac pins
+    "titiler.core<0.20",
+    "titiler.mosaic",
+    "titiler.extensions[cogeo]",
     "starlette-cramjam>=0.3,<0.4",
+    # based on AWS observability requirements
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
     "python-multipart==0.0.7",
@@ -30,7 +33,7 @@ extra_reqs = {
 setup(
     name="veda.raster_api",
     description="",
-    python_requires=">=3.8",
+    python_requires=">=3.12",
     packages=find_namespace_packages(exclude=["tests*"]),
     package_data={"src": ["templates/*.html", "cmap_data/*.npy"]},
     include_package_data=True,

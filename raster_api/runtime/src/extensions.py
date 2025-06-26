@@ -8,7 +8,7 @@ from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
-from titiler.core.factory import BaseTilerFactory, FactoryExtension
+from titiler.core.factory import BaseFactory, FactoryExtension
 
 DEFAULT_TEMPLATES = Jinja2Templates(
     env=jinja2.Environment(
@@ -23,7 +23,7 @@ class stacViewerExtension(FactoryExtension):
 
     templates: Jinja2Templates = DEFAULT_TEMPLATES
 
-    def register(self, factory: BaseTilerFactory):
+    def register(self, factory: BaseFactory):
         """Register endpoint to the tiler factory."""
 
         @factory.router.get("/viewer", response_class=HTMLResponse)

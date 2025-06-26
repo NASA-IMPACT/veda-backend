@@ -64,8 +64,8 @@ class AccessibleItem(Item):
 class DashboardCollection(Collection):
     is_periodic: Optional[bool] = Field(default=False, alias="dashboard:is_periodic")
     time_density: Optional[str] = Field(default=None, alias="dashboard:time_density")
-    item_assets: Optional[Dict]
-    links: Optional[List[LinkWithExtraFields]]
+    item_assets: Optional[Dict] = None
+    links: Optional[List[LinkWithExtraFields]] = None
     assets: Optional[Dict] = None
     extent: SpatioTemporalExtent
     model_config = ConfigDict(populate_by_name=True)

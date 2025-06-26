@@ -22,13 +22,14 @@ def test_environ():
     os.environ["CLIENT_SECRET"] = "fake_client_secret"
     os.environ["DATA_ACCESS_ROLE_ARN"] = "arn:aws:iam::123456789012:role/test-role"
     os.environ["DYNAMODB_TABLE"] = "test_table"
-    os.environ["JWKS_URL"] = "https://test-jwks.url"
     os.environ["STAC_URL"] = "https://test-stac.url"
     os.environ["RASTER_URL"] = "https://test-raster.url"
-    os.environ["USERPOOL_ID"] = "fake_id"
     os.environ["STAGE"] = "testing"
     os.environ["ROOT_PATH"] = ""
-    os.environ["COGNITO_DOMAIN"] = "https://test-cognito.url"
+    os.environ[
+        "OPENID_CONFIGURATION_URL"
+    ] = "https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration"
+    os.environ["CLIENT_ID"] = "fake_client_id"
 
 
 @pytest.fixture

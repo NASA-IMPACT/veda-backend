@@ -42,6 +42,12 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_PROJECT_DESCRIPTION": veda_stac_settings.project_description,
             "VEDA_STAC_ROOT_PATH": veda_stac_settings.stac_root_path,
             "VEDA_STAC_STAGE": stage,
+            "VEDA_STAC_CLIENT_ID": veda_stac_settings.keycloak_stac_api_client_id
+            if veda_stac_settings.keycloak_stac_api_client_id
+            else "",
+            "VEDA_STAC_OPENID_CONFIGURATION_URL": str(
+                veda_stac_settings.openid_configuration_url
+            ),
             "VEDA_STAC_ENABLE_TRANSACTIONS": str(
                 veda_stac_settings.stac_enable_transactions
             ),
@@ -50,8 +56,10 @@ class StacApiLambdaConstruct(Construct):
             **{k.upper(): v for k, v in veda_stac_settings.env.items()},
         }
 
-        if veda_stac_settings.keycloak_client_id is not None:
-            lambda_env["VEDA_STAC_CLIENT_ID"] = veda_stac_settings.keycloak_client_id
+        if veda_stac_settings.keycloak_stac_api_client_id is not None:
+            lambda_env[
+                "VEDA_STAC_CLIENT_ID"
+            ] = veda_stac_settings.keycloak_stac_api_client_id
         if veda_stac_settings.openid_configuration_url is not None:
             lambda_env["VEDA_STAC_OPENID_CONFIGURATION_URL"] = str(
                 veda_stac_settings.openid_configuration_url
@@ -61,13 +69,12 @@ class StacApiLambdaConstruct(Construct):
             self,
             "lambda",
             handler="handler.handler",
-            runtime=aws_lambda.Runtime.PYTHON_3_11,
+            runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_docker_build(
                 path=os.path.abspath(code_dir),
                 file="stac_api/runtime/Dockerfile",
             ),
             vpc=vpc,
-            allow_public_subnet=True,
             memory_size=veda_stac_settings.memory,
             timeout=Duration.seconds(veda_stac_settings.timeout),
             environment=lambda_env,
@@ -82,10 +89,10 @@ class StacApiLambdaConstruct(Construct):
         )
 
         if veda_stac_settings.custom_host:
-            titler_endpoint = f"https://{veda_stac_settings.custom_host}{veda_stac_settings.raster_root_path}/"
+            titiler_endpoint = f"https://{veda_stac_settings.custom_host}{veda_stac_settings.raster_root_path}/"
         else:
-            titler_endpoint = raster_api.raster_api.url
-        lambda_function.add_environment("TITILER_ENDPOINT", titler_endpoint)
+            titiler_endpoint = raster_api.raster_api.url
+        lambda_function.add_environment("TITILER_ENDPOINT", titiler_endpoint)
 
         lambda_function.add_environment(
             "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn

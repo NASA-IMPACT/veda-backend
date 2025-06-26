@@ -21,6 +21,7 @@ class TestList:
         raster_health_endpoint,
         seeded_tilematrix,
         searches,
+        seeded_tms_id,
     ):
         """
         Set up the test environment with the required fixtures.
@@ -31,6 +32,7 @@ class TestList:
         self.raster_health_endpoint = raster_health_endpoint
         self.seeded_tilematrix = seeded_tilematrix
         self.searches = searches
+        self.seeded_tms_id = seeded_tms_id
 
     def test_raster_api_health(self):
         """test api."""
@@ -53,9 +55,8 @@ class TestList:
 
         searchid = resp.json()["id"]
         assert resp.status_code == 200
-
         resp = httpx.get(
-            f"{self.raster_searches_endpoint}/{searchid}/-85.6358,36.1624/assets"
+            f"{self.raster_searches_endpoint}/{searchid}/point/-85.6358,36.1624/assets"
         )
         assert resp.status_code == 200
         assert len(resp.json()) == 1
@@ -63,7 +64,7 @@ class TestList:
         assert resp.json()[0]["id"] == self.seeded_id
 
         resp = httpx.get(
-            f"{self.raster_searches_endpoint}/{searchid}/tiles/15/8589/12849/assets"
+            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tms_id}/15/8589/12849/assets"
         )
 
         assert resp.status_code == 200
@@ -72,7 +73,7 @@ class TestList:
         assert resp.json()[0]["id"] == self.seeded_id
 
         resp = httpx.get(
-            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}",
+            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tms_id}/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}",
             params={"assets": "cog"},
             headers={"Accept-Encoding": "br, gzip"},
             timeout=10.0,
@@ -82,7 +83,7 @@ class TestList:
         assert "content-encoding" not in resp.headers
 
         resp = httpx.get(
-            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}/assets"
+            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tms_id}/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}/assets"
         )
         assert resp.status_code == 200
 

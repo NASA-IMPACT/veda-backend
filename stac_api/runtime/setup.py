@@ -8,6 +8,7 @@ with open("README.md") as f:
     long_description = f.read()
 
 inst_reqs = [
+    "boto3",
     "stac-fastapi.api~=3.0",
     "stac-fastapi.types~=3.0",
     "stac-fastapi.extensions~=3.0",
@@ -31,7 +32,7 @@ extra_reqs = {
 setup(
     name="veda.stac_api",
     description="",
-    python_requires=">=3.11",
+    python_requires=">=3.12",
     packages=find_namespace_packages(exclude=["tests*"]),
     package_data={"veda": ["stac/templates/*.html"]},
     include_package_data=True,
