@@ -157,7 +157,7 @@ if api_settings.enable_transactions:
             BulkTransactionExtension(client=BulkTransactionsClient()),
             TransactionExtension(
                 client=TransactionsClient(),
-                settings=api_settings.postgres_settings,
+                settings=api_settings,
                 response_class=ORJSONResponse,
             ),
         ]
