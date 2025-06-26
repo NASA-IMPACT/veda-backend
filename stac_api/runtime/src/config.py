@@ -28,7 +28,7 @@ from stac_fastapi.extensions.core import (
     TransactionExtension,
 )
 from stac_fastapi.extensions.third_party import BulkTransactionExtension
-from stac_fastapi.pgstac.config import Settings
+from stac_fastapi.pgstac.config import PostgresSettings
 from stac_fastapi.pgstac.transactions import BulkTransactionsClient, TransactionsClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
@@ -82,13 +82,13 @@ class _ApiSettings(BaseSettings):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
 
-    def load_postgres_settings(self) -> "Settings":
+    def load_postgres_settings(self) -> "PostgresSettings":
         """Load postgres connection params from AWS secret"""
 
         if self.pgstac_secret_arn:
             secret = get_secret_dict(self.pgstac_secret_arn)
 
-            return Settings(
+            return PostgresSettings(
                 postgres_host_reader=secret["host"],
                 postgres_host_writer=secret["host"],
                 postgres_dbname=secret["dbname"],
@@ -97,7 +97,7 @@ class _ApiSettings(BaseSettings):
                 postgres_port=secret["port"],
             )
         else:
-            return Settings()
+            return PostgresSettings()
 
     model_config = SettingsConfigDict(
         env_file=".env", env_prefix="VEDA_STAC_", extra="ignore"
