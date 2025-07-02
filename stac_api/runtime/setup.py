@@ -12,7 +12,6 @@ inst_reqs = [
     "stac-fastapi.api~=5.0",
     "stac-fastapi.types~=5.0",
     "stac-fastapi.extensions~=5.0",
-    "stac-fastapi.pgstac~=5.0",
     "jinja2>=2.11.2,<4.0.0",
     "starlette-cramjam>=0.3.2,<0.4",
     "importlib_resources>=1.1.0;python_version<='3.11'",  # https://github.com/cogeotiff/rio-tiler/pull/379
@@ -22,6 +21,8 @@ inst_reqs = [
     "pystac[validation]==1.10.1",
     "pydantic>2",
     "eoapi-auth-utils==0.3.0",
+    "pygeofilter",
+    "stac-fastapi.pgstac @ git+https://github.com/ividito/stac-fastapi-pgstac.git@d04611e7260463bb4b2cc7f361a76f76ae4539e2",  # temporary pin to fork to address https://github.com/stac-utils/stac-fastapi-pgstac/issues/262
 ]
 
 extra_reqs = {
