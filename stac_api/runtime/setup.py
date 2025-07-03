@@ -22,7 +22,7 @@ inst_reqs = [
     "pydantic>2",
     "eoapi-auth-utils==0.3.0",
     "pygeofilter",
-    "stac-fastapi.pgstac @ git+https://github.com/ividito/stac-fastapi-pgstac.git@d04611e7260463bb4b2cc7f361a76f76ae4539e2",  # temporary pin to fork to address https://github.com/stac-utils/stac-fastapi-pgstac/issues/262
+    "stac-fastapi.pgstac @ git+https://github.com/ividito/stac-fastapi-pgstac.git@c9ca1fee865a0b088ca99bd145765a68f78b4cf9",  # temporary pin to fork to address https://github.com/stac-utils/stac-fastapi-pgstac/issues/262
 ]
 
 extra_reqs = {
