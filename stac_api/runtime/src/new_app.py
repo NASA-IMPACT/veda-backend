@@ -18,10 +18,12 @@ from fastapi import APIRouter, FastAPI, Request as FastAPIRequest, Depends, Path
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.templating import Jinja2Templates
+from starlette.types import ASGIApp
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from .api import VedaStacApi
@@ -40,6 +42,81 @@ except ImportError:
 
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
+def update_links_with_tenant(data: dict, tenant: str) -> dict:
+    """Update all links in a response to include tenant prefix."""
+    base_url = os.getenv('BASE_URL', "http://localhost:8081")
+    def update_link(link: dict):
+        if 'href' in link:
+            href = link['href']
+            if href.startswith(f'{base_url}/'):
+                # Replace base URL with tenant-prefixed URL
+                link['href'] = href.replace(f'{base_url}/', f'{base_url}/{tenant}/')
+            elif href.startswith('/') and not href.startswith(f'/{tenant}/'):
+                # Handle relative URLs
+                link['href'] = f'/{tenant}{href}'
+    
+    # Update main response links
+    if 'links' in data and isinstance(data['links'], list):
+        for link in data['links']:
+            update_link(link)
+    
+    # Update collection links
+    if 'collections' in data and isinstance(data['collections'], list):
+        for collection in data['collections']:
+            if 'links' in collection and isinstance(collection['links'], list):
+                for link in collection['links']:
+                    update_link(link)
+    
+    # Update item/feature links
+    if 'features' in data and isinstance(data['features'], list):
+        for item in data['features']:
+            if 'links' in item and isinstance(item['links'], list):
+                for link in item['links']:
+                    update_link(link)
+    
+    return data
+
+
+# class TenantOnlyMiddleware(BaseHTTPMiddleware):
+#     """Middleware to enforce tenant-only access to STAC endpoints."""
+    
+#     def __init__(self, app: ASGIApp, enforce_tenant_only: bool = True):
+#         super().__init__(app)
+#         self.enforce_tenant_only = enforce_tenant_only
+#         # Endpoints that should be tenant-only
+#         self.tenant_only_endpoints = {
+#             '/collections', '/search', '/conformance'
+#         }
+#         # Endpoints that are allowed without tenant prefix
+#         self.allowed_endpoints = {
+#             '/docs', '/openapi.json', '/index.html', '/health', '/'
+#         }
+    
+#     async def dispatch(self, request: Request, call_next):
+#         """Check if tenant-only enforcement should be applied."""
+        
+#         if not self.enforce_tenant_only:
+#             return await call_next(request)
+        
+#         path = request.url.path
+        
+#         # Allow certain endpoints without tenant
+#         if any(path.startswith(endpoint) for endpoint in self.allowed_endpoints):
+#             return await call_next(request)
+        
+#         # Check if this is a tenant-only endpoint accessed without tenant
+#         if any(path.startswith(endpoint) for endpoint in self.tenant_only_endpoints):
+#             return JSONResponse(
+#                 status_code=400,
+#                 content={
+#                     "detail": f"This endpoint requires a tenant prefix. Use /{'{tenant}'}{path} instead."
+#                 }
+#             )
+        
+#         # Allow all other requests
+#         return await call_next(request)
+
+
 tiles_settings = TilesApiSettings()
 auth_settings = OpenIdConnectSettings(_env_prefix="VEDA_STAC_")
 
@@ -52,6 +129,11 @@ class TenantAwareVedaCrudClient(VedaCrudClient):
     
     async def all_collections(self, request: FastAPIRequest, tenant: Optional[str] = None, **kwargs):
         """Get all collections with optional tenant filtering."""
+        if tenant:
+            # Add tenant filter to the database query
+            # This assumes your collections table has a tenant column
+            # Adjust based on your actual database schema
+            logger.info(f"Filtering collections by tenant: {tenant}")
         
         # Call the parent method
         collections = await super().all_collections(request, **kwargs)
@@ -139,7 +221,7 @@ class TenantAwareVedaCrudClient(VedaCrudClient):
         return await super().get_item(item_id, collection_id, request, **kwargs)
     async def post_search(
         self,
-        search_request,
+        search_request: POSTModel,
         request: FastAPIRequest,
         tenant: Optional[str] = None,
         **kwargs
@@ -147,6 +229,9 @@ class TenantAwareVedaCrudClient(VedaCrudClient):
         """Search with tenant filtering."""
         if tenant:
             logger.info(f"Filtering search by tenant: {tenant}")
+            # IMPORTANT: You must actually filter the search by the tenant.
+            # This assumes you have a 'tenant' property in your collection's 'properties'.
+            # pgstac search function can take a filter
             tenant_filter = {"op": "=", "args": [{"property": "collection"}, {"property": "tenant"}, tenant]}
 
             if search_request.filter:
@@ -172,6 +257,9 @@ class TenantAwareVedaCrudClient(VedaCrudClient):
     ):
         """GET search with tenant filtering."""
         if tenant:
+            logger.info(f"Filtering GET search by tenant: {tenant}")
+            # IMPORTANT: You must also modify the GET search to filter by tenant.
+            # This requires modifying the kwargs that will be used to build the search request.
             tenant_filter = {"op": "=", "args": [{"property": "collection"}, {"property": "tenant"}, tenant]}
 
             if "filter" in kwargs and kwargs["filter"]:
@@ -193,11 +281,12 @@ class TenantAwareVedaCrudClient(VedaCrudClient):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Get a database connection on startup, close it on shutdown."""
-    await connect_to_db(app, postgres_settings=api_settings.postgres_settings)
+    await connect_to_db(app)
     yield
     await close_db_connection(app)
 
 
+# Create the base STAC API
 api = VedaStacApi(
     app=FastAPI(
         title=f"{api_settings.project_name} STAC API",
@@ -218,9 +307,9 @@ api = VedaStacApi(
     ),
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
-    settings=api_settings,
+    settings=api_settings.load_postgres_settings(),
     extensions=PgStacExtensions,
-    client=TenantAwareVedaCrudClient(pgstac_search_model=POSTModel),
+    client=TenantAwareVedaCrudClient(post_request_model=POSTModel),
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
     items_get_request_model=items_get_request_model,
@@ -245,6 +334,10 @@ async def get_tenant_collections(
     logger.info(f"Getting collections for tenant: {tenant}")
     collections = await api.client.all_collections(request, tenant=tenant)
     
+    # Update links to include tenant prefix
+    if collections and isinstance(collections, dict):
+        collections = update_links_with_tenant(collections, tenant)
+    
     return collections
 
 
@@ -257,6 +350,10 @@ async def get_tenant_collection(
     """Get a specific collection for a tenant."""
     logger.info(f"Getting collection {collection_id} for tenant: {tenant}")
     collection = await api.client.get_collection(collection_id, request, tenant=tenant)
+    
+    # Update links to include tenant prefix
+    if collection and isinstance(collection, dict):
+        collection = update_links_with_tenant(collection, tenant)
     
     return collection
 
@@ -280,6 +377,10 @@ async def get_tenant_collection_items(
         limit=limit,
         token=token
     )
+
+    # Your link updater will correctly rewrite the new `next` link if one is present
+    if items and isinstance(items, dict):
+        items = update_links_with_tenant(items, tenant)
 
     return items
 
@@ -350,6 +451,10 @@ async def get_tenant_search(
 
     search_result = await api.client.get_search(request, tenant=tenant, **clean_params)
 
+    # Update links
+    if search_result and isinstance(search_result, dict):
+        search_result = update_links_with_tenant(search_result, tenant)
+
     return search_result
 
 
@@ -371,6 +476,11 @@ async def get_tenant_landing_page(
         body = base_landing.body
         tenant_landing = json.loads(body)
         
+        # Update links to include tenant prefix
+        if 'links' in tenant_landing:
+            # Using your update_links_with_tenant function is more robust
+            tenant_landing = update_links_with_tenant(tenant_landing, tenant)
+
         # Update title to include tenant
         if 'title' in tenant_landing:
             tenant_landing['title'] = f"{tenant.upper()} - {tenant_landing['title']}"
