@@ -130,7 +130,7 @@ if tiles_settings.titiler_endpoint:
 @app.get("/index.html", response_class=HTMLResponse)
 async def viewer_page(request: Request):
     """Search viewer."""
-    path = api_settings.root_path or ""
+    path = "/"
     return templates.TemplateResponse(
         "stac-viewer.html",
         {"request": request, "endpoint": str(request.url).replace("/index.html", path)},
