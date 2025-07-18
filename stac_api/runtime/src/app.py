@@ -55,7 +55,6 @@ api = VedaStacApi(
         title=f"{api_settings.project_name} STAC API",
         openapi_url="/openapi.json",
         docs_url="/docs",
-        root_path=api_settings.root_path,
         swagger_ui_init_oauth=(
             {
                 "appName": "STAC API",
