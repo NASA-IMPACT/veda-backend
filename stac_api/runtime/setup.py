@@ -22,7 +22,8 @@ inst_reqs = [
     "pydantic>2",
     "eoapi-auth-utils==0.3.0",
     "pygeofilter",
-    "stac-fastapi.pgstac @ git+https://github.com/ividito/stac-fastapi-pgstac.git@c9ca1fee865a0b088ca99bd145765a68f78b4cf9",  # temporary pin to fork to address https://github.com/stac-utils/stac-fastapi-pgstac/issues/262
+    # "stac-fastapi.pgstac @ git+https://github.com/ividito/stac-fastapi-pgstac.git@c9ca1fee865a0b088ca99bd145765a68f78b4cf9",  # temporary pin to fork to address https://github.com/stac-utils/stac-fastapi-pgstac/issues/262
+    "stac-fastapi.pgstac@git+https://github.com/stac-utils/stac-fastapi-pgstac/tree/bugfix/262/duplicate-root-path" # temporary pin to fork to address https://github.com/stac-utils/stac-fastapi-pgstac/issues/262
 ]
 
 extra_reqs = {
