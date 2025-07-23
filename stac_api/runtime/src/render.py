@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import orjson
 from pydantic import BaseModel, ConfigDict
 
+
 def get_param_str(params: Dict[str, Any]) -> str:
     """Get parameter string from a dictionary of parameters."""
     for k, v in params.items():
