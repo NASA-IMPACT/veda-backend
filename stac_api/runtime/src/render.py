@@ -6,12 +6,6 @@ from urllib.parse import urlencode
 import orjson
 from pydantic import BaseModel, ConfigDict
 
-
-def orjson_dumps(v: Dict[str, Any], *args: Any, default: Any) -> str:
-    """orjson.dumps returns bytes, to match standard json.dumps we need to decode."""
-    return orjson.dumps(v, default=default).decode()
-
-
 def get_param_str(params: Dict[str, Any]) -> str:
     """Get parameter string from a dictionary of parameters."""
     for k, v in params.items():
@@ -53,7 +47,7 @@ class RenderConfig(BaseModel):
         params = self.render_params.copy()
         return f"{get_param_str(params)}"
 
-    model_config = ConfigDict(json_loads=orjson.loads, json_dumps=orjson_dumps)
+    model_config = ConfigDict(json_loads=orjson.loads)
 
 
 def get_render_config(render_params) -> RenderConfig:
