@@ -22,11 +22,11 @@ from stac_fastapi.api.models import (
 from stac_fastapi.extensions.core import (
     FieldsExtension,
     FilterExtension,
+    FreeTextExtension,
     QueryExtension,
     SortExtension,
     TokenPaginationExtension,
     TransactionExtension,
-    FreeTextExtension,
 )
 from stac_fastapi.extensions.third_party import BulkTransactionExtension
 from stac_fastapi.pgstac.config import PostgresSettings, Settings
