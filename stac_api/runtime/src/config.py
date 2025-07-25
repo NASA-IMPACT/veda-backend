@@ -26,6 +26,7 @@ from stac_fastapi.extensions.core import (
     SortExtension,
     TokenPaginationExtension,
     TransactionExtension,
+    FreeTextExtension,
 )
 from stac_fastapi.extensions.third_party import BulkTransactionExtension
 from stac_fastapi.pgstac.config import PostgresSettings, Settings
@@ -142,6 +143,7 @@ extensions = [
     FilterExtension(),
     QueryExtension(),
     SortExtension(),
+    FreeTextExtension(),
     pagination_extension,
 ]
 
