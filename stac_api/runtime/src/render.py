@@ -3,8 +3,7 @@ import json
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
-import orjson
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
 def get_param_str(params: Dict[str, Any]) -> str:
@@ -47,7 +46,6 @@ class RenderConfig(BaseModel):
         """Get the render parameters as a query string."""
         params = self.render_params.copy()
         return f"{get_param_str(params)}"
-
 
 
 def get_render_config(render_params) -> RenderConfig:
