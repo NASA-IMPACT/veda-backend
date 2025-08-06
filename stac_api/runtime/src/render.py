@@ -48,7 +48,6 @@ class RenderConfig(BaseModel):
         params = self.render_params.copy()
         return f"{get_param_str(params)}"
 
-    model_config = ConfigDict(json_loads=orjson.loads)
 
 
 def get_render_config(render_params) -> RenderConfig:
