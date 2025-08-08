@@ -14,6 +14,7 @@ from src.extension import TiTilerExtension
 
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
+from stac_fastapi.api.app import StacApi
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
@@ -22,7 +23,6 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
-from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 from .validation import ValidationMiddleware
@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
     await close_db_connection(app)
 
 
-api = VedaStacApi(
+api = StacApi(
     app=FastAPI(
         title=f"{api_settings.project_name} STAC API",
         openapi_url="/openapi.json",
