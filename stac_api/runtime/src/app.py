@@ -5,11 +5,15 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 from contextlib import asynccontextmanager
 
 from aws_lambda_powertools.metrics import MetricUnit
-from src.config import TilesApiSettings, api_settings
-from src.config import extensions as PgStacExtensions
-from src.config import get_request_model as GETModel
-from src.config import items_get_request_model
-from src.config import post_request_model as POSTModel
+from src.config import (
+    TilesApiSettings,
+    api_settings,
+    application_extensions,
+    collections_get_request_model,
+    get_request_model,
+    items_get_request_model,
+    post_request_model,
+)
 from src.extension import TiTilerExtension
 
 from fastapi import APIRouter, FastAPI
@@ -71,10 +75,11 @@ api = StacApi(
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
     settings=api_settings,
-    extensions=PgStacExtensions,
-    client=VedaCrudClient(pgstac_search_model=POSTModel),
-    search_get_request_model=GETModel,
-    search_post_request_model=POSTModel,
+    extensions=application_extensions,
+    client=VedaCrudClient(pgstac_search_model=post_request_model),
+    search_get_request_model=get_request_model,
+    search_post_request_model=post_request_model,
+    collections_get_request_model=collections_get_request_model,
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
     middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
