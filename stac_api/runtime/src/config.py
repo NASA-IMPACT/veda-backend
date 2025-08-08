@@ -20,16 +20,25 @@ from stac_fastapi.api.models import (
 
 # from stac_fastapi.pgstac.extensions import QueryExtension
 from stac_fastapi.extensions.core import (
+    CollectionSearchExtension,
+    CollectionSearchFilterExtension,
     FieldsExtension,
     FilterExtension,
     FreeTextExtension,
-    QueryExtension,
+    ItemCollectionFilterExtension,
+    OffsetPaginationExtension,
     SortExtension,
     TokenPaginationExtension,
     TransactionExtension,
 )
+from stac_fastapi.extensions.core.fields import FieldsConformanceClasses
+from stac_fastapi.extensions.core.free_text import FreeTextConformanceClasses
+from stac_fastapi.extensions.core.query import QueryConformanceClasses
+from stac_fastapi.extensions.core.sort import SortConformanceClasses
 from stac_fastapi.extensions.third_party import BulkTransactionExtension
 from stac_fastapi.pgstac.config import PostgresSettings, Settings
+from stac_fastapi.pgstac.extensions import QueryExtension
+from stac_fastapi.pgstac.extensions.filter import FiltersClient
 from stac_fastapi.pgstac.transactions import BulkTransactionsClient, TransactionsClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
@@ -136,33 +145,67 @@ def TilesApiSettings() -> _TilesApiSettings:
     return _TilesApiSettings()
 
 
-pagination_extension = TokenPaginationExtension()
+# stac-fastapi-pgstac app.py example for configuring extensions https://github.com/stac-utils/stac-fastapi-pgstac/blob/5.0.3/stac_fastapi/pgstac/app.py
+application_extensions = []
 
-extensions = [
+# TODO this was extensions = [
+# /search models
+search_extensions = [
     FieldsExtension(),
     FilterExtension(),
     QueryExtension(),
     SortExtension(),
-    FreeTextExtension(),
-    pagination_extension,
+    TokenPaginationExtension(),
 ]
-
-items_get_request_model = create_request_model(
-    "ItemCollectionURI",
-    base_model=ItemCollectionUri,
-    mixins=[pagination_extension.GET],
+post_request_model = create_post_request_model(
+    search_extensions, base_model=PgstacSearch
 )
+get_request_model = create_get_request_model(search_extensions)
+application_extensions.extend(search_extensions)
+
+# /collections model
+cs_extensions = [
+    QueryExtension(conformance_classes=[QueryConformanceClasses.COLLECTIONS]),
+    SortExtension(conformance_classes=[SortConformanceClasses.COLLECTIONS]),
+    FieldsExtension(conformance_classes=[FieldsConformanceClasses.COLLECTIONS]),
+    CollectionSearchFilterExtension(client=FiltersClient()),
+    FreeTextExtension(
+        conformance_classes=[FreeTextConformanceClasses.COLLECTIONS],
+    ),
+    OffsetPaginationExtension(),
+]
+collection_search_extension = CollectionSearchExtension.from_extensions(cs_extensions)
+collections_get_request_model = collection_search_extension.GET
+application_extensions.append(collection_search_extension)
+
+# /collections/{collectionId}/items model
+items_get_request_model = ItemCollectionUri
+itm_col_extensions = [
+    QueryExtension(
+        conformance_classes=[QueryConformanceClasses.ITEMS],
+    ),
+    SortExtension(
+        conformance_classes=[SortConformanceClasses.ITEMS],
+    ),
+    FieldsExtension(conformance_classes=[FieldsConformanceClasses.ITEMS]),
+    ItemCollectionFilterExtension(client=FiltersClient()),
+    TokenPaginationExtension(),
+]
+items_get_request_model = create_request_model(
+    model_name="ItemCollectionUri",
+    base_model=ItemCollectionUri,
+    extensions=itm_col_extensions,
+    request_type="GET",
+)
+application_extensions.extend(itm_col_extensions)
 
 if api_settings.enable_transactions:
-    extensions.extend(
-        [
-            BulkTransactionExtension(client=BulkTransactionsClient()),
-            TransactionExtension(
-                client=TransactionsClient(),
-                settings=api_settings,
-                response_class=ORJSONResponse,
-            ),
-        ]
-    )
-post_request_model = create_post_request_model(extensions, base_model=PgstacSearch)
-get_request_model = create_get_request_model(extensions)
+    transactions_model = [
+        BulkTransactionExtension(client=BulkTransactionsClient()),
+        TransactionExtension(
+            client=TransactionsClient(),
+            settings=api_settings,
+            response_class=ORJSONResponse,
+        ),
+    ]
+    application_extensions.extend(transactions_model)
