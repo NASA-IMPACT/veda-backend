@@ -36,5 +36,4 @@ python -m pytest .github/workflows/tests/ -vv -s
 NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
 
 # Transactions tests
-# Temp disable transactions tests
-# python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
+python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
