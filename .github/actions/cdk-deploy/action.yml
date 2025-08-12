@@ -66,12 +66,12 @@ runs:
       working-directory: ${{ inputs.dir }}
       run: docker compose up --build -d
 
-    - name: Ingest Stac Items/Collection
-      if: ${{ inputs.skip_tests == false }}
-      shell: bash
-      working-directory: ${{ inputs.dir }}
-      run: |
-        ./scripts/load-data-container.sh
+    # - name: Ingest Stac Items/Collection
+    #   if: ${{ inputs.skip_tests == false }}
+    #   shell: bash
+    #   working-directory: ${{ inputs.dir }}
+    #   run: |
+    #     ./scripts/load-data-container.sh
 
     - name: Sleep for 10 seconds
       if: ${{ inputs.skip_tests == false }}
