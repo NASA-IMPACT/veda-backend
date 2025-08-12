@@ -239,6 +239,12 @@ def test_environ():
     os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
     os.environ["POSTGRES_PORT"] = "5432"
 
+    os.environ["PGUSER"] = "username"
+    os.environ["PGPASSWORD"] = "password"
+    os.environ["PGDATABASE"] = "postgis"
+    os.environ["PGHOST"] = "0.0.0.0"
+    os.environ["PGPORT"] = "5432"
+
 
 def override_validated_token():
     """
