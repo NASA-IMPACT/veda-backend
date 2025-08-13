@@ -16,7 +16,7 @@ from httpx import ASGITransport, AsyncClient
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 
 VALID_COLLECTION = {
-    "id": "valid-collection-test",
+    "id": "CMIP245-winter-median-pr",
     "type": "Collection",
     "title": "Projected changes to winter (January, February, and March) cumulative daily precipitation",
     "links": [],
@@ -76,7 +76,7 @@ VALID_COLLECTION = {
 }
 
 VALID_ITEM = {
-    "id": "valid-item-test",
+    "id": "OMI_trno2_0.10x0.10_2023_Col3_V4",
     "bbox": [-180.0, -90.0, 180.0, 90.0],
     "type": "Feature",
     "links": [
