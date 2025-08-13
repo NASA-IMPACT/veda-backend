@@ -1,20 +1,14 @@
 """
-Test suite for STAC (SpatioTemporal Asset Catalog) Extensions including Transactions and Collections Search API endpoints.
+Test suite for STAC (SpatioTemporal Asset Catalog) Transactions API endpoints.
 
 This module contains tests for the collection and item endpoints of the STAC API.
 It verifies the behavior of the API when posting valid and invalid STAC collections and items,
 as well as bulk items.
 
 Endpoints tested:
-Transactions
 - /collections
 - /collections/{}/items
 - /collections/{}/bulk_items
-
-Collection Search
-This module adds search options to collections GET method
-- /Collections search by id and free text search
-
 """
 
 
@@ -134,7 +128,7 @@ class TestList:
         assert response_data["collections"][0]["id"] == collection_id
 
     async def test_collection_freetext_search_by_title(
-        self, api_client, collection_in_db
+        self, api_client, valid_stac_collection, collection_in_db
     ):
         """
         Test free-text search for a collection using a word from its title.

@@ -5,8 +5,7 @@ set -e
 pre-commit run --all-files
 
 # Bring up stack for testing; ingestor not required
-docker compose up -d stac raster database dynamodb pypgstac
-# docker compose up -d --wait stac raster database dynamodb pypgstac
+docker compose up -d --wait stac raster database dynamodb pypgstac
 
 # cleanup, logging in case of failure
 cleanup() {

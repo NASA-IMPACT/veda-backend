@@ -63,10 +63,6 @@ jobs:
       - name: Launch services
         run: AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} docker compose up --build -d
 
-      # - name: Ingest Stac Items/Collection
-      #   run: |
-      #     ./scripts/load-data-container.sh
-
       - name: Sleep for 10 seconds
         run: sleep 10s
         shell: bash
@@ -83,7 +79,7 @@ jobs:
       - name: Ingest unit tests
         run: NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest ingest_api/runtime/tests/ -vv -s
 
-      - name: Stac-api transactions unit tests
+      - name: Stac-api extensions unit tests
         run: python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
 
       - name: Stop services
