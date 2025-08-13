@@ -30,6 +30,7 @@ services:
       # https://github.com/developmentseed/eoAPI/issues/16
       # - TITILER_ENDPOINT=raster
       - TITILER_ENDPOINT=http://0.0.0.0:8082
+      - VEDA_STAC_ENABLE_TRANSACTIONS=True
     depends_on:
       - database
       - raster
