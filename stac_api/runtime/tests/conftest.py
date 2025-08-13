@@ -389,7 +389,7 @@ async def collection_in_db(api_client, valid_stac_collection):
     response = await api_client.post("/collections", json=valid_stac_collection)
 
     # Ensure the setup was successful before the test proceeds
-     # The setup is successful if the collection was created (201) or if it
+    # The setup is successful if the collection was created (201) or if it
     # already existed (409). Any other status code is a failure.
     assert response.status_code in [201, 409]
 
