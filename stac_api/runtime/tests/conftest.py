@@ -375,3 +375,20 @@ def invalid_stac_item():
     invalid_item = copy.deepcopy(VALID_ITEM)
     invalid_item.pop("properties")
     return invalid_item
+
+
+@pytest.fixture
+async def collection_in_db(api_client, valid_stac_collection):
+    """
+    Fixture to ensure a valid STAC collection exists in the database.
+
+    This fixture posts a valid collection before a test runs and yields
+    the collection ID.
+    """
+    # Create the collection
+    response = await api_client.post("/collections", json=valid_stac_collection)
+
+    # Ensure the setup was successful before the test proceeds
+    assert response.status_code == 201
+
+    yield valid_stac_collection["id"]
