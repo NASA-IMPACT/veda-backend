@@ -108,3 +108,45 @@ class TestList:
             bulk_endpoint.format(collection_id), json=valid_request
         )
         assert response.status_code == 200
+
+    async def test_get_collection_by_id(self, api_client, collection_in_db):
+        """
+        Test searching for a specific collection by its ID.
+        """
+        # The `collection_in_db` fixture ensures the collection exists and provides its ID.
+        collection_id = collection_in_db
+
+        # Perform a GET request to the /collections endpoint with an "ids" query
+        response = await api_client.get(
+            collections_endpoint, params={"ids": collection_id}
+        )
+
+        assert response.status_code == 200
+
+        response_data = response.json()
+
+        assert response_data["collections"][0]["id"] == collection_id
+
+    async def test_collection_freetext_search_by_title(
+        self, api_client, valid_stac_collection, collection_in_db
+    ):
+        """
+        Test free-text search for a collection using a word from its title.
+        """
+
+        # The `collection_in_db` fixture ensures the collection exists.
+        collection_id = collection_in_db
+
+        # Use a unique word from the collection's title for the query.
+        search_term = "precipitation"
+
+        # Perform a GET request with the `q` free-text search parameter.
+        response = await api_client.get(collections_endpoint, params={"q": search_term})
+
+        assert response.status_code == 200
+        response_data = response.json()
+
+        assert len(response_data["collections"]) > 0
+
+        returned_ids = [col["id"] for col in response_data["collections"]]
+        assert collection_id in returned_ids
