@@ -11,7 +11,6 @@ Endpoints tested:
 - /collections/{}/bulk_items
 """
 
-import pytest
 
 collections_endpoint = "/collections"
 items_endpoint = "/collections/{}/items"
@@ -28,110 +27,84 @@ class TestList:
     necessary data.
     """
 
-    @pytest.fixture(autouse=True)
-    def setup(
-        self,
-        api_client,
-        valid_stac_collection,
-        valid_stac_item,
-        invalid_stac_collection,
-        invalid_stac_item,
-    ):
-        """
-        Set up the test environment with the required fixtures.
-
-        Args:
-            api_client: The API client for making requests.
-            valid_stac_collection: A valid STAC collection for testing.
-            valid_stac_item: A valid STAC item for testing.
-            invalid_stac_collection: An invalid STAC collection for testing.
-            invalid_stac_item: An invalid STAC item for testing.
-        """
-        self.api_client = api_client
-        self.valid_stac_collection = valid_stac_collection
-        self.valid_stac_item = valid_stac_item
-        self.invalid_stac_collection = invalid_stac_collection
-        self.invalid_stac_item = invalid_stac_item
-
-    async def test_post_invalid_collection(self):
+    async def test_post_invalid_collection(self, api_client, invalid_stac_collection):
         """
         Test the API's response to posting an invalid STAC collection.
 
         Asserts that the response status code is 422 and the detail
         is "Validation Error".
         """
-        response = await self.api_client.post(
-            collections_endpoint, json=self.invalid_stac_collection
+        response = await api_client.post(
+            collections_endpoint, json=invalid_stac_collection
         )
         assert response.json()["detail"] == "Validation Error"
         assert response.status_code == 422
 
-    async def test_post_valid_collection(self):
+    async def test_post_valid_collection(self, api_client, valid_stac_collection):
         """
         Test the API's response to posting a valid STAC collection.
 
         Asserts that the response status code is 200.
         """
-        response = await self.api_client.post(
-            collections_endpoint, json=self.valid_stac_collection
+        response = await api_client.post(
+            collections_endpoint, json=valid_stac_collection
         )
-        # assert response.json() == {}
         assert response.status_code == 201
 
-    async def test_post_invalid_item(self):
+    async def test_post_invalid_item(self, api_client, invalid_stac_item):
         """
         Test the API's response to posting an invalid STAC item.
 
         Asserts that the response status code is 422 and the detail
         is "Validation Error".
         """
-        response = await self.api_client.post(
-            items_endpoint.format(self.invalid_stac_item["collection"]),
-            json=self.invalid_stac_item,
+        collection_id = invalid_stac_item["collection"]
+        response = await api_client.post(
+            items_endpoint.format(collection_id), json=invalid_stac_item
         )
         assert response.json()["detail"] == "Validation Error"
         assert response.status_code == 422
 
-    async def test_post_valid_item(self):
+    async def test_post_valid_item(self, api_client, valid_stac_item, collection_in_db):
         """
         Test the API's response to posting a valid STAC item.
 
         Asserts that the response status code is 200.
         """
-        response = await self.api_client.post(
-            items_endpoint.format(self.valid_stac_item["collection"]),
-            json=self.valid_stac_item,
+        collection_id = valid_stac_item["collection"]
+        response = await api_client.post(
+            items_endpoint.format(collection_id), json=valid_stac_item
         )
-        # assert response.json() == {}
         assert response.status_code == 201
 
-    async def test_post_invalid_bulk_items(self):
+    async def test_post_invalid_bulk_items(self, api_client, invalid_stac_item):
         """
         Test the API's response to posting invalid bulk STAC items.
 
         Asserts that the response status code is 422.
         """
-        item_id = self.invalid_stac_item["id"]
-        collection_id = self.invalid_stac_item["collection"]
-        invalid_request = {
-            "items": {item_id: self.invalid_stac_item},
-            "method": "upsert",
-        }
-        response = await self.api_client.post(
+        item_id = invalid_stac_item["id"]
+        collection_id = invalid_stac_item["collection"]
+        invalid_request = {"items": {item_id: invalid_stac_item}, "method": "upsert"}
+
+        response = await api_client.post(
             bulk_endpoint.format(collection_id), json=invalid_request
         )
         assert response.status_code == 422
 
-    async def test_post_valid_bulk_items(self):
+    async def test_post_valid_bulk_items(
+        self, api_client, valid_stac_item, collection_in_db
+    ):
         """
         Test the API's response to posting valid bulk STAC items.
 
         Asserts that the response status code is 200.
         """
-        item_id = self.valid_stac_item["id"]
-        collection_id = self.valid_stac_item["collection"]
-        valid_request = {"items": {item_id: self.valid_stac_item}, "method": "upsert"}
-        response = await self.api_client.post(
+        item_id = valid_stac_item["id"]
+        collection_id = valid_stac_item["collection"]
+        valid_request = {"items": {item_id: valid_stac_item}, "method": "upsert"}
+
+        response = await api_client.post(
             bulk_endpoint.format(collection_id), json=valid_request
         )
         assert response.status_code == 200
