@@ -6,6 +6,7 @@ It includes valid and invalid STAC collections and items, as well as environment
 setup for testing with mock AWS and PostgreSQL configurations.
 """
 
+import copy
 import os
 from unittest.mock import MagicMock, patch
 
@@ -15,7 +16,7 @@ from httpx import ASGITransport, AsyncClient
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 
 VALID_COLLECTION = {
-    "id": "CMIP245-winter-median-pr",
+    "id": "valid-collection-test",
     "type": "Collection",
     "title": "Projected changes to winter (January, February, and March) cumulative daily precipitation",
     "links": [],
@@ -75,7 +76,7 @@ VALID_COLLECTION = {
 }
 
 VALID_ITEM = {
-    "id": "OMI_trno2_0.10x0.10_2023_Col3_V4",
+    "id": "valid-item-test",
     "bbox": [-180.0, -90.0, 180.0, 90.0],
     "type": "Feature",
     "links": [
@@ -237,13 +238,13 @@ def test_environ():
     os.environ["POSTGRES_DBNAME"] = "postgis"
     os.environ["POSTGRES_HOST_READER"] = "0.0.0.0"
     os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
-    os.environ["POSTGRES_PORT"] = "5432"
+    os.environ["POSTGRES_PORT"] = "5439"
 
-    os.environ["PGUSER"] = "username"
-    os.environ["PGPASSWORD"] = "password"
-    os.environ["PGDATABASE"] = "postgis"
-    os.environ["PGHOST"] = "0.0.0.0"
-    os.environ["PGPORT"] = "5432"
+    # os.environ["PGUSER"] = "username"
+    # os.environ["PGPASSWORD"] = "password"
+    # os.environ["PGDATABASE"] = "postgis"
+    # os.environ["PGHOST"] = "database"
+    # os.environ["PGPORT"] = "5439"
 
 
 def override_validated_token():
@@ -347,7 +348,7 @@ def invalid_stac_collection():
     Returns:
         dict: An invalid STAC collection with the 'extent' field removed.
     """
-    invalid = VALID_COLLECTION.copy()
+    invalid = copy.deepcopy(VALID_COLLECTION)
     invalid.pop("extent")
     return invalid
 
@@ -371,6 +372,6 @@ def invalid_stac_item():
     Returns:
         dict: An invalid STAC item with the 'properties' field removed.
     """
-    invalid_item = VALID_ITEM.copy()
+    invalid_item = copy.deepcopy(VALID_ITEM)
     invalid_item.pop("properties")
     return invalid_item
