@@ -61,7 +61,7 @@ The constructs and applications in this project are configured using pydantic. T
 | Database | `VEDA_DB` | [database/infrastructure/config.py](database/infrastructure/config.py) |
 | Domain | `VEDA_DOMAIN` | [domain/infrastructure/config.py](domain/infrastructure/config.py) |
 | Network | `N/A` | [network/infrastructure/config.py](network/infrastructure/config.py) |
-| Raster API (TiTiler) | `VEDA_RASTER` | [raster_api/infrastructure/config.py](raster_-_api/infrastructure/config.py) |
+| Raster API (TiTiler) | `VEDA_RASTER` | [raster_api/infrastructure/config.py](raster_api/infrastructure/config.py) |
 | STAC API | `VEDA` | [stac_api/infrastructure/config.py](stac_api/infrastructure/config.py) |
 | Routes | `VEDA` | [routes/infrastructure/config.py](routes/infrastructure/config.py) |
 | S3 Website | `VEDA` | [s3_website/infrastructure/config.py](s3_website/infrastructure/config.py) |
