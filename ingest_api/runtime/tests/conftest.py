@@ -162,6 +162,6 @@ def example_ingestion(example_stac_item):
         id=example_stac_item["id"],
         created_by="test-user",
         status=schemas.Status.queued,
-        item=Item.parse_obj(example_stac_item),
+        item=Item.model_validate(example_stac_item),
         created_at=datetime.now(),
     )
