@@ -200,6 +200,7 @@ items_get_request_model = create_request_model(
 application_extensions.extend(itm_col_extensions)
 
 if api_settings.enable_transactions:
+<<<<<<< HEAD
     transactions_model = [
         BulkTransactionExtension(client=BulkTransactionsClient()),
         TransactionExtension(
@@ -209,3 +210,17 @@ if api_settings.enable_transactions:
         ),
     ]
     application_extensions.extend(transactions_model)
+=======
+    extensions.extend(
+        [
+            BulkTransactionExtension(client=BulkTransactionsClient()),
+            TransactionExtension(
+                client=TransactionsClient(),
+                settings=api_settings,
+                response_class=ORJSONResponse,
+            ),
+        ]
+    )
+post_request_model = create_post_request_model(extensions, base_model=PgstacSearch)
+get_request_model = create_get_request_model(extensions)
+>>>>>>> main
