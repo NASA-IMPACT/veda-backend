@@ -5,15 +5,20 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 from contextlib import asynccontextmanager
 
 from aws_lambda_powertools.metrics import MetricUnit
-from src.config import TilesApiSettings, api_settings
-from src.config import extensions as PgStacExtensions
-from src.config import get_request_model as GETModel
-from src.config import items_get_request_model
-from src.config import post_request_model as POSTModel
+from src.config import (
+    TilesApiSettings,
+    api_settings,
+    application_extensions,
+    collections_get_request_model,
+    get_request_model,
+    items_get_request_model,
+    post_request_model,
+)
 from src.extension import TiTilerExtension
 
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
+from stac_fastapi.api.app import StacApi
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
@@ -22,7 +27,6 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
-from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 from .validation import ValidationMiddleware
@@ -50,7 +54,7 @@ async def lifespan(app: FastAPI):
     await close_db_connection(app)
 
 
-api = VedaStacApi(
+api = StacApi(
     app=FastAPI(
         title=f"{api_settings.project_name} STAC API",
         openapi_url="/openapi.json",
