@@ -3,13 +3,7 @@ import json
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
-import orjson
-from pydantic import BaseModel, ConfigDict
-
-
-def orjson_dumps(v: Dict[str, Any], *args: Any, default: Any) -> str:
-    """orjson.dumps returns bytes, to match standard json.dumps we need to decode."""
-    return orjson.dumps(v, default=default).decode()
+from pydantic import BaseModel
 
 
 def get_param_str(params: Dict[str, Any]) -> str:
@@ -52,8 +46,6 @@ class RenderConfig(BaseModel):
         """Get the render parameters as a query string."""
         params = self.render_params.copy()
         return f"{get_param_str(params)}"
-
-    model_config = ConfigDict(json_loads=orjson.loads, json_dumps=orjson_dumps)
 
 
 def get_render_config(render_params) -> RenderConfig:

@@ -6,6 +6,7 @@ It includes valid and invalid STAC collections and items, as well as environment
 setup for testing with mock AWS and PostgreSQL configurations.
 """
 
+import copy
 import os
 from unittest.mock import MagicMock, patch
 
@@ -237,7 +238,7 @@ def test_environ():
     os.environ["POSTGRES_DBNAME"] = "postgis"
     os.environ["POSTGRES_HOST_READER"] = "0.0.0.0"
     os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
-    os.environ["POSTGRES_PORT"] = "5432"
+    os.environ["POSTGRES_PORT"] = "5439"
 
 
 def override_validated_token():
@@ -341,7 +342,7 @@ def invalid_stac_collection():
     Returns:
         dict: An invalid STAC collection with the 'extent' field removed.
     """
-    invalid = VALID_COLLECTION.copy()
+    invalid = copy.deepcopy(VALID_COLLECTION)
     invalid.pop("extent")
     return invalid
 
@@ -365,6 +366,25 @@ def invalid_stac_item():
     Returns:
         dict: An invalid STAC item with the 'properties' field removed.
     """
-    invalid_item = VALID_ITEM.copy()
+    invalid_item = copy.deepcopy(VALID_ITEM)
     invalid_item.pop("properties")
     return invalid_item
+
+
+@pytest.fixture
+async def collection_in_db(api_client, valid_stac_collection):
+    """
+    Fixture to ensure a valid STAC collection exists in the database.
+
+    This fixture posts a valid collection before a test runs and yields
+    the collection ID.
+    """
+    # Create the collection
+    response = await api_client.post("/collections", json=valid_stac_collection)
+
+    # Ensure the setup was successful before the test proceeds
+    # The setup is successful if the collection was created (201) or if it
+    # already existed (409). Any other status code is a failure.
+    assert response.status_code in [201, 409]
+
+    yield valid_stac_collection["id"]
