@@ -19,14 +19,13 @@ from stac_fastapi.api.models import (
 )
 
 # from stac_fastapi.pgstac.extensions import QueryExtension
-from stac_fastapi.extensions.core import (
+from stac_fastapi.extensions.core import (  # OffsetPaginationExtension,
     CollectionSearchExtension,
     CollectionSearchFilterExtension,
     FieldsExtension,
     FilterExtension,
     FreeTextExtension,
     ItemCollectionFilterExtension,
-    OffsetPaginationExtension,
     SortExtension,
     TokenPaginationExtension,
     TransactionExtension,
@@ -172,7 +171,7 @@ cs_extensions = [
     FreeTextExtension(
         conformance_classes=[FreeTextConformanceClasses.COLLECTIONS],
     ),
-    OffsetPaginationExtension(),
+    # OffsetPaginationExtension(), #  Disabled to allow stac-browser to filter collections. ref: https://github.com/radiantearth/stac-browser/issues/505
 ]
 collection_search_extension = CollectionSearchExtension.from_extensions(cs_extensions)
 collections_get_request_model = collection_search_extension.GET
