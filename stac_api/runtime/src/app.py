@@ -16,7 +16,7 @@ from src.config import (
 )
 from src.extension import TiTilerExtension
 
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
@@ -28,7 +28,7 @@ from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from .core import VedaCrudClient
-from .monitoring import LoggerRouteHandler, logger, metrics, tracer
+from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
 from .validation import ValidationMiddleware
 
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
@@ -83,7 +83,6 @@ api = StacApi(
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
     middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
-    router=APIRouter(route_class=LoggerRouteHandler),
 )
 app = api.app
 
@@ -141,6 +140,9 @@ async def viewer_page(request: Request):
         {"request": request, "endpoint": str(request.url).replace("/index.html", path)},
         media_type="text/html",
     )
+
+
+app.add_middleware(ObservabilityMiddleware)
 
 
 # If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
