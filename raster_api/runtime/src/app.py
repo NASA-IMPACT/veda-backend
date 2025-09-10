@@ -8,10 +8,10 @@ from src.alternate_reader import PgSTACReaderAlt
 from src.config import ApiSettings
 from src.dependencies import ColorMapParams, cmap
 from src.extensions import stacViewerExtension
-from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
+from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
 from src.version import __version__ as veda_raster_version
 
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_cramjam.middleware import CompressionMiddleware
@@ -69,8 +69,6 @@ app = FastAPI(
     root_path=settings.root_path,
 )
 
-# router to be applied to all titiler route factories (improves logs with FastAPI context)
-router = APIRouter(route_class=LoggerRouteHandler)
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
 
@@ -82,7 +80,6 @@ searches = MosaicTilerFactory(
     path_dependency=SearchIdParams,
     environment_dependency=settings.get_gdal_config,
     process_dependency=PostProcessParams,
-    router=APIRouter(route_class=LoggerRouteHandler),
     # add /statistics [POST] (default to False)
     add_statistics=True,
     # add /map viewer (default to False)
@@ -150,7 +147,6 @@ stac = MultiBaseTilerFactory(
     path_dependency=ItemIdParams,
     router_prefix="/collections/{collection_id}/items/{item_id}",
     environment_dependency=settings.get_gdal_config,
-    router=APIRouter(route_class=LoggerRouteHandler),
     extensions=[
         stacViewerExtension(),
     ],
@@ -170,7 +166,6 @@ stac_alt = MultiBaseTilerFactory(
     path_dependency=ItemIdParams,
     router_prefix="/alt/collections/{collection_id}/items/{item_id}",
     environment_dependency=settings.get_gdal_config,
-    router=APIRouter(route_class=LoggerRouteHandler),
     extensions=[
         stacViewerExtension(),
     ],
@@ -189,7 +184,6 @@ app.include_router(
 cog = TilerFactory(
     router_prefix="/cog",
     environment_dependency=settings.get_gdal_config,
-    router=APIRouter(route_class=LoggerRouteHandler),
     extensions=[
         cogValidateExtension(),
         cogViewerExtension(),
@@ -244,6 +238,8 @@ app.add_middleware(
     },
 )
 
+app.add_middleware(ObservabilityMiddleware)
+
 
 # If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
 @app.middleware("http")
@@ -276,5 +272,5 @@ async def add_correlation_id(request: Request, call_next):
 async def validation_exception_handler(request, err):
     """Handle exceptions that aren't caught elsewhere"""
     metrics.add_metric(name="UnhandledExceptions", unit=MetricUnit.Count, value=1)
-    logger.exception("Unhandled exception")
+    logger.exception("Unhandled exception:", err)
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
