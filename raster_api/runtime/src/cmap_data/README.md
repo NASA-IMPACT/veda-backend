@@ -166,3 +166,99 @@ st_cmap_vals = (st_cmap(x)[:, :] * 255).astype('uint8')
 
 np.save("surface_temperature.npy", st_cmap_vals)
 ```
+
+##### Sport Relative Soil Moisture Colormap
+
+```python
+from matplotlib import colors
+import numpy as np
+import matplotlib.pyplot as plt
+
+stops = [
+    "#3C28B4",  # rgb(60,40,180)
+    "#6F60DB",  # rgb(111,96,219)
+    "#A08BFF",  # rgb(160,139,255)
+    "#95D1FB",  # rgb(149,209,251)
+    "#4FA5F5",  # rgb(79,165,245)
+    "#2881F0",  # rgb(40,129,240)
+    "#1364D1",  # rgb(19,100,209)
+    "#1DB41E",  # rgb(29,180,30)
+    "#4FF04F",  # rgb(79,240,79)
+    "#95F58B",  # rgb(149,245,139)
+    "#FFE779",  # rgb(255,231,121)
+    "#FFBF3C",  # rgb(255,191,60)
+    "#FFA001",  # rgb(255,160,1)
+    "#FF6000",  # rgb(255,96,0)
+    "#FF3201",  # rgb(255,50,1)
+    "#E21200",  # rgb(226,18,0)
+    "#A50000",  # rgb(165,0,0)
+    "#E1BEB4",  # rgb(225,190,180)
+    "#B48B82",  # rgb(180,139,130)
+    "#8B6459"   # rgb(139,100,89)
+]
+
+srsm_cmap = colors.LinearSegmentedColormap.from_list(name='srsm_cmap', colors=stops, N=256)
+x = np.arange(0, 256, 1, dtype=int)
+srsm_cmap_vals = (srsm_cmap(x)[:, :] * 255).astype('uint8')
+
+np.save("sport_relative_soil_moisture.npy", srsm_cmap_vals)
+```
+
+##### Sport Green Vegetation Fraction Colormap
+
+```python
+from matplotlib import colors
+import numpy as np
+
+stops = [
+    "#0EA10E",  # rgb(14,161,14)
+    "#1DB41E",  # rgb(29,180,30)
+    "#37D13C",  # rgb(55,209,60)
+    "#78F573",  # rgb(120,245,115)
+    "#B4FAAA",  # rgb(180,250,170)
+    "#A0E632",  # rgb(160,230,50)
+    "#FFE779",  # rgb(255,231,121)
+    "#C7A096",  # rgb(199,160,150)
+    "#A0786F",  # rgb(160,120,111)
+    "#784F45"   # rgb(120,79,69)
+]
+
+sgvf_cmap = colors.LinearSegmentedColormap.from_list(name='sgvf_cmap', colors=stops, N=256)
+x = np.arange(0, 256, 1, dtype=int)
+sgvf_cmap_vals = (sgvf_cmap(x)[:, :] * 255).astype('uint8')
+
+np.save("sport_green_veg_fraction.npy", sgvf_cmap_vals)
+```
+
+##### Sport Snow Depth Colormap
+
+```python
+from matplotlib import colors
+import numpy as np
+
+stops = [
+    "#FFFFFF",  # rgb(255,255,255)
+    "#B0BEC5",  # rgb(176,190,197)
+    "#1B4F72",  # rgb(27,79,114)
+    "#2874A6",  # rgb(40,116,166)
+    "#3498DB",  # rgb(52,152,219)
+    "#85C1E9",  # rgb(133,193,233)
+    "#BBDEFB",  # rgb(187,222,251)
+    "#145A32",  # rgb(20,90,50)
+    "#229954",  # rgb(34,153,84)
+    "#7DCEA0",  # rgb(125,206,160)
+    "#B39DDB",  # rgb(179,157,219)
+    "#7D3C98",  # rgb(125,60,152)
+    "#4A235A",  # rgb(74,35,90)
+    "#EF5053",  # rgb(239,80,83)
+    "#F57F17",  # rgb(245,127,23)
+    "#FFF176"   # rgb(255,241,118)
+]
+
+ssd_cmap = colors.LinearSegmentedColormap.from_list(name='ssd_cmap', colors
+=stops, N=256)
+x = np.arange(0, 256, 1, dtype=int)
+ssd_cmap_vals = (ssd_cmap(x)[:, :] * 255).astype('uint8')
+
+np.save("sport_snow_depth.npy", ssd_cmap_vals)
+```
