@@ -45,6 +45,12 @@ class VedaStack(Stack):
             Aspects.of(self).add(PermissionsBoundaryAspect(permissions_boundary_policy))
 
 
+git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+try:
+    git_tag = subprocess.check_output(["git", "describe", "--tags"]).decode().strip()
+except subprocess.CalledProcessError:
+    git_tag = "no-tag"
+
 veda_stack = VedaStack(
     app,
     f"{veda_app_settings.app_name}-{veda_app_settings.stage_name()}",
@@ -110,6 +116,7 @@ ingestor_config = ingest_config(
     stac_db_security_group_id=db_security_group.security_group_id,
     stac_api_url=stac_api.stac_api.url,
     raster_api_url=raster_api.raster_api.url,
+    git_sha=git_sha,
 )
 
 ingest_api = ingest_api_construct(
@@ -128,12 +135,6 @@ ingestor = ingestor_construct(
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
 )
-
-git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
-try:
-    git_tag = subprocess.check_output(["git", "describe", "--tags"]).decode().strip()
-except subprocess.CalledProcessError:
-    git_tag = "no-tag"
 
 for key, value in {
     "Project": veda_app_settings.app_name,

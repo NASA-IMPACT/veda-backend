@@ -1,5 +1,6 @@
 """Configuration options for the Lambda backed API implementing `stac-fastapi`."""
 
+import subprocess
 from typing import Dict, Optional
 
 from pydantic import AnyHttpUrl, Field, model_validator
@@ -57,6 +58,11 @@ class vedaSTACSettings(BaseSettings):
     disable_default_apigw_endpoint: Optional[bool] = Field(
         False,
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
+    )
+
+    git_sha: Optional[str] = Field(
+        subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
+        description="Git SHA of the current commit, used to track deployment version",
     )
 
     @model_validator(mode="before")
