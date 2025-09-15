@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse
 from stac_fastapi.types.extension import ApiExtension
 from starlette.requests import Request
 
-from .monitoring import LoggerRouteHandler, tracer
+from .monitoring import tracer
 
 api_settings = ApiSettings()
 
@@ -30,7 +30,7 @@ class TiTilerExtension(ApiExtension):
             None
 
         """
-        router = APIRouter(route_class=LoggerRouteHandler)
+        router = APIRouter()
 
         @tracer.capture_method
         @router.get(

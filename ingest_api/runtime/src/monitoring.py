@@ -5,9 +5,9 @@ from typing import Callable, Optional
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricUnit
-from src.config import ApiSettings
+from src.config import Settings
 
-settings = ApiSettings()
+settings = Settings()
 
 logger: Logger = Logger(service="ingest-api", namespace="veda-backend")
 metrics: Metrics = Metrics(namespace="veda-backend")
