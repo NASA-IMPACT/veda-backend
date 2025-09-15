@@ -141,9 +141,11 @@ class TestList:
 
     def test_stac_to_raster(self):
         """test link to raster api."""
+        tile_matrix_set_id = "WebMercatorQuad"
+
         # tilejson
         resp = httpx.get(
-            f"{self.stac_endpoint}/{self.collections_route}/{self.seeded_collection}/items/{self.seeded_id}/tilejson.json",
+            f"{self.stac_endpoint}/{self.collections_route}/{self.seeded_collection}/items/{self.seeded_id}/{tile_matrix_set_id}/tilejson.json",
             params={"assets": "cog"},
         )
         assert resp.status_code == 307
