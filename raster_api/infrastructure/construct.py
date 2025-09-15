@@ -59,6 +59,7 @@ class RasterApiLambdaConstruct(Construct):
                 "VEDA_RASTER_ROOT_PATH": veda_raster_settings.raster_root_path,
                 "VEDA_RASTER_STAGE": stage,
                 "VEDA_RASTER_PROJECT_NAME": veda_raster_settings.project_name,
+                "VEDA_RASTER_GIT_SHA": veda_raster_settings.git_sha,
             },
             tracing=aws_lambda.Tracing.ACTIVE,
         )

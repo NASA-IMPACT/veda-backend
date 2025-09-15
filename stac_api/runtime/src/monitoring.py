@@ -4,7 +4,7 @@ import time
 from typing import Callable, Optional
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
-from aws_lambda_powertools.metrics import MetricUnit
+from aws_lambda_powertools.metrics import MetricResolution, MetricUnit
 from src.config import ApiSettings
 
 settings = ApiSettings()
@@ -14,7 +14,10 @@ metrics: Metrics = Metrics(namespace="veda-backend")
 metrics.set_default_dimensions(environment=settings.stage, service="stac-api")
 tracer: Tracer = Tracer()
 
-version = settings.git_sha
+try:
+    version = settings.git_sha[:6]  # short git sha
+except TypeError:
+    version = "unknown"
 
 
 class ObservabilityMiddleware:
@@ -140,6 +143,7 @@ class ObservabilityMiddleware:
             name="http_request_duration_ms",
             value=elapsed_ms,
             unit=MetricUnit.Milliseconds,
+            resolution=MetricResolution.High,
         )
         metrics.add_metric(
             name="http_response_size_bytes",
