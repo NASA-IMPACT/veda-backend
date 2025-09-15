@@ -3,7 +3,7 @@ import json
 import time
 from typing import Callable, Optional
 
-from aws_lambda_powertools import Logger, Metrics, Tracer, single_metric
+from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricUnit
 from src.config import ApiSettings
 
@@ -13,6 +13,8 @@ logger: Logger = Logger(service="raster-api", namespace="veda-backend")
 metrics: Metrics = Metrics(namespace="veda-backend")
 metrics.set_default_dimensions(environment=settings.stage, service="raster-api")
 tracer: Tracer = Tracer()
+
+version = settings.git_sha
 
 
 class ObservabilityMiddleware:
@@ -130,22 +132,20 @@ class ObservabilityMiddleware:
         logger.append_keys(fastapi=final_ctx)
         logger.info("Completed request")
 
-        with single_metric(
-            name="http_requests_total",
-            unit=MetricUnit.Count,
-            value=1,
-            default_dimensions=metrics.default_dimensions,
-            namespace="veda-backend",
-        ) as m:
-            m.add_dimension("route_template", route_template)
-            m.add_dimension("status_family", status_family)
-            m.add_metric("http_requests_total", 1, MetricUnit.Count)
-            m.add_metric(
-                "http_request_duration_ms", elapsed_ms, MetricUnit.Milliseconds
-            )
-            m.add_metric(
-                "http_response_size_bytes", resp_size_holder["bytes"], MetricUnit.Bytes
-            )
+        metrics.add_dimension("route_template", route_template)
+        metrics.add_dimension("status_family", status_family)
+        metrics.add_dimension("git_sha", version)
+        metrics.add_metric(name="http_requests_total", value=1, unit=MetricUnit.Count)
+        metrics.add_metric(
+            name="http_request_duration_ms",
+            value=elapsed_ms,
+            unit=MetricUnit.Milliseconds,
+        )
+        metrics.add_metric(
+            name="http_response_size_bytes",
+            value=resp_size_holder["bytes"],
+            unit=MetricUnit.Bytes,
+        )
 
 
 def _make_receive_replay(messages):

@@ -1,5 +1,6 @@
 """Configuration options for the Lambda backed API implementing `stac-fastapi`."""
 
+import subprocess
 from typing import Dict, Optional
 
 from pydantic import AnyHttpUrl, Field, model_validator
@@ -61,6 +62,11 @@ class vedaSTACSettings(BaseSettings):
     pystac_stac_version_override: Optional[str] = Field(
         "1.0.0",
         description="Stac version override for Pystac validations https://pystac.readthedocs.io/en/stable/api/version.html",
+    )
+
+    git_sha: Optional[str] = Field(
+        subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
+        description="Git SHA of the current commit, used to track deployment version",
     )
 
     @model_validator(mode="before")

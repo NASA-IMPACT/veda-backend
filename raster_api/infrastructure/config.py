@@ -2,6 +2,7 @@
 `VEDA_RASTER_` will overwrite the values of variables in this file
 """
 
+import subprocess
 from typing import Dict, List, Optional
 
 from pydantic import Field
@@ -88,6 +89,11 @@ class vedaRasterSettings(BaseSettings):
     disable_default_apigw_endpoint: Optional[bool] = Field(
         False,
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
+    )
+
+    git_sha: Optional[str] = Field(
+        subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
+        description="Git SHA of the current commit, used to track deployment version",
     )
 
     class Config:

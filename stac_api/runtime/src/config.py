@@ -85,6 +85,7 @@ class _ApiSettings(Settings):
     enable_transactions: bool = Field(
         False, description="Whether to enable transactions"
     )
+    git_sha: Optional[str] = None
 
     @field_validator("cors_origins")
     @classmethod

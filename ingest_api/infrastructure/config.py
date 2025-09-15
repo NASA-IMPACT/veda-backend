@@ -1,3 +1,4 @@
+import subprocess
 from getpass import getuser
 from typing import List, Optional
 
@@ -91,6 +92,11 @@ class IngestorConfig(BaseSettings):
     openid_configuration_url: AnyHttpUrl = Field(description="OpenID config url")
     model_config = SettingsConfigDict(
         case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"
+    )
+
+    git_sha: Optional[str] = Field(
+        subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
+        description="Git SHA of the current commit, used to track deployment version",
     )
 
     @property
