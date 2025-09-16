@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator
-from fastapi import HTTPException
 
 class TenantContext(BaseModel):
     tenant_id: str = Field(..., description="Tenant identifier")
@@ -15,3 +14,15 @@ class TenantContext(BaseModel):
             raise ValueError("Tenant ID too long")
         return v.strip().lower()
 
+
+class TenantSearchRequest(BaseModel):
+    """Tenant-aware search request model."""
+
+    tenant: Optional[str] = Field(None, description="Tenant identifier")
+    collections: Optional[List[str]] = Field(None, description="Collection IDs to search")
+    bbox: Optional[List[float]] = Field(None, description="Bounding box")
+    datetime: Optional[str] = Field(None, description="Datetime range")
+    limit: int = Field(10, description="Maximum number of results")
+    token: Optional[str] = Field(None, description="Pagination token")
+    filter: Optional[Dict[str, Any]] = Field(None, description="CQL2 filter")
+    filter_lang: str = Field("cql2-text", description="Filter language")
