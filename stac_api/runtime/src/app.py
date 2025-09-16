@@ -28,6 +28,9 @@ from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 from .validation import ValidationMiddleware
+from .tenant_client import TenantAwareVedaCrudClient
+from .tenant_middleware import TenantMiddleware
+from .tenant_routes import create_tenant_router
 import os
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
@@ -43,153 +46,6 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 tiles_settings = TilesApiSettings()
 auth_settings = OpenIdConnectSettings(_env_prefix="VEDA_STAC_")
 
-
-class TenantAwareVedaCrudClient(VedaCrudClient):
-    """Extended CRUD client that applies tenant filtering."""
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-    
-    async def all_collections(self, request: FastAPIRequest, tenant: Optional[str] = None, **kwargs):
-        """Get all collections with optional tenant filtering."""
-        
-        # Call the parent method
-        collections = await super().all_collections(request, **kwargs)
-        
-        # If tenant is specified, filter the results
-        if tenant and hasattr(collections, 'collections'):
-            filtered_collections = [
-                col for col in collections.collections 
-                if col.get('tenant') == tenant or col.get('properties', {}).get('tenant') == tenant
-            ]
-            collections.collections = filtered_collections
-            if hasattr(collections, 'context') and hasattr(collections.context, 'returned'):
-                collections.context.returned = len(filtered_collections)
-        elif tenant and isinstance(collections, dict) and 'collections' in collections:
-            filtered_collections = [
-                col for col in collections['collections'] 
-                if col.get('tenant') == tenant or col.get('properties', {}).get('tenant') == tenant
-            ]
-            collections['collections'] = filtered_collections
-            if 'numberReturned' in collections:
-                collections['numberReturned'] = len(filtered_collections)
-        
-        return collections
-    
-    async def _validate_tenant_access(self, collection: dict, tenant: str, collection_id: str = ""):
-        """Raise HTTP 404 if the collection does not belong to the given tenant."""
-        collection_tenant = collection.get("tenant") or collection.get("properties", {}).get("tenant")
-        if collection_tenant != tenant:
-            detail = f"Collection {collection_id} not found for tenant {tenant}" if collection_id else "Collection not found"
-            raise HTTPException(status_code=404, detail=detail)
-
-    async def get_collection(self, collection_id: str, request: FastAPIRequest, tenant: Optional[str] = None, **kwargs):
-        """Get collection with tenant filtering."""
-        collection = await super().get_collection(collection_id, request, **kwargs)
-
-        if tenant and collection:
-            await self._validate_tenant_access(collection, tenant, collection_id)
-
-        return collection
-
-    async def item_collection(
-        self,
-        collection_id: str,
-        request: FastAPIRequest,
-        tenant: Optional[str] = None,
-        limit: int = 10,  # Add limit
-        token: Optional[str] = None,  # Add token
-        **kwargs,
-    ):
-        """Get items with tenant filtering."""
-        if tenant:
-            logger.info(f"Filtering items by tenant: {tenant} with token: {token}")
-
-            # Your existing tenant validation logic is good
-            collection = await super().get_collection(collection_id, request, **kwargs)
-            if not collection:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Collection {collection_id} not found for tenant {tenant}",
-                )
-            await self._validate_tenant_access(collection, tenant, collection_id)
-
-        # Pass the pagination parameters to the parent method
-        return await super().item_collection(
-            collection_id=collection_id,
-            request=request,
-            limit=limit,
-            token=token,
-            **kwargs
-        )
-    async def get_item(self, item_id: str, collection_id: str, request: FastAPIRequest, tenant: Optional[str] = None, **kwargs):
-        """Get item with tenant filtering."""
-        if tenant:
-            logger.info(f"Filtering item {item_id} in collection {collection_id} by tenant: {tenant}")
-            
-            # Fetch and validate the collection belongs to the tenant
-            collection = await super().get_collection(collection_id, request, **kwargs)
-            if not collection:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Collection {collection_id} not found for tenant {tenant}"
-                )
-            await self._validate_tenant_access(collection, tenant, collection_id)
-
-        return await super().get_item(item_id, collection_id, request, **kwargs)
-    async def post_search(
-        self,
-        search_request,
-        request: FastAPIRequest,
-        tenant: Optional[str] = None,
-        **kwargs
-    ):
-        """Search with tenant filtering."""
-        if tenant:
-            logger.info(f"Filtering search by tenant: {tenant}")
-            tenant_filter = {"op": "=", "args": [{"property": "collection"}, {"property": "tenant"}, tenant]}
-
-            if search_request.filter:
-                # If a filter already exists, combine with an 'and'
-                search_request.filter = {
-                    "op": "and",
-                    "args": [
-                        search_request.filter,
-                        tenant_filter,
-                    ],
-                }
-            else:
-                search_request.filter = tenant_filter
-            search_request.filter_lang = "cql2-json"
-
-        return await super().post_search(search_request, request, **kwargs)
-    
-    async def get_search(
-        self,
-        request: FastAPIRequest,
-        tenant: Optional[str] = None,
-        **kwargs,
-    ):
-        """GET search with tenant filtering."""
-        if tenant:
-            tenant_filter = {"op": "=", "args": [{"property": "collection"}, {"property": "tenant"}, tenant]}
-
-            if "filter" in kwargs and kwargs["filter"]:
-                # Combine with existing filter
-                kwargs["filter"] = {
-                    "op": "and",
-                    "args": [
-                        kwargs["filter"],
-                        tenant_filter,
-                    ],
-                }
-            else:
-                kwargs["filter"] = tenant_filter
-            kwargs["filter-lang"] = "cql2-json"
-
-        # The CoreCrudClient.get_search will use the modified kwargs
-        return await super().get_search(request, **kwargs)
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Get a database connection on startup, close it on shutdown."""
@@ -197,6 +53,7 @@ async def lifespan(app: FastAPI):
     yield
     await close_db_connection(app)
 
+tenant_client = TenantAwareVedaCrudClient(pgstac_search_model=POSTModel)
 
 api = VedaStacApi(
     app=FastAPI(
@@ -220,7 +77,7 @@ api = VedaStacApi(
     description=api_settings.project_description,
     settings=api_settings,
     extensions=PgStacExtensions,
-    client=TenantAwareVedaCrudClient(pgstac_search_model=POSTModel),
+    client=tenant_client,
     search_get_request_model=GETModel,
     search_post_request_model=POSTModel,
     items_get_request_model=items_get_request_model,
@@ -228,164 +85,18 @@ api = VedaStacApi(
     middlewares=[
         Middleware(CompressionMiddleware),
         Middleware(ValidationMiddleware),
+        Middleware(TenantMiddleware),
     ],
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 app = api.app
 
 # Add tenant-specific routes
-tenant_router = APIRouter(redirect_slashes=True)
-
-@tenant_router.get("/{tenant}/collections")
-async def get_tenant_collections(
-    tenant: str = Path(..., description="Tenant identifier"),
-    request: FastAPIRequest = None,
-):
-    """Get collections for a specific tenant."""
-    logger.info(f"Getting collections for tenant: {tenant}")
-    collections = await api.client.all_collections(request, tenant=tenant)
-    
-    return collections
-
-
-@tenant_router.get("/{tenant}/collections/{collection_id}")
-async def get_tenant_collection(
-    tenant: str = Path(..., description="Tenant identifier"),
-    collection_id: str = Path(..., description="Collection identifier"),
-    request: FastAPIRequest = None,
-):
-    """Get a specific collection for a tenant."""
-    logger.info(f"Getting collection {collection_id} for tenant: {tenant}")
-    collection = await api.client.get_collection(collection_id, request, tenant=tenant)
-    
-    return collection
-
-
-@tenant_router.get("/{tenant}/collections/{collection_id}/items")
-async def get_tenant_collection_items(
-    request: FastAPIRequest, # It's good practice to have request as the first arg
-    tenant: str = Path(..., description="Tenant identifier"),
-    collection_id: str = Path(..., description="Collection identifier"),
-    limit: int = 10, # Add limit
-    token: Optional[str] = None, # Add token
-):
-    """Get items from a collection for a specific tenant."""
-    logger.info(f"Getting items from collection {collection_id} for tenant: {tenant}")
-
-    # Pass the captured parameters to the client method
-    items = await api.client.item_collection(
-        collection_id=collection_id,
-        request=request,
-        tenant=tenant,
-        limit=limit,
-        token=token
-    )
-
-    return items
-
-
-@tenant_router.get("/{tenant}/collections/{collection_id}/items/{item_id}")
-async def get_tenant_item(
-    tenant: str = Path(..., description="Tenant identifier"),
-    collection_id: str = Path(..., description="Collection identifier"),
-    item_id: str = Path(..., description="Item identifier"),
-    request: FastAPIRequest = None,
-):
-    """Get a specific item for a tenant."""
-    logger.info(f"======> Getting item {item_id} from collection {collection_id} for tenant: {tenant} <=====")
-    return await api.client.get_item(item_id, collection_id, request, tenant=tenant)
-
-
-@tenant_router.get("/{tenant}/search")
-async def get_tenant_search(
-    tenant: str = Path(..., description="Tenant identifier"),
-    request: FastAPIRequest = None,
-):
-    """Search items for a specific tenant using GET."""
-    logger.info(f"GET search for tenant: {tenant}")
-    return await api.client.get_search(request, tenant=tenant)
-
-
-@tenant_router.get("/{tenant}/search")
-async def get_tenant_search(
-    request: FastAPIRequest, # Request should come first
-    tenant: str = Path(..., description="Tenant identifier"),
-    # Add ALL possible GET search parameters here that stac-fastapi uses
-    collections: Optional[str] = None,
-    ids: Optional[str] = None,
-    bbox: Optional[str] = None,
-    datetime: Optional[str] = None,
-    limit: int = 10,
-    query: Optional[str] = None,
-    token: Optional[str] = None,
-    filter_lang: Optional[str] = None,
-    filter: Optional[str] = None,
-    sortby: Optional[str] = None,
-    # **kwargs: Any # Avoid using this if possible, be explicit
-):
-    """Search items for a specific tenant using GET."""
-    logger.info(f"GET search for tenant: {tenant}")
-
-    # The base `get_search` method in stac-fastapi unpacks the request itself.
-    # What's important is that our `TenantAwareVedaCrudClient.get_search` can access these params.
-    # The default behavior of stac-fastapi `get_search` is to parse these from the request query params.
-    # Our modification in the client (step 1) will handle the tenant injection.
-    
-    # We create a dictionary of the GET parameters to pass them explicitly
-    # to avoid ambiguity.
-    params = {
-        "collections": collections.split(",") if collections else None,
-        "ids": ids.split(",") if ids else None,
-        "bbox": [float(x) for x in bbox.split(",")] if bbox else None,
-        "datetime": datetime,
-        "limit": limit,
-        "query": json.loads(query) if query else None,
-        "token": token,
-        "filter-lang": filter_lang,
-        "filter": json.loads(filter) if filter else None,
-        "sortby": sortby,
-    }
-    # Filter out None values
-    clean_params = {k: v for k, v in params.items() if v is not None}
-
-    search_result = await api.client.get_search(request, tenant=tenant, **clean_params)
-
-    return search_result
-
-
-@tenant_router.get("/{tenant}/")
-async def get_tenant_landing_page(
-    tenant: str = Path(..., description="Tenant identifier"),
-    request: FastAPIRequest = None,
-):
-    """Get landing page for a specific tenant."""
-    logger.info(f"Getting landing page for tenant: {tenant}")
-
-    # Get the base landing page by calling the method on the CLIENT, not the API object
-    # Corrected line:
-    base_landing = await api.client.landing_page(request=request)
-
-    # The rest of your logic for modifying the links is correct
-    if isinstance(base_landing, ORJSONResponse):
-        # The client returns a response object, so we need to decode its content
-        body = base_landing.body
-        tenant_landing = json.loads(body)
-        
-        # Update title to include tenant
-        if 'title' in tenant_landing:
-            tenant_landing['title'] = f"{tenant.upper()} - {tenant_landing['title']}"
-        
-        # Return a new JSONResponse with the modified content
-        return ORJSONResponse(tenant_landing)
-
-    # Fallback in case the response is not what we expect
-    return base_landing
-
-# Include the tenant router
+logger.info("Creating tenant router...")
+tenant_router = create_tenant_router(tenant_client)
+logger.info(f"Registering tenant router with {len(tenant_router.routes)} routes")
 app.include_router(tenant_router, tags=["Tenant-specific endpoints"])
-
-# Add tenant-only enforcement middleware (set to False if you want to keep original routes)
-# app.add_middleware(TenantOnlyMiddleware, enforce_tenant_only=True)
+logger.info("Tenant router registered successfully")
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
@@ -449,7 +160,7 @@ async def tenant_viewer_page(request: Request, tenant: str):
     return templates.TemplateResponse(
         "stac-viewer.html",
         {
-            "request": request, 
+            "request": request,
             "endpoint": str(request.url).replace("/index.html", f"/{tenant}"),
             "tenant": tenant
         },
