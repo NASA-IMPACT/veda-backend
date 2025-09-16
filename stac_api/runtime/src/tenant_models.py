@@ -27,6 +27,7 @@ class TenantSearchRequest(BaseModel):
     token: Optional[str] = Field(None, description="Pagination token")
     filter: Optional[Dict[str, Any]] = Field(None, description="CQL2 filter")
     filter_lang: str = Field("cql2-text", description="Filter language")
+    conf: Optional[Dict] = None
 
     def add_tenant_filter(self, tenant: str) -> None:
         """Add tenant filter to the search request."""
