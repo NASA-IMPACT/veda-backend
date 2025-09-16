@@ -1,4 +1,4 @@
-
+import logging
 from typing import Any, Dict, Optional, Union
 
 from fastapi import HTTPException, Request as FastAPIRequest
@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 
 from .core import VedaCrudClient
 from .tenant_models import TenantValidationError
+
+logger = logging.getLogger(__name__)
 
 class TenantAwareVedaCrudClient(VedaCrudClient):
     def __init__(self, *args, **kwargs):
@@ -160,6 +162,7 @@ class TenantAwareVedaCrudClient(VedaCrudClient):
 
         if 'links' in landing_page:
             for link in landing_page['links']:
+                logger.info("Inspecting links to inject tenant...")
                 if 'href' in link:
                     href = link['href']
 
@@ -172,13 +175,13 @@ class TenantAwareVedaCrudClient(VedaCrudClient):
                         path_parts = parsed.path.split('/')
                         # a URL should follow this structure scheme://netloc/path;parameters?query#fragment generally
                         # source: https://docs.python.org/3/library/urllib.parse.html
-                        if len(path_parts) > 2 and path_parts[1] == 'api' and path_parts[2] == 'stac':
-                            new_path = '/'.join(path_parts[:3])
+                        if len(path_parts) >= 3 and path_parts[1] == 'api' and path_parts[2] == 'stac':
+                            new_path_parts = path_parts[:3] + [tenant] + path_parts[3:]
+                            new_path = '/'.join(new_path_parts)
                             link['href'] = f"{parsed.scheme}://{parsed.netloc}{new_path}"
                     else:
-                        link['href'] = f"/{tenant}{href}"
+                        if href.startswith('/api/stac'):
+                            link['href'] = href.replace('/api/stac', f'/api/stac/{tenant}')
 
-                if 'href' in link and not link['href'].startswith('http'):
-                    link['href'] = f"/{tenant}{link['href']}"
 
         return landing_page
