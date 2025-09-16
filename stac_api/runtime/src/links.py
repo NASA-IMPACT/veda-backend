@@ -54,7 +54,8 @@ class LinkInjector:
     def _get_item_map_link(self, item_id: str, collection_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs()
         href = urljoin(
-            self.tiler_href, f"collections/{collection_id}/items/{item_id}/map?{qs}"
+            self.tiler_href,
+            f"collections/{collection_id}/items/{item_id}/WebMercatorQuad/map?{qs}",
         )
 
         return {

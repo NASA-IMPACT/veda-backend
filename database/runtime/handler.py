@@ -145,96 +145,6 @@ def create_dashboard_schema(cursor, username: str) -> None:
     )
 
 
-def create_collection_search_functions(cursor) -> None:
-    """Create custom functions for collection-level search."""
-
-    search_collection_ids_sql = """
-    CREATE OR REPLACE FUNCTION pgstac.collection_id_search(_search jsonb = '{}'::jsonb) RETURNS SETOF text AS $$
-    DECLARE
-        searches searches%ROWTYPE;
-        _where text;
-        token_where text;
-        full_where text;
-        orderby text;
-        query text;
-        token_type text := substr(_search->>'token',1,4);
-        curs refcursor;
-        iter_record items%ROWTYPE;
-        prev_query text;
-        next text;
-        prev_id text;
-        has_next boolean := false;
-        has_prev boolean := false;
-        prev text;
-        total_count bigint;
-        context jsonb;
-        includes text[];
-        excludes text[];
-        exit_flag boolean := FALSE;
-        batches int := 0;
-        timer timestamptz := clock_timestamp();
-        pstart timestamptz;
-        pend timestamptz;
-        pcurs refcursor;
-        search_where search_wheres%ROWTYPE;
-        id text;
-        collections text[];
-    BEGIN
-    CREATE TEMP TABLE results (collection text, content jsonb) ON COMMIT DROP;
-    -- if ids is set, short circuit and just use direct ids query for each id
-    -- skip any paging or caching
-    -- hard codes ordering in the same order as the array of ids
-    searches := search_query(_search);
-    _where := searches._where;
-    orderby := searches.orderby;
-    search_where := where_stats(_where);
-    total_count := coalesce(search_where.total_count, search_where.estimated_count);
-
-    IF token_type='prev' THEN
-        token_where := get_token_filter(_search, null::jsonb);
-        orderby := sort_sqlorderby(_search, TRUE);
-    END IF;
-    IF token_type='next' THEN
-        token_where := get_token_filter(_search, null::jsonb);
-    END IF;
-
-    full_where := concat_ws(' AND ', _where, token_where);
-    RAISE NOTICE 'FULL QUERY % %', full_where, clock_timestamp()-timer;
-    timer := clock_timestamp();
-
-    FOR query IN SELECT partition_queries(full_where, orderby, search_where.partitions)
-    LOOP
-        timer := clock_timestamp();
-        RAISE NOTICE 'Partition Query: %', query;
-        batches := batches + 1;
-        -- curs = create_cursor(query);
-        RAISE NOTICE 'cursor_tuple_fraction: %', current_setting('cursor_tuple_fraction');
-        OPEN curs FOR EXECUTE query;
-        LOOP
-            FETCH curs into iter_record;
-            EXIT WHEN NOT FOUND;
-
-            INSERT INTO results (collection, content) VALUES (iter_record.collection, iter_record.content);
-
-        END LOOP;
-        CLOSE curs;
-        RAISE NOTICE 'Query took %.', clock_timestamp()-timer;
-        timer := clock_timestamp();
-        EXIT WHEN exit_flag;
-    END LOOP;
-    RAISE NOTICE 'Scanned through % partitions.', batches;
-
-    RETURN QUERY SELECT DISTINCT collection FROM results WHERE content is not NULL;
-
-    DROP TABLE results;
-
-    RETURN;
-    END;
-    $$ LANGUAGE PLPGSQL SECURITY DEFINER SET SEARCH_PATH TO pgstac, public SET cursor_tuple_fraction TO 1;
-    """
-    cursor.execute(sql.SQL(search_collection_ids_sql))
-
-
 def create_collection_extents_functions(cursor) -> None:
     """
     Functions to update spatial and temporal extents off all items in a collection
@@ -451,12 +361,7 @@ def handler(event, context):
                 )
             )
 
-        # As admin, create custom search functions
-        with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
-            with conn.cursor() as cur:
-                print("Creating custom STAC search functions...")
-                create_collection_search_functions(cursor=cur)
-
+        # As admin, create custom dashboard functions
         with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
             with conn.cursor() as cur:
                 print("Creating dashboard schema...")

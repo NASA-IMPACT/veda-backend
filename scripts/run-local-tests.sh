@@ -1,11 +1,19 @@
 #!/bin/bash
 set -e
 
+# =================================================================
+#  Ensure all Python dependencies are installed
+# =================================================================
+echo "--- Installing all development dependencies ---"
+pip install -r ingest_api/runtime/requirements_dev.txt
+echo "--- Dependency installation complete ---"
+# =================================================================
+
 # Lint
 pre-commit run --all-files
 
 # Bring up stack for testing; ingestor not required
-docker compose up -d stac raster database dynamodb
+docker compose up -d --wait stac raster database dynamodb pypgstac
 
 # cleanup, logging in case of failure
 cleanup() {
@@ -26,7 +34,7 @@ cleanup() {
 trap cleanup EXIT
 
 # Load data for tests
-docker exec veda.db /tmp/scripts/bin/load-data.sh
+docker exec veda.loadtestdata /tmp/scripts/bin/load-data.sh
 
 # Run tests
 python -m pytest .github/workflows/tests/ -vv -s

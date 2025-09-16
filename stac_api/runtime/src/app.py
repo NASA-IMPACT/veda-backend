@@ -7,15 +7,20 @@ from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
 
 from aws_lambda_powertools.metrics import MetricUnit
-from src.config import TilesApiSettings, api_settings
-from src.config import extensions as PgStacExtensions
-from src.config import get_request_model as GETModel
-from src.config import items_get_request_model
-from src.config import post_request_model as POSTModel
+from src.config import (
+    TilesApiSettings,
+    api_settings,
+    application_extensions,
+    collections_get_request_model,
+    get_request_model,
+    items_get_request_model,
+    post_request_model,
+)
 from src.extension import TiTilerExtension
 
 from fastapi import APIRouter, FastAPI, Request as FastAPIRequest, Depends, Path, HTTPException
 from fastapi.responses import ORJSONResponse
+from stac_fastapi.api.app import StacApi
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
@@ -24,7 +29,6 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
-from .api import VedaStacApi
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 from .validation import ValidationMiddleware
@@ -55,7 +59,7 @@ async def lifespan(app: FastAPI):
 
 tenant_client = TenantAwareVedaCrudClient(pgstac_search_model=POSTModel)
 
-api = VedaStacApi(
+api = StacApi(
     app=FastAPI(
         title=f"{api_settings.project_name} STAC API",
         openapi_url="/openapi.json",
@@ -76,10 +80,11 @@ api = VedaStacApi(
     title=f"{api_settings.project_name} STAC API",
     description=api_settings.project_description,
     settings=api_settings,
-    extensions=PgStacExtensions,
+    extensions=application_extensions,
     client=tenant_client,
-    search_get_request_model=GETModel,
-    search_post_request_model=POSTModel,
+    search_get_request_model=get_request_model,
+    search_post_request_model=post_request_model,
+    collections_get_request_model=collections_get_request_model,
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
     middlewares=[

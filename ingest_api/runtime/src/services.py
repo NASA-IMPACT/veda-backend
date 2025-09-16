@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List, Optional
 import src.schemas as schemas
 from boto3.dynamodb import conditions
 from boto3.dynamodb.types import DYNAMODB_CONTEXT
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 
 if TYPE_CHECKING:
     from mypy_boto3_dynamodb.service_resource import Table
@@ -25,7 +25,7 @@ class Database:
             Key={"created_by": username, "id": ingestion_id},
         )
         try:
-            return schemas.Ingestion.parse_obj(response["Item"])
+            return schemas.Ingestion.model_validate(response["Item"])
         except KeyError:
             raise NotInDb("Record not found")
 
@@ -38,8 +38,9 @@ class Database:
             **{"Limit": limit} if limit else {},
             **{"ExclusiveStartKey": next} if next else {},
         )
+        list_of_ingestions = TypeAdapter(List[schemas.Ingestion])
         return {
-            "items": parse_obj_as(List[schemas.Ingestion], response["Items"]),
+            "items": list_of_ingestions.validate_python(response["Items"]),
             "next": response.get("LastEvaluatedKey"),
         }
 
