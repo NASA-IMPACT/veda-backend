@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator
+from fastapi import HTTPException
 
 class TenantContext(BaseModel):
     tenant_id: str = Field(..., description="Tenant identifier")
@@ -26,6 +27,29 @@ class TenantSearchRequest(BaseModel):
     token: Optional[str] = Field(None, description="Pagination token")
     filter: Optional[Dict[str, Any]] = Field(None, description="CQL2 filter")
     filter_lang: str = Field("cql2-text", description="Filter language")
+
+    def add_tenant_filter(self, tenant: str) -> None:
+        """Add tenant filter to the search request."""
+        if not tenant:
+            return
+
+        # Create tenant filter for properties.tenant
+        tenant_filter = {
+            "op": "=",
+            "args": [
+                {"property": "tenant"},
+                tenant
+            ]
+        }
+
+        # If there's already a filter, combine using AND
+        if self.filter:
+            self.filter = {
+                "op": "and",
+                "args": [self.filter, tenant_filter]
+            }
+        else:
+            self.filter = tenant_filter
 
 class TenantValidationError(HTTPException):
     def __init__(
