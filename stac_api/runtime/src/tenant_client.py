@@ -256,10 +256,29 @@ class TenantAwareVedaCrudClient(VedaCrudClient, TenantValidationMixin):
         Returns:
           Landing Page, customized if tenant provided
         """
+        tenant_context = getattr(request.state, 'tenant_context'', None)
+
+        logger.info(
+        f"Landing page requested for tenant: {tenant}",
+        extra={
+            "tenant_id": tenant,
+            "request_id": tenant_context.request_id if tenant_context else None,
+            "endpoint": "landing_page",
+        }
+    )
         landing_page = await super().landing_page(request=request, **kwargs)
 
         if tenant:
             landing_page = self._customize_landing_page_for_tenant(landing_page, tenant)
+
+            logger.info(
+            f"Landing page customized for tenant: {tenant}",
+            extra={
+                "tenant_id": tenant,
+                "request_id": tenant_context.request_id if tenant_context else None,
+                "links_modified": len(landing_page.get("links", [])),
+            }
+        )
 
         return landing_page
 
