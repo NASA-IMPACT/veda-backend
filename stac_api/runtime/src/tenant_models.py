@@ -1,3 +1,4 @@
+""" Tenant Models for STAC API """
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -6,12 +7,15 @@ from fastapi import HTTPException
 
 
 class TenantContext(BaseModel):
+    """Context information for tenant-aware request processing"""
+
     tenant_id: str = Field(..., description="Tenant identifier")
     request_id: Optional[str] = Field(None, description="Request correlation ID")
 
     @field_validator("tenant_id")
     @classmethod
     def validate_tenant_id(cls, v):
+        """Validates the tenant ID and also normalizes it to lowercase and trims the whitespace"""
         if not v or not v.strip():
             raise ValueError("Tenant ID cannot be empty")
         if len(v) > 100:
@@ -20,7 +24,7 @@ class TenantContext(BaseModel):
 
 
 class TenantSearchRequest(BaseModel):
-    """Tenant-aware search request model."""
+    """Tenant-aware search request model"""
 
     tenant: Optional[str] = Field(None, description="Tenant identifier")
     collections: Optional[List[str]] = Field(
@@ -35,7 +39,7 @@ class TenantSearchRequest(BaseModel):
     conf: Optional[Dict] = None
 
     def add_tenant_filter(self, tenant: str) -> None:
-        """Add tenant filter to the search request."""
+        """Add tenant filter to the search request"""
         if not tenant:
             return
 
@@ -50,6 +54,8 @@ class TenantSearchRequest(BaseModel):
 
 
 class TenantValidationError(HTTPException):
+    """Exception that can be used to raise tenant validation failures"""
+
     def __init__(
         self,
         resource_type: str,
@@ -57,6 +63,7 @@ class TenantValidationError(HTTPException):
         tenant: str,
         actual_tenant: Optional[str] = None,
     ):
+        """Initiailizes tenant validation error"""
         self.resource_type = resource_type
         self.resource_id = resource_id
         self.tenant = tenant
