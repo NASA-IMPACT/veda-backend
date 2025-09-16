@@ -57,7 +57,7 @@ async def lifespan(app: FastAPI):
     yield
     await close_db_connection(app)
 
-tenant_client = TenantAwareVedaCrudClient(pgstac_search_model=POSTModel)
+tenant_client = TenantAwareVedaCrudClient(pgstac_search_model=post_request_model)
 
 api = StacApi(
     app=FastAPI(
