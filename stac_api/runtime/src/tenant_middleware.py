@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from .tenant_models import TenantContext
+from .tenant_models import TenantContext, TenantValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +41,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
             return response
 
-        except Exception as e:
-        # JT TODO - Put more helpful exception?
+        except TenantValidtionError as e:
             logger.warning(
                 f"Tenant validation failed: {e.detail}",
                 extra={
