@@ -26,3 +26,22 @@ class TenantSearchRequest(BaseModel):
     token: Optional[str] = Field(None, description="Pagination token")
     filter: Optional[Dict[str, Any]] = Field(None, description="CQL2 filter")
     filter_lang: str = Field("cql2-text", description="Filter language")
+
+class TenantValidationError(HTTPException):
+    def __init__(
+        self,
+        resource_type: str,
+        resource_id: str,
+        tenant: str,
+        actual_tenant: Optional[str] = None
+    ):
+        self.resource_type = resource_type
+        self.resource_id = resource_id
+        self.tenant = tenant
+        self.actual_tenant = actual_tenant
+
+        detail = f"{resource_type} {resource_id} not found for tenant {tenant}"
+        if actual_tenant:
+            detail += f" (found tenant: {actual_tenant})"
+
+        super().__init__(status_code=404, detail=detail)
