@@ -2,9 +2,7 @@
 Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
-import json
 from contextlib import asynccontextmanager
-from typing import Dict, Any, Optional
 
 from aws_lambda_powertools.metrics import MetricUnit
 from src.config import (
@@ -18,7 +16,7 @@ from src.config import (
 )
 from src.extension import TiTilerExtension
 
-from fastapi import APIRouter, FastAPI, Request as FastAPIRequest, Depends, Path, HTTPException
+from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
@@ -29,13 +27,12 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
-from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
-from .validation import ValidationMiddleware
 from .tenant_client import TenantAwareVedaCrudClient
 from .tenant_middleware import TenantMiddleware
 from .tenant_routes import create_tenant_router
-import os
+from .validation import ValidationMiddleware
+
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
 try:
@@ -50,12 +47,14 @@ templates = Jinja2Templates(directory=str(resources_files(__package__) / "templa
 tiles_settings = TilesApiSettings()
 auth_settings = OpenIdConnectSettings(_env_prefix="VEDA_STAC_")
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Get a database connection on startup, close it on shutdown."""
     await connect_to_db(app, postgres_settings=api_settings.postgres_settings)
     yield
     await close_db_connection(app)
+
 
 tenant_client = TenantAwareVedaCrudClient(pgstac_search_model=post_request_model)
 
@@ -167,7 +166,7 @@ async def tenant_viewer_page(request: Request, tenant: str):
         {
             "request": request,
             "endpoint": str(request.url).replace("/index.html", f"/{tenant}"),
-            "tenant": tenant
+            "tenant": tenant,
         },
         media_type="text/html",
     )

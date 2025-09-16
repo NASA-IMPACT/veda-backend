@@ -21,6 +21,7 @@ This module adds search options to collections GET method
 collections_endpoint = "/collections"
 items_endpoint = "/collections/{}/items"
 bulk_endpoint = "/collections/{}/bulk_items"
+tenant_collections_endpoint = "/fake-tenant/collections"
 
 
 class TestList:
@@ -120,7 +121,7 @@ class TestList:
         Test searching for a specific collection by its ID.
         """
         # The `collection_in_db` fixture ensures the collection exists and provides its ID.
-        collection_id = collection_in_db
+        collection_id = collection_in_db[0]
 
         # Perform a GET request to the /collections endpoint with an "ids" query
         response = await api_client.get(
@@ -141,7 +142,7 @@ class TestList:
         """
 
         # The `collection_in_db` fixture ensures the collection exists.
-        collection_id = collection_in_db
+        collection_id = collection_in_db[0]
 
         # Use a unique word from the collection's title for the query.
         search_term = "precipitation"
@@ -156,3 +157,20 @@ class TestList:
 
         returned_ids = [col["id"] for col in response_data["collections"]]
         assert collection_id in returned_ids
+
+    async def test_get_collections_by_tenant(self, api_client, collection_in_db):
+        """
+        Test searching for a specific collection by its ID.
+        """
+        collection_id = collection_in_db[1]
+
+        # Perform a GET request to the /collections endpoint with a tenant
+        response = await api_client.get(
+            tenant_collections_endpoint,
+        )
+
+        assert response.status_code == 200
+
+        response_data = response.json()
+
+        assert response_data["collections"][0]["id"] == collection_id

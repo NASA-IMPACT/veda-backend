@@ -1,19 +1,23 @@
+""" Tenant Route Handler """
 import json
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Request, Path, Query, HTTPException
+from fastapi import APIRouter, HTTPException, Path, Query, Request
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.types.stac import Item, ItemCollection
 
 from .tenant_client import TenantAwareVedaCrudClient
 from .tenant_models import TenantSearchRequest
 
-
 logger = logging.getLogger(__name__)
 
+
 class TenantRouteHandler:
+    """Route handler for tenant-aware STAC API endpoints"""
+
     def __init__(self, client: TenantAwareVedaCrudClient):
+        """Initializes tenant-aware route handler"""
         self.client = client
 
     async def get_tenant_collections(
@@ -21,10 +25,14 @@ class TenantRouteHandler:
         request: Request,
         tenant: str = Path(..., description="Tenant identifier"),
     ) -> Dict[str, Any]:
+        """Get all collections belonging to a tenant"""
+
         logger.info(f"Getting collections for tenant: {tenant}")
 
         try:
-            collections = await self.client.get_tenant_collections(request, tenant=tenant)
+            collections = await self.client.get_tenant_collections(
+                request, tenant=tenant
+            )
             return collections
         except Exception as e:
             logger.error(f"Error getting collections for tenant {tenant}: {str(e)}")
@@ -36,6 +44,7 @@ class TenantRouteHandler:
         tenant: str = Path(..., description="Tenant identifier"),
         collection_id: str = Path(..., description="Collection identifier"),
     ) -> Dict:
+        """Get a specific collection belonging to a specific tenant"""
         logger.info(f"Getting collection {collection_id} for tenant: {tenant}")
 
         try:
@@ -59,7 +68,10 @@ class TenantRouteHandler:
         limit: int = Query(10, description="Maximum number of items to return"),
         token: Optional[str] = Query(None, description="Pagination token"),
     ) -> ItemCollection:
-        logger.info(f"Getting items from collection {collection_id} for tenant: {tenant}")
+        """Get all items from a collection filtered by a specific tenant"""
+        logger.info(
+            f"Getting items from collection {collection_id} for tenant: {tenant}"
+        )
 
         try:
             items = await self.client.item_collection(
@@ -67,7 +79,7 @@ class TenantRouteHandler:
                 request=request,
                 tenant=tenant,
                 limit=limit,
-                token=token
+                token=token,
             )
             return items
         except HTTPException:
@@ -85,7 +97,10 @@ class TenantRouteHandler:
         collection_id: str = Path(..., description="Collection identifier"),
         item_id: str = Path(..., description="Item identifier"),
     ) -> Item:
-        logger.info(f"Getting item {item_id} from collection {collection_id} for tenant: {tenant}")
+        """Get a specific item for a tenant"""
+        logger.info(
+            f"Getting item {item_id} from collection {collection_id} for tenant: {tenant}"
+        )
 
         try:
             item = await self.client.get_item(
@@ -104,8 +119,12 @@ class TenantRouteHandler:
         self,
         request: Request,
         tenant: str = Path(..., description="Tenant identifier"),
-        collections: Optional[str] = Query(None, description="Comma-separated list of collection IDs"),
-        ids: Optional[str] = Query(None, description="Comma-separated list of item IDs"),
+        collections: Optional[str] = Query(
+            None, description="Comma-separated list of collection IDs"
+        ),
+        ids: Optional[str] = Query(
+            None, description="Comma-separated list of item IDs"
+        ),
         bbox: Optional[str] = Query(None, description="Bounding box"),
         datetime: Optional[str] = Query(None, description="Datetime range"),
         limit: int = Query(10, description="Maximum number of results"),
@@ -115,7 +134,7 @@ class TenantRouteHandler:
         filter: Optional[str] = Query(None, description="CQL2 filter"),
         sortby: Optional[str] = Query(None, description="Sort parameters"),
     ) -> ItemCollection:
-        """Search items for a specific tenant using GET."""
+        """Search items for a specific tenant using GET"""
         logger.info(f"GET search for tenant: {tenant}")
 
         try:
@@ -141,7 +160,9 @@ class TenantRouteHandler:
             return search_result
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON in search parameters: {str(e)}")
-            raise HTTPException(status_code=400, detail="Invalid JSON in search parameters")
+            raise HTTPException(
+                status_code=400, detail="Invalid JSON in search parameters"
+            )
         except HTTPException:
             raise
         except Exception as e:
@@ -154,7 +175,7 @@ class TenantRouteHandler:
         request: Request,
         tenant: str = Path(..., description="Tenant identifier"),
     ) -> ItemCollection:
-        """Search items for a specific tenant using POST."""
+        """Search items for a specific tenant using POST"""
         logger.info(f"POST search for tenant: {tenant}")
 
         try:
@@ -176,7 +197,8 @@ class TenantRouteHandler:
         request: Request,
         tenant: str = Path(..., description="Tenant identifier"),
     ) -> ORJSONResponse:
-        """Get landing page for a specific tenant."""
+        """Get landing page for a specific tenant"""
+
         logger.info(f"Getting landing page for tenant: {tenant}")
 
         try:
@@ -190,7 +212,7 @@ class TenantRouteHandler:
 
 
 def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
-    """Create tenant-specific router """
+    """Create tenant-specific router"""
 
     router = APIRouter(redirect_slashes=True)
     handler = TenantRouteHandler(client)
@@ -202,7 +224,7 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
         handler.get_tenant_collections,
         methods=["GET"],
         summary="Get collections for tenant",
-        description="Retrieve all collections for a specific tenant"
+        description="Retrieve all collections for a specific tenant",
     )
 
     router.add_api_route(
@@ -210,7 +232,7 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
         handler.get_tenant_collection,
         methods=["GET"],
         summary="Get tenant collection",
-        description="Retrieve a specific collection for a tenant"
+        description="Retrieve a specific collection for a tenant",
     )
 
     router.add_api_route(
@@ -218,7 +240,7 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
         handler.get_tenant_collection_items,
         methods=["GET"],
         summary="Get tenant collection items",
-        description="Retrieve items from a collection for a tenant"
+        description="Retrieve items from a collection for a tenant",
     )
 
     router.add_api_route(
@@ -226,7 +248,7 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
         handler.get_tenant_item,
         methods=["GET"],
         summary="Get tenant item",
-        description="Retrieve a specific item for a tenant"
+        description="Retrieve a specific item for a tenant",
     )
 
     # Search endpoints
@@ -235,7 +257,7 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
         handler.get_tenant_search,
         methods=["GET"],
         summary="Search tenant items (GET)",
-        description="Search items for a tenant using GET method"
+        description="Search items for a tenant using GET method",
     )
 
     router.add_api_route(
@@ -243,7 +265,7 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
         handler.post_tenant_search,
         methods=["POST"],
         summary="Search tenant items (POST)",
-        description="Search items for a tenant using POST method"
+        description="Search items for a tenant using POST method",
     )
 
     router.add_api_route(
@@ -251,7 +273,7 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
         handler.get_tenant_landing_page,
         methods=["GET"],
         summary="Get tenant landing page",
-        description="Retrieve landing page for a specific tenant"
+        description="Retrieve landing page for a specific tenant",
     )
 
     logger.info(f"Created tenant router with {len(router.routes)} routes")

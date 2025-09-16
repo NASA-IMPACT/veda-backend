@@ -1,12 +1,15 @@
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field, field_validator
+
 from fastapi import HTTPException
+
 
 class TenantContext(BaseModel):
     tenant_id: str = Field(..., description="Tenant identifier")
     request_id: Optional[str] = Field(None, description="Request correlation ID")
 
-    @field_validator('tenant_id')
+    @field_validator("tenant_id")
     @classmethod
     def validate_tenant_id(cls, v):
         if not v or not v.strip():
@@ -20,7 +23,9 @@ class TenantSearchRequest(BaseModel):
     """Tenant-aware search request model."""
 
     tenant: Optional[str] = Field(None, description="Tenant identifier")
-    collections: Optional[List[str]] = Field(None, description="Collection IDs to search")
+    collections: Optional[List[str]] = Field(
+        None, description="Collection IDs to search"
+    )
     bbox: Optional[List[float]] = Field(None, description="Bounding box")
     datetime: Optional[str] = Field(None, description="Datetime range")
     limit: int = Field(10, description="Maximum number of results")
@@ -35,22 +40,14 @@ class TenantSearchRequest(BaseModel):
             return
 
         # Create tenant filter for properties.tenant
-        tenant_filter = {
-            "op": "=",
-            "args": [
-                {"property": "tenant"},
-                tenant
-            ]
-        }
+        tenant_filter = {"op": "=", "args": [{"property": "tenant"}, tenant]}
 
         # If there's already a filter, combine using AND
         if self.filter:
-            self.filter = {
-                "op": "and",
-                "args": [self.filter, tenant_filter]
-            }
+            self.filter = {"op": "and", "args": [self.filter, tenant_filter]}
         else:
             self.filter = tenant_filter
+
 
 class TenantValidationError(HTTPException):
     def __init__(
@@ -58,7 +55,7 @@ class TenantValidationError(HTTPException):
         resource_type: str,
         resource_id: str,
         tenant: str,
-        actual_tenant: Optional[str] = None
+        actual_tenant: Optional[str] = None,
     ):
         self.resource_type = resource_type
         self.resource_id = resource_id

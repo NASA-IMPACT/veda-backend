@@ -75,6 +75,51 @@ VALID_COLLECTION = {
     },
 }
 
+VALID_COLLECTION_WITH_TENANT = {
+    "id": "campfire-lst-day-diff",
+    "type": "Collection",
+    "links": [],
+    "title": "Camp Fire Domain: MODIS LST Day Difference",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -121.78460307847297,
+                    39.59483467430542,
+                    -121.35341172149457,
+                    39.89994756059251,
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [["2015-01-01T00:00:00+00:00", "2022-01-01T00:00:00+00:00"]]
+        },
+    },
+    "license": "CC0-1.0",
+    "providers": [
+        {
+            "url": "https://www.earthdata.nasa.gov/dashboard/",
+            "name": "NASA VEDA",
+            "roles": ["host"],
+        }
+    ],
+    "summaries": {"datetime": ["2015-01-01T00:00:00Z"]},
+    "properties": {"tenant": "fake-tenant"},
+    "description": "MODIS WSA Albedo difference from a three-year average of 2015 to 2018 subtracted from a three-year average of 2019-2022. These tri-annual averages represent periods before and after the fire.",
+    "item_assets": {
+        "cog_default": {
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "roles": ["data", "layer"],
+            "title": "Default COG Layer",
+            "description": "Cloud optimized default layer to display on map",
+        }
+    },
+    "stac_version": "1.0.0",
+    "stac_extensions": [
+        "https://stac-extensions.github.io/item-assets/v1.0.0/schema.json"
+    ],
+}
+
 VALID_ITEM = {
     "id": "OMI_trno2_0.10x0.10_2023_Col3_V4",
     "bbox": [-180.0, -90.0, 180.0, 90.0],
@@ -335,6 +380,17 @@ def valid_stac_collection():
 
 
 @pytest.fixture
+def valid_stac_collection_with_tenant():
+    """
+    Fixture providing a valid STAC collection with tenant for testing.
+
+    Returns:
+        dict: A valid STAC collection with tenant.
+    """
+    return VALID_COLLECTION_WITH_TENANT
+
+
+@pytest.fixture
 def invalid_stac_collection():
     """
     Fixture providing an invalid STAC collection for testing.
@@ -380,11 +436,17 @@ async def collection_in_db(api_client, valid_stac_collection):
     the collection ID.
     """
     # Create the collection
-    response = await api_client.post("/collections", json=valid_stac_collection)
+    collection_response = await api_client.post(
+        "/collections", json=valid_stac_collection
+    )
+    collection_with_tenant_response = await api_client.post(
+        "/collections", json=valid_stac_collection_with_tenant
+    )
 
     # Ensure the setup was successful before the test proceeds
     # The setup is successful if the collection was created (201) or if it
     # already existed (409). Any other status code is a failure.
-    assert response.status_code in [201, 409]
+    assert collection_response.status_code in [201, 409]
+    assert collection_with_tenant_response.status_code in [201, 409]
 
-    yield valid_stac_collection["id"]
+    yield [valid_stac_collection["id"], valid_stac_collection_with_tenant["id"]]
