@@ -174,3 +174,69 @@ class TestList:
         response_data = response.json()
 
         assert response_data["collections"][0]["id"] == collection_id
+
+    async def test_tenant_landing_page_customization(self, api_client):
+        """
+        Test that tenant landing page is properly customized for tenant
+        """
+        response = await api_client.get("/fake-tenant/")
+        assert response.status_code == 200
+
+        landing_page = response.json()
+        assert "FAKE-TENANT" in landing_page["title"]
+
+        for link in landing_page.get("links", []):
+            if link.get("rel") not in [
+                "self",
+                "root",
+                "service-desc",
+                "service-doc",
+                "conformance",
+            ]:
+                assert "/fake-tenant/" in link["href"]
+
+    async def test_get_collection_by_id_with_tenant(self, api_client, collection_in_db):
+        """
+        Test searching for a specific collection by its ID and tenant
+        """
+        # The `collection_in_db` fixture ensures the collection exists and provides its ID.
+        collection_id = collection_in_db[1]
+
+        # Perform a GET request to the /fake-tenant/collections endpoint with an "ids" query
+        response = await api_client.get(
+            tenant_collections_endpoint, params={"ids": collection_id}
+        )
+
+        assert response.status_code == 200
+
+        response_data = response.json()
+
+        assert response_data["collections"][0]["id"] == collection_id
+
+    async def test_tenant_validation_error(self, api_client, collection_in_db):
+        """
+        Test that accessing wrong tenant's collection returns 404
+        """
+        collection_id = collection_in_db[1]
+
+        # Try to access unexistent tenant for collection that exists in fake-tenant
+        response = await api_client.get(f"/fake-tenant-2/collections/{collection_id}")
+        assert response.status_code == 404
+
+    async def test_invalid_tenant_format(self, api_client):
+        """
+        Test handling of invalid tenant formats
+        """
+
+        response = await api_client.get("/invalid-tenant-format/collections")
+
+        assert response.status_code in [400, 404]
+
+    async def test_missing_tenant_parameter(self, api_client):
+        """
+        Test behavior when tenant parameter is not supplied in route path
+        """
+
+        response = await api_client.get("/collections")
+        # Should return all collections (no tenant filtering)
+        assert response.status_code == 200

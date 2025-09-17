@@ -299,7 +299,13 @@ class TenantAwareVedaCrudClient(VedaCrudClient, TenantValidationMixin):
                 if "href" in link:
                     href = link["href"]
 
-                    skip_rels = ["self", "root", "service-desc", "service-doc", "conformance"]
+                    skip_rels = [
+                        "self",
+                        "root",
+                        "service-desc",
+                        "service-doc",
+                        "conformance",
+                    ]
                     if link.get("rels") in skip_rels:
                         logger.info(f"Skipping link with rel {link.get('rel')}")
                         continue
