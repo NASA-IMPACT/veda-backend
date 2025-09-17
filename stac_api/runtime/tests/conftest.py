@@ -255,7 +255,6 @@ def test_environ():
     os.environ["POSTGRES_PORT"] = "5439"
 
 
-
 def override_validated_token():
     """
     Mock function to override validated token dependency.
