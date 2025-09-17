@@ -429,7 +429,9 @@ def invalid_stac_item():
 
 
 @pytest_asyncio.fixture
-async def collection_in_db(api_client, valid_stac_collection, valid_stac_collection_with_tenant):
+async def collection_in_db(
+    api_client, valid_stac_collection, valid_stac_collection_with_tenant
+):
     """
     Fixture to ensure a valid STAC collection exists in the database.
 
