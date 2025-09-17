@@ -286,6 +286,9 @@ def test_environ():
     os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
     os.environ["POSTGRES_PORT"] = "5439"
 
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
+
 
 def override_validated_token():
     """
