@@ -452,4 +452,7 @@ async def collection_in_db(
     assert collection_response.status_code in [201, 409]
     assert collection_with_tenant_response.status_code in [201, 409]
 
-    yield [valid_stac_collection["id"], valid_stac_collection_with_tenant["id"]]
+    yield {
+        "regular_collection": valid_stac_collection["id"],
+        "tenant_collection": valid_stac_collection_with_tenant["id"],
+    }

@@ -128,7 +128,7 @@ class TestList:
         Test searching for a specific collection by its ID.
         """
         # The `collection_in_db` fixture ensures the collection exists and provides its ID.
-        collection_id = collection_in_db[0]
+        collection_id = collection_in_db["regular_collection"]
 
         # Perform a GET request to the /collections endpoint with an "ids" query
         response = await api_client.get(
@@ -150,7 +150,7 @@ class TestList:
         """
 
         # The `collection_in_db` fixture ensures the collection exists.
-        collection_id = collection_in_db[0]
+        collection_id = collection_in_db["regular_collection"]
 
         # Use a unique word from the collection's title for the query.
         search_term = "precipitation"
@@ -171,7 +171,7 @@ class TestList:
         """
         Test searching for a specific collection by its ID.
         """
-        collection_id = collection_in_db[1]
+        collection_id = collection_in_db["tenant_collection"]
 
         # Perform a GET request to the /collections endpoint with a tenant
         response = await api_client.get(
@@ -225,7 +225,7 @@ class TestList:
         Test searching for a specific collection by its ID and tenant
         """
         # The `collection_in_db` fixture ensures the collection exists and provides its ID.
-        collection_id = collection_in_db[1]
+        collection_id = collection_in_db["regular_collection"]
 
         # Perform a GET request to the /fake-tenant/collections endpoint with an "ids" query
         response = await api_client.get(
@@ -243,7 +243,7 @@ class TestList:
         """
         Test that accessing wrong tenant's collection returns 404
         """
-        collection_id = collection_in_db[1]
+        collection_id = collection_in_db["tenant_collection"]
 
         # Try to access unexistent tenant for collection that exists in fake-tenant
         response = await api_client.get(f"/fake-tenant-2/collections/{collection_id}")
