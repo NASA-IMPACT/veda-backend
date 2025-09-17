@@ -132,6 +132,7 @@ class TestList:
         """
         # The `collection_in_db` fixture ensures the collection exists and provides its ID.
         collection_id = collection_in_db["regular_collection"]
+        print(f"collection_id in test_get_collection_by_id is {collection_id}")
 
         # Perform a GET request to the /collections endpoint with an "ids" query
         response = await api_client.get(

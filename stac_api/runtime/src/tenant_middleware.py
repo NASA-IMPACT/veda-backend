@@ -76,7 +76,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             logger.error(f"Tenant middleware error: {str(e)}")
-            raise HTTPException(status_code=500, detail="Internal server error")
+            raise
 
     def _extract_tenant(self, request: Request) -> Optional[str]:
         """Extracts the tenant identifier from the URL"""
