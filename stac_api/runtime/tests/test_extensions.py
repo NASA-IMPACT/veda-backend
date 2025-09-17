@@ -82,7 +82,10 @@ class TestList:
 
         Asserts that the response status code is 200.
         """
-        collection_id = valid_stac_item["collection"]
+        collection_id = collection_in_db["regular_collection"]
+        item_data = valid_stac_item.copy()
+        item_data["collection"] = collection_id
+
         response = await api_client.post(
             items_endpoint.format(collection_id), json=valid_stac_item
         )
@@ -225,7 +228,7 @@ class TestList:
         Test searching for a specific collection by its ID and tenant
         """
         # The `collection_in_db` fixture ensures the collection exists and provides its ID.
-        collection_id = collection_in_db["regular_collection"]
+        collection_id = collection_in_db["tenant_collection"]
 
         # Perform a GET request to the /fake-tenant/collections endpoint with an "ids" query
         response = await api_client.get(
@@ -255,9 +258,13 @@ class TestList:
         Test handling of invalid tenant formats
         """
 
+        # Non existent tenant should just show no collections
         response = await api_client.get("/invalid-tenant-format/collections")
 
-        assert response.status_code in [400, 404]
+        assert response.status_code in [200, 404]
+        if response.status_code == 200:
+            response_data = response.json()
+            assert response_data["collections"] == []
 
     @pytest.mark.asyncio
     async def test_missing_tenant_parameter(self, api_client):
