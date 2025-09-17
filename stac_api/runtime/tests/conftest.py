@@ -11,6 +11,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
@@ -318,7 +319,7 @@ def mock_auth():
         yield mock_instance
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def app():
     """
     Fixture to initialize the FastAPI application.
@@ -339,7 +340,7 @@ async def app():
     await close_db_connection(app)
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def api_client(app):
     """
     Fixture to initialize the API client for making requests.
@@ -427,7 +428,7 @@ def invalid_stac_item():
     return invalid_item
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def collection_in_db(api_client, valid_stac_collection):
     """
     Fixture to ensure a valid STAC collection exists in the database.

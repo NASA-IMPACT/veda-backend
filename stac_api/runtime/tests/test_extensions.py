@@ -16,7 +16,7 @@ This module adds search options to collections GET method
 - /Collections search by id and free text search
 
 """
-
+import pytest
 
 collections_endpoint = "/collections"
 items_endpoint = "/collections/{}/items"
@@ -34,6 +34,7 @@ class TestList:
     necessary data.
     """
 
+    @pytest.mark.asyncio
     async def test_post_invalid_collection(self, api_client, invalid_stac_collection):
         """
         Test the API's response to posting an invalid STAC collection.
@@ -47,6 +48,7 @@ class TestList:
         assert response.json()["detail"] == "Validation Error"
         assert response.status_code == 422
 
+    @pytest.mark.asyncio
     async def test_post_valid_collection(self, api_client, valid_stac_collection):
         """
         Test the API's response to posting a valid STAC collection.
@@ -58,6 +60,7 @@ class TestList:
         )
         assert response.status_code == 201
 
+    @pytest.mark.asyncio
     async def test_post_invalid_item(self, api_client, invalid_stac_item):
         """
         Test the API's response to posting an invalid STAC item.
@@ -72,6 +75,7 @@ class TestList:
         assert response.json()["detail"] == "Validation Error"
         assert response.status_code == 422
 
+    @pytest.mark.asyncio
     async def test_post_valid_item(self, api_client, valid_stac_item, collection_in_db):
         """
         Test the API's response to posting a valid STAC item.
@@ -84,6 +88,7 @@ class TestList:
         )
         assert response.status_code == 201
 
+    @pytest.mark.asyncio
     async def test_post_invalid_bulk_items(self, api_client, invalid_stac_item):
         """
         Test the API's response to posting invalid bulk STAC items.
@@ -99,6 +104,7 @@ class TestList:
         )
         assert response.status_code == 422
 
+    @pytest.mark.asyncio
     async def test_post_valid_bulk_items(
         self, api_client, valid_stac_item, collection_in_db
     ):
@@ -116,6 +122,7 @@ class TestList:
         )
         assert response.status_code == 200
 
+    @pytest.mark.asyncio
     async def test_get_collection_by_id(self, api_client, collection_in_db):
         """
         Test searching for a specific collection by its ID.
@@ -134,6 +141,7 @@ class TestList:
 
         assert response_data["collections"][0]["id"] == collection_id
 
+    @pytest.mark.asyncio
     async def test_collection_freetext_search_by_title(
         self, api_client, collection_in_db
     ):
@@ -158,6 +166,7 @@ class TestList:
         returned_ids = [col["id"] for col in response_data["collections"]]
         assert collection_id in returned_ids
 
+    @pytest.mark.asyncio
     async def test_get_collections_by_tenant(self, api_client, collection_in_db):
         """
         Test searching for a specific collection by its ID.
@@ -175,6 +184,7 @@ class TestList:
 
         assert response_data["collections"][0]["id"] == collection_id
 
+    @pytest.mark.asyncio
     async def test_tenant_landing_page_customization(self, api_client):
         """
         Test that tenant landing page is properly customized for tenant
@@ -185,16 +195,30 @@ class TestList:
         landing_page = response.json()
         assert "FAKE-TENANT" in landing_page["title"]
 
+        excluded_rels = [
+            "self",
+            "root",
+            "service-desc",
+            "service-doc",
+            "conformance",
+        ]
         for link in landing_page.get("links", []):
-            if link.get("rel") not in [
-                "self",
-                "root",
-                "service-desc",
-                "service-doc",
-                "conformance",
-            ]:
-                assert "/fake-tenant/" in link["href"]
+            rel = link.get("rel")
+            href = link.get("href", "")
 
+            if rel in excluded_rels:
+                assert (
+                    "/fake-tenant/" not in href
+                ), f"Excluded rel '{rel}' incorrectly contains tenant: {href}"
+                print(f"Excluded rel '{rel}' correctly has no tenant: {href}")
+            else:
+                if href.startswith("/api/stac") or "api/stac" in href:
+                    assert (
+                        "/fake-tenant/" in href
+                    ), f"Included rel '{rel}' does not have tenant: {href}"
+                    print(f"Included rel '{rel}' correctly has tenant: {href}")
+
+    @pytest.mark.asyncio
     async def test_get_collection_by_id_with_tenant(self, api_client, collection_in_db):
         """
         Test searching for a specific collection by its ID and tenant
@@ -213,6 +237,7 @@ class TestList:
 
         assert response_data["collections"][0]["id"] == collection_id
 
+    @pytest.mark.asyncio
     async def test_tenant_validation_error(self, api_client, collection_in_db):
         """
         Test that accessing wrong tenant's collection returns 404
@@ -223,6 +248,7 @@ class TestList:
         response = await api_client.get(f"/fake-tenant-2/collections/{collection_id}")
         assert response.status_code == 404
 
+    @pytest.mark.asyncio
     async def test_invalid_tenant_format(self, api_client):
         """
         Test handling of invalid tenant formats
@@ -232,6 +258,7 @@ class TestList:
 
         assert response.status_code in [400, 404]
 
+    @pytest.mark.asyncio
     async def test_missing_tenant_parameter(self, api_client):
         """
         Test behavior when tenant parameter is not supplied in route path

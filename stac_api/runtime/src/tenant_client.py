@@ -306,7 +306,7 @@ class TenantAwareVedaCrudClient(VedaCrudClient, TenantValidationMixin):
                         "service-doc",
                         "conformance",
                     ]
-                    if link.get("rels") in skip_rels:
+                    if link.get("rel") in skip_rels:
                         logger.info(f"Skipping link with rel {link.get('rel')}")
                         continue
 
