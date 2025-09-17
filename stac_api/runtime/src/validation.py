@@ -2,7 +2,6 @@
 
 import json
 import re
-import ssl
 from typing import Dict
 
 from pydantic import BaseModel, Field
@@ -13,9 +12,6 @@ from pystac.validation import validate_dict
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-
-# Disable SSL verification for external schema fetching
-ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class BulkItems(BaseModel):
