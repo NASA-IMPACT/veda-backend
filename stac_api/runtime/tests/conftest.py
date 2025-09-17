@@ -198,38 +198,6 @@ VALID_ITEM = {
                     ]
                 ],
             },
-            "proj:projjson": {
-                "id": {"code": 4326, "authority": "EPSG"},
-                "name": "WGS 84",
-                "type": "GeographicCRS",
-                "datum": {
-                    "name": "World Geodetic System 1984",
-                    "type": "GeodeticReferenceFrame",
-                    "ellipsoid": {
-                        "name": "WGS 84",
-                        "semi_major_axis": 6378137,
-                        "inverse_flattening": 298.257223563,
-                    },
-                },
-                "$schema": "https://proj.org/schemas/v0.7/projjson.schema.json",
-                "coordinate_system": {
-                    "axis": [
-                        {
-                            "name": "Geodetic latitude",
-                            "unit": "degree",
-                            "direction": "north",
-                            "abbreviation": "Lat",
-                        },
-                        {
-                            "name": "Geodetic longitude",
-                            "unit": "degree",
-                            "direction": "east",
-                            "abbreviation": "Lon",
-                        },
-                    ],
-                    "subtype": "ellipsoidal",
-                },
-            },
             "proj:transform": [0.1, 0.0, -180.0, 0.0, -0.1, 90.0, 0.0, 0.0, 1.0],
         },
         "rendered_preview": {
@@ -286,9 +254,6 @@ def test_environ():
     os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
     os.environ["POSTGRES_PORT"] = "5439"
 
-    import ssl
-
-    ssl._create_default_https_context = ssl._create_unverified_context
 
 
 def override_validated_token():
