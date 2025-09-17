@@ -201,6 +201,7 @@ class TestList:
             "service-desc",
             "service-doc",
             "conformance",
+            "queryables",
         ]
         for link in landing_page.get("links", []):
             rel = link.get("rel")

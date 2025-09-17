@@ -298,6 +298,7 @@ class TenantAwareVedaCrudClient(VedaCrudClient, TenantValidationMixin):
                 logger.info("Inspecting links to inject tenant...")
                 if "href" in link:
                     href = link["href"]
+                    rel = link.get("rel")
 
                     skip_rels = [
                         "self",
@@ -306,8 +307,7 @@ class TenantAwareVedaCrudClient(VedaCrudClient, TenantValidationMixin):
                         "service-doc",
                         "conformance",
                     ]
-                    if link.get("rel") in skip_rels:
-                        logger.info(f"Skipping link with rel {link.get('rel')}")
+                    if rel in skip_rels or "queryables" in rel:
                         continue
 
                     if href.startswith("http"):
