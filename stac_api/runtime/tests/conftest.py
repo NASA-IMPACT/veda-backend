@@ -287,6 +287,7 @@ def test_environ():
     os.environ["POSTGRES_PORT"] = "5439"
 
     import ssl
+
     ssl._create_default_https_context = ssl._create_unverified_context
 
 
