@@ -58,6 +58,10 @@ class vedaSTACSettings(BaseSettings):
         False,
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
+    pystac_stac_version_override: Optional[str] = Field(
+        "1.0.0",
+        description="Stac version override for Pystac validations https://pystac.readthedocs.io/en/stable/api/version.html",
+    )
 
     @model_validator(mode="before")
     def check_transaction_fields(cls, values):
