@@ -87,7 +87,9 @@ class _ApiSettings(Settings):
     )
     swagger_ui_endpoint: str = "/docs"
     openapi_spec_endpoint: str = "/openapi.json"
-    custom_host: Optional[str] = Field("http://localhost:8081", description="Custom host URL")
+    custom_host: Optional[str] = Field(
+        "http://localhost:8081", description="Custom host URL"
+    )
 
     @field_validator("cors_origins")
     @classmethod

@@ -15,8 +15,8 @@ from src.config import (
     post_request_model,
 )
 from src.extension import TiTilerExtension
-
 from stac_auth_proxy import configure_app
+
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
@@ -30,8 +30,8 @@ from starlette_cramjam.middleware import CompressionMiddleware
 
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
-from .validation import ValidationMiddleware
 from .tenant_filter_middleware import TenantFilterMiddleware
+from .validation import ValidationMiddleware
 
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
