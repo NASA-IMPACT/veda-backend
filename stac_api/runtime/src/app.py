@@ -16,6 +16,7 @@ from src.config import (
 )
 from src.extension import TiTilerExtension
 
+from stac_auth_proxy import configure_app
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
@@ -30,6 +31,7 @@ from starlette_cramjam.middleware import CompressionMiddleware
 from .core import VedaCrudClient
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 from .validation import ValidationMiddleware
+from .tenant_filter_middleware import TenantFilterMiddleware
 
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
@@ -85,7 +87,15 @@ api = StacApi(
     middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
     router=APIRouter(route_class=LoggerRouteHandler),
 )
-app = api.app
+
+
+app = configure_app(
+    api.app,
+    upstream_url=api_settings.custom_host,
+    oidc_discovery_url=str(auth_settings.openid_configuration_url),
+    oidc_discovery_internal_url=str(auth_settings.openid_configuration_url),
+)
+api.app.add_middleware(TenantFilterMiddleware)
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:

@@ -14,7 +14,7 @@ inst_reqs = [
     "stac-fastapi.extensions~=5.0",
     "stac-fastapi.pgstac>=5.0.3,<6.0",
     "jinja2>=2.11.2,<4.0.0",
-    "starlette-cramjam>=0.3.2,<0.4",
+    "starlette-cramjam>=0.4.0",
     "importlib_resources>=1.1.0;python_version<='3.11'",  # https://github.com/cogeotiff/rio-tiler/pull/379
     "pygeoif<=0.8",  # newest release (1.0+ / 09-22-2022) breaks a number of other geo libs
     "aws-lambda-powertools>=1.18.0",
@@ -22,6 +22,7 @@ inst_reqs = [
     "pystac[validation]==1.10.1",
     "pydantic>2",
     "eoapi-auth-utils==0.3.0",
+    "stac-auth-proxy==0.9.2",
 ]
 
 extra_reqs = {

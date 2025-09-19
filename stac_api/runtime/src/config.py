@@ -85,6 +85,9 @@ class _ApiSettings(Settings):
     enable_transactions: bool = Field(
         False, description="Whether to enable transactions"
     )
+    swagger_ui_endpoint: str = "/docs"
+    openapi_spec_endpoint: str = "/openapi.json"
+    custom_host: Optional[str] = Field("http://localhost:8081", description="Custom host URL")
 
     @field_validator("cors_origins")
     @classmethod
