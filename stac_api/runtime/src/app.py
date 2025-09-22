@@ -94,6 +94,8 @@ app = configure_app(
     upstream_url=api_settings.custom_host,
     oidc_discovery_url=str(auth_settings.openid_configuration_url),
     oidc_discovery_internal_url=str(auth_settings.openid_configuration_url),
+    default_public=True,
+    private_endpoints={},
 )
 api.app.add_middleware(TenantFilterMiddleware)
 
