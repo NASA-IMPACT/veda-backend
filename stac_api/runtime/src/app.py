@@ -91,11 +91,13 @@ api = StacApi(
 app = configure_app(
     api.app,
     upstream_url=api_settings.custom_host,
-    oidc_discovery_url=str(auth_settings.openid_configuration_url),
-    oidc_discovery_internal_url=str(auth_settings.openid_configuration_url),
+    # oidc_discovery_url=str(auth_settings.openid_configuration_url),
+    # oidc_discovery_internal_url=str(auth_settings.openid_configuration_url),
+    oidc_discovery_url="https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration",
+    oidc_discovery_internal_url="https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration",
     default_public=True,
     private_endpoints={},
-    #root_path=api_settings.root_path,
+    root_path=api_settings.root_path,
 )
 api.app.add_middleware(TenantFilterMiddleware)
 print(f"DEBUG configure_app returned app type: {type(app)}")
