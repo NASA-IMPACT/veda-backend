@@ -5,7 +5,6 @@ This middleware detects tenant URLs and modifies the request to add CQL2 filters
 for tenant filtering
 """
 
-import json
 import logging
 from typing import Optional
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
