@@ -1,5 +1,6 @@
 """Observability utils"""
 import json
+import logging
 from typing import Callable
 
 from aws_lambda_powertools import Logger, Metrics, Tracer, single_metric
@@ -16,6 +17,7 @@ metrics: Metrics = Metrics(namespace="veda-backend")
 metrics.set_default_dimensions(environment=settings.stage, service="stac-api")
 tracer: Tracer = Tracer()
 
+logging.getLogger("stac-auth-proxy").setLevel(logging.DEBUG)
 
 class LoggerRouteHandler(APIRoute):
     """Extension of base APIRoute to add context to log statements, as well as record usage metrics"""
