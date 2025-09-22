@@ -19,6 +19,7 @@ tracer: Tracer = Tracer()
 
 logging.getLogger("stac-auth-proxy").setLevel(logging.DEBUG)
 
+
 class LoggerRouteHandler(APIRoute):
     """Extension of base APIRoute to add context to log statements, as well as record usage metrics"""
 
