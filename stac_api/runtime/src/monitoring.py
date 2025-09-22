@@ -17,6 +17,7 @@ metrics: Metrics = Metrics(namespace="veda-backend")
 metrics.set_default_dimensions(environment=settings.stage, service="stac-api")
 tracer: Tracer = Tracer()
 
+logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger("stac-auth-proxy").setLevel(logging.DEBUG)
 
 
