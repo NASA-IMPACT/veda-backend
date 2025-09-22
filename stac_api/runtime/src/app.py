@@ -84,7 +84,7 @@ api = StacApi(
     collections_get_request_model=collections_get_request_model,
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
-    middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
+    middlewares=[Middleware(ValidationMiddleware)],
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 
