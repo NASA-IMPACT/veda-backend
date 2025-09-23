@@ -19,7 +19,7 @@ inst_reqs = [
     "pygeoif<=0.8",  # newest release (1.0+ / 09-22-2022) breaks a number of other geo libs
     "aws-lambda-powertools>=1.18.0",
     "aws_xray_sdk>=2.6.0,<3",
-    "pystac[validation]==1.10.1",
+    "pystac[validation]>=1.14.0",
     "pydantic>2",
     "eoapi-auth-utils==0.3.0",
 ]

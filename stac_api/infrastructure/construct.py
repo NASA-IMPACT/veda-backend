@@ -53,6 +53,7 @@ class StacApiLambdaConstruct(Construct):
             ),
             "DB_MIN_CONN_SIZE": "0",
             "DB_MAX_CONN_SIZE": "1",
+            "PYSTAC_STAC_VERSION_OVERRIDE": veda_stac_settings.pystac_stac_version_override,
             **{k.upper(): v for k, v in veda_stac_settings.env.items()},
         }
 
