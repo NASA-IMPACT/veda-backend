@@ -31,6 +31,8 @@ services:
       # - TITILER_ENDPOINT=raster
       - TITILER_ENDPOINT=http://0.0.0.0:8082
       - VEDA_STAC_ENABLE_TRANSACTIONS=True
+      - VEDA_STAC_ROOT_PATH=
+      - VEDA_STAC_OPENID_CONFIGURATION_URL=https://example.com/.well-known/openid-configuration
     depends_on:
       - database
       - raster
