@@ -94,12 +94,9 @@ app = configure_app(
     oidc_discovery_url=str(auth_settings.openid_configuration_url),
     oidc_discovery_internal_url=str(auth_settings.openid_configuration_url),
     default_public=True,
-    # private_endpoints={},
     root_path=api_settings.root_path,
 )
 api.app.add_middleware(TenantFilterMiddleware)
-print(f"DEBUG configure_app returned app type: {type(app)}")
-print(f"DEBUG app routes: {[route.path for route in app.routes]}")
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
