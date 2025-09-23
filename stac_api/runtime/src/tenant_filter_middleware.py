@@ -134,11 +134,12 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
             logger.error(f"Error adding tenant filter: {str(e)}")
             return request
 
-        # handle URL rewriting for both local and production environments
+        # handle URL rewriting for both root path and non root path environments
         if parsed_url.path.startswith(f"/api/stac/{tenant}/"):
+            # example /api/stac/{tenant}/collections -> /api/stac/collections
             new_path = parsed_url.path.replace(f"/api/stac/{tenant}/", "/api/stac/")
         elif parsed_url.path.startswith(f"/{tenant}/"):
-            # no root path: /{tenant}/collections -> /collections
+            # example /{tenant}/collections -> /collections
             new_path = parsed_url.path.replace(f"/{tenant}/", "/")
         else:
             new_path = parsed_url.path
