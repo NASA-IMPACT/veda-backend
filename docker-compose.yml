@@ -6,8 +6,6 @@ services:
       dockerfile: local/Dockerfile.stac
     ports:
       - "8081:8081"
-    env_file:
-      - .env
     environment:
       - APP_HOST=0.0.0.0
       - APP_PORT=8081
@@ -139,8 +137,6 @@ services:
     build:
       context: .
       dockerfile: local/Dockerfile.ingest
-    env_file:
-      - .env
     environment:
       - POSTGRES_USER=username
       - POSTGRES_PASSWORD=password
