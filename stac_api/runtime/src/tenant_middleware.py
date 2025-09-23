@@ -121,8 +121,14 @@ class TenantMiddleware(BaseHTTPMiddleware):
         )
 
         # if the path is exactly a standard endpoint with trailing slash, skip tenant processing
-        if len(path_parts) == 2 and path_parts[1] == "" and first_part in standard_endpoints:
-            logger.info(f"Skipping tenant processing for standard endpoint with trailing slash: {first_part}/")
+        if (
+            len(path_parts) == 2
+            and path_parts[1] == ""
+            and first_part in standard_endpoints
+        ):
+            logger.info(
+                f"Skipping tenant processing for standard endpoint with trailing slash: {first_part}/"
+            )
             return True
 
         if first_part in standard_endpoints:
