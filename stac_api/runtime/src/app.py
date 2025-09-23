@@ -83,10 +83,9 @@ api = StacApi(
     collections_get_request_model=collections_get_request_model,
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
-    middlewares=[Middleware(ValidationMiddleware)],
+    middlewares=[Middleware(ValidationMiddleware), Middleware(TenantFilterMiddleware)],
     router=APIRouter(route_class=LoggerRouteHandler),
 )
-
 
 app = configure_app(
     api.app,
@@ -96,7 +95,6 @@ app = configure_app(
     default_public=True,
     root_path=api_settings.root_path,
 )
-api.app.add_middleware(TenantFilterMiddleware)
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
