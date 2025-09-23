@@ -1,10 +1,9 @@
 """ Tenant Route Handler """
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from fastapi import APIRouter, HTTPException, Path, Query, Request
-from fastapi.responses import ORJSONResponse
 from stac_fastapi.types.stac import Item, ItemCollection
 
 from .tenant_client import TenantAwareVedaCrudClient
@@ -19,24 +18,6 @@ class TenantRouteHandler:
     def __init__(self, client: TenantAwareVedaCrudClient):
         """Initializes tenant-aware route handler"""
         self.client = client
-
-    async def get_tenant_collections(
-        self,
-        request: Request,
-        tenant: str = Path(..., description="Tenant identifier"),
-    ) -> Dict[str, Any]:
-        """Get all collections belonging to a tenant"""
-
-        logger.info(f"Getting collections for tenant: {tenant}")
-
-        try:
-            collections = await self.client.get_tenant_collections(
-                request, tenant=tenant
-            )
-            return collections
-        except Exception as e:
-            logger.error(f"Error getting collections for tenant {tenant}: {str(e)}")
-            raise HTTPException(status_code=500, detail="Internal server error")
 
     async def get_tenant_collection(
         self,
@@ -192,24 +173,6 @@ class TenantRouteHandler:
             logger.error(f"Error performing POST search for tenant {tenant}: {str(e)}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
-    async def get_tenant_landing_page(
-        self,
-        request: Request,
-        tenant: str = Path(..., description="Tenant identifier"),
-    ) -> ORJSONResponse:
-        """Get landing page for a specific tenant"""
-
-        logger.info(f"Getting landing page for tenant: {tenant}")
-
-        try:
-            landing_page = await self.client.landing_page(request, tenant=tenant)
-            return ORJSONResponse(content=landing_page)
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error getting landing page for tenant {tenant}: {str(e)}")
-            raise HTTPException(status_code=500, detail="Internal server error")
-
 
 def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
     """Create tenant-specific router"""
@@ -218,14 +181,6 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
     handler = TenantRouteHandler(client)
 
     logger.info("Creating tenant router with routes")
-
-    router.add_api_route(
-        "/{tenant}/collections",
-        handler.get_tenant_collections,
-        methods=["GET"],
-        summary="Get collections for tenant",
-        description="Retrieve all collections for a specific tenant",
-    )
 
     router.add_api_route(
         "/{tenant}/collections/{collection_id}",
@@ -266,14 +221,6 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
         methods=["POST"],
         summary="Search tenant items (POST)",
         description="Search items for a tenant using POST method",
-    )
-
-    router.add_api_route(
-        "/{tenant}/",
-        handler.get_tenant_landing_page,
-        methods=["GET"],
-        summary="Get tenant landing page",
-        description="Retrieve landing page for a specific tenant",
     )
 
     logger.info(f"Created tenant router with {len(router.routes)} routes")

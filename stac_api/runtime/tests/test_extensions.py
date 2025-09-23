@@ -16,6 +16,7 @@ This module adds search options to collections GET method
 - /Collections search by id and free text search
 
 """
+
 import pytest
 
 collections_endpoint = "/collections"
@@ -183,44 +184,6 @@ class TestList:
         response_data = response.json()
 
         assert response_data["collections"][0]["id"] == collection_id
-
-    @pytest.mark.asyncio
-    async def test_tenant_landing_page_customization(self, api_client):
-        """
-        Test that tenant landing page is properly customized for tenant
-        """
-        response = await api_client.get("/fake-tenant/")
-        assert response.status_code == 200
-
-        landing_page = response.json()
-        assert "FAKE-TENANT" in landing_page["title"]
-
-        excluded_rels = [
-            "self",
-            "root",
-            "service-desc",
-            "service-doc",
-            "conformance",
-            "queryables",
-        ]
-        for link in landing_page.get("links", []):
-            rel = link.get("rel")
-            href = link.get("href", "")
-
-            # Check if rel should be excluded (exact match or contains "queryables")
-            should_exclude = rel in excluded_rels or "queryables" in rel
-
-            if should_exclude:
-                assert (
-                    "/fake-tenant/" not in href
-                ), f"Excluded rel '{rel}' incorrectly contains tenant: {href}"
-                print(f"Excluded rel '{rel}' correctly has no tenant: {href}")
-            else:
-                if href.startswith("/api/stac") or "api/stac" in href:
-                    assert (
-                        "/fake-tenant/" in href
-                    ), f"Included rel '{rel}' does not have tenant: {href}"
-                    print(f"Included rel '{rel}' correctly has tenant: {href}")
 
     @pytest.mark.asyncio
     async def test_get_collection_by_id_with_tenant(self, api_client, collection_in_db):
