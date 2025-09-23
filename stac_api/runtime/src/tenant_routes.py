@@ -1,7 +1,7 @@
 """ Tenant Route Handler """
 import json
 import logging
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException, Path, Query, Request
 from stac_fastapi.types.stac import Item, ItemCollection
@@ -18,6 +18,23 @@ class TenantRouteHandler:
     def __init__(self, client: TenantAwareVedaCrudClient):
         """Initializes tenant-aware route handler"""
         self.client = client
+
+    async def get_tenant_collections(
+        self,
+        request: Request,
+        tenant: str = Path(..., description="Tenant identifier"),
+    ) -> Dict[str, Any]:
+        """Get all collections belonging to a tenant"""
+        logger.info(f"Getting collections for tenant: {tenant}")
+
+        try:
+            collections = await self.client.get_tenant_collections(
+                request, tenant=tenant
+            )
+            return collections
+        except Exception as e:
+            logger.error(f"Error getting collections for tenant {tenant}: {str(e)}")
+            raise HTTPException(status_code=500, detail="Internal server error")
 
     async def get_tenant_collection(
         self,
@@ -181,6 +198,14 @@ def create_tenant_router(client: TenantAwareVedaCrudClient) -> APIRouter:
     handler = TenantRouteHandler(client)
 
     logger.info("Creating tenant router with routes")
+
+    router.add_api_route(
+        "/{tenant}/collections",
+        handler.get_tenant_collections,
+        methods=["GET"],
+        summary="Get collections for tenant",
+        description="Retrieve all collections for a specific tenant",
+    )
 
     router.add_api_route(
         "/{tenant}/collections/{collection_id}",

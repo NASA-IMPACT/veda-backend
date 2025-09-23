@@ -3,6 +3,9 @@
     "title": "NOAA Emergency Response Imagery",
     "description": "NOAA Emergency Response Imagery hosted on AWS Public Dataset.",
     "stac_version": "1.0.0",
+    "properties": {
+        "tenant": "test-tenant"
+    },
     "license": "public-domain",
     "links": [],
     "extent": {
