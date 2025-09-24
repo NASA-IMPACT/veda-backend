@@ -96,6 +96,7 @@ app = configure_app(
     root_path=api_settings.root_path,
 )
 
+
 # Set all CORS enabled origins
 if api_settings.cors_origins:
     app.add_middleware(

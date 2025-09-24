@@ -71,6 +71,10 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
                 if tenant_context.request_id:
                     response.headers["X-Request-ID"] = tenant_context.request_id
 
+                response = await self._rewrite_response_content(
+                    response, tenant_context.tenant_id
+                )
+
             return response
 
         except Exception as e:
@@ -226,3 +230,97 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
 
         logger.info(f"Processing as tenant: {first_part}")
         return False
+
+    async def _rewrite_response_content(self, response, tenant: str):
+        """This function rewrites response content to include tenant in URLs if tenant was passed in"""
+        try:
+            if response.headers.get("content-type", "").startswith("application/json"):
+                body = b""
+                async for chunk in response.body_iterator:
+                    body += chunk
+
+                import json
+
+                try:
+                    data = json.loads(body.decode())
+                    rewritten_data = self._rewrite_json_urls(data, tenant)
+                    rewritten_body = json.dumps(rewritten_data).encode()
+
+                    from starlette.responses import Response
+
+                    headers = dict(response.headers)
+                    headers.pop("content-length", None)
+                    new_response = Response(
+                        content=rewritten_body,
+                        status_code=response.status_code,
+                        headers=headers,
+                        media_type=response.media_type,
+                    )
+                    return new_response
+                except json.JSONDecodeError:
+                    logger.warning("Failed to parse JSON response for URL rewriting")
+                    return response
+            else:
+                return response
+        except Exception as e:
+            logger.error(f"Error rewriting response content: {str(e)}")
+            return response
+
+    def _rewrite_json_urls(self, data, tenant: str):
+        """Recursively rewrites URLs in JSON data to include tenant in the url"""
+        if isinstance(data, dict):
+            rewritten = {}
+            for key, value in data.items():
+                if key == "href" and isinstance(value, str):
+                    # Rewrite href URLs to include tenant
+                    rewritten[key] = self._add_tenant_to_url(value, tenant)
+                else:
+                    rewritten[key] = self._rewrite_json_urls(value, tenant)
+            return rewritten
+        elif isinstance(data, list):
+            return [self._rewrite_json_urls(item, tenant) for item in data]
+        else:
+            return data
+
+    def _add_tenant_to_url(self, url: str, tenant: str) -> str:
+        """Add tenant to URL if it is a STAC API URL"""
+        try:
+            from urllib.parse import urlparse, urlunparse
+
+            parsed = urlparse(url)
+
+            # Check if this is a STAC API URL that needs tenant rewriting
+            if "/api/stac/" in parsed.path:
+                # Rewrite /api/stac/collections -> /api/stac/{tenant}/collections
+                new_path = parsed.path.replace("/api/stac/", f"/api/stac/{tenant}/")
+                return urlunparse(
+                    (
+                        parsed.scheme,
+                        parsed.netloc,
+                        new_path,
+                        parsed.params,
+                        parsed.query,
+                        parsed.fragment,
+                    )
+                )
+            elif parsed.path.startswith("/collections") or parsed.path.startswith(
+                "/search"
+            ):
+                # For local development: /collections -> /{tenant}/collections
+                new_path = f"/{tenant}{parsed.path}"
+                return urlunparse(
+                    (
+                        parsed.scheme,
+                        parsed.netloc,
+                        new_path,
+                        parsed.params,
+                        parsed.query,
+                        parsed.fragment,
+                    )
+                )
+            else:
+                # Return original URL if there is no rewriting needed
+                return url
+        except Exception as e:
+            logger.error(f"Error rewriting URL {url}: {str(e)}")
+            return url
