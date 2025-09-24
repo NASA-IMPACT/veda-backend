@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
+
 class TenantContext(BaseModel):
     """Context information for tenant-aware request processing"""
 
