@@ -5,12 +5,14 @@ This middleware detects tenant URLs and modifies the request to add CQL2 filters
 for tenant filtering
 """
 import logging
+import json
 from typing import Optional
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from fastapi import Request
 from starlette.datastructures import URL
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from .tenant_models import TenantContext
 
@@ -28,6 +30,67 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
     - redirects to the regular collections endpoint
     """
 
+    # Standard STAC API endpoints that should not be treated as tenant identifiers
+    STANDARD_ENDPOINTS = {
+        "collections",
+        "conformance",
+        "search",
+        "queryables",
+        "openapi.json",
+        "docs",
+        "health",
+        "ping",
+    }
+
+    # Template for tenant specific catalog links
+    TENANT_LINK_TEMPLATES = [
+        {
+            "rel": "data",
+            "type": "application/json",
+            "title_template": "Collections available for this {tenant} Catalog",
+            "href_template": "{base_url}/collections"
+        },
+        {
+            "rel": "search",
+            "type": "application/geo+json",
+            "title_template": "Search {tenant} Data [GET]",
+            "href_template": "{base_url}/conformance",
+        },
+        {
+            "rel": "search",
+            "type": "application/geo+json",
+            "title_template": "STAC search [GET]",
+            "href_template": "{base_url}/search",
+            "method": "GET"
+        },
+        {
+            "rel": "search",
+            "type": "application/geo+json",
+            "title_template": "STAC search [POST]",
+            "href_template": "{base_url}/search",
+            "method": "POST"
+        },
+        {
+            "rel": "http://www.opengis.net/def/rel/ogc/1.0/queryables",
+            "type": "application/schema+json",
+            "title_template": "Queryables available for this {tenant} Catalog",
+            "href_template": "{base_url}/queryables",
+            "method": "GET"
+        },
+        {
+            "rel": "service-doc",
+            "type": "text/html",
+            "title_template": "{tenant_title} OpenAPI service documentation",
+            "href_template": "{base_url}/docs"
+        },
+        {
+            "rel": "service-desc",
+            "type": "application/vnd.oai.openapi+json;version=3.0",
+            "title_template": "{tenant_title} OpenAPI service description",
+            "href_template": "{base_url}/openapi.json"
+        }
+    ]
+
     def __init__(self, app):
         """Initialize tenant filter middleware"""
         super().__init__(app)
@@ -35,6 +98,10 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Process request,  add tenant filtering if needed"""
         try:
+            # Store original path before any processing
+            original_path = request.url.path
+            logger.info(f"Original request path: {original_path}")
+
             if self._should_skip_tenant_processing(request):
                 return await call_next(request)
 
@@ -72,7 +139,7 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
                     response.headers["X-Request-ID"] = tenant_context.request_id
 
                 response = await self._rewrite_response_content(
-                    response, tenant_context.tenant_id
+                    response, tenant_context.tenant_id, str(request.url), original_path
                 )
 
             return response
@@ -95,19 +162,7 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
             # Local development: /{tenant}/collections
             path_parts = path.lstrip("/").split("/")
             if path_parts and path_parts[0]:
-                # Check if it's not a standard endpoint
-                standard_endpoints = {
-                    "collections",
-                    "conformance",
-                    "search",
-                    "queryables",
-                    "openapi.json",
-                    "docs",
-                    "favicon.ico",
-                    "health",
-                    "ping",
-                }
-                if path_parts[0] not in standard_endpoints:
+                if path_parts[0] not in self.STANDARD_ENDPOINTS:
                     return path_parts[0]
         return None
 
@@ -194,35 +249,24 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
             logger.info(f"Skipping tenant processing - empty path parts: {path}")
             return True
 
-        standard_endpoints = {
-            "collections",
-            "conformance",
-            "search",
-            "queryables",
-            "openapi.json",
-            "docs",
-            "favicon.ico",
-            "health",
-            "ping",
-        }
 
         first_part = path_parts[0].rstrip("/")
         logger.info(
-            f"First part: '{path_parts[0]}', stripped: '{first_part}', in standard_endpoints: {first_part in standard_endpoints}"
+            f"First part: '{path_parts[0]}', stripped: '{first_part}', in standard_endpoints: {first_part in self.STANDARD_ENDPOINTS}"
         )
 
         # if the path is exactly a standard endpoint with trailing slash, skip tenant processing
         if (
             len(path_parts) == 2
             and path_parts[1] == ""
-            and first_part in standard_endpoints
+            and first_part in self.STANDARD_ENDPOINTS
         ):
             logger.info(
                 f"Skipping tenant processing for standard endpoint with trailing slash: {first_part}/"
             )
             return True
 
-        if first_part in standard_endpoints:
+        if first_part in self.STANDARD_ENDPOINTS:
             logger.info(
                 f"Skipping tenant processing for standard endpoint: {first_part}"
             )
@@ -231,7 +275,8 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
         logger.info(f"Processing as tenant: {first_part}")
         return False
 
-    async def _rewrite_response_content(self, response, tenant: str):
+
+    async def _rewrite_response_content(self, response, tenant: str, request_url: str = None, original_path: str = None):
         """This function rewrites response content to include tenant in URLs if tenant was passed in"""
         try:
             if response.headers.get("content-type", "").startswith("application/json"):
@@ -239,14 +284,21 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
                 async for chunk in response.body_iterator:
                     body += chunk
 
-                import json
-
                 try:
                     data = json.loads(body.decode())
+
+
+                    # Check if this is a STAC catalog root response
+                    if self._is_catalog_root_response(data, original_path):
+                        # Customize the catalog for the tenant
+                        if request_url:
+                            parsed = urlparse(request_url)
+                            base_url = f"{parsed.scheme}://{parsed.netloc}/api/stac/{tenant}"
+                            data = self._customize_catalog_for_tenant(data, tenant, base_url)
+
                     rewritten_data = self._rewrite_json_urls(data, tenant)
                     rewritten_body = json.dumps(rewritten_data).encode()
 
-                    from starlette.responses import Response
 
                     headers = dict(response.headers)
                     headers.pop("content-length", None)
@@ -324,3 +376,63 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             logger.error(f"Error rewriting URL {url}: {str(e)}")
             return url
+
+    def _is_catalog_root_response(self, data: dict, original_path: str) -> bool:
+        """Check if this is a STAC catalog root response that should be customized"""
+        try:
+            # Check if this looks like a STAC catalog root
+            if (data.get("type") == "Catalog" and
+                "stac_version" in data and
+                "links" in data):
+
+                # Check if the original path indicates this is a tenant catalog root
+                if original_path:
+                    logger.info(f"Checking catalog root for original path: {original_path}")
+                    # Should be /api/stac/{tenant}/ or /api/stac/{tenant}
+                    if (original_path.endswith("/api/stac/") or
+                        (original_path.startswith("/api/stac/") and original_path.count("/") in [3, 4])):
+                        logger.info(f"Detected catalog root for original path: {original_path}")
+                        return True
+            return False
+        except Exception as e:
+            logger.error(f"Error checking catalog root response: {str(e)}")
+            return False
+
+    def _customize_catalog_for_tenant(self, catalog_data: dict, tenant: str, base_url: str) -> dict:
+        """Customize the STAC catalog response for a specific tenant for the landing page"""
+        try:
+            logger.info(f"Customizing catalog for tenant: {tenant}, base_url: {base_url}")
+            customized_catalog = catalog_data.copy()
+            tenant_links = self._build_tenant_links(tenant, base_url)
+
+            customized_catalog["links"] = tenant_links
+            logger.info(f"Customized catalog generated with {len(tenant_links)} links")
+
+            return customized_catalog
+
+        except Exception as e:
+            logger.error(f"Error customizing catalog for tenant {tenant}: {str(e)}")
+            return catalog_data
+
+    def _build_tenant_links(self, tenant: str, base_url: str) -> list:
+        """Build tenant-specific links from templates"""
+        tenant_links = []
+        tenant_title = tenant.title()
+
+        for template in self.TENANT_LINK_TEMPLATES:
+            link = {
+                "rel": template["rel"],
+                "type": template["type"],
+                "title": template["title_template"].format(
+                    tenant=tenant,
+                    tenant_title=tenant_title
+                ),
+                "href": template["href_template"].format(base_url=base_url)
+            }
+
+            if "method" in template:
+                link["method"] = template["method"]
+
+            tenant_links.append(link)
+
+        return tenant_links
