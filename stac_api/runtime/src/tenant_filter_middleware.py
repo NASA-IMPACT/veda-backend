@@ -16,7 +16,6 @@ from starlette.responses import Response
 
 from .tenant_models import TenantContext
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -41,6 +40,8 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
         "docs",
         "health",
         "ping",
+        "index.html",
+        "_mgmt",
     }
 
     # Template for tenant specific catalog links
@@ -408,8 +409,12 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
                     # or /{tenant} or /{tenant}/ (local development)
                     normalized_path = original_path.rstrip("/")
                     if (
-                        (normalized_path.startswith("/api/stac/") and normalized_path.count("/") == 3) or
-                        (not normalized_path.startswith("/api/") and normalized_path.count("/") == 1 and normalized_path != "/")
+                        normalized_path.startswith("/api/stac/")
+                        and normalized_path.count("/") == 3
+                    ) or (
+                        not normalized_path.startswith("/api/")
+                        and normalized_path.count("/") == 1
+                        and normalized_path != "/"
                     ):
                         logger.info(
                             f"Detected catalog root for original path: {original_path}"

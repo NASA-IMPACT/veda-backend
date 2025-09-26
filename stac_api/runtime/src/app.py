@@ -87,15 +87,22 @@ api = StacApi(
     router=APIRouter(route_class=LoggerRouteHandler),
 )
 
-app = configure_app(
-    api.app,
-    upstream_url=(api_settings.custom_host + (api_settings.root_path or "")),
-    oidc_discovery_url=str(auth_settings.openid_configuration_url),
-    oidc_discovery_internal_url=str(auth_settings.openid_configuration_url),
-    default_public=True,
-    root_path=api_settings.root_path,
-)
-
+if (
+    auth_settings.openid_configuration_url
+    and auth_settings.openid_configuration_internal_url
+):
+    # Use stac-auth-proxy when authentication is enabled, which it will be for production envs
+    app = configure_app(
+        api.app,
+        upstream_url=(api_settings.custom_host + (api_settings.root_path or "")),
+        oidc_discovery_url=str(auth_settings.openid_configuration_url),
+        oidc_discovery_internal_url=str(auth_settings.openid_configuration_url),
+        default_public=True,
+        root_path=api_settings.root_path,
+    )
+else:
+    # Use standard FastAPI app when authentication is disabled, for testing
+    app = api.app
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
@@ -140,6 +147,13 @@ if tiles_settings.titiler_endpoint:
     # Register to the TiTiler extension to the api
     extension = TiTilerExtension()
     extension.register(api.app, tiles_settings.titiler_endpoint)
+
+
+# Add health endpoint for testing
+@app.get("/_mgmt/ping")
+async def health_check():
+    """Health check endpoint for testing."""
+    return {"status": "ok", "message": "pong"}
 
 
 @app.get("/index.html", response_class=HTMLResponse)
