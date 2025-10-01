@@ -44,6 +44,7 @@ class ApiConstruct(Construct):
             "STAGE": config.stage,
             "CLIENT_ID": config.keycloak_ingest_api_client_id,
             "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
+            "GIT_SHA": config.git_sha,
         }
 
         build_api_lambda_params = {
@@ -236,6 +237,7 @@ class IngestorConstruct(Construct):
             "RASTER_URL": config.veda_raster_api_cf_url,
             "CLIENT_ID": config.keycloak_ingest_api_client_id,
             "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
+            "GIT_SHA": config.git_sha,
         }
 
         if config.raster_data_access_role_arn:

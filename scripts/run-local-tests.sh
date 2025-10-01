@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+# =================================================================
+#  Ensure all Python dependencies are installed
+# =================================================================
+echo "--- Installing all development dependencies ---"
+pip install -r ingest_api/runtime/requirements_dev.txt
+echo "--- Dependency installation complete ---"
+# =================================================================
+
 # Lint
 pre-commit run --all-files
 
