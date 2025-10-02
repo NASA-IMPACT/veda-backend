@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     stac_url: AnyHttpUrl = Field(description="URL of STAC API")
     root_path: Optional[str] = None
     stage: Optional[str] = Field(None, description="API stage")
+    git_sha: Optional[str] = Field(
+        "", description="Git SHA of the deployed service"
+    )  # default to str so that docker compose tests work
 
 
 settings = Settings()

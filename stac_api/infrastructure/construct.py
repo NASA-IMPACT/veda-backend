@@ -53,7 +53,9 @@ class StacApiLambdaConstruct(Construct):
             ),
             "DB_MIN_CONN_SIZE": "0",
             "DB_MAX_CONN_SIZE": "1",
+            "PYSTAC_STAC_VERSION_OVERRIDE": veda_stac_settings.pystac_stac_version_override,
             **{k.upper(): v for k, v in veda_stac_settings.env.items()},
+            "VEDA_STAC_GIT_SHA": veda_stac_settings.git_sha,
         }
 
         if veda_stac_settings.keycloak_stac_api_client_id is not None:

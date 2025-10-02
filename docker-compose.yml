@@ -33,7 +33,7 @@ services:
       - VEDA_STAC_ROOT_PATH=
       - VEDA_STAC_OPENID_CONFIGURATION_URL=https://example.com/.well-known/openid-configuration
       - VEDA_STAC_ENABLE_TRANSACTIONS=False
-
+      - VEDA_STAC_GIT_SHA=local123
     depends_on:
       - database
       - raster
@@ -88,6 +88,7 @@ services:
       # API Config
       - VEDA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
       - VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS=TRUE
+      - VEDA_RASTER_GIT_SHA=local123
 
 
     depends_on:
@@ -155,6 +156,7 @@ services:
       - STAC_URL=http://0.0.0.0:8081
       - USERPOOL_ID=us-west-2_123456789
       - CLIENT_ID=123456789
+      - GIT_SHA=local123
     ports:
       - "8083:8083"
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && python /asset/local.py"

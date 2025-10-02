@@ -90,6 +90,7 @@ class _ApiSettings(Settings):
     custom_host: Optional[str] = Field(
         "http://localhost:8081", description="Custom host URL"
     )
+    git_sha: Optional[str] = None
 
     @field_validator("cors_origins")
     @classmethod

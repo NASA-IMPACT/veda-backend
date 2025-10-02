@@ -17,7 +17,7 @@ from src.config import (
 from src.extension import TiTilerExtension
 from stac_auth_proxy import configure_app
 
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
@@ -28,8 +28,12 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 
 from .core import VedaCrudClient
+<<<<<<< HEAD
 from .monitoring import LoggerRouteHandler, logger, metrics, tracer
 from .tenant_filter_middleware import TenantFilterMiddleware
+=======
+from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
+>>>>>>> develop
 from .validation import ValidationMiddleware
 
 try:
@@ -129,6 +133,9 @@ async def viewer_page(request: Request):
         {"request": request, "endpoint": str(request.url).replace("/index.html", path)},
         media_type="text/html",
     )
+
+
+app.add_middleware(ObservabilityMiddleware)
 
 
 # If the correlation header is used in the UI, we can analyze traces that originate from a given user or client

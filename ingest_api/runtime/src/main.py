@@ -6,7 +6,7 @@ from src.auth import auth_settings, get_username, oidc_auth
 from src.collection_publisher import CollectionPublisher, ItemPublisher
 from src.config import settings
 from src.doc import DESCRIPTION
-from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
+from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
 
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
@@ -31,8 +31,6 @@ app = FastAPI(
         "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
     },
 )
-
-app.router.route_class = LoggerRouteHandler
 
 collection_publisher = CollectionPublisher()
 item_publisher = ItemPublisher()
@@ -215,6 +213,9 @@ def who_am_i(claims=Depends(oidc_auth.valid_token_dependency)):
     Return claims for the provided JWT
     """
     return claims
+
+
+app.add_middleware(ObservabilityMiddleware)
 
 
 # If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
