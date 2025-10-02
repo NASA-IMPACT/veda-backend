@@ -264,7 +264,7 @@ def override_jwks_client():
 @pytest.fixture(autouse=True)
 def mock_auth():
     """Mock the OpenIdConnectAuth class to bypass actual OIDC calls."""
-    with patch("eoapi.auth_utils.OpenIdConnectAuth") as mock:
+    with patch("stac_auth_proxy.middleware.EnforceAuthMiddleware") as mock:
         # Create a mock instance
         mock_instance = MagicMock()
         mock_instance.valid_token_dependency = override_validated_token
@@ -308,11 +308,15 @@ async def api_client(app):
     Yields:
         TestClient: The TestClient instance for API testing.
     """
-    from src.app import oidc_auth
+    try:
+        from src.app import oidc_auth
 
-    app.dependency_overrides[
-        oidc_auth.valid_token_dependency
-    ] = override_validated_token
+        app.dependency_overrides[
+            oidc_auth.valid_token_dependency
+        ] = override_validated_token
+    except (ImportError, AttributeError):
+        # stac auth proxy is disabled, no need to override dependencies
+        pass
     base_url = "http://test"
 
     async with AsyncClient(
