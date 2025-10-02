@@ -158,12 +158,6 @@ async def add_correlation_id(request: Request, call_next):
     return response
 
 
-@app.get("/_mgmt/ping")
-async def health_check():
-    """Health check endpoint for testing."""
-    return {"status": "ok", "message": "pong"}
-
-
 @app.exception_handler(Exception)
 async def validation_exception_handler(request, err):
     """Handle exceptions that aren't caught elsewhere"""
