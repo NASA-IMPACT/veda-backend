@@ -83,7 +83,7 @@ api = StacApi(
     middlewares=[Middleware(ValidationMiddleware), Middleware(TenantFilterMiddleware)],
 )
 
-if api_settings.openid_configuration_url:
+if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy:
     # Use stac-auth-proxy when authentication is enabled, which it will be for production envs
     app = configure_app(
         api.app,

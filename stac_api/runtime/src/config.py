@@ -85,6 +85,9 @@ class _ApiSettings(Settings):
     enable_transactions: bool = Field(
         False, description="Whether to enable transactions"
     )
+    enable_stac_auth_proxy: bool = Field(
+        False, description="Whether to enable STAC Auth Proxy"
+    )
     swagger_ui_endpoint: str = "/docs"
     openapi_spec_endpoint: str = "/openapi.json"
     custom_host: Optional[str] = Field(
