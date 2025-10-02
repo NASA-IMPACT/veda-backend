@@ -1,12 +1,8 @@
 """Observability middleware for logging and tracing requests."""
 import json
-<<<<<<< HEAD
 import logging
-from typing import Callable
-=======
 import time
 from typing import Callable, Optional
->>>>>>> develop
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricResolution, MetricUnit

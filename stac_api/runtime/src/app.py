@@ -28,12 +28,8 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 
 from .core import VedaCrudClient
-<<<<<<< HEAD
-from .monitoring import LoggerRouteHandler, logger, metrics, tracer
-from .tenant_filter_middleware import TenantFilterMiddleware
-=======
 from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
->>>>>>> develop
+from .tenant_filter_middleware import TenantFilterMiddleware
 from .validation import ValidationMiddleware
 
 try:
@@ -85,7 +81,6 @@ api = StacApi(
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
     middlewares=[Middleware(ValidationMiddleware), Middleware(TenantFilterMiddleware)],
-    router=APIRouter(route_class=LoggerRouteHandler),
 )
 
 if api_settings.openid_configuration_url:
