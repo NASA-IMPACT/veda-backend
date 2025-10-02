@@ -26,6 +26,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
+from starlette_cramjam.middleware import CompressionMiddleware
 
 from .core import VedaCrudClient
 from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
@@ -100,7 +101,9 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
     )
 else:
     # Use standard FastAPI app when authentication is disabled, for testing
+    # and add compression middleware since stac-auth-proxy provides it when enabled
     app = api.app
+    app.add_middleware(CompressionMiddleware)
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
