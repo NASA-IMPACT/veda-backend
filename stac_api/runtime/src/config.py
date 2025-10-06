@@ -83,10 +83,12 @@ class _ApiSettings(Settings):
         None, description="OpenID config url"
     )
     enable_transactions: bool = Field(
-        False, description="Whether to enable transactions"
+        False,
+        description="Whether to enable transactions. If True, set enable_stac_auth_proxy to True.",
     )
     enable_stac_auth_proxy: bool = Field(
-        False, description="Whether to enable STAC Auth Proxy"
+        False,
+        description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
     )
     swagger_ui_endpoint: str = "/docs"
     openapi_spec_endpoint: str = "/openapi.json"
