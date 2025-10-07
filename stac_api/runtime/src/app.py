@@ -93,11 +93,6 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
         oidc_discovery_url=str(api_settings.openid_configuration_url),
         openapi_spec_endpoint=api_settings.openapi_spec_endpoint,
         root_path=api_settings.root_path,
-        swagger_ui_endpoint=api_settings.swagger_ui_endpoint,
-        swagger_ui_init_oauth={
-            "clientId": api_settings.client_id,
-            "usePkceWithAuthorizationCodeGrant": True,
-        },
     )
 else:
     # Use standard FastAPI app when authentication is disabled, for testing
