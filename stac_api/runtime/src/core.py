@@ -51,17 +51,20 @@ class VedaCrudClient(CoreCrudClient):
 
                 render_params = collection.get("renders", {})
 
-                item_collection = ItemCollection(
-                    **{
-                        **result,
-                        "features": [
-                            self.inject_item_links(
-                                i, render_params.get("dashboard", {}), request
-                            )
-                            for i in result.get("features", [])
-                        ],
-                    }
-                )
+                if "dashboard" in render_params:
+                    item_collection = ItemCollection(
+                        **{
+                            **result,
+                            "features": [
+                                self.inject_item_links(
+                                    i, render_params["dashboard"], request
+                                )
+                                for i in result.get("features", [])
+                            ],
+                        }
+                    )
+                else:
+                    item_collection = result
             except Exception:
                 item_collection = result
 
