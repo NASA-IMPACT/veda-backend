@@ -1,5 +1,5 @@
 """A module for injecting links to STAC entries"""
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from urllib.parse import urljoin
 
 import pystac
