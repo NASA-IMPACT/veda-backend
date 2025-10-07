@@ -323,7 +323,11 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
     ):
         """This function rewrites response content to include tenant in URLs if tenant was passed in"""
         try:
-            if response.headers.get("content-type", "").startswith("application/json"):
+            content_type = response.headers.get("content-type", "")
+            if content_type.startswith("application/json") or content_type.startswith(
+                "application/geo+json"
+            ):
+                logger.info("Processing JSON response for URL rewriting")
                 body = b""
                 async for chunk in response.body_iterator:
                     body += chunk
@@ -348,6 +352,7 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
 
                     logger.info(f"Rewriting response for tenant: {tenant}")
                     rewritten_data = self._rewrite_json_urls(data, tenant)
+                    logger.info(f"URL rewriting completed for tenant: {tenant}")
                     logger.info(
                         f"Rewritten data is: {json.dumps(rewritten_data, indent=2)}"
                     )
@@ -373,10 +378,12 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
 
     def _rewrite_json_urls(self, data, tenant: str):
         """Recursively rewrites URLs in JSON data to include tenant in the url"""
+        logger.info(f"_rewrite_json_urls called with tenant: {tenant}")
         if isinstance(data, dict):
             rewritten = {}
             for key, value in data.items():
                 if key == "href" and isinstance(value, str):
+                    logger.info(f"Found href field: {key} = {value}")
                     # Rewrite href URLs to include tenant
                     rewritten[key] = self._add_tenant_to_url(value, tenant)
                 else:
@@ -392,6 +399,7 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
         try:
             parsed = urlparse(url)
             logger.info(f"Rewriting URL: {url} with tenant: {tenant}")
+            logger.info(f"URL path is: {parsed.path}")
 
             # Check if this is a STAC API URL that needs tenant rewriting
             if "/api/stac/" in parsed.path:
@@ -412,7 +420,6 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
                         parsed.fragment,
                     )
                 )
-                logger.info(f"Rewritten URL us: {new_url}")
                 return new_url
             elif parsed.path.startswith("/collections") or parsed.path.startswith(
                 "/search"
