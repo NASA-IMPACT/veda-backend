@@ -19,8 +19,12 @@ class VedaCrudClient(CoreCrudClient):
     ) -> Item:
         """Add extra/non-mandatory links to an Item"""
         collection_id = item.get("collection", "")
+        tenant = getattr(request.state, "tenant", None) if request else None
+
         if collection_id:
-            LinkInjector(collection_id, render_params, request).inject_item(item)
+            LinkInjector(collection_id, render_params, request, tenant).inject_item(
+                item
+            )
 
         return item
 
@@ -50,20 +54,17 @@ class VedaCrudClient(CoreCrudClient):
 
                 render_params = collection.get("renders", {})
 
-                if "dashboard" in render_params:
-                    item_collection = ItemCollection(
-                        **{
-                            **result,
-                            "features": [
-                                self.inject_item_links(
-                                    i, render_params["dashboard"], request
-                                )
-                                for i in result.get("features", [])
-                            ],
-                        }
-                    )
-                else:
-                    item_collection = result
+                item_collection = ItemCollection(
+                    **{
+                        **result,
+                        "features": [
+                            self.inject_item_links(
+                                i, render_params.get("dashboard", {}), request
+                            )
+                            for i in result.get("features", [])
+                        ],
+                    }
+                )
             except Exception:
                 item_collection = result
 

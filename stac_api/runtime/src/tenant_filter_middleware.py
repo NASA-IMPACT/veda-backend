@@ -120,6 +120,7 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
             )
 
             request.state.tenant_context = tenant_context
+            request.state.tenant = tenant
 
             if tenant:
                 logger.info(
@@ -136,13 +137,19 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
 
             if tenant_context:
+                logger.info(f"Tenant context exists: {tenant_context.tenant_id}")
                 response.headers["X-Tenant-ID"] = tenant_context.tenant_id
                 if tenant_context.request_id:
                     response.headers["X-Request-ID"] = tenant_context.request_id
 
+                logger.info(
+                    f"Calling rewrite response for tenant: {tenant_context.tenant_id}"
+                )
                 response = await self._rewrite_response_content(
                     response, tenant_context.tenant_id, str(request.url), original_path
                 )
+            else:
+                logger.info("No tenant context - skipping rewrite")
 
             return response
 
@@ -177,6 +184,34 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
             # Validate tenant parameter
             if not tenant or not tenant.strip():
                 logger.warning("Empty tenant provided for filtering")
+                return request
+
+            # Skip filtering for items endpoints to allow proper tenant link injection
+            if "/items" in parsed_url.path:
+                logger.info(
+                    f"Skipping CQL2 filter for items endpoint: {parsed_url.path}"
+                )
+                # But still rewrite the URL to remove tenant from path
+                if parsed_url.path.startswith(f"/api/stac/{tenant}/"):
+                    # example /api/stac/{tenant}/collections -> /api/stac/collections
+                    new_path = parsed_url.path.replace(
+                        f"/api/stac/{tenant}/", "/api/stac/"
+                    )
+                elif parsed_url.path.startswith(f"/{tenant}/"):
+                    # example /{tenant}/collections -> /collections
+                    new_path = parsed_url.path.replace(f"/{tenant}/", "/")
+                elif parsed_url.path == f"/{tenant}":
+                    # example /{tenant} -> / (root path)
+                    new_path = "/"
+                else:
+                    new_path = parsed_url.path
+
+                logger.info(f"TENANT MIDDLEWARE original path: {parsed_url.path}")
+                logger.info(f"TENANT MIDDLEWARE new path: {new_path}")
+                logger.info(f"TENANT MIDDLEWARE tenant: {tenant}")
+
+                request.scope["path"] = new_path
+                request.scope["raw_path"] = new_path.encode()
                 return request
 
             tenant_filter_text = f"dashboard:tenant = '{tenant}'"
@@ -311,7 +346,11 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
                                 data, tenant, base_url
                             )
 
+                    logger.info(f"Rewriting response for tenant: {tenant}")
                     rewritten_data = self._rewrite_json_urls(data, tenant)
+                    logger.info(
+                        f"Rewritten data is: {json.dumps(rewritten_data, indent=2)}"
+                    )
                     rewritten_body = json.dumps(rewritten_data).encode()
 
                     headers = dict(response.headers)
@@ -352,12 +391,18 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
         """Add tenant to URL if it is a STAC API URL"""
         try:
             parsed = urlparse(url)
+            logger.info(f"Rewriting URL: {url} with tenant: {tenant}")
 
             # Check if this is a STAC API URL that needs tenant rewriting
             if "/api/stac/" in parsed.path:
+                # Check if tenant is already in the URL path
+                if f"/{tenant}/" in parsed.path:
+                    logger.info(f"Tenant {tenant} already in URL, skipping rewrite")
+                    return url
+
                 # Rewrite /api/stac/collections -> /api/stac/{tenant}/collections
                 new_path = parsed.path.replace("/api/stac/", f"/api/stac/{tenant}/")
-                return urlunparse(
+                new_url = urlunparse(
                     (
                         parsed.scheme,
                         parsed.netloc,
@@ -367,6 +412,8 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
                         parsed.fragment,
                     )
                 )
+                logger.info(f"Rewritten URL us: {new_url}")
+                return new_url
             elif parsed.path.startswith("/collections") or parsed.path.startswith(
                 "/search"
             ):

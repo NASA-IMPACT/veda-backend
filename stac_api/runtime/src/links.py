@@ -1,9 +1,9 @@
 """A module for injecting links to STAC entries"""
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from urllib.parse import urljoin
 
 import pystac
-from src.config import TilesApiSettings
+from src.config import TENANT_ITEM_LINK_TEMPLATES, TilesApiSettings
 
 from fastapi import Request
 from stac_fastapi.types.stac import Item
@@ -32,6 +32,7 @@ class LinkInjector:
         collection_id: str,
         render_params: Dict[str, Any],
         request: Request,
+        tenant: Optional[str] = None,
     ) -> None:
         """Initialize a LinkInjector"""
 
@@ -40,6 +41,7 @@ class LinkInjector:
         self.collection_id = collection_id
         self.render_config = get_render_config(render_params)
         self.tiler_href = tiles_settings.titiler_endpoint or ""
+        self.tenant = tenant
 
     def inject_item(self, item: Item) -> None:
         """Inject rendering links to an item"""
@@ -50,6 +52,10 @@ class LinkInjector:
             item["assets"]["rendered_preview"] = self._get_item_preview_link(
                 item_id, self.collection_id
             )
+
+        # If tenant is provided, add tenant links
+        if self.tenant:
+            self._inject_tenant_links(item, item_id)
 
     def _get_item_map_link(self, item_id: str, collection_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs()
@@ -81,3 +87,29 @@ class LinkInjector:
             "roles": ["overview"],
             "type": pystac.MediaType.PNG,
         }
+
+    def _inject_tenant_links(self, item: Item, item_id: str) -> None:
+        """Inject tenant links to an item"""
+        tenant_links = self._build_tenant_item_links(item_id)
+        item["links"].extend(tenant_links)
+
+    def _build_tenant_item_links(self, item_id: str) -> list:
+        """Build tenant links for an item using tenant item link template"""
+        if not self.tenant:
+            return []
+
+        tenant_links = []
+
+        for template in TENANT_ITEM_LINK_TEMPLATES:
+            link = {
+                "rel": template["rel"],
+                "type": template["type"],
+                "href": template["href_template"].format(
+                    tenant=self.tenant,
+                    item_id=item_id,
+                    collection_id=self.collection_id,
+                ),
+            }
+            tenant_links.append(link)
+
+        return tenant_links

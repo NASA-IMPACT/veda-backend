@@ -156,6 +156,30 @@ def TilesApiSettings() -> _TilesApiSettings:
     return _TilesApiSettings()
 
 
+TENANT_ITEM_LINK_TEMPLATES = [
+    {
+        "rel": "self",
+        "type": "application/geo+json",
+        "href_template": "/{tenant}/collections/{collection_id}/items",
+    },
+    {
+        "rel": "parent",
+        "type": "application/json",
+        "href_template": "/{tenant}/collections/{collection_id}",
+    },
+    {
+        "rel": "collection",
+        "type": "application/json",
+        "href_template": "/{tenant}/collections/{collection_id}",
+    },
+    {
+        "rel": "root",
+        "type": "application/json",
+        "href_template": "/{tenant}/",
+    },
+]
+
+
 # stac-fastapi-pgstac app.py example for configuring extensions https://github.com/stac-utils/stac-fastapi-pgstac/blob/5.0.3/stac_fastapi/pgstac/app.py
 application_extensions = []
 
