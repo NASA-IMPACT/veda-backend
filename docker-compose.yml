@@ -13,7 +13,7 @@ services:
       - PORT=8081
       - ENVIRONMENT=local
       # https://github.com/tiangolo/uvicorn-gunicorn-docker#web_concurrency
-      - WEB_CONCURRENCY=10
+      - WEB_CONCURRENCY=1
       # https://github.com/tiangolo/uvicorn-gunicorn-docker#workers_per_core
       # - WORKERS_PER_CORE=1
       # https://github.com/tiangolo/uvicorn-gunicorn-docker#max_workers
