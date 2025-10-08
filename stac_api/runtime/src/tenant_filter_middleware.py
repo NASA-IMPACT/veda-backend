@@ -166,7 +166,8 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
         if path.startswith("/api/stac/"):
             path_parts = path.replace("/api/stac/", "").split("/")
             if path_parts and path_parts[0]:
-                return path_parts[0]
+                tenant = path_parts[0]
+                return tenant
         elif path.startswith("/") and not path.startswith("/api/stac/"):
             # Local development: /{tenant}/collections
             path_parts = path.lstrip("/").split("/")
@@ -186,62 +187,74 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
                 logger.warning("Empty tenant provided for filtering")
                 return request
 
-            # Skip filtering for items endpoints to allow proper tenant link injection
-            if "/items" in parsed_url.path:
-                logger.info(
-                    f"Skipping CQL2 filter for items endpoint: {parsed_url.path}"
-                )
-                # But still rewrite the URL to remove tenant from path
-                if parsed_url.path.startswith(f"/api/stac/{tenant}/"):
-                    # example /api/stac/{tenant}/collections -> /api/stac/collections
-                    new_path = parsed_url.path.replace(
-                        f"/api/stac/{tenant}/", "/api/stac/"
-                    )
-                elif parsed_url.path.startswith(f"/{tenant}/"):
-                    # example /{tenant}/collections -> /collections
-                    new_path = parsed_url.path.replace(f"/{tenant}/", "/")
-                elif parsed_url.path == f"/{tenant}":
-                    # example /{tenant} -> / (root path)
-                    new_path = "/"
-                else:
-                    new_path = parsed_url.path
+            # Skip filtering for items endpoints and root tenant URLs to allow proper tenant link injection
+            if "/items" in parsed_url.path or self._is_root_tenant_url(
+                parsed_url.path, tenant
+            ):
+                return self._rewrite_url_without_filtering(request, parsed_url, tenant)
 
-                logger.info(f"TENANT MIDDLEWARE original path: {parsed_url.path}")
-                logger.info(f"TENANT MIDDLEWARE new path: {new_path}")
-                logger.info(f"TENANT MIDDLEWARE tenant: {tenant}")
+            # Apply CQL2 filtering for other endpoints
+            return self._apply_cql2_filtering(request, parsed_url, tenant, query_params)
 
-                request.scope["path"] = new_path
-                request.scope["raw_path"] = new_path.encode()
-                return request
-
-            tenant_filter_text = f"dashboard:tenant = '{tenant}'"
-
-            if "filter" in query_params:
-                existing_filter = query_params["filter"][0]
-                combined_filter = f"({existing_filter}) AND ({tenant_filter_text})"
-                query_params["filter"] = [combined_filter]
-            else:
-                query_params["filter"] = [tenant_filter_text]
-
-            query_params["filter-lang"] = ["cql2-text"]
-
-            new_query = urlencode(query_params, doseq=True)
         except Exception as e:
             logger.error(f"Error adding tenant filter: {str(e)}")
             return request
 
-        # handle URL rewriting for both root path and non root path environments
-        if parsed_url.path.startswith(f"/api/stac/{tenant}/"):
+    def _rewrite_url_without_filtering(
+        self, request: Request, parsed_url, tenant: str
+    ) -> Request:
+        """Rewrite URL without CQL2 filtering for items endpoint and root tenant URLs"""
+        logger.info(f"Skipping CQL2 filter for endpoint: {parsed_url.path}")
+
+        new_path = self._get_rewritten_path(parsed_url.path, tenant)
+
+        # Handle trailing slash by removing it to prevent redirects except for root paths
+        if new_path.endswith("/") and new_path not in ["/", "/api/stac/"]:
+            new_path = new_path.rstrip("/")
+
+        request.scope["path"] = new_path
+        request.scope["raw_path"] = new_path.encode()
+        return request
+
+    def _get_rewritten_path(self, path: str, tenant: str) -> str:
+        """Get the rewritten path after removing tenant from the path"""
+        if path.startswith(f"/api/stac/{tenant}/"):
             # example /api/stac/{tenant}/collections -> /api/stac/collections
-            new_path = parsed_url.path.replace(f"/api/stac/{tenant}/", "/api/stac/")
-        elif parsed_url.path.startswith(f"/{tenant}/"):
+            return path.replace(f"/api/stac/{tenant}/", "/api/stac/")
+        elif path.startswith(f"/{tenant}/"):
             # example /{tenant}/collections -> /collections
-            new_path = parsed_url.path.replace(f"/{tenant}/", "/")
-        elif parsed_url.path == f"/{tenant}":
-            # example /{tenant} -> / (root path)
-            new_path = "/"
+            return path.replace(f"/{tenant}/", "/")
+        elif path == f"/api/stac/{tenant}" or path == f"/api/stac/{tenant}/":
+            # Root tenant URLs: /api/stac/{tenant} or /api/stac/{tenant}/ -> /api/stac/
+            return "/api/stac/"
+        elif path == f"/{tenant}" or path == f"/{tenant}/":
+            # Local development root tenant URLs: /{tenant} or /{tenant}/ -> /
+            return "/"
         else:
-            new_path = parsed_url.path
+            return path
+
+    def _apply_cql2_filtering(
+        self, request: Request, parsed_url, tenant: str, query_params
+    ) -> Request:
+        """Apply CQL2 filtering to the request"""
+        tenant_filter_text = f"dashboard:tenant = '{tenant}'"
+
+        if "filter" in query_params:
+            existing_filter = query_params["filter"][0]
+            combined_filter = f"({existing_filter}) AND ({tenant_filter_text})"
+            query_params["filter"] = [combined_filter]
+        else:
+            query_params["filter"] = [tenant_filter_text]
+
+        query_params["filter-lang"] = ["cql2-text"]
+        new_query = urlencode(query_params, doseq=True)
+
+        # Handle URL rewriting for both root path and non root path environments
+        new_path = self._get_rewritten_path(parsed_url.path, tenant)
+
+        # Handle trailing slash by removing it to prevent redirects
+        if new_path.endswith("/") and new_path != "/":
+            new_path = new_path.rstrip("/")
 
         logger.info(f"TENANT MIDDLEWARE Original path: {parsed_url.path}")
         logger.info(f"TENANT MIDDLEWARE New path: {new_path}")
@@ -267,6 +280,16 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
         request.scope["query_string"] = new_url_obj.query.encode()
 
         return request
+
+    def _is_root_tenant_url(self, path: str, tenant: str) -> bool:
+        """Check if the URL is a root tenant URL that should skip CQL2 filtering"""
+        # Check for root tenant URLs like /api/stac/{tenant} or /api/stac/{tenant}/
+        if path == f"/api/stac/{tenant}" or path == f"/api/stac/{tenant}/":
+            return True
+        # Check for local development which doesn't have root path like /{tenant} or /{tenant}/
+        elif path == f"/{tenant}" or path == f"/{tenant}/":
+            return True
+        return False
 
     def _should_skip_tenant_processing(self, request: Request) -> bool:
         """Check if tenant processing should be skipped for this request"""
