@@ -30,8 +30,10 @@ from starlette_cramjam.middleware import CompressionMiddleware
 
 from .core import VedaCrudClient
 from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
-from .tenant_filter_middleware import TenantFilterMiddleware
-from .validation import ValidationMiddleware
+from .tenant_extraction_middleware import TenantExtractionMiddleware
+from .tenant_links_middleware import TenantLinksMiddleware
+
+# from .validation import ValidationMiddleware
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -81,7 +83,11 @@ api = StacApi(
     collections_get_request_model=collections_get_request_model,
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
-    middlewares=[Middleware(ValidationMiddleware), Middleware(TenantFilterMiddleware)],
+    middlewares=[
+        # Middleware(ValidationMiddleware),
+        Middleware(TenantExtractionMiddleware, root_path=api_settings.root_path),
+        Middleware(TenantLinksMiddleware, root_path=api_settings.root_path),
+    ],
 )
 
 if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy:
