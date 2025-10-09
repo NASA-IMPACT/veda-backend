@@ -97,6 +97,11 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
         upstream_url=(api_settings.custom_host + (api_settings.root_path or "")),
         default_public=True,
         oidc_discovery_url=str(api_settings.openid_configuration_url),
+        oidc_discovery_internal_url=(
+            str(api_settings.openid_configuration_internal_url)
+            if api_settings.openid_configuration_internal_url
+            else None
+        ),
         openapi_spec_endpoint=api_settings.openapi_spec_endpoint,
         root_path=api_settings.root_path,
     )

@@ -82,6 +82,9 @@ class _ApiSettings(Settings):
     openid_configuration_url: Optional[AnyHttpUrl] = Field(
         None, description="OpenID config url"
     )
+    openid_configuration_internal_url: Optional[AnyHttpUrl] = Field(
+        None, description="OpenID config url"
+    )
     enable_transactions: bool = Field(
         False,
         description="Whether to enable transactions. If True, set enable_stac_auth_proxy to True.",
