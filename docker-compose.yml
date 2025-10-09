@@ -43,7 +43,7 @@ services:
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
-
+      - ./stac_api/runtime/src:/opt/bitnami/python/lib/python3.12/site-packages/src/
 
   raster:
     container_name: veda.raster
