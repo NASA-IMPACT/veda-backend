@@ -103,12 +103,13 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
         ),
         openapi_spec_endpoint=api_settings.openapi_spec_endpoint,
         root_path=api_settings.root_path,
+        enable_compression=False,
     )
 else:
-    # Use standard FastAPI app when authentication is disabled, for testing
-    # and add compression middleware since stac-auth-proxy provides it when enabled
+    # Use standard FastAPI app when authentication is disabled
     app = api.app
-    app.add_middleware(CompressionMiddleware)
+
+app.add_middleware(CompressionMiddleware)
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
