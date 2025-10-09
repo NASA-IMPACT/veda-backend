@@ -101,6 +101,13 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
         ),
         openapi_spec_endpoint=api_settings.openapi_spec_endpoint,
         root_path=api_settings.root_path,
+        collections_filter={"cls": "src.filters:CollectionFilter"},
+        items_filter={
+            "cls": "src.filters:ItemFilter",
+            "kwargs": {
+                "api_url": api_settings.custom_host + (api_settings.root_path or ""),
+            },
+        },
         enable_compression=False,
     )
 else:

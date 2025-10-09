@@ -34,7 +34,7 @@ services:
       - VEDA_STAC_OPENID_CONFIGURATION_URL=https://example.com/.well-known/openid-configuration
       - VEDA_STAC_ENABLE_TRANSACTIONS=False
       - VEDA_STAC_GIT_SHA=local123
-      - VEDA_STAC_ENABLE_AUTH_PROXY=False
+      - VEDA_STAC_ENABLE_STAC_AUTH_PROXY=True
     depends_on:
       - database
       - raster
