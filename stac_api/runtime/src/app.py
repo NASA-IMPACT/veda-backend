@@ -84,8 +84,6 @@ api = StacApi(
     response_class=ORJSONResponse,
     middlewares=[
         Middleware(ValidationMiddleware),
-        Middleware(TenantExtractionMiddleware, root_path=api_settings.root_path),
-        Middleware(TenantLinksMiddleware, root_path=api_settings.root_path),
     ],
 )
 
@@ -109,6 +107,9 @@ else:
     # Use standard FastAPI app when authentication is disabled
     app = api.app
 
+# Note: we want this to be added after stac_auth_proxy so that it runs before stac_auth_proxy's middleware
+app.add_middleware(TenantExtractionMiddleware, root_path=api_settings.root_path)
+app.add_middleware(TenantLinksMiddleware, root_path=api_settings.root_path)
 app.add_middleware(CompressionMiddleware)
 
 # Set all CORS enabled origins
