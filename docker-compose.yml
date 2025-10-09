@@ -93,7 +93,6 @@ services:
       - VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS=TRUE
       - VEDA_RASTER_GIT_SHA=local123
 
-
     depends_on:
       - database
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
@@ -168,12 +167,12 @@ services:
       - $HOME/.aws/credentials:/root/.aws/credentials
 
   dynamodb:
-    image:  amazon/dynamodb-local
+    image: amazon/dynamodb-local
     container_name: veda.dynamodb
     hostname: dynamodb
     restart: always
     volumes:
-      -  ./dynamodb-data:/home/dynamodblocal/data
+      - ./dynamodb-data:/home/dynamodblocal/data
     ports:
       - 8085:8000 # skip 8084 for github actions to work
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
