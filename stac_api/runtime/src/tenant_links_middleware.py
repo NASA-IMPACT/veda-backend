@@ -61,12 +61,12 @@ class TenantLinksMiddleware(JsonResponseMiddleware):
     def _update_link(self, link: dict[str, Any], tenant: str) -> None:
         """Update link to include tenant."""
         url_parsed = urlparse(link["href"])
-        logger.info("Updating link %r to include tenant %r", link["href"], tenant)
+        logger.debug("Updating link %r to include tenant %r", link["href"], tenant)
         # /api/stac/collections -> /collections
         path_without_root_path = url_parsed.path[len(self.root_path) :]
         # /collections -> /api/stac/{tenant}/collections
         url_parsed = url_parsed._replace(
             path=f"{self.root_path}/{tenant}{path_without_root_path}"
         )
-        logger.info("Updating link %r to %r", link["href"], urlunparse(url_parsed))
+        logger.debug("Updating link %r to %r", link["href"], urlunparse(url_parsed))
         link["href"] = urlunparse(url_parsed)
