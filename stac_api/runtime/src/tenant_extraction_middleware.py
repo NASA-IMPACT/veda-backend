@@ -80,7 +80,7 @@ class TenantExtractionMiddleware:
             },
         )
 
-        logger.debug("Removing tenant from path %r", request.url.path)
+        logger.debug("Removing tenant %s from path %r", tenant, request.url.path)
         scope["path"] = self._remove_tenant_from_path(request.url.path, tenant)
         logger.debug("New path is %s", scope["path"])
 
@@ -88,7 +88,11 @@ class TenantExtractionMiddleware:
 
     def _extract_tenant_from_path(self, request: Request) -> Optional[str]:
         """Extracts the tenant identifier from the URL"""
-        path = request.url.path[len(self.root_path) :]
+        path = (
+            request.url.path[len(self.root_path) :]
+            if request.url.path.startswith(self.root_path)
+            else request.url.path
+        )
         logger.info("Attempting to extract tenant from request path %s", path)
 
         # 1. test if first portion of path is in array of known endpoints
@@ -106,4 +110,8 @@ class TenantExtractionMiddleware:
 
     def _remove_tenant_from_path(self, path: str, tenant: str) -> str:
         """Remove the tenant from the path"""
-        return path[len(f"{self.root_path}/{tenant}") :]
+        return (
+            self.root_path + path[len(f"{self.root_path}/{tenant}") :]
+            if path.startswith(f"{self.root_path}/{tenant}")
+            else path[len(f"/{tenant}") :]
+        )
