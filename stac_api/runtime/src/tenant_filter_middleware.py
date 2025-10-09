@@ -303,6 +303,8 @@ class TenantFilterMiddleware(BaseHTTPMiddleware):
                 return True
 
             path_parts = path.replace("/api/stac/", "").split("/")
+        elif path == "/api/stac":
+            return True
         else:
             path_parts = path.lstrip("/").split("/")
 
