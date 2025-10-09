@@ -32,8 +32,7 @@ from .core import VedaCrudClient
 from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
 from .tenant_extraction_middleware import TenantExtractionMiddleware
 from .tenant_links_middleware import TenantLinksMiddleware
-
-# from .validation import ValidationMiddleware
+from .validation import ValidationMiddleware
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -84,7 +83,7 @@ api = StacApi(
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
     middlewares=[
-        # Middleware(ValidationMiddleware),
+        Middleware(ValidationMiddleware),
         Middleware(TenantExtractionMiddleware, root_path=api_settings.root_path),
         Middleware(TenantLinksMiddleware, root_path=api_settings.root_path),
     ],
