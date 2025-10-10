@@ -13,7 +13,7 @@ services:
       - PORT=8081
       - ENVIRONMENT=local
       # https://github.com/tiangolo/uvicorn-gunicorn-docker#web_concurrency
-      - WEB_CONCURRENCY=10
+      - WEB_CONCURRENCY=1
       # https://github.com/tiangolo/uvicorn-gunicorn-docker#workers_per_core
       # - WORKERS_PER_CORE=1
       # https://github.com/tiangolo/uvicorn-gunicorn-docker#max_workers
@@ -30,18 +30,20 @@ services:
       # https://github.com/developmentseed/eoAPI/issues/16
       # - TITILER_ENDPOINT=raster
       - TITILER_ENDPOINT=http://0.0.0.0:8082
-      - VEDA_STAC_ROOT_PATH=
-      - VEDA_STAC_OPENID_CONFIGURATION_URL=https://example.com/.well-known/openid-configuration
+      - VEDA_STAC_ROOT_PATH=/api/stac
+      - VEDA_STAC_OPENID_CONFIGURATION_URL=http://localhost:8888/.well-known/openid-configuration
+      - VEDA_STAC_OPENID_CONFIGURATION_INTERNAL_URL=http://oidc:8888/.well-known/openid-configuration
       - VEDA_STAC_ENABLE_TRANSACTIONS=False
       - VEDA_STAC_GIT_SHA=local123
-      - VEDA_STAC_ENABLE_AUTH_PROXY=False
+      - VEDA_STAC_ENABLE_STAC_AUTH_PROXY=True
     depends_on:
       - database
       - raster
+      - oidc
     command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
-
+      - ./stac_api/runtime/src:/opt/bitnami/python/lib/python3.12/site-packages/src/
 
   raster:
     container_name: veda.raster
@@ -90,7 +92,6 @@ services:
       - VEDA_RASTER_ENABLE_MOSAIC_SEARCH=TRUE
       - VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS=TRUE
       - VEDA_RASTER_GIT_SHA=local123
-
 
     depends_on:
       - database
@@ -166,16 +167,24 @@ services:
       - $HOME/.aws/credentials:/root/.aws/credentials
 
   dynamodb:
-    image:  amazon/dynamodb-local
+    image: amazon/dynamodb-local
     container_name: veda.dynamodb
     hostname: dynamodb
     restart: always
     volumes:
-      -  ./dynamodb-data:/home/dynamodblocal/data
+      - ./dynamodb-data:/home/dynamodblocal/data
     ports:
       - 8085:8000 # skip 8084 for github actions to work
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
 
+  oidc:
+    image: ghcr.io/alukach/mock-oidc-server:latest
+    environment:
+      ISSUER: http://localhost:8888
+      SCOPES: item:create,item:update,item:delete,collection:create,collection:update,collection:delete
+      PORT: 8888
+    ports:
+      - "8888:8888"
 
 networks:
   default:

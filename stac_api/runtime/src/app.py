@@ -29,8 +29,11 @@ from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from .core import VedaCrudClient
+from .filters import CollectionFilter, ItemFilter
 from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
-from .tenant_filter_middleware import TenantFilterMiddleware
+from .prefix_redirect_middleware import PrefixRedirectMiddleware
+from .tenant_extraction_middleware import TenantExtractionMiddleware
+from .tenant_links_middleware import TenantLinksMiddleware
 from .validation import ValidationMiddleware
 
 try:
@@ -81,7 +84,10 @@ api = StacApi(
     collections_get_request_model=collections_get_request_model,
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
-    middlewares=[Middleware(ValidationMiddleware), Middleware(TenantFilterMiddleware)],
+    middlewares=[
+        Middleware(ValidationMiddleware),
+        Middleware(PrefixRedirectMiddleware),
+    ],
 )
 
 if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy:
@@ -91,14 +97,32 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
         upstream_url=(api_settings.custom_host + (api_settings.root_path or "")),
         default_public=True,
         oidc_discovery_url=str(api_settings.openid_configuration_url),
+        oidc_discovery_internal_url=(
+            str(api_settings.openid_configuration_internal_url)
+            if api_settings.openid_configuration_internal_url
+            else None
+        ),
         openapi_spec_endpoint=api_settings.openapi_spec_endpoint,
         root_path=api_settings.root_path,
+        collections_filter={
+            "cls": f"{CollectionFilter.__module__}:{CollectionFilter.__name__}"
+        },
+        items_filter={
+            "cls": f"{ItemFilter.__module__}:{ItemFilter.__name__}",
+            "kwargs": {
+                "api_url": api_settings.custom_host + (api_settings.root_path or ""),
+            },
+        },
+        enable_compression=False,
     )
 else:
-    # Use standard FastAPI app when authentication is disabled, for testing
-    # and add compression middleware since stac-auth-proxy provides it when enabled
+    # Use standard FastAPI app when authentication is disabled
     app = api.app
-    app.add_middleware(CompressionMiddleware)
+
+# Note: we want this to be added after stac_auth_proxy so that it runs before stac_auth_proxy's middleware
+app.add_middleware(TenantExtractionMiddleware, root_path=api_settings.root_path)
+app.add_middleware(TenantLinksMiddleware, root_path=api_settings.root_path)
+app.add_middleware(CompressionMiddleware)
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
