@@ -17,10 +17,10 @@ This module adds search options to collections GET method
 
 """
 
-
-collections_endpoint = "/collections"
-items_endpoint = "/collections/{}/items"
-bulk_endpoint = "/collections/{}/bulk_items"
+root_path = "api/stac"
+collections_endpoint = root_path + "/collections"
+items_endpoint = root_path + "/collections/{}/items"
+bulk_endpoint = root_path + "/collections/{}/bulk_items"
 
 
 class TestList:

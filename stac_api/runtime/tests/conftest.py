@@ -12,6 +12,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from pystac import STACObjectType
+from pystac.errors import STACValidationError
 
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 
@@ -231,6 +233,7 @@ def test_environ():
         "VEDA_STAC_OPENID_CONFIGURATION_URL"
     ] = "https://example.com/.well-known/openid-configuration"
     os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
+    os.environ["VEDA_STAC_ENABLE_STAC_AUTH_PROXY"] = "True"
 
     # Config mocks
     os.environ["POSTGRES_USER"] = "username"
@@ -271,6 +274,35 @@ def mock_auth():
         mock_instance.jwks_client = override_jwks_client
         mock.return_value = mock_instance
         yield mock_instance
+
+
+@pytest.fixture(autouse=True)
+def mock_stac_validation():
+    """Mock STAC validation to avoid network calls / SSL issues"""
+    with patch("src.validation.validate_dict") as mock_validate_dict:
+
+        def mock_validate_dict_side_effect(data, stac_type):
+            if stac_type == STACObjectType.COLLECTION:
+                if "extent" not in data:
+                    raise STACValidationError("Missing required field: extent")
+            elif stac_type == STACObjectType.ITEM:
+                if "properties" not in data:
+                    raise STACValidationError("Missing required field: properties")
+
+        mock_validate_dict.side_effect = mock_validate_dict_side_effect
+        yield mock_validate_dict
+
+
+@pytest.fixture(autouse=True)
+def mock_stac_auth_proxy():
+    """Mock the stac-auth-proxy's configure_app function to bypass authentication"""
+    with patch("stac_auth_proxy.configure_app") as mock_configure_app:
+
+        def mock_configure_app_wrapper(app, **kwargs):
+            return app
+
+        mock_configure_app.side_effect = mock_configure_app_wrapper
+        yield mock_configure_app
 
 
 @pytest.fixture
