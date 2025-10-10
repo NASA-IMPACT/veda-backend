@@ -50,6 +50,15 @@ class TenantExtractionMiddleware:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
+        original_path = scope["path"]
+        if original_path.endswith("/") and original_path not in [
+            "/",
+            f"{self.root_path}",
+        ]:
+            logger.debug(f"{original_path=}")
+            scope["path"] = original_path.rstrip("/")
+            logger.debug(f"Removed trailing slash so now path is {scope['path']}")
+
         request = Request(scope)
 
         tenant = self._extract_tenant_from_path(request)
