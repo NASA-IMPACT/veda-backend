@@ -129,6 +129,7 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
             ],
             r"^/collections/([^/]+)/bulk_items$": [["POST", "stac:item:create"]],
         },
+        allowed_jwt_audiences="account",
     )
 else:
     # Use standard FastAPI app when authentication is disabled
