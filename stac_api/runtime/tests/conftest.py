@@ -204,7 +204,7 @@ VALID_ITEM = {
     "properties": {
         "end_datetime": "2023-12-31T00:00:00+00:00",
         "start_datetime": "2023-01-01T00:00:00+00:00",
-        "datetime": None,
+        "datetime": "2023-01-01T00:00:00+00:00",
     },
     "stac_version": "1.0.0",
     "stac_extensions": [
