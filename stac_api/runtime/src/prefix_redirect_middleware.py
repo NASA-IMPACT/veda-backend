@@ -5,6 +5,7 @@ This middleware handles redirects to make sure that the root_path is preserved w
 FastAPI handles automatic redirects
 
 """
+
 import logging
 from urllib.parse import urlparse
 
@@ -38,11 +39,8 @@ class PrefixRedirectMiddleware(BaseHTTPMiddleware):
             return resp
 
         redirect_path = parsed_target_url.path
-        if (
-            redirect_path.startswith("/")
-            and not redirect_path.startswith(rp)
-        ):
-            resp.headers["location"] = root_path + stripped_path
+        if redirect_path.startswith("/") and not redirect_path.startswith(root_path):
+            resp.headers["location"] = root_path + redirect_path
             logger.debug(
                 "Redirect location header changed from '%' to '%s'",
                 redirect_target,
