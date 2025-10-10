@@ -114,6 +114,21 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
             },
         },
         enable_compression=False,
+        private_endpoints={
+            r"^/collections$": [["POST", "stac:collection:create"]],
+            r"^/collections/([^/]+)$": [
+                ["PUT", "stac:collection:update"],
+                ["PATCH", "stac:collection:update"],
+                ["DELETE", "stac:collection:delete"],
+            ],
+            r"^/collections/([^/]+)/items$": [["POST", "stac:item:create"]],
+            r"^/collections/([^/]+)/items/([^/]+)$": [
+                ["PUT", "stac:item:update"],
+                ["PATCH", "stac:item:update"],
+                ["DELETE", "stac:item:delete"],
+            ],
+            r"^/collections/([^/]+)/bulk_items$": [["POST", "stac:item:create"]],
+        },
     )
 else:
     # Use standard FastAPI app when authentication is disabled
