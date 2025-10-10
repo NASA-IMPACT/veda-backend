@@ -81,7 +81,11 @@ class vedaSTACSettings(BaseSettings):
         if values.get("stac_enable_transactions") == "True":
             missing_fields = [
                 field
-                for field in ["keycloak_stac_api_client_id", "openid_configuration_url"]
+                for field in [
+                    "keycloak_stac_api_client_id",
+                    "openid_configuration_url",
+                    "enable_stac_auth_proxy",
+                ]
                 if not values.get(field)
             ]
             if missing_fields:
