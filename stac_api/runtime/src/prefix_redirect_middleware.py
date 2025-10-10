@@ -5,9 +5,12 @@ This middleware handles redirects to make sure that the root_path is preserved w
 FastAPI handles automatic redirects
 
 """
+import logging
 from urllib.parse import urlparse
 
 from starlette.middleware.base import BaseHTTPMiddleware
+
+logger = logging.getLogger(__name__)
 
 
 class PrefixRedirectMiddleware(BaseHTTPMiddleware):
@@ -20,39 +23,30 @@ class PrefixRedirectMiddleware(BaseHTTPMiddleware):
         if resp.status_code not in (301, 302, 303, 307, 308):
             return resp
 
-        loc = resp.headers.get("location")
-        if not loc:
+        root_path = request.scope.get("root_path", "")
+        if not root_path:
             return resp
 
-        try:
-            parsed_request_url = urlparse(str(request.url))
-            parsed_response_url = urlparse(loc)
+        redirect_target = resp.headers.get("location")
+        if not redirect_target:
+            return resp
 
-            print(f"{parsed_request_url=}")
-            print(f"{parsed_response_url=}")
+        parsed_target_url = urlparse(redirect_target)
 
-            # Check if response host is the same as redirect host
-            if parsed_request_url.netloc == parsed_response_url.netloc:
-                # If so, strip the host from response location
-                parsed_location = urlparse(loc)
-                stripped_path = parsed_location.path
-                print(f"{stripped_path=}")
+        # Only alter redirect locations that match the request host
+        if request.url.netloc != parsed_target_url.netloc:
+            return resp
 
-                rp = request.scope.get("root_path", "")
-                print(f"{rp=}", flush=True)
-
-                if (
-                    stripped_path
-                    and stripped_path.startswith("/")
-                    and rp
-                    and not stripped_path.startswith(rp)
-                ):
-
-                    print(f"Before: {resp.headers['location']}")
-                    resp.headers["location"] = rp + stripped_path
-                    print(f"After: {resp.headers['location']}")
-
-        except Exception as e:
-            print(f"Error processing redirect: {e}")
+        redirect_path = parsed_target_url.path
+        if (
+            redirect_path.startswith("/")
+            and not redirect_path.startswith(rp)
+        ):
+            resp.headers["location"] = root_path + stripped_path
+            logger.debug(
+                "Redirect location header changed from '%' to '%s'",
+                redirect_target,
+                resp.headers["location"],
+            )
 
         return resp
