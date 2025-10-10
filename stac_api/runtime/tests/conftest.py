@@ -234,6 +234,7 @@ def test_environ():
     ] = "https://example.com/.well-known/openid-configuration"
     os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
     os.environ["VEDA_STAC_ENABLE_STAC_AUTH_PROXY"] = "True"
+    os.environ["VEDA_STAC_ROOT_PATH"] = "/api/stac"
 
     # Config mocks
     os.environ["POSTGRES_USER"] = "username"
