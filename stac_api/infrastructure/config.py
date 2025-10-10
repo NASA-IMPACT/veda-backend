@@ -68,6 +68,10 @@ class vedaSTACSettings(BaseSettings):
         subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
         description="Git SHA of the current commit, used to track deployment version",
     )
+    enable_stac_auth_proxy: bool = Field(
+        False,
+        description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
+    )
 
     @model_validator(mode="before")
     def check_transaction_fields(cls, values):

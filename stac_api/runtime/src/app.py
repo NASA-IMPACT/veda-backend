@@ -31,6 +31,7 @@ from starlette_cramjam.middleware import CompressionMiddleware
 from .core import VedaCrudClient
 from .filters import CollectionFilter, ItemFilter
 from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
+from .prefix_redirect_middleware import PrefixRedirectMiddleware
 from .tenant_extraction_middleware import TenantExtractionMiddleware
 from .tenant_links_middleware import TenantLinksMiddleware
 from .validation import ValidationMiddleware
@@ -85,6 +86,7 @@ api = StacApi(
     response_class=ORJSONResponse,
     middlewares=[
         Middleware(ValidationMiddleware),
+        Middleware(PrefixRedirectMiddleware),
     ],
 )
 

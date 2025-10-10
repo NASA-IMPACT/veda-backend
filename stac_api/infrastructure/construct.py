@@ -51,6 +51,9 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_ENABLE_TRANSACTIONS": str(
                 veda_stac_settings.stac_enable_transactions
             ),
+            "VEDA_STAC_ENABLE_STAC_AUTH_PROXY": str(
+                veda_stac_settings.enable_stac_auth_proxy
+            ),
             "DB_MIN_CONN_SIZE": "0",
             "DB_MAX_CONN_SIZE": "1",
             "PYSTAC_STAC_VERSION_OVERRIDE": veda_stac_settings.pystac_stac_version_override,
