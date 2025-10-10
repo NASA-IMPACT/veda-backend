@@ -99,7 +99,7 @@ class TenantExtractionMiddleware:
         """Extracts the tenant identifier from the URL"""
         path = (
             request.url.path[len(self.root_path) :]
-            if request.url.path.startswith(self.root_path)
+            if self.root_path and request.url.path.startswith(self.root_path)
             else request.url.path
         )
         logger.info("Attempting to extract tenant from request path %s", path)
@@ -121,6 +121,6 @@ class TenantExtractionMiddleware:
         """Remove the tenant from the path"""
         return (
             self.root_path + path[len(f"{self.root_path}/{tenant}") :]
-            if path.startswith(f"{self.root_path}/{tenant}")
+            if self.root_path and path.startswith(f"{self.root_path}/{tenant}")
             else path[len(f"/{tenant}") :]
         )
