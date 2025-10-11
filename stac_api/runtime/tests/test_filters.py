@@ -7,89 +7,124 @@ This module contains tests for the tenant filtering in the STAC API.
 import pytest
 
 
-@pytest.mark.parametrize(
-    "endpoint,expected_status,expected_property",
-    [
-        # Collection listed with tenant
-        (
-            "/{VALID_TENANT_ID}/collections",
-            200,
-            {"numberMatched": 1},
-        ),
-        # Collection listed without tenant
-        (
-            "/collections",
-            200,
-            {"numberMatched": 1},
-        ),
-        # Collection not listed with other tenant
-        (
-            "/{INVALID_TENANT_ID}/collections",
-            200,
-            {"numberMatched": 0},
-        ),
-        # Collection available with tenant
-        (
-            "/{VALID_TENANT_ID}/collections/barc-thomasfire",
-            200,
-            {"id": "barc-thomasfire"},
-        ),
-        # Collection available without tenant
-        ("/collections/barc-thomasfire/items", 200, {"id": "barc-thomasfire"}),
-        # Collection not available with other tenant
-        (
-            "/{INVALID_TENANT_ID}/collections/barc-thomasfire",
-            404,
-            {"code": "NotFoundError"},
-        ),
-        # Items available with tenant
-        (
-            "/{VALID_TENANT_ID}/collections/barc-thomasfire/items",
-            200,
-            {"numberMatched": 1},
-        ),
-        # Items available without tenant
-        ("/collections/barc-thomasfire/items", 200, {"numberMatched": 1}),
-        # Items not available with other tenant
-        (
-            "/{INVALID_TENANT_ID}/collections/barc-thomasfire/items",
-            200,
-            {"numberMatched": 0},
-        ),
-        # Items searchable with tenant
-        (
-            "/{VALID_TENANT_ID}/search",
-            200,
-            {"numberMatched": 1},
-        ),
-        # Items searchable without tenant
-        (
-            "/search",
-            200,
-            {"numberMatched": 1},
-        ),
-        # Items not searchable with other tenant
-        (
-            "/{INVALID_TENANT_ID}/search",
-            200,
-            {"numberMatched": 0},
-        ),
-    ],
-)
-async def test_proxy_filters(
-    api_client,
-    collection_items_in_db,
-    test_tenant,
-    endpoint,
-    expected_status,
-    expected_property,
+@pytest.fixture
+def invalid_tenant():
+    """Fixture providing an invalid tenant ID for testing."""
+    return "invalid-tenant"
+
+
+async def test_collections_listed_with_tenant(
+    api_client, collection_in_db, test_tenant
 ):
-    """
-    Test the tenant filtering in the STAC API.
-    """
-    endpoint = endpoint.replace("{VALID_TENANT_ID}", test_tenant)
-    endpoint = endpoint.replace("{INVALID_TENANT_ID}", "invalid-tenant")
-    response = await api_client.get(f"{endpoint}")
-    assert response.status_code == expected_status
-    for key, value in expected_property.items():
-        assert response.json()[key] == value
+    """Test that collections are listed when accessed with valid tenant."""
+    response = await api_client.get(f"/{test_tenant}/collections")
+    assert response.status_code == 200
+    assert response.json()["numberMatched"] == 1
+    assert response.json()["collections"][0]["id"] == collection_in_db
+
+
+async def test_collections_listed_without_tenant(api_client, collection_in_db):
+    """Test that collections are listed when accessed without tenant."""
+    response = await api_client.get("/collections")
+    assert response.status_code == 200
+    assert response.json()["numberMatched"] == 1
+    assert response.json()["collections"][0]["id"] == collection_in_db
+
+
+async def test_collections_not_listed_with_invalid_tenant(
+    api_client, collection_in_db, invalid_tenant
+):
+    """Test that collections are not listed when accessed with invalid tenant."""
+    response = await api_client.get(f"/{invalid_tenant}/collections")
+    assert response.status_code == 200
+    assert response.json()["numberMatched"] == 0
+    assert response.json()["collections"] == []
+
+
+async def test_collection_available_with_tenant(
+    api_client, collection_in_db, test_tenant
+):
+    """Test that a specific collection is available when accessed with valid tenant."""
+    response = await api_client.get(f"/{test_tenant}/collections/{collection_in_db}")
+    assert response.status_code == 200
+    assert response.json()["id"] == collection_in_db
+
+
+async def test_collection_available_without_tenant(api_client, collection_in_db):
+    """Test that a specific collection is available when accessed without tenant."""
+    response = await api_client.get(f"/collections/{collection_in_db}")
+    assert response.status_code == 200
+    assert response.json()["id"] == collection_in_db
+
+
+async def test_collection_not_available_with_invalid_tenant(
+    api_client, collection_in_db, invalid_tenant
+):
+    """Test that a specific collection is not available when accessed with invalid tenant."""
+    response = await api_client.get(f"/{invalid_tenant}/collections/{collection_in_db}")
+    assert response.status_code == 404
+    assert response.json()["code"] == "NotFoundError"
+
+
+async def test_items_available_with_tenant(
+    api_client, collection_in_db, collection_items_in_db, test_tenant
+):
+    """Test that items are available when accessed with valid tenant."""
+    response = await api_client.get(
+        f"/{test_tenant}/collections/{collection_in_db}/items"
+    )
+    assert response.status_code == 200
+    assert response.json()["numberMatched"] == 1
+    assert response.json()["features"][0]["id"] == collection_items_in_db
+
+
+async def test_items_available_without_tenant(
+    api_client, collection_in_db, collection_items_in_db
+):
+    """Test that items are available when accessed without tenant."""
+    response = await api_client.get(f"/collections/{collection_in_db}/items")
+    assert response.status_code == 200
+    assert response.json()["numberMatched"] == 1
+    assert response.json()["features"][0]["id"] == collection_items_in_db
+
+
+async def test_items_not_available_with_invalid_tenant(
+    api_client, collection_in_db, collection_items_in_db, invalid_tenant
+):
+    """Test that items are not available when accessed with invalid tenant."""
+    response = await api_client.get(
+        f"/{invalid_tenant}/collections/{collection_in_db}/items"
+    )
+    assert response.status_code == 200
+    assert response.json()["numberMatched"] == 0
+    assert response.json()["features"] == []
+
+
+async def test_search_with_tenant(
+    api_client, collection_in_db, collection_items_in_db, test_tenant
+):
+    """Test that search works when accessed with valid tenant."""
+    response = await api_client.get(f"/{test_tenant}/search")
+    assert response.status_code == 200
+    assert response.json()["numberMatched"] == 1
+    assert response.json()["features"][0]["id"] == collection_items_in_db
+
+
+async def test_search_without_tenant(
+    api_client, collection_in_db, collection_items_in_db
+):
+    """Test that search works when accessed without tenant."""
+    response = await api_client.get("/search")
+    assert response.status_code == 200
+    assert response.json()["numberMatched"] == 1
+    assert response.json()["features"][0]["id"] == collection_items_in_db
+
+
+async def test_search_not_available_with_invalid_tenant(
+    api_client, collection_in_db, collection_items_in_db, invalid_tenant
+):
+    """Test that search returns no results when accessed with invalid tenant."""
+    response = await api_client.get(f"/{invalid_tenant}/search")
+    assert response.status_code == 200
+    assert response.json()["numberMatched"] == 0
+    assert response.json()["features"] == []
