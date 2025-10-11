@@ -76,7 +76,7 @@ import pytest
         ),
     ],
 )
-def test_proxy_filters(
+async def test_proxy_filters(
     api_client,
     collection_items_in_db,
     test_tenant,
@@ -89,7 +89,7 @@ def test_proxy_filters(
     """
     endpoint = endpoint.replace("{VALID_TENANT_ID}", test_tenant)
     endpoint = endpoint.replace("{INVALID_TENANT_ID}", "invalid-tenant")
-    response = api_client.get(f"{endpoint}")
+    response = await api_client.get(f"{endpoint}")
     assert response.status_code == expected_status
     for key, value in expected_property.items():
         assert response.json()[key] == value
