@@ -1,0 +1,73 @@
+{
+  "id": "caldor-fire-behavior",
+  "type": "Collection",
+  "links": [],
+  "title": "Caldor Fire Behavior",
+  "assets": {
+    "thumbnail": {
+      "href": "https://thumbnails.openveda.cloud/caldor-fire--dataset-cover.jpg",
+      "type": "image/jpeg",
+      "roles": ["thumbnail"],
+      "title": "Thumbnail",
+      "description": "Photo by [Marek Piwnicki](https://unsplash.com/photos/WiZOyYqzUss) (Hillside engulfed by a wildfire)"
+    }
+  },
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -120.61338752166166, 38.54940283865057, -119.91905658168675,
+          38.90577651328637
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [["2021-08-15T00:00:00+00:00", "2021-10-21T12:00:00+00:00"]]
+    }
+  },
+  "license": "CC0-1.0",
+  "renders": {
+    "dashboard": {
+      "title": "VEDA Dashboard Render Parameters",
+      "assets": ["cog_default"],
+      "rescale": [[0, 93]],
+      "colormap_name": "inferno_r"
+    }
+  },
+  "providers": [
+    {
+      "url": "https://burnseverity.cr.usgs.gov/products/baer",
+      "name": "USGS Burnt Area Emergency Response (BAER)",
+      "roles": ["producer"]
+    },
+    {
+      "url": "https://www.earthdata.nasa.gov/dashboard/",
+      "name": "NASA VEDA",
+      "roles": ["host"]
+    },
+    {
+      "url": "https://www.earthdata.nasa.gov/dashboard/",
+      "name": "NASA VEDA",
+      "roles": ["processor"]
+    }
+  ],
+  "summaries": { "datetime": ["2021-08-15T00:00:00Z"] },
+  "description": "`.geojson` and `tif` files describing the progression and active fire behavior of the 2021 Caldor Fire in California via the algorithm detailed in https://www.nature.com/articles/s41597-022-01343-0. This includes an extra `.tif` file detailing the soil burn severity (SBS) conditions provided by the [Burned Area Emergency Response](https://burnseverity.cr.usgs.gov/baer/) team.",
+  "item_assets": {
+    "cog_default": {
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "roles": ["data", "layer"],
+      "title": "Default COG Layer",
+      "description": "Cloud optimized default layer to display on map"
+    }
+  },
+  "stac_version": "1.0.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/render/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/item-assets/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/authentication/v1.1.0/schema.json"
+  ],
+  "dashboard:is_periodic": false,
+  "dashboard:time_density": null,
+  "dashboard:tenant": "fire"
+}
