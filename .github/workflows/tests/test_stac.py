@@ -194,7 +194,7 @@ class TestTenantFiltering:
         ],
     )
     def test_collections_listed_with_tenant(self, tenant, tenant_collections):
-        """Test that collections are listed when accessed with valid tenant."""
+        """Tenant collections should be listed when accessed with valid tenant."""
         resp = httpx.get(f"{self.stac_endpoint}/{tenant}/collections")
         assert resp.status_code == 200
         assert set(c["id"] for c in resp.json()["collections"]) == set(
@@ -202,7 +202,7 @@ class TestTenantFiltering:
         )
 
     def test_collections_listed_without_tenant(self):
-        """Test that collections are listed when accessed without tenant."""
+        """All collections should be listed when accessed without tenant."""
         resp = httpx.get(f"{self.stac_endpoint}/{self.collections_route}")
         assert resp.status_code == 200
         all_collections = set(
@@ -213,7 +213,7 @@ class TestTenantFiltering:
         assert set(c["id"] for c in resp.json()["collections"]) == all_collections
 
     def test_collections_not_listed_with_invalid_tenant(self):
-        """Test that no collections are listed when accessed with invalid tenant."""
+        """No collections should be listed when accessed with invalid tenant."""
         resp = httpx.get(f"{self.stac_endpoint}/invalid-tenant/collections")
         assert resp.status_code == 200
         assert resp.json()["collections"] == []
@@ -228,7 +228,7 @@ class TestTenantFiltering:
         ],
     )
     def test_collection_available_with_tenant(self, tenant, collection):
-        """Test that a tenant's collection is available when accessed with valid tenant."""
+        """A tenant's collection should be available when accessed with that tenant."""
         resp = httpx.get(f"{self.stac_endpoint}/{tenant}/collections/{collection}")
         assert resp.status_code == 200
         assert resp.json()["id"] == collection
@@ -242,7 +242,7 @@ class TestTenantFiltering:
         ),
     )
     def test_collection_available_without_tenant(self, collection):
-        """Test that a specific collection is available when accessed without tenant."""
+        """Any collection should be available when accessed without tenant."""
         resp = httpx.get(f"{self.stac_endpoint}/{self.collections_route}/{collection}")
         assert resp.status_code == 200
         assert resp.json()["id"] == collection
@@ -256,7 +256,7 @@ class TestTenantFiltering:
         ),
     )
     def test_collection_not_available_with_invalid_tenant(self, collection):
-        """Test that a specific collection is not available when accessed with invalid tenant."""
+        """No collection should be returned when accessed with invalid tenant."""
         resp = httpx.get(
             f"{self.stac_endpoint}/invalid-tenant/collections/{collection}"
         )
@@ -273,7 +273,7 @@ class TestTenantFiltering:
         ],
     )
     def test_items_available_with_tenant(self, tenant, collection):
-        """Test that items are available when accessed with valid tenant."""
+        """Items should be available when accessed with valid tenant."""
         resp = httpx.get(
             f"{self.stac_endpoint}/{tenant}/collections/{collection}/items"
         )
@@ -293,7 +293,7 @@ class TestTenantFiltering:
         ),
     )
     def test_items_available_without_tenant(self, collection):
-        """Test that items are available when accessed without tenant."""
+        """All collection's items should be available when accessed without tenant."""
         resp = httpx.get(
             f"{self.stac_endpoint}/{self.collections_route}/{collection}/items"
         )
@@ -312,7 +312,7 @@ class TestTenantFiltering:
         ),
     )
     def test_items_not_available_with_invalid_tenant(self, collection):
-        """Test that no items are returned when accessed with invalid tenant."""
+        """No collection's items should be returned when accessed with invalid tenant."""
         resp = httpx.get(
             f"{self.stac_endpoint}/invalid-tenant/collections/{collection}/items"
         )
@@ -329,7 +329,7 @@ class TestTenantFiltering:
         ],
     )
     def test_search_with_tenant(self, tenant, tenant_collections):
-        """Searching with a tenant should return only items from that tenant's collections."""
+        """Search with a tenant should return only items from that tenant's collections."""
         resp = httpx.get(f"{self.stac_endpoint}/{tenant}/search")
         assert resp.status_code == 200
         items = resp.json()["features"]
@@ -338,7 +338,7 @@ class TestTenantFiltering:
             assert item["collection"] in tenant_collections
 
     def test_search_without_tenant(self):
-        """Searching without a tenant should return all collections, even those with no tenant."""
+        """Search without a tenant should return all collections."""
         resp = httpx.get(
             f"{self.stac_endpoint}/{self.search_route}", params={"limit": 1000}
         )
@@ -353,7 +353,7 @@ class TestTenantFiltering:
         )
 
     def test_search_not_available_with_invalid_tenant(self):
-        """Test that search returns no items when accessed with invalid tenant."""
+        """Search should return no items when accessed with invalid tenant."""
         resp = httpx.get(f"{self.stac_endpoint}/invalid-tenant/search")
         assert resp.status_code == 200
         items = resp.json()["features"]
@@ -364,7 +364,7 @@ class TestTenantFiltering:
         [tenant for tenant in TENANT_COLLECTIONS.keys() if tenant],
     )
     def test_tenant_isolation(self, tenant):
-        """Test that tenants cannot access each other's collections."""
+        """Tenants should not be able to access each other's collections or items."""
         # emergency should not see barc-thomasfire
         resp = httpx.get(f"{self.stac_endpoint}/{tenant}/collections")
         assert resp.status_code == 200
