@@ -14,6 +14,11 @@ DOCS_ROUTE = "docs"
 STAC_ENDPOINT = "http://0.0.0.0:8081/api/stac"
 STAC_HEALTH_ENDPOINT = "http://0.0.0.0:8081/api/stac/_mgmt/ping"
 SEARCH_ROUTE = "search"
+TENANT_COLLECTIONS = {
+    "emergency": ["noaa-emergency-response"],
+    "fire": ["barc-thomasfire", "caldor-fire-behavior"],
+    None: ["CMIP245-winter-median-pr"],
+}
 
 RASTER_SEARCHES_ENDPOINT = "http://0.0.0.0:8082/searches"
 RASTER_HEALTH_ENDPOINT = "http://0.0.0.0:8082/healthz"
@@ -273,3 +278,14 @@ def feature_schema():
     response = httpx.get("https://api.stacspec.org/v1.0.0/ogcapi-features/openapi.yaml")
     content = response.text
     return content
+
+
+@pytest.fixture
+def tenant_collections():
+    """
+    Fixture providing a tenant collections for integration testing.
+
+    Returns:
+        dict: A dictionary of tenant collections
+    """
+    return TENANT_COLLECTIONS

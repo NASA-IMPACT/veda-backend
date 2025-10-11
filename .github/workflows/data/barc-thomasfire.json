@@ -1,133 +1,70 @@
 {
-    "id": "barc-thomasfire",
-    "type": "Collection",
-    "links": [
-        {
-            "rel": "items",
-            "type": "application/geo+json",
-            "href": "https://dev.openveda.cloud/api/stac/collections/barc-thomasfire/items"
-        },
-        {
-            "rel": "parent",
-            "type": "application/json",
-            "href": "https://dev.openveda.cloud/api/stac/"
-        },
-        {
-            "rel": "root",
-            "type": "application/json",
-            "href": "https://dev.openveda.cloud/api/stac/"
-        },
-        {
-            "rel": "self",
-            "type": "application/json",
-            "href": "https://dev.openveda.cloud/api/stac/collections/barc-thomasfire"
-        },
-        {
-            "rel": "items",
-            "href": "https://dev.openveda.cloud/api/stac/collections/barc-thomasfire/items",
-            "type": "application/geo+json"
-        },
-        {
-            "rel": "http://www.opengis.net/def/rel/ogc/1.0/queryables",
-            "href": "https://dev.openveda.cloud/api/stac/collections/barc-thomasfire/queryables",
-            "type": "application/schema+json",
-            "title": "Queryables"
-        },
-        {
-            "rel": "http://www.opengis.net/def/rel/ogc/1.0/queryables",
-            "type": "application/schema+json",
-            "title": "Queryables",
-            "href": "https://dev.openveda.cloud/api/stac/collections/barc-thomasfire/queryables"
-        }
-    ],
-    "title": "Burn Area Reflectance Classification for Thomas Fire",
-    "extent": {
-        "spatial": {
-            "bbox": [
-                [
-                    -119.7279834250452,
-                    34.19572604525683,
-                    -118.88724142537933,
-                    34.72668711929945
-                ]
-            ]
-        },
-        "temporal": {
-            "interval": [
-                [
-                    "2017-12-01T00:00:00+00:00",
-                    "2017-12-31T00:00:00+00:00"
-                ]
-            ]
-        }
+  "id": "barc-thomasfire",
+  "type": "Collection",
+  "links": [],
+  "title": "Burn Area Reflectance Classification for Thomas Fire",
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -119.7279834250452, 34.19572604525683, -118.88724142537933,
+          34.72668711929945
+        ]
+      ]
     },
-    "license": "CC0-1.0",
-    "renders": {
-        "dashboard": {
-            "title": "VEDA Dashboard Render Parameters",
-            "assets": [
-                "cog_default"
-            ],
-            "nodata": "nan",
-            "rescale": [
-                [
-                    1,
-                    4
-                ]
-            ],
-            "colormap_name": "rdylgn_r"
-        }
+    "temporal": {
+      "interval": [["2017-12-01T00:00:00+00:00", "2017-12-31T00:00:00+00:00"]]
+    }
+  },
+  "license": "CC0-1.0",
+  "renders": {
+    "dashboard": {
+      "title": "VEDA Dashboard Render Parameters",
+      "assets": ["cog_default"],
+      "nodata": "nan",
+      "rescale": [[1, 4]],
+      "colormap_name": "rdylgn_r"
+    }
+  },
+  "providers": [
+    {
+      "url": "https://burnseverity.cr.usgs.gov/products/baer",
+      "name": "USGS Burnt Area Emergency Response (BAER)",
+      "roles": ["producer"]
     },
-    "providers": [
-        {
-            "url": "https://burnseverity.cr.usgs.gov/products/baer",
-            "name": "USGS Burnt Area Emergency Response (BAER)",
-            "roles": [
-                "producer"
-            ]
-        },
-        {
-            "url": "https://www.earthdata.nasa.gov/dashboard/",
-            "name": "NASA VEDA",
-            "roles": [
-                "host"
-            ]
-        },
-        {
-            "url": "https://www.earthdata.nasa.gov/dashboard/",
-            "name": "NASA VEDA",
-            "roles": [
-                "processor"
-            ]
-        }
-    ],
-    "summaries": {
-        "datetime": [
-            "2017-12-01T00:00:00Z"
-        ],
-        "cog_default": {
-            "max": 4,
-            "min": 1
-        }
+    {
+      "url": "https://www.earthdata.nasa.gov/dashboard/",
+      "name": "NASA VEDA",
+      "roles": ["host"]
     },
-    "description": "Burn Area Reflectance Classification (BARC) from the Burned Area Emergency Response (BAER) program for Thomas fire, 2017",
-    "item_assets": {
-        "cog_default": {
-            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-            "roles": [
-                "data",
-                "layer"
-            ],
-            "title": "Default COG Layer",
-            "description": "Cloud optimized default layer to display on map"
-        }
-    },
-    "stac_version": "1.0.0",
-    "stac_extensions": [
-        "https://stac-extensions.github.io/render/v1.0.0/schema.json",
-        "https://stac-extensions.github.io/item-assets/v1.0.0/schema.json"
-    ],
-    "dashboard:is_periodic": false,
-    "dashboard:time_density": null,
-    "dashboard:tenant": "different-tenant"
+    {
+      "url": "https://www.earthdata.nasa.gov/dashboard/",
+      "name": "NASA VEDA",
+      "roles": ["processor"]
+    }
+  ],
+  "summaries": {
+    "datetime": ["2017-12-01T00:00:00Z"],
+    "cog_default": {
+      "max": 4,
+      "min": 1
+    }
+  },
+  "description": "Burn Area Reflectance Classification (BARC) from the Burned Area Emergency Response (BAER) program for Thomas fire, 2017",
+  "item_assets": {
+    "cog_default": {
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "roles": ["data", "layer"],
+      "title": "Default COG Layer",
+      "description": "Cloud optimized default layer to display on map"
+    }
+  },
+  "stac_version": "1.0.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/render/v1.0.0/schema.json",
+    "https://stac-extensions.github.io/item-assets/v1.0.0/schema.json"
+  ],
+  "dashboard:is_periodic": false,
+  "dashboard:time_density": null,
+  "dashboard:tenant": "fire"
 }

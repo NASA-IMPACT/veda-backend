@@ -32,3 +32,7 @@ ignore_token_for_push = false
 
 [tool.semantic_release.remote.token]
 env = "GH_TOKEN"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
