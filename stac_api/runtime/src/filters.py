@@ -65,7 +65,7 @@ class ItemFilter:
         ids = []
 
         url: Optional[str] = f"{self.api_url}/{tenant}/collections"
-        while True:
+        while url:
             # TODO: Can we do this without going through HTTP?
             response = await self.client.get(url)
             response.raise_for_status()
@@ -74,7 +74,8 @@ class ItemFilter:
             ids.extend([collection["id"] for collection in data["collections"]])
 
             url = next(
-                (link["href"] for link in data["links"] if link["rel"] == "next"), None
+                (link["href"] for link in data["links"] if link["rel"] == "next"),
+                None,
             )
 
         return ids
