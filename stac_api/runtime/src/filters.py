@@ -2,7 +2,7 @@
 
 import dataclasses
 import logging
-from typing import Any
+from typing import Any, Optional
 
 import httpx
 
@@ -44,13 +44,15 @@ class ItemFilter:
             logger.debug("No collections found for tenant %s", tenant)
             return "1=0"
 
-        # HACK: To avoid SQL issues, we're just filtering on the first collection for now
-        return f"collection = '{collection_ids[0]}'"
         # TODO: Figure out cause of "PostgresSyntaxError: syntax error at or near \"IN\"" /cc @bitnerd
-        return {
-            "op": "in",
-            "args": [{"property": "collection"}, collection_ids],
-        }
+        # return {
+        #     "op": "in",
+        #     "args": [{"property": "collection"}, collection_ids],
+        # }
+
+        return " OR ".join(
+            f"collection = '{collection_id}'" for collection_id in collection_ids
+        )
 
     # TODO: Memoize this with expiration
     async def get_tenant_collections(self, tenant: str) -> list[str]:
@@ -60,11 +62,19 @@ class ItemFilter:
             self.api_url,
             tenant,
         )
-        # TODO: Can we do this without going through HTTP?
-        response = await self.client.get(f"{self.api_url}/{tenant}/collections")
-        response.raise_for_status()
-        data = response.json()
+        ids = []
 
-        ids = [collection["id"] for collection in data["collections"]]
-        # TODO: support pagination
+        url: Optional[str] = f"{self.api_url}/{tenant}/collections"
+        while True:
+            # TODO: Can we do this without going through HTTP?
+            response = await self.client.get(url)
+            response.raise_for_status()
+            data = response.json()
+
+            ids.extend([collection["id"] for collection in data["collections"]])
+
+            url = next(
+                (link["href"] for link in data["links"] if link["rel"] == "next"), None
+            )
+
         return ids
