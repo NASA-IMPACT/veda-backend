@@ -430,18 +430,7 @@ def invalid_stac_item():
 
 
 @pytest.fixture
-async def test_tenant():
-    """
-    Fixture providing a test tenant for testing.
-
-    Returns:
-        str: A test tenant.
-    """
-    return "test-tenant"
-
-
-@pytest.fixture
-async def collection_in_db(api_client, valid_stac_collection, test_tenant):
+async def collection_in_db(api_client, valid_stac_collection):
     """
     Fixture to ensure a valid STAC collection exists in the database.
 
@@ -449,13 +438,7 @@ async def collection_in_db(api_client, valid_stac_collection, test_tenant):
     the collection ID.
     """
     # Create the collection
-    response = await api_client.post(
-        "/collections",
-        json={
-            **valid_stac_collection,
-            "dashboard:tenant": test_tenant,
-        },
-    )
+    response = await api_client.post("/collections", json=valid_stac_collection)
 
     # Ensure the setup was successful before the test proceeds
     # The setup is successful if the collection was created (201) or if it
@@ -463,24 +446,3 @@ async def collection_in_db(api_client, valid_stac_collection, test_tenant):
     assert response.status_code in [201, 409]
 
     yield valid_stac_collection["id"]
-
-
-@pytest.fixture
-async def collection_items_in_db(api_client, collection_in_db, valid_stac_item):
-    """
-    Fixture to ensure a valid STAC collection exists in the database.
-
-    This fixture posts a valid collection before a test runs and yields
-    the collection ID.
-    """
-    # Create the collection
-    response = await api_client.post(
-        f"/collections/{collection_in_db}/items", json=valid_stac_item
-    )
-
-    # Ensure the setup was successful before the test proceeds
-    # The setup is successful if the collection was created (201) or if it
-    # already existed (409). Any other status code is a failure.
-    assert response.status_code in [201, 409]
-
-    yield valid_stac_item["id"]
