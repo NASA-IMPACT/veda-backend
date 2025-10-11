@@ -82,8 +82,21 @@ class _ApiSettings(Settings):
     openid_configuration_url: Optional[AnyHttpUrl] = Field(
         None, description="OpenID config url"
     )
+    openid_configuration_internal_url: Optional[AnyHttpUrl] = Field(
+        None, description="OpenID config url"
+    )
     enable_transactions: bool = Field(
-        False, description="Whether to enable transactions"
+        False,
+        description="Whether to enable transactions. If True, set enable_stac_auth_proxy to True.",
+    )
+    enable_stac_auth_proxy: bool = Field(
+        False,
+        description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
+    )
+    swagger_ui_endpoint: str = "/docs"
+    openapi_spec_endpoint: str = "/openapi.json"
+    custom_host: Optional[str] = Field(
+        "http://localhost:8081", description="Custom host URL"
     )
     git_sha: Optional[str] = None
 
@@ -144,6 +157,30 @@ def TilesApiSettings() -> _TilesApiSettings:
 
     """
     return _TilesApiSettings()
+
+
+TENANT_ITEM_LINK_TEMPLATES = [
+    {
+        "rel": "self",
+        "type": "application/geo+json",
+        "href_template": "/{tenant}/collections/{collection_id}/items",
+    },
+    {
+        "rel": "parent",
+        "type": "application/json",
+        "href_template": "/{tenant}/collections/{collection_id}",
+    },
+    {
+        "rel": "collection",
+        "type": "application/json",
+        "href_template": "/{tenant}/collections/{collection_id}",
+    },
+    {
+        "rel": "root",
+        "type": "application/json",
+        "href_template": "/{tenant}/",
+    },
+]
 
 
 # stac-fastapi-pgstac app.py example for configuring extensions https://github.com/stac-utils/stac-fastapi-pgstac/blob/5.0.3/stac_fastapi/pgstac/app.py
