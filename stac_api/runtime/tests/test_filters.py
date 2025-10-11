@@ -19,7 +19,6 @@ async def test_collections_listed_with_tenant(
 ):
     """Test that collections are listed when accessed with valid tenant."""
     response = await api_client.get(f"/{test_tenant}/collections")
-    print(f"Response output: {response.json()}")
     assert response.status_code == 200
     assert response.json()["numberMatched"] == 1
     assert response.json()["collections"][0]["id"] == collection_in_db
