@@ -66,11 +66,14 @@ runs:
       working-directory: ${{ inputs.dir }}
       run: docker compose up --build -d
 
-    - name: Sleep for 10 seconds
+    - name: Wait for STAC API to be ready
       if: ${{ inputs.skip_tests == false }}
       shell: bash
       working-directory: ${{ inputs.dir }}
-      run: sleep 10s
+      run: |
+        echo "Waiting for STAC API to be available at localhost:8081..."
+        timeout 120 bash -c 'until curl -f http://localhost:8081/api/stac/_mgmt/ping 2>/dev/null; do sleep 0.25; done'
+        echo "STAC API is ready!"
 
     - name: Integrations tests
       if: ${{ inputs.skip_tests == false }}
