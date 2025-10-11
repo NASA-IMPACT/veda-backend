@@ -13,16 +13,19 @@ def invalid_tenant():
     return "invalid-tenant"
 
 
+@pytest.mark.asyncio
 async def test_collections_listed_with_tenant(
     api_client, collection_in_db, test_tenant
 ):
     """Test that collections are listed when accessed with valid tenant."""
     response = await api_client.get(f"/{test_tenant}/collections")
+    print(f"Response output: {response.json()}")
     assert response.status_code == 200
     assert response.json()["numberMatched"] == 1
     assert response.json()["collections"][0]["id"] == collection_in_db
 
 
+@pytest.mark.asyncio
 async def test_collections_listed_without_tenant(api_client, collection_in_db):
     """Test that collections are listed when accessed without tenant."""
     response = await api_client.get("/collections")
@@ -31,6 +34,7 @@ async def test_collections_listed_without_tenant(api_client, collection_in_db):
     assert response.json()["collections"][0]["id"] == collection_in_db
 
 
+@pytest.mark.asyncio
 async def test_collections_not_listed_with_invalid_tenant(
     api_client, collection_in_db, invalid_tenant
 ):
@@ -41,6 +45,7 @@ async def test_collections_not_listed_with_invalid_tenant(
     assert response.json()["collections"] == []
 
 
+@pytest.mark.asyncio
 async def test_collection_available_with_tenant(
     api_client, collection_in_db, test_tenant
 ):
@@ -50,6 +55,7 @@ async def test_collection_available_with_tenant(
     assert response.json()["id"] == collection_in_db
 
 
+@pytest.mark.asyncio
 async def test_collection_available_without_tenant(api_client, collection_in_db):
     """Test that a specific collection is available when accessed without tenant."""
     response = await api_client.get(f"/collections/{collection_in_db}")
@@ -57,6 +63,7 @@ async def test_collection_available_without_tenant(api_client, collection_in_db)
     assert response.json()["id"] == collection_in_db
 
 
+@pytest.mark.asyncio
 async def test_collection_not_available_with_invalid_tenant(
     api_client, collection_in_db, invalid_tenant
 ):
@@ -66,6 +73,7 @@ async def test_collection_not_available_with_invalid_tenant(
     assert response.json()["code"] == "NotFoundError"
 
 
+@pytest.mark.asyncio
 async def test_items_available_with_tenant(
     api_client, collection_in_db, collection_items_in_db, test_tenant
 ):
@@ -78,6 +86,7 @@ async def test_items_available_with_tenant(
     assert response.json()["features"][0]["id"] == collection_items_in_db
 
 
+@pytest.mark.asyncio
 async def test_items_available_without_tenant(
     api_client, collection_in_db, collection_items_in_db
 ):
@@ -88,6 +97,7 @@ async def test_items_available_without_tenant(
     assert response.json()["features"][0]["id"] == collection_items_in_db
 
 
+@pytest.mark.asyncio
 async def test_items_not_available_with_invalid_tenant(
     api_client, collection_in_db, collection_items_in_db, invalid_tenant
 ):
@@ -100,6 +110,7 @@ async def test_items_not_available_with_invalid_tenant(
     assert response.json()["features"] == []
 
 
+@pytest.mark.asyncio
 async def test_search_with_tenant(
     api_client, collection_in_db, collection_items_in_db, test_tenant
 ):
@@ -110,6 +121,7 @@ async def test_search_with_tenant(
     assert response.json()["features"][0]["id"] == collection_items_in_db
 
 
+@pytest.mark.asyncio
 async def test_search_without_tenant(
     api_client, collection_in_db, collection_items_in_db
 ):
@@ -120,6 +132,7 @@ async def test_search_without_tenant(
     assert response.json()["features"][0]["id"] == collection_items_in_db
 
 
+@pytest.mark.asyncio
 async def test_search_not_available_with_invalid_tenant(
     api_client, collection_in_db, collection_items_in_db, invalid_tenant
 ):

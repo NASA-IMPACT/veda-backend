@@ -296,14 +296,35 @@ def mock_stac_validation():
 
 @pytest.fixture(autouse=True)
 def mock_stac_auth_proxy():
-    """Mock the stac-auth-proxy's configure_app function to bypass authentication"""
-    with patch("stac_auth_proxy.configure_app") as mock_configure_app:
+    """TODO WIP NEEDS TINKERING: Mock stac auth proxy OIDC authentication"""
+    with patch(
+        "stac_auth_proxy.middleware.EnforceAuthMiddleware"
+    ) as mock_auth_middleware:
+        with patch("httpx.AsyncClient.get") as mock_http_get:
+            with patch("jwt.decode") as mock_jwt_decode:
+                with patch("jwt.get_unverified_header") as mock_jwt_header:
 
-        def mock_configure_app_wrapper(app, **kwargs):
-            return app
+                    mock_response = MagicMock()
+                    mock_response.json.return_value = {
+                        "jwks_uri": "https://example.com/jwks",
+                        "issuer": "https://example.com",
+                    }
+                    mock_http_get.return_value = mock_response
 
-        mock_configure_app.side_effect = mock_configure_app_wrapper
-        yield mock_configure_app
+                    # Mock JWT operations
+                    mock_jwt_decode.return_value = {
+                        "sub": "test-user",
+                        "aud": "account",
+                    }
+                    mock_jwt_header.return_value = {"kid": "test-key", "alg": "RS256"}
+
+                    # Mock the auth middleware
+                    mock_middleware = MagicMock()
+                    mock_middleware.valid_token_dependency = override_validated_token
+                    mock_middleware.jwks_client = override_jwks_client
+                    mock_auth_middleware.return_value = mock_middleware
+
+                    yield mock_middleware
 
 
 @pytest.fixture
