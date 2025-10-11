@@ -20,7 +20,6 @@ import pytest
         (
             "/collections",
             200,
-            1,
             {"numberMatched": 1},
         ),
         # Collection not listed with other tenant
