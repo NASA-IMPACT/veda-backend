@@ -5,6 +5,7 @@ import logging
 from typing import Any, Optional
 
 import httpx
+from stac_auth_proxy.utils.cache import MemoryCache
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +28,12 @@ class ItemFilter:
     """Tooling to filter STAC Items by tenant"""
 
     api_url: str
+    cache: MemoryCache = dataclasses.field(init=False)
 
     def __post_init__(self):
         """Initialize the ItemFilter"""
         self.client = httpx.AsyncClient(base_url=self.api_url)
+        self.cache = MemoryCache(ttl=60)
 
     async def __call__(self, context: dict[str, Any]) -> str:
         """If tenant is present on request, filter Items by Collection IDs available to that tenant"""
@@ -39,7 +42,12 @@ class ItemFilter:
         if not tenant:
             return "1=1"
 
-        collection_ids = await self.get_tenant_collections(tenant)
+        try:
+            collection_ids = self.cache[tenant]
+        except KeyError:
+            collection_ids = await self.get_tenant_collections(tenant)
+            self.cache[tenant] = collection_ids
+
         if not collection_ids:
             logger.debug("No collections found for tenant %s", tenant)
             return "1=0"
