@@ -369,9 +369,10 @@ class TestTenantFiltering:
         resp = httpx.get(f"{self.stac_endpoint}/{tenant}/collections")
         assert resp.status_code == 200
         other_tenants_collections = set(
-            collection
-            for tenant, collection in self.tenant_collections.items()
-            if tenant != tenant
+            collection_id
+            for tenant_name, collections in self.tenant_collections.items()
+            if tenant_name != tenant
+            for collection_id in collections
         )
         forbidden_collections = set(other_tenants_collections) - set(
             self.tenant_collections[tenant]
