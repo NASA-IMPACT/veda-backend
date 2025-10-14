@@ -47,7 +47,16 @@ class TenantLinksMiddleware(JsonResponseMiddleware):
         """Update links in the response to include root_path."""
         # Get the client's actual base URL (accounting for load balancers/proxies)
         tenant = request.state.tenant
+        origin = f"{request.url.scheme}://{request.url.netloc}"
         for link in get_links(data):
+            # Ignore links that aren't for this application (e.g. other origin or prefix)
+            if not link.get("href", "").startswith(origin):
+                logger.debug(
+                    "Ignoring link %r because it doesn't start with %r",
+                    link.get("href"),
+                    origin,
+                )
+                continue
             try:
                 self._update_link(link, tenant)
             except Exception as e:
