@@ -423,3 +423,7 @@ async def collection_in_db(app: FastAPI, api_client, valid_stac_collection):
     assert response.status_code in [201, 409]
 
     yield valid_stac_collection["id"]
+
+    await api_client.delete(
+        f"{app.root_path}/collections/{valid_stac_collection['id']}"
+    )
