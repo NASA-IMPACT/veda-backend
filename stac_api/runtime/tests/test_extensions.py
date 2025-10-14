@@ -17,8 +17,6 @@ This module adds search options to collections GET method
 
 """
 
-import pytest
-
 root_path = "api/stac"
 collections_endpoint = root_path + "/collections"
 items_endpoint = root_path + "/collections/{}/items"
@@ -103,9 +101,6 @@ class TestList:
         )
         assert response.status_code == 422
 
-    @pytest.mark.skip(
-        reason="TODO: Bulk items response does not play well with stac-auth-proxy's link rewriting middleware, response seems to not be a JSON object`"
-    )
     async def test_post_valid_bulk_items(
         self, api_client, valid_stac_item, collection_in_db
     ):
@@ -116,6 +111,9 @@ class TestList:
         """
         item_id = valid_stac_item["id"]
         collection_id = valid_stac_item["collection"]
+        assert (
+            collection_id == collection_in_db
+        ), "Collection IDs don't match, test not setup correctly"
         valid_request = {"items": {item_id: valid_stac_item}, "method": "upsert"}
 
         response = await api_client.post(

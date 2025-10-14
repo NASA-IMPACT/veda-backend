@@ -22,7 +22,7 @@ inst_reqs = [
     "aws_xray_sdk>=2.6.0,<3",
     "pystac[validation]>=1.14.0",
     "pydantic>2",
-    "stac-auth-proxy==0.9.2",
+    "stac-auth-proxy==0.10.0",
 ]
 
 extra_reqs = {
