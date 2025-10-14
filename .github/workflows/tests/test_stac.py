@@ -1,5 +1,7 @@
 """test veda-backend STAC."""
 
+from itertools import chain
+
 import httpx
 import pytest
 import yaml
@@ -391,3 +393,61 @@ class TestTenantFiltering:
             )
             assert resp.status_code == 200
             assert resp.json()["features"] == []
+
+    @pytest.mark.parametrize(
+        "tenant, collections",
+        [(tenant, collections) for tenant, collections in TENANT_COLLECTIONS.items()],
+    )
+    @pytest.mark.parametrize(
+        "endpoint, method",
+        [
+            ("", "GET"),
+            ("collections", "GET"),
+            ("collections/{collection_id}", "GET"),
+            ("collections/{collection_id}/items", "GET"),
+            ("collections/{collection_id}/items/{item_id}", "GET"),
+            ("search", "GET"),
+            ("search", "POST"),
+        ],
+    )
+    def test_links_with_tenant(self, tenant, collections, endpoint, method):
+        """Assert links contain the tenant in the href if one is provided."""
+        base = f"{self.stac_endpoint}/{tenant}" if tenant else self.stac_endpoint
+        collection_id = collections[0]
+
+        # get item id if we are looking up an item
+        item_id = (
+            httpx.get(f"{base}/collections/{collection_id}/items").json()["features"][
+                0
+            ]["id"]
+            if endpoint.endswith("/items/{item_id}")
+            else ""
+        )
+
+        url = f"{base}/{endpoint}"
+        url = url.replace("{collection_id}", collection_id)
+        url = url.replace("{item_id}", item_id)
+        resp = httpx.request(method, url)
+        assert resp.status_code == 200
+        data = resp.json()
+
+        local_links = [
+            link
+            for link in chain(
+                # links at the root level and item lookup
+                data.get("links", []),
+                # links at the item level
+                chain.from_iterable(
+                    item.get("links", []) for item in data.get("features", [])
+                ),
+                # links at the collection level
+                chain.from_iterable(
+                    collection.get("links", [])
+                    for collection in data.get("collections", [])
+                ),
+            )
+            if link.get("href").startswith(self.stac_endpoint)
+        ]
+        assert len(local_links) > 0  # sanity check for test
+        for link in local_links:
+            assert link["href"].startswith(f"{base}/")
