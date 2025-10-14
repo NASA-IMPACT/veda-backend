@@ -381,14 +381,17 @@ def invalid_stac_collection():
 
 
 @pytest.fixture
-def valid_stac_item():
+def valid_stac_item(valid_stac_collection):
     """
     Fixture providing a valid STAC item for testing.
 
     Returns:
         dict: A valid STAC item.
     """
-    return VALID_ITEM
+    return {
+        **VALID_ITEM,
+        "collection": valid_stac_collection["id"],
+    }
 
 
 @pytest.fixture
