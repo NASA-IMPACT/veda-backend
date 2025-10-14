@@ -12,8 +12,6 @@ from typing import Optional, Set
 from fastapi import FastAPI, Request
 from starlette.types import Receive, Scope, Send
 
-from .tenant_models import TenantContext
-
 logger = logging.getLogger(__name__)
 
 
@@ -68,16 +66,6 @@ class TenantExtractionMiddleware:
             return await self.app(scope, receive, send)
 
         logger.debug("Extracted tenant is %s", tenant)
-        tenant_context = (
-            TenantContext(
-                tenant_id=tenant,
-                request_id=request.headers.get("X-Correlation-ID"),
-            )
-            if tenant
-            else None
-        )
-
-        request.state.tenant_context = tenant_context
         request.state.tenant = tenant
 
         logger.debug(
@@ -85,7 +73,7 @@ class TenantExtractionMiddleware:
             extra={
                 "tenant": tenant,
                 "method": request.method,
-                "path": request.url.path if tenant_context else None,
+                "path": request.url.path if tenant else None,
             },
         )
 
