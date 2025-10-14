@@ -205,11 +205,11 @@ class TestTenantFiltering:
         """All collections should be listed when accessed without tenant."""
         resp = httpx.get(f"{self.stac_endpoint}/{self.collections_route}")
         assert resp.status_code == 200
-        all_collections = set(
-            collection
-            for _tenant_collections in self.tenant_collections.values()
-            for collection in _tenant_collections
-        )
+
+        all_collections = set()
+        for collections in self.tenant_collections.values():
+            all_collections.update(collections)
+
         assert set(c["id"] for c in resp.json()["collections"]) == all_collections
 
     def test_collections_not_listed_with_invalid_tenant(self):
@@ -368,12 +368,12 @@ class TestTenantFiltering:
         # emergency should not see barc-thomasfire
         resp = httpx.get(f"{self.stac_endpoint}/{tenant}/collections")
         assert resp.status_code == 200
-        other_tenants_collections = set(
-            collection_id
-            for tenant_name, collections in self.tenant_collections.items()
-            if tenant_name != tenant
-            for collection_id in collections
-        )
+
+        other_tenants_collections = set()
+        for tenant_name, collections in self.tenant_collections.items():
+            if tenant_name != tenant:
+                other_tenants_collections.update(collections)
+
         forbidden_collections = set(other_tenants_collections) - set(
             self.tenant_collections[tenant]
         )
