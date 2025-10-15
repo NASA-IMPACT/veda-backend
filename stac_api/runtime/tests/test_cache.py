@@ -3,8 +3,9 @@ Test suite for AsyncTTLCache
 """
 
 import asyncio
-import pytest
 import time
+
+import pytest
 from src.filters import AsyncTTLCache, ItemFilter
 
 
@@ -56,11 +57,10 @@ class TestAsyncTTLCache:
         # Add new tenant (should evict tenant2, not tenant1)
         await cache.set("tenant4", ["col4"])
 
-        # Check what's still in cache
-        assert await cache.get("tenant1") == ["col1"]  # Should exist
-        assert await cache.get("tenant2") is None      # Should be evicted
-        assert await cache.get("tenant3") == ["col3"]  # Should exist
-        assert await cache.get("tenant4") == ["col4"]  # Should exist
+        assert await cache.get("tenant1") == ["col1"]
+        assert await cache.get("tenant2") is None
+        assert await cache.get("tenant3") == ["col3"]
+        assert await cache.get("tenant4") == ["col4"]
 
     @pytest.mark.asyncio
     async def test_cache_stats(self, cache):
