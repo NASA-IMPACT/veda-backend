@@ -62,7 +62,10 @@ class StacApiLambdaConstruct(Construct):
         }
 
         if veda_stac_settings.custom_host:
-            lambda_env["VEDA_STAC_CUSTOM_HOST"] = veda_stac_settings.custom_host
+            custom_host = veda_stac_settings.custom_host
+            if not custom_host.startswith(("http://", "https://")):
+                custom_host = f"https://{custom_host}"
+            lambda_env["VEDA_STAC_CUSTOM_HOST"] = custom_host
 
         if veda_stac_settings.keycloak_stac_api_client_id is not None:
             lambda_env[
