@@ -9,6 +9,7 @@ with open("README.md") as f:
 
 inst_reqs = [
     "boto3",
+    "cachetools>=6.2.1",
     "stac-fastapi.api~=5.0",
     "stac-fastapi.types~=5.0",
     "stac-fastapi.extensions~=5.0",

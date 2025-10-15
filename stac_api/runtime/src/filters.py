@@ -4,6 +4,7 @@ import dataclasses
 import logging
 from typing import Any, Optional
 
+import cachetools
 import httpx
 from stac_auth_proxy.utils.cache import MemoryCache
 
@@ -33,7 +34,7 @@ class ItemFilter:
     def __post_init__(self):
         """Initialize the ItemFilter"""
         self.client = httpx.AsyncClient(base_url=self.api_url)
-        self.cache = MemoryCache(ttl=60)
+        self.cache = cachetools.TTLCache(ttl=60, maxsize=1000)
 
     async def __call__(self, context: dict[str, Any]) -> str:
         """If tenant is present on request, filter Items by Collection IDs available to that tenant"""
@@ -62,7 +63,7 @@ class ItemFilter:
             f"collection = '{collection_id}'" for collection_id in collection_ids
         )
 
-    # TODO: Memoize this with expiration
+    @cachetools.cachedmethod(lambda self: self.cache)
     async def get_tenant_collections(self, tenant: str) -> list[str]:
         """Fetch IDs of collections visible to a tenant"""
         logger.debug(
