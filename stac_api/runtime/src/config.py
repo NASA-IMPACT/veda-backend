@@ -95,9 +95,7 @@ class _ApiSettings(Settings):
     )
     swagger_ui_endpoint: str = "/docs"
     openapi_spec_endpoint: str = "/openapi.json"
-    custom_host: Optional[str] = Field(
-        "http://localhost:8081", description="Custom host URL"
-    )
+    custom_host: Optional[str] = Field(None, description="Custom host URL")
     git_sha: Optional[str] = None
 
     @field_validator("cors_origins")
@@ -157,30 +155,6 @@ def TilesApiSettings() -> _TilesApiSettings:
 
     """
     return _TilesApiSettings()
-
-
-TENANT_ITEM_LINK_TEMPLATES = [
-    {
-        "rel": "self",
-        "type": "application/geo+json",
-        "href_template": "/{tenant}/collections/{collection_id}/items",
-    },
-    {
-        "rel": "parent",
-        "type": "application/json",
-        "href_template": "/{tenant}/collections/{collection_id}",
-    },
-    {
-        "rel": "collection",
-        "type": "application/json",
-        "href_template": "/{tenant}/collections/{collection_id}",
-    },
-    {
-        "rel": "root",
-        "type": "application/json",
-        "href_template": "/{tenant}/",
-    },
-]
 
 
 # stac-fastapi-pgstac app.py example for configuring extensions https://github.com/stac-utils/stac-fastapi-pgstac/blob/5.0.3/stac_fastapi/pgstac/app.py
