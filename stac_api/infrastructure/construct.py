@@ -61,6 +61,9 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_GIT_SHA": veda_stac_settings.git_sha,
         }
 
+        if veda_stac_settings.custom_host:
+            lambda_env["VEDA_STAC_CUSTOM_HOST"] = veda_stac_settings.custom_host
+
         if veda_stac_settings.keycloak_stac_api_client_id is not None:
             lambda_env[
                 "VEDA_STAC_CLIENT_ID"
