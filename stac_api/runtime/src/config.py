@@ -82,8 +82,21 @@ class _ApiSettings(Settings):
     openid_configuration_url: Optional[AnyHttpUrl] = Field(
         None, description="OpenID config url"
     )
+    openid_configuration_internal_url: Optional[AnyHttpUrl] = Field(
+        None, description="OpenID config url"
+    )
     enable_transactions: bool = Field(
-        False, description="Whether to enable transactions"
+        False,
+        description="Whether to enable transactions. If True, set enable_stac_auth_proxy to True.",
+    )
+    enable_stac_auth_proxy: bool = Field(
+        False,
+        description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
+    )
+    swagger_ui_endpoint: str = "/docs"
+    openapi_spec_endpoint: str = "/openapi.json"
+    custom_host: Optional[str] = Field(
+        "http://localhost:8081", description="Custom host URL"
     )
     git_sha: Optional[str] = None
 
