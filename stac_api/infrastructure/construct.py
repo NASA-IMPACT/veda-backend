@@ -12,6 +12,7 @@ from aws_cdk import (
     aws_lambda,
     aws_logs,
 )
+from aws_cdk.aws_ecr_assets import Platform
 from constructs import Construct
 
 from .config import veda_stac_settings
@@ -67,14 +68,13 @@ class StacApiLambdaConstruct(Construct):
                 veda_stac_settings.openid_configuration_url
             )
 
-        lambda_function = aws_lambda.Function(
+        lambda_function = aws_lambda.DockerImageFunction(
             self,
             "lambda",
-            handler="handler.handler",
-            runtime=aws_lambda.Runtime.PYTHON_3_12,
-            code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath(code_dir),
+            code=aws_lambda.DockerImageCode.from_image_asset(
+                directory=os.path.abspath(code_dir),
                 file="stac_api/runtime/Dockerfile",
+                platform=Platform.LINUX_AMD64,
             ),
             vpc=vpc,
             memory_size=veda_stac_settings.memory,
