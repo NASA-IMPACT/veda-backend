@@ -137,7 +137,7 @@ else:
 
 # Note: we want this to be added after stac_auth_proxy so that it runs before stac_auth_proxy's middleware
 app.add_middleware(TenantExtractionMiddleware, root_path=api_settings.root_path)
-app.add_middleware(TenantLinksMiddleware, root_path=api_settings.root_path)
+app.add_middleware(TenantLinksMiddleware)
 app.add_middleware(CompressionMiddleware)
 
 # Set all CORS enabled origins

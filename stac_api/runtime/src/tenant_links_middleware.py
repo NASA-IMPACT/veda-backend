@@ -27,7 +27,6 @@ class TenantLinksMiddleware(JsonResponseMiddleware):
     """
 
     app: FastAPI
-    root_path: str = ""
     json_content_type_expr: str = r"application/(geo\+)?json"
 
     def should_transform_response(self, request: Request, scope: Scope) -> bool:
@@ -47,18 +46,27 @@ class TenantLinksMiddleware(JsonResponseMiddleware):
         """Update links in the response to include root_path."""
         # Get the client's actual base URL (accounting for load balancers/proxies)
         tenant = request.state.tenant
-        origin = f"{request.url.scheme}://{request.url.netloc}"
+        root_path = request.scope.get("root_path", "")
+        base_url = f"{request.url.scheme}://{request.url.netloc}{root_path}"
         for link in get_links(data):
             # Ignore links that aren't for this application (e.g. other origin or prefix)
-            if not link.get("href", "").startswith(origin):
+            if not link.get("href", "").startswith(base_url):
                 logger.debug(
                     "Ignoring link %r because it doesn't start with %r",
                     link.get("href"),
-                    origin,
+                    base_url,
                 )
                 continue
             try:
-                self._update_link(link, tenant)
+                url_parsed = urlparse(link["href"])
+                # /api/stac/collections -> /collections
+                path_without_root_path = url_parsed.path[len(root_path) :]
+                # /collections -> /api/stac/{tenant}/collections
+                url_parsed = url_parsed._replace(
+                    path=f"{root_path}/{tenant}{path_without_root_path}"
+                )
+                logger.debug("Updated link %r to %r", link["href"], urlunparse(url_parsed))
+                link["href"] = urlunparse(url_parsed)
             except Exception as e:
                 logger.error(
                     "Failed to parse link href %r, (ignoring): %s",
@@ -66,15 +74,3 @@ class TenantLinksMiddleware(JsonResponseMiddleware):
                     str(e),
                 )
         return data
-
-    def _update_link(self, link: dict[str, Any], tenant: str) -> None:
-        """Update link to include tenant."""
-        url_parsed = urlparse(link["href"])
-        # /api/stac/collections -> /collections
-        path_without_root_path = url_parsed.path[len(self.root_path) :]
-        # /collections -> /api/stac/{tenant}/collections
-        url_parsed = url_parsed._replace(
-            path=f"{self.root_path}/{tenant}{path_without_root_path}"
-        )
-        logger.debug("Updated link %r to %r", link["href"], urlunparse(url_parsed))
-        link["href"] = urlunparse(url_parsed)
