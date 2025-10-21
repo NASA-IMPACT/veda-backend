@@ -41,17 +41,18 @@ class TenantExtractionMiddleware:
             "_mgmt",
         }
     )
-    root_path: str = ""
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Extract tenant from path"""
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
+        root_path = scope.get("root_path", "")
+
         original_path = scope["path"]
         if original_path.endswith("/") and original_path not in [
             "/",
-            f"{self.root_path}",
+            root_path,
         ]:
             logger.debug(f"{original_path=}")
             scope["path"] = original_path.rstrip("/")
@@ -78,16 +79,21 @@ class TenantExtractionMiddleware:
         )
 
         logger.debug("Removing tenant %s from path %r", tenant, request.url.path)
-        scope["path"] = self._remove_tenant_from_path(request.url.path, tenant)
+        scope["path"] = (
+            root_path + request.url.path[len(f"{root_path}/{tenant}") :]
+            if root_path and request.url.path.startswith(f"{root_path}/{tenant}")
+            else request.url.path[len(f"/{tenant}") :]
+        )
         logger.debug("New path is %s", scope["path"])
 
         return await self.app(scope, receive, send)
 
     def _extract_tenant_from_path(self, request: Request) -> Optional[str]:
         """Extracts the tenant identifier from the URL"""
+        root_path = request.scope.get("root_path", "")
         path = (
-            request.url.path[len(self.root_path) :]
-            if self.root_path and request.url.path.startswith(self.root_path)
+            request.url.path[len(root_path) :]
+            if root_path and request.url.path.startswith(root_path)
             else request.url.path
         )
         logger.info("Attempting to extract tenant from request path %s", path)
@@ -104,11 +110,3 @@ class TenantExtractionMiddleware:
 
         # 3. first_part is a tenant, return it
         return first_part
-
-    def _remove_tenant_from_path(self, path: str, tenant: str) -> str:
-        """Remove the tenant from the path"""
-        return (
-            self.root_path + path[len(f"{self.root_path}/{tenant}") :]
-            if self.root_path and path.startswith(f"{self.root_path}/{tenant}")
-            else path[len(f"/{tenant}") :]
-        )
