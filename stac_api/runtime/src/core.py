@@ -19,6 +19,7 @@ class VedaCrudClient(CoreCrudClient):
     ) -> Item:
         """Add extra/non-mandatory links to an Item"""
         collection_id = item.get("collection", "")
+
         if collection_id:
             LinkInjector(collection_id, render_params, request).inject_item(item)
 

@@ -9,19 +9,20 @@ with open("README.md") as f:
 
 inst_reqs = [
     "boto3",
+    "async-lru>=2.0.5",
     "stac-fastapi.api~=5.0",
     "stac-fastapi.types~=5.0",
     "stac-fastapi.extensions~=5.0",
     "stac-fastapi.pgstac>=5.0.3,<6.0",
     "jinja2>=2.11.2,<4.0.0",
-    "starlette-cramjam>=0.3.2,<0.4",
+    "starlette-cramjam>=0.4.0",
     "importlib_resources>=1.1.0;python_version<='3.11'",  # https://github.com/cogeotiff/rio-tiler/pull/379
     "pygeoif<=0.8",  # newest release (1.0+ / 09-22-2022) breaks a number of other geo libs
     "aws-lambda-powertools>=1.18.0",
     "aws_xray_sdk>=2.6.0,<3",
     "pystac[validation]>=1.14.0",
     "pydantic>2",
-    "eoapi-auth-utils==0.3.0",
+    "stac-auth-proxy==0.10.0",
 ]
 
 extra_reqs = {

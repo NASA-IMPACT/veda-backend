@@ -1,5 +1,6 @@
 """Observability middleware for logging and tracing requests."""
 import json
+import logging
 import time
 from typing import Callable, Optional
 
@@ -13,6 +14,9 @@ logger: Logger = Logger(service="stac-api", namespace="veda-backend")
 metrics: Metrics = Metrics(namespace="veda-backend")
 metrics.set_default_dimensions(environment=settings.stage, service="stac-api")
 tracer: Tracer = Tracer()
+
+logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger("stac-auth-proxy").setLevel(logging.DEBUG)
 
 try:
     version = settings.git_sha[:6]  # short git sha

@@ -68,6 +68,10 @@ class vedaSTACSettings(BaseSettings):
         subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
         description="Git SHA of the current commit, used to track deployment version",
     )
+    enable_stac_auth_proxy: bool = Field(
+        False,
+        description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
+    )
 
     @model_validator(mode="before")
     def check_transaction_fields(cls, values):
@@ -77,7 +81,11 @@ class vedaSTACSettings(BaseSettings):
         if values.get("stac_enable_transactions") == "True":
             missing_fields = [
                 field
-                for field in ["keycloak_stac_api_client_id", "openid_configuration_url"]
+                for field in [
+                    "keycloak_stac_api_client_id",
+                    "openid_configuration_url",
+                    "enable_stac_auth_proxy",
+                ]
                 if not values.get(field)
             ]
             if missing_fields:

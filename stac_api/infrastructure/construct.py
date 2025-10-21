@@ -51,12 +51,21 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_ENABLE_TRANSACTIONS": str(
                 veda_stac_settings.stac_enable_transactions
             ),
+            "VEDA_STAC_ENABLE_STAC_AUTH_PROXY": str(
+                veda_stac_settings.enable_stac_auth_proxy
+            ),
             "DB_MIN_CONN_SIZE": "0",
             "DB_MAX_CONN_SIZE": "1",
             "PYSTAC_STAC_VERSION_OVERRIDE": veda_stac_settings.pystac_stac_version_override,
             **{k.upper(): v for k, v in veda_stac_settings.env.items()},
             "VEDA_STAC_GIT_SHA": veda_stac_settings.git_sha,
         }
+
+        if veda_stac_settings.custom_host:
+            custom_host = veda_stac_settings.custom_host
+            if not custom_host.startswith(("http://", "https://")):
+                custom_host = f"https://{custom_host}"
+            lambda_env["VEDA_STAC_CUSTOM_HOST"] = custom_host
 
         if veda_stac_settings.keycloak_stac_api_client_id is not None:
             lambda_env[

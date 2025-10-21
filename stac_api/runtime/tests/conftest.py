@@ -8,15 +8,19 @@ setup for testing with mock AWS and PostgreSQL configurations.
 
 import copy
 import os
+import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from pystac import STACObjectType
+from pystac.errors import STACValidationError
 
+from fastapi import FastAPI
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 
 VALID_COLLECTION = {
-    "id": "CMIP245-winter-median-pr",
+    "id": "test-collection",
     "type": "Collection",
     "title": "Projected changes to winter (January, February, and March) cumulative daily precipitation",
     "links": [],
@@ -83,12 +87,12 @@ VALID_ITEM = {
         {
             "rel": "collection",
             "type": "application/json",
-            "href": "https://dev.openveda.cloud/api/stac/collections/CMIP245-winter-median-pr",
+            "href": "https://dev.openveda.cloud/api/stac/collections/test-collection",
         },
         {
             "rel": "parent",
             "type": "application/json",
-            "href": "https://dev.openveda.cloud/api/stac/collections/CMIP245-winter-median-pr",
+            "href": "https://dev.openveda.cloud/api/stac/collections/test-collection",
         },
         {
             "rel": "root",
@@ -98,11 +102,11 @@ VALID_ITEM = {
         {
             "rel": "self",
             "type": "application/geo+json",
-            "href": "https://dev.openveda.cloud/api/stac/collections/CMIP245-winter-median-pr/items/OMI_trno2_0.10x0.10_2023_Col3_V4",
+            "href": "https://dev.openveda.cloud/api/stac/collections/test-collection/items/OMI_trno2_0.10x0.10_2023_Col3_V4",
         },
         {
             "title": "Map of Item",
-            "href": "https://dev.openveda.cloud/api/raster/stac/map?collection=CMIP245-winter-median-pr&item=OMI_trno2_0.10x0.10_2023_Col3_V4&assets=cog_default&rescale=0%2C3000000000000000&colormap_name=reds",
+            "href": "https://dev.openveda.cloud/api/raster/stac/map?collection=test-collection&item=OMI_trno2_0.10x0.10_2023_Col3_V4&assets=cog_default&rescale=0%2C3000000000000000&colormap_name=reds",
             "rel": "preview",
             "type": "text/html",
         },
@@ -188,7 +192,7 @@ VALID_ITEM = {
         },
         "rendered_preview": {
             "title": "Rendered preview",
-            "href": "https://dev.openveda.cloud/api/raster/stac/preview.png?collection=CMIP245-winter-median-pr&item=OMI_trno2_0.10x0.10_2023_Col3_V4&assets=cog_default&rescale=0%2C3000000000000000&colormap_name=reds",
+            "href": "https://dev.openveda.cloud/api/raster/stac/preview.png?collection=test-collection&item=OMI_trno2_0.10x0.10_2023_Col3_V4&assets=cog_default&rescale=0%2C3000000000000000&colormap_name=reds",
             "rel": "preview",
             "roles": ["overview"],
             "type": "image/png",
@@ -198,11 +202,11 @@ VALID_ITEM = {
         "type": "Polygon",
         "coordinates": [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]],
     },
-    "collection": "CMIP245-winter-median-pr",
+    "collection": "test-collection",
     "properties": {
         "end_datetime": "2023-12-31T00:00:00+00:00",
         "start_datetime": "2023-01-01T00:00:00+00:00",
-        "datetime": None,
+        "datetime": "2023-01-01T00:00:00+00:00",
     },
     "stac_version": "1.0.0",
     "stac_extensions": [
@@ -231,6 +235,8 @@ def test_environ():
         "VEDA_STAC_OPENID_CONFIGURATION_URL"
     ] = "https://example.com/.well-known/openid-configuration"
     os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
+    os.environ["VEDA_STAC_ENABLE_STAC_AUTH_PROXY"] = "True"
+    os.environ["VEDA_STAC_ROOT_PATH"] = "/api/stac"
 
     # Config mocks
     os.environ["POSTGRES_USER"] = "username"
@@ -239,16 +245,6 @@ def test_environ():
     os.environ["POSTGRES_HOST_READER"] = "0.0.0.0"
     os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
     os.environ["POSTGRES_PORT"] = "5439"
-
-
-def override_validated_token():
-    """
-    Mock function to override validated token dependency.
-
-    Returns:
-        str: A fake token to bypass authorization in tests.
-    """
-    return "fake_token"
 
 
 def override_jwks_client():
@@ -263,14 +259,56 @@ def override_jwks_client():
 
 @pytest.fixture(autouse=True)
 def mock_auth():
-    """Mock the OpenIdConnectAuth class to bypass actual OIDC calls."""
-    with patch("eoapi.auth_utils.OpenIdConnectAuth") as mock:
-        # Create a mock instance
-        mock_instance = MagicMock()
-        mock_instance.valid_token_dependency = override_validated_token
-        mock_instance.jwks_client = override_jwks_client
-        mock.return_value = mock_instance
-        yield mock_instance
+    """Mock the stac_auth_proxy to bypass actual OIDC calls while preserving normal operation."""
+    # Define the mock JWT payload that validate_token should return
+    mock_jwt_payload = {
+        "sub": "test-user",
+        "preferred_username": "test-user",
+        "aud": "account",
+        "iss": "https://example.com",
+        "iat": 1700000000,
+        "exp": 1700003600,
+        "scope": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
+    }
+
+    # Import the class to patch its method
+    from stac_auth_proxy.middleware import EnforceAuthMiddleware
+
+    # Mock the OidcService to prevent OIDC discovery requests
+    with patch(
+        "stac_auth_proxy.middleware.EnforceAuthMiddleware.OidcService"
+    ) as mock_oidc_service:
+        # Create a mock OIDC service that doesn't make network calls
+        mock_oidc_instance = MagicMock()
+        mock_oidc_instance.metadata = {
+            "jwks_uri": "https://example.com/jwks",
+            "issuer": "https://example.com",
+        }
+        mock_oidc_instance.jwks_client = MagicMock()
+        mock_oidc_service.return_value = mock_oidc_instance
+
+        # Mock the EnforceAuthMiddleware validate_token method on the class
+        with patch.object(
+            EnforceAuthMiddleware, "validate_token", return_value=mock_jwt_payload
+        ):
+            yield
+
+
+@pytest.fixture(autouse=True)
+def mock_stac_validation():
+    """Mock STAC validation to avoid network calls / SSL issues"""
+    with patch("src.validation.validate_dict") as mock_validate_dict:
+
+        def mock_validate_dict_side_effect(data, stac_type):
+            if stac_type == STACObjectType.COLLECTION:
+                if "extent" not in data:
+                    raise STACValidationError("Missing required field: extent")
+            elif stac_type == STACObjectType.ITEM:
+                if "properties" not in data:
+                    raise STACValidationError("Missing required field: properties")
+
+        mock_validate_dict.side_effect = mock_validate_dict_side_effect
+        yield mock_validate_dict
 
 
 @pytest.fixture
@@ -308,19 +346,11 @@ async def api_client(app):
     Yields:
         TestClient: The TestClient instance for API testing.
     """
-    from src.app import oidc_auth
-
-    app.dependency_overrides[
-        oidc_auth.valid_token_dependency
-    ] = override_validated_token
-    base_url = "http://test"
 
     async with AsyncClient(
-        transport=ASGITransport(app=app), base_url=base_url
+        transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         yield client
-
-    app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -331,7 +361,10 @@ def valid_stac_collection():
     Returns:
         dict: A valid STAC collection.
     """
-    return VALID_COLLECTION
+    return {
+        **VALID_COLLECTION,
+        "id": f"test-collection-{str(uuid.uuid4()).split('-')[0]}",
+    }
 
 
 @pytest.fixture
@@ -348,14 +381,17 @@ def invalid_stac_collection():
 
 
 @pytest.fixture
-def valid_stac_item():
+def valid_stac_item(valid_stac_collection):
     """
     Fixture providing a valid STAC item for testing.
 
     Returns:
         dict: A valid STAC item.
     """
-    return VALID_ITEM
+    return {
+        **VALID_ITEM,
+        "collection": valid_stac_collection["id"],
+    }
 
 
 @pytest.fixture
@@ -372,7 +408,7 @@ def invalid_stac_item():
 
 
 @pytest.fixture
-async def collection_in_db(api_client, valid_stac_collection):
+async def collection_in_db(app: FastAPI, api_client, valid_stac_collection):
     """
     Fixture to ensure a valid STAC collection exists in the database.
 
@@ -380,7 +416,9 @@ async def collection_in_db(api_client, valid_stac_collection):
     the collection ID.
     """
     # Create the collection
-    response = await api_client.post("/collections", json=valid_stac_collection)
+    response = await api_client.post(
+        f"{app.root_path}/collections", json=valid_stac_collection
+    )
 
     # Ensure the setup was successful before the test proceeds
     # The setup is successful if the collection was created (201) or if it
@@ -388,3 +426,7 @@ async def collection_in_db(api_client, valid_stac_collection):
     assert response.status_code in [201, 409]
 
     yield valid_stac_collection["id"]
+
+    await api_client.delete(
+        f"{app.root_path}/collections/{valid_stac_collection['id']}"
+    )

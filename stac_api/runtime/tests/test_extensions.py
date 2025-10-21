@@ -17,10 +17,10 @@ This module adds search options to collections GET method
 
 """
 
-
-collections_endpoint = "/collections"
-items_endpoint = "/collections/{}/items"
-bulk_endpoint = "/collections/{}/bulk_items"
+root_path = "api/stac"
+collections_endpoint = root_path + "/collections"
+items_endpoint = root_path + "/collections/{}/items"
+bulk_endpoint = root_path + "/collections/{}/bulk_items"
 
 
 class TestList:
@@ -77,9 +77,12 @@ class TestList:
 
         Asserts that the response status code is 200.
         """
-        collection_id = valid_stac_item["collection"]
         response = await api_client.post(
-            items_endpoint.format(collection_id), json=valid_stac_item
+            items_endpoint.format(collection_in_db),
+            json={
+                **valid_stac_item,
+                "collection": collection_in_db,
+            },
         )
         assert response.status_code == 201
 
@@ -108,6 +111,9 @@ class TestList:
         """
         item_id = valid_stac_item["id"]
         collection_id = valid_stac_item["collection"]
+        assert (
+            collection_id == collection_in_db
+        ), "Collection IDs don't match, test not setup correctly"
         valid_request = {"items": {item_id: valid_stac_item}, "method": "upsert"}
 
         response = await api_client.post(
@@ -122,9 +128,9 @@ class TestList:
         # The `collection_in_db` fixture ensures the collection exists and provides its ID.
         collection_id = collection_in_db
 
-        # Perform a GET request to the /collections endpoint with an "ids" query
+        # Perform a GET request to the /collections endpoint with an "id" query
         response = await api_client.get(
-            collections_endpoint, params={"ids": collection_id}
+            collections_endpoint, params={"filter": f"id = '{collection_id}'"}
         )
 
         assert response.status_code == 200
