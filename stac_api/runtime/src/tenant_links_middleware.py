@@ -65,8 +65,9 @@ class TenantLinksMiddleware(JsonResponseMiddleware):
                 url_parsed = url_parsed._replace(
                     path=f"{root_path}/{tenant}{path_without_root_path}"
                 )
-                logger.debug("Updated link %r to %r", link["href"], urlunparse(url_parsed))
-                link["href"] = urlunparse(url_parsed)
+                updated_href = urlunparse(url_parsed)
+                logger.debug("Updated link %r to %r", link["href"], updated_href)
+                link["href"] = updated_href
             except Exception as e:
                 logger.error(
                     "Failed to parse link href %r, (ignoring): %s",
