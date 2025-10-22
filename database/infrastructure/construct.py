@@ -45,18 +45,18 @@ class BootstrapPgStac(Construct):
         veda_schema_version = veda_db_settings.schema_version
 
         handler = aws_lambda.Function(
-            self,
-            "lambda",
-            handler="handler.handler",
-            runtime=aws_lambda.Runtime.PYTHON_3_12,
-            code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath("./"),
-                file="database/runtime/Dockerfile",
-                build_args={"PGSTAC_VERSION": pgstac_version},
-            ),
-            timeout=Duration.minutes(5),
-            vpc=database.vpc,
-            log_retention=aws_logs.RetentionDays.ONE_WEEK,
+           self,
+           "lambda",
+           handler="handler.handler",
+           runtime=aws_lambda.Runtime.PYTHON_3_12,
+           code=aws_lambda.Code.from_docker_build(
+               path=os.path.abspath("./"),
+               file="database/runtime/Dockerfile",
+               build_args={"PGSTAC_VERSION": pgstac_version},
+           ),
+           timeout=Duration.minutes(5),
+           vpc=database.vpc,
+           log_retention=aws_logs.RetentionDays.ONE_WEEK,
         )
 
         self.secret = aws_secretsmanager.Secret(
@@ -90,18 +90,18 @@ class BootstrapPgStac(Construct):
         self.connections = database.connections
 
         CustomResource(
-            scope=scope,
-            id="bootstrapper",
-            service_token=handler.function_arn,
-            properties={
-                # By setting pgstac_version in the properties assures
-                # that Create/Update events will be passed to the service token
-                "pgstac_version": pgstac_version,
-                "conn_secret_arn": database.secret.secret_arn,
-                "new_user_secret_arn": self.secret.secret_arn,
-                "veda_schema_version": veda_schema_version,
-            },
-            removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
+           scope=scope,
+           id="bootstrapper",
+           service_token=handler.function_arn,
+           properties={
+               # By setting pgstac_version in the properties assures
+               # that Create/Update events will be passed to the service token
+               "pgstac_version": pgstac_version,
+               "conn_secret_arn": database.secret.secret_arn,
+               "new_user_secret_arn": self.secret.secret_arn,
+               "veda_schema_version": veda_schema_version,
+           },
+           removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
         )
 
 

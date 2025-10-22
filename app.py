@@ -120,20 +120,20 @@ ingestor_config = ingest_config(
 )
 
 ingest_api = ingest_api_construct(
-    veda_stack,
-    "ingest-api",
-    config=ingestor_config,
-    db_secret=database.pgstac.secret,
-    db_vpc=vpc.vpc,
+   veda_stack,
+   "ingest-api",
+   config=ingestor_config,
+   db_secret=database.pgstac.secret,
+   db_vpc=vpc.vpc,
 )
 
 ingestor = ingestor_construct(
-    veda_stack,
-    "IngestorConstruct",
-    config=ingestor_config,
-    table=ingest_api.table,
-    db_secret=database.pgstac.secret,
-    db_vpc=vpc.vpc,
+   veda_stack,
+   "IngestorConstruct",
+   config=ingestor_config,
+   table=ingest_api.table,
+   db_secret=database.pgstac.secret,
+   db_vpc=vpc.vpc,
 )
 
 for key, value in {
