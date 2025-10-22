@@ -55,6 +55,4 @@ python -c "import py_compile; py_compile.compile('${LAMBDA_RUNTIME_DIR}/handler.
 mkdir -p /tmp/.cache && chmod 777 /tmp/.cache
 EOF
 
-RUN python -c "from handler import handler; print('All Good')"
-
 CMD ["handler.handler"]
