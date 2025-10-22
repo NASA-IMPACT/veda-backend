@@ -11,7 +11,7 @@ WORKDIR /tmp
 COPY stac_api/runtime /tmp/stac
 
 # we could have a `uv export` here, if we converted the project format
-RUN uv pip install "mangum" "plpygis>=0.2.1" /tmp/stac["psycopg-binary"] --target /deps --no-binary pydantic
+RUN uv pip install mangum "plpygis>=0.2.1" /tmp/stac["psycopg-binary"] --target /deps --no-binary pydantic
 RUN rm -rf /tmp/stac
 
 WORKDIR /deps
