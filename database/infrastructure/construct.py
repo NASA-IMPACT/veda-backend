@@ -44,20 +44,20 @@ class BootstrapPgStac(Construct):
         pgstac_version = veda_db_settings.pgstac_version
         veda_schema_version = veda_db_settings.schema_version
 
-        # handler = aws_lambda.Function(
-        #    self,
-        #    "lambda",
-        #    handler="handler.handler",
-        #    runtime=aws_lambda.Runtime.PYTHON_3_12,
-        #    code=aws_lambda.Code.from_docker_build(
-        #        path=os.path.abspath("./"),
-        #        file="database/runtime/Dockerfile",
-        #        build_args={"PGSTAC_VERSION": pgstac_version},
-        #    ),
-        #    timeout=Duration.minutes(5),
-        #    vpc=database.vpc,
-        #    log_retention=aws_logs.RetentionDays.ONE_WEEK,
-        # )
+        handler = aws_lambda.Function(
+           self,
+           "lambda",
+           handler="handler.handler",
+           runtime=aws_lambda.Runtime.PYTHON_3_12,
+           code=aws_lambda.Code.from_docker_build(
+               path=os.path.abspath("./"),
+               file="database/runtime/Dockerfile",
+               build_args={"PGSTAC_VERSION": pgstac_version},
+           ),
+           timeout=Duration.minutes(5),
+           vpc=database.vpc,
+           log_retention=aws_logs.RetentionDays.ONE_WEEK,
+        )
 
         self.secret = aws_secretsmanager.Secret(
             self,
@@ -81,28 +81,28 @@ class BootstrapPgStac(Construct):
 
         # Allow lambda to...
         # read new user secret
-        # self.secret.grant_read(handler)
-        ## read database secret
-        # database.secret.grant_read(handler)
-        ## connect to database
-        # database.connections.allow_from(handler, port_range=aws_ec2.Port.tcp(5432))
+         self.secret.grant_read(handler)
+        # read database secret
+         database.secret.grant_read(handler)
+        # connect to database
+         database.connections.allow_from(handler, port_range=aws_ec2.Port.tcp(5432))
 
         self.connections = database.connections
 
-        # CustomResource(
-        #    scope=scope,
-        #    id="bootstrapper",
-        #    service_token=handler.function_arn,
-        #    properties={
-        #        # By setting pgstac_version in the properties assures
-        #        # that Create/Update events will be passed to the service token
-        #        "pgstac_version": pgstac_version,
-        #        "conn_secret_arn": database.secret.secret_arn,
-        #        "new_user_secret_arn": self.secret.secret_arn,
-        #        "veda_schema_version": veda_schema_version,
-        #    },
-        #    removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
-        # )
+        CustomResource(
+           scope=scope,
+           id="bootstrapper",
+           service_token=handler.function_arn,
+           properties={
+               # By setting pgstac_version in the properties assures
+               # that Create/Update events will be passed to the service token
+               "pgstac_version": pgstac_version,
+               "conn_secret_arn": database.secret.secret_arn,
+               "new_user_secret_arn": self.secret.secret_arn,
+               "veda_schema_version": veda_schema_version,
+           },
+           removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
+        )
 
 
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
