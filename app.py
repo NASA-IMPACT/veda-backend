@@ -119,22 +119,22 @@ ingestor_config = ingest_config(
     git_sha=git_sha,
 )
 
-ingest_api = ingest_api_construct(
-    veda_stack,
-    "ingest-api",
-    config=ingestor_config,
-    db_secret=database.pgstac.secret,
-    db_vpc=vpc.vpc,
-)
-
-ingestor = ingestor_construct(
-    veda_stack,
-    "IngestorConstruct",
-    config=ingestor_config,
-    table=ingest_api.table,
-    db_secret=database.pgstac.secret,
-    db_vpc=vpc.vpc,
-)
+# ingest_api = ingest_api_construct(
+#    veda_stack,
+#    "ingest-api",
+#    config=ingestor_config,
+#    db_secret=database.pgstac.secret,
+#    db_vpc=vpc.vpc,
+# )
+#
+# ingestor = ingestor_construct(
+#    veda_stack,
+#    "IngestorConstruct",
+#    config=ingestor_config,
+#    table=ingest_api.table,
+#    db_secret=database.pgstac.secret,
+#    db_vpc=vpc.vpc,
+# )
 
 for key, value in {
     "Project": veda_app_settings.app_name,

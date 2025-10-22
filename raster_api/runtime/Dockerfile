@@ -56,7 +56,6 @@ ENV PYTHONUNBUFFERED=1 \
 
 COPY --from=builder /deps ${LAMBDA_RUNTIME_DIR}/
 COPY --from=builder /usr/lib64/libexpat.so.1 ${LAMBDA_RUNTIME_DIR}/
-COPY infrastructure/aws/lambda/handler.py ${LAMBDA_RUNTIME_DIR}/
 COPY raster_api/runtime/handler.py ${LAMBDA_RUNTIME_DIR}/
 
 
