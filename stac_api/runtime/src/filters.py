@@ -14,12 +14,14 @@ logger = logging.getLogger(__name__)
 class CollectionFilter:
     """Tooling to filter STAC Collections by tenant"""
 
+    tenant_filter_field: str
+
     async def __call__(self, context: dict[str, Any]) -> str:
         """If tenant is present on request, filter Collections by that tenant"""
         logger.debug("calling CollectionFilter with context %s", context)
         tenant = context.get("tenant")
         if tenant:
-            return f"dashboard:tenant = '{tenant}'"
+            return f"{self.tenant_filter_field} = '{tenant}'"
         return "1=1"
 
 
