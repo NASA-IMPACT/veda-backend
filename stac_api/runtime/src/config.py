@@ -99,6 +99,10 @@ class _ApiSettings(Settings):
         "http://localhost:8081", description="Custom host URL"
     )
     git_sha: Optional[str] = None
+    tenant_filter_field: str = Field(
+        "eic:tenant",
+        description="The field name used for tenant filtering",
+    )
 
     @field_validator("cors_origins")
     @classmethod
