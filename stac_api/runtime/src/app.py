@@ -105,7 +105,10 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
         openapi_spec_endpoint=api_settings.openapi_spec_endpoint,
         root_path=api_settings.root_path,
         collections_filter={
-            "cls": f"{CollectionFilter.__module__}:{CollectionFilter.__name__}"
+            "cls": f"{CollectionFilter.__module__}:{CollectionFilter.__name__}",
+            "kwargs": {
+                "tenant_filter_field": api_settings.tenant_filter_field,
+            },
         },
         items_filter={
             "cls": f"{ItemFilter.__module__}:{ItemFilter.__name__}",

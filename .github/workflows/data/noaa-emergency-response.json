@@ -13,5 +13,5 @@
       "interval": [["2005-01-01T00:00:00Z", null]]
     }
   },
-  "dashboard:tenant": "emergency"
+  "eic:tenant": "emergency"
 }

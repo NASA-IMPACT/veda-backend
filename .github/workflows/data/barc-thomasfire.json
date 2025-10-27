@@ -66,5 +66,5 @@
   ],
   "dashboard:is_periodic": false,
   "dashboard:time_density": null,
-  "dashboard:tenant": "fire"
+  "eic:tenant": "fire"
 }
