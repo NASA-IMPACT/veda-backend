@@ -13,6 +13,7 @@ from aws_cdk import (
     aws_lambda,
     aws_logs,
 )
+from aws_cdk.aws_ecr_assets import Platform
 from constructs import Construct
 
 from .config import veda_raster_settings
@@ -37,17 +38,15 @@ class RasterApiLambdaConstruct(Construct):
         # TODO config
         stack_name = Stack.of(self).stack_name
 
-        veda_raster_function = aws_lambda.Function(
+        veda_raster_function = aws_lambda.DockerImageFunction(
             self,
             "lambda",
-            runtime=aws_lambda.Runtime.PYTHON_3_12,
-            code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath(code_dir),
+            code=aws_lambda.DockerImageCode.from_image_asset(
+                directory=os.path.abspath(code_dir),
                 file="raster_api/runtime/Dockerfile",
-                platform="linux/amd64",
+                platform=Platform.LINUX_AMD64,
             ),
             vpc=vpc,
-            handler="handler.handler",
             memory_size=veda_raster_settings.memory,
             timeout=Duration.seconds(veda_raster_settings.timeout),
             log_retention=aws_logs.RetentionDays.ONE_WEEK,

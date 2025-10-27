@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+from typing import Any, Dict
 
 from mangum import Mangum
 from src.app import app
@@ -36,3 +37,7 @@ handler = tracer.capture_lambda_handler(handler)
 handler = logger.inject_lambda_context(handler, clear_state=True)
 # Add metrics last to properly flush metrics.
 handler = metrics.log_metrics(handler, capture_cold_start_metric=True)
+
+def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """Lambda handler with container-specific optimizations and OTEL tracing."""
+    return handler(event, context)
