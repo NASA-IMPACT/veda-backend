@@ -83,6 +83,7 @@ services:
       - GDAL_HTTP_VERSION=2
       - VSI_CACHE=TRUE
       - VSI_CACHE_SIZE=536870912
+      - CPL_VSIL_CURL_ALLOWED_EXTENSIONS=.tif,.TIF,.tiff,.grib2,.GRIB2
       # TiTiler Config
       - MOSAIC_CONCURRENCY=1
       # AWS S3 endpoint config
