@@ -13,6 +13,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
+from .authorization_middleware import add_pep_middleware
+
 app = FastAPI(
     title="VEDA Ingestion API",
     description=DESCRIPTION,
@@ -214,6 +216,8 @@ def who_am_i(claims=Depends(oidc_auth.valid_token_dependency)):
     """
     return claims
 
+
+add_pep_middleware(app)
 
 app.add_middleware(ObservabilityMiddleware)
 

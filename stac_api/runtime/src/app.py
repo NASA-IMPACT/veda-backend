@@ -28,6 +28,7 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
+from .authorization_middleware import add_pep_middleware
 from .core import VedaCrudClient
 from .filters import CollectionFilter, ItemFilter
 from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
@@ -138,6 +139,7 @@ else:
     # Use standard FastAPI app when authentication is disabled
     app = api.app
 
+add_pep_middleware(app)
 # Note: we want this to be added after stac_auth_proxy so that it runs before stac_auth_proxy's middleware
 app.add_middleware(TenantExtractionMiddleware)
 app.add_middleware(TenantLinksMiddleware)
