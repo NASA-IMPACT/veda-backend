@@ -6,11 +6,12 @@ This module provides PEP Middleware integration for the STAC API
 import logging
 import os
 from typing import Optional, Set
-from fastapi import FastAPI
 
 from common.auth.veda_auth.keycloak_pdp import KeycloakPDPClient
 from common.auth.veda_auth.pep_middleware import PEPMiddleware
 from common.auth.veda_auth.resource_extractors import extract_stac_resource_id
+from fastapi import FastAPI
+
 from .config import api_settings
 
 logger = logging.getLogger(__name__)
@@ -27,12 +28,16 @@ def create_pep_middleware(app: FastAPI) -> Optional[PEPMiddleware]:
         return None
 
     if not api_settings.openid_configuration_url:
-        logger.warning("PEP middleware disabled: openid_configuration_url is not configured")
+        logger.warning(
+            "PEP middleware disabled: openid_configuration_url is not configured"
+        )
         return None
 
     resource_server_client_id = os.getenv("VEDA_RESOURCE_SERVER_CLIENT_ID")
     if not resource_server_client_id:
-        logger.warning("PEP middleware disabled: VEDA_RESOURCE_SERVER_CLIENT_ID not configured")
+        logger.warning(
+            "PEP middleware disabled: VEDA_RESOURCE_SERVER_CLIENT_ID not configured"
+        )
         return None
 
     resource_server_client_secret = os.getenv("VEDA_RESOURCE_SERVER_CLIENT_SECRET")
@@ -56,12 +61,7 @@ def create_pep_middleware(app: FastAPI) -> Optional[PEPMiddleware]:
         client_secret=resource_server_client_secret,
     )
 
-    public_paths: Set[str] = {
-        "/health",
-        "/docs",
-        "/openapi.json",
-        "/index.html"
-    }
+    public_paths: Set[str] = {"/health", "/docs", "/openapi.json", "/index.html"}
 
     pep_middleware = PEPMiddleware(
         app=app,
@@ -87,4 +87,3 @@ def add_pep_middleware(app: FastAPI) -> None:
             resource_extractor=pep_middleware.resource_extractor,
             public_paths=pep_middleware.public_paths,
         )
-

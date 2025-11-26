@@ -130,8 +130,7 @@ class KeycloakPDPClient:
             raise
 
     def _extract_permissions_from_jwt(self, jwt_token: str) -> List[Dict[str, Any]]:
-        """Extract permissions from RPT JWT token
-        """
+        """Extract permissions from RPT JWT token"""
         try:
             parts = jwt_token.split(".")
             if len(parts) != 3:

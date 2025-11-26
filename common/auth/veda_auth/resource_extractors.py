@@ -5,6 +5,7 @@ These functions extract resource identifiers from requests for authorization
 import logging
 import re
 from typing import Optional
+
 from fastapi import Request
 
 logger = logging.getLogger(__name__)
