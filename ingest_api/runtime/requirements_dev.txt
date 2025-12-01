@@ -3,3 +3,4 @@ moto[dynamodb, ssm]>=4.0.9,<5.0
 httpx
 aws_xray_sdk>=2.6.0,<3
 aws-lambda-powertools>=1.18.0
+-e ../../common/auth

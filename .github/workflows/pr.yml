@@ -73,7 +73,9 @@ jobs:
         run: python -m pip install -r ingest_api/runtime/requirements_dev.txt
 
       - name: Install reqs for stac api
-        run: python -m pip install stac_api/runtime/
+        run: |
+          python -m pip install -e ./common/auth
+          python -m pip install stac_api/runtime/
 
       - name: Ingest unit tests
         run: NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest ingest_api/runtime/tests/ -vv -s
