@@ -1,0 +1,9 @@
+# Development requirements for veda-backend
+# Install with: pip install -r requirements-dev.txt
+
+# Install main package in editable mode with dev extras
+-e ".[dev,deploy,test]"
+
+# Install local veda_auth package
+-e ./common/auth
+

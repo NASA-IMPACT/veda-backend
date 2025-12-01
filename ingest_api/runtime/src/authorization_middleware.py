@@ -6,9 +6,9 @@ import logging
 import os
 from typing import Set
 
-from common.auth.veda_auth.keycloak_pdp import KeycloakPDPClient
-from common.auth.veda_auth.pep_middleware import PEPMiddleware
-from common.auth.veda_auth.resource_extractors import extract_ingest_resource_id
+from veda_auth.keycloak_pdp import KeycloakPDPClient
+from veda_auth.pep_middleware import PEPMiddleware
+from veda_auth.resource_extractors import extract_ingest_resource_id
 from fastapi import FastAPI
 
 from .auth import auth_settings

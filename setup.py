@@ -6,7 +6,10 @@ with open("README.md") as f:
     long_description = f.read()
 
 extra_reqs = {
-    "dev": ["pre-commit", "python-dotenv"],
+    "dev": [
+        "pre-commit",
+        "python-dotenv",
+    ],
     "deploy": [
         "aws-cdk-lib<3.0.0,>=2.47.0.a0",
         "constructs>=10.0.0,<11.0.0",

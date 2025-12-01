@@ -100,7 +100,7 @@ source .venv/bin/activate
 nvm use 20
 npm install --location=global aws-cdk
 python3 -m pip install --upgrade pip
-python3 -m pip install -e ".[dev,deploy,test]"
+python3 -m pip install -r requirements-dev.txt
 ```
 
 #### Run the deployment

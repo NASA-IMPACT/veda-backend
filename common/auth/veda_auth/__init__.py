@@ -2,4 +2,4 @@
     VEDA cognito auth
 """
 
-from veda_auth.main import VedaAuth  # noqa: F401
+from .main import VedaAuth  # noqa: F401
