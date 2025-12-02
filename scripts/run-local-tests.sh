@@ -44,3 +44,6 @@ NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest --cov=ingest_api/runtime/src ingest_
 
 # Transactions tests
 python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
+
+# PEP middleware tests
+python -m pytest common/auth/tests/ -vv -s
