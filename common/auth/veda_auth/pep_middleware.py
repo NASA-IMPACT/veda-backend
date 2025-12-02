@@ -157,6 +157,21 @@ class PEPMiddleware(BaseHTTPMiddleware):
                 content={"detail": "Authorization service error"},
             )
 
+    async def _cache_request_body(self, request: Request) -> None:
+        """Cache request body for POST/PUT/PATCH requests so it can be read multiple times"""
+        body = await request.body()
+        request.state._cached_body = body
+        replayed = False
+
+        async def cached_receive():
+            nonlocal replayed
+            if not replayed:
+                replayed = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        request._receive = cached_receive
+
     async def dispatch(self, request: Request, call_next):
         """PEP (Policy Enforcement Point) middleware that calls Keycloak PDP (Policy Decision Point)"""
 
@@ -173,6 +188,10 @@ class PEPMiddleware(BaseHTTPMiddleware):
                 extra={"path": path, "method": request.method},
             )
             return await call_next(request)
+
+        # Cache request body for POST/PUT/PATCH requests
+        if request.method in ("POST", "PUT", "PATCH"):
+            await self._cache_request_body(request)
 
         access_token = self._extract_access_token(request)
         if not access_token:
