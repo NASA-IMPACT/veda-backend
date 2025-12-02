@@ -5,11 +5,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
-from fastapi import FastAPI, Request
-from starlette.testclient import TestClient
-
 from veda_auth.keycloak_pdp import KeycloakPDPClient
 from veda_auth.pep_middleware import PEPMiddleware
+
+from fastapi import FastAPI, Request
+from starlette.testclient import TestClient
 
 
 @pytest.fixture
@@ -23,10 +23,12 @@ def mock_pdp_client():
 @pytest.fixture
 def basic_resource_extractor():
     """Basic resource extractor for testing"""
+
     def extractor(request: Request):
         if request.url.path == "/test-resource":
             return "test:resource:123"
         return None
+
     return extractor
 
 
@@ -94,7 +96,7 @@ class TestPublicPaths:
 
 
 class TestReadOperations:
-    """Test that read operations bypass authorization """
+    """Test that read operations bypass authorization"""
 
     def test_get_request_bypasses_auth(self, client, mock_pdp_client):
         """GET requests require no token or permission check"""
@@ -115,9 +117,7 @@ class TestWriteOperations:
         assert "WWW-Authenticate" in response.headers
         assert response.headers["WWW-Authenticate"] == "Bearer"
 
-    def test_post_with_token_and_permission_returns_200(
-        self, client, mock_pdp_client
-    ):
+    def test_post_with_token_and_permission_returns_200(self, client, mock_pdp_client):
         """POST with valid token and permission should succeed"""
         mock_pdp_client.check_permission.return_value = True
 
@@ -148,9 +148,7 @@ class TestWriteOperations:
         assert "Insufficient permissions" in response.json()["detail"]
         mock_pdp_client.check_permission.assert_called_once()
 
-    def test_put_with_token_and_permission_returns_200(
-        self, client, mock_pdp_client
-    ):
+    def test_put_with_token_and_permission_returns_200(self, client, mock_pdp_client):
         """PUT with valid token and permission should succeed"""
         mock_pdp_client.check_permission.return_value = True
 
@@ -237,11 +235,13 @@ class TestBodyCaching:
 
         assert response.status_code == 200
 
+
 class TestResourceExtraction:
     """Test resource ID extraction"""
 
     def test_no_resource_id_for_write_returns_403(self, client):
         """Write operation with no extractable resource ID should return 403"""
+
         def no_resource_extractor(request: Request):
             return None
 
@@ -269,6 +269,7 @@ class TestResourceExtraction:
 
     def test_no_resource_id_for_read_allowed(self, client):
         """Read operations on endpoints without specific resources should be allowed"""
+
         def no_resource_extractor(request: Request):
             return None
 
@@ -471,5 +472,3 @@ class TestPublicPathMatching:
         """Exact path match should bypass auth"""
         response = client.get("/health")
         assert response.status_code == 200
-
-

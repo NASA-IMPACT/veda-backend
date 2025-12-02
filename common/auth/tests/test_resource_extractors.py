@@ -5,10 +5,7 @@ from requests for authorization purposes.
 """
 
 import json
-from typing import cast
-
-from fastapi import Request
-from starlette.datastructures import URL
+from typing import Optional, cast
 
 from veda_auth.resource_extractors import (
     _extract_collection_resource_id_from_post_body,
@@ -17,11 +14,17 @@ from veda_auth.resource_extractors import (
     extract_stac_resource_id,
 )
 
+from fastapi import Request
+from starlette.datastructures import URL
+
 
 class MockState:
     """Simple state object for MockRequest"""
 
-    def __init__(self, tenant: str = None, cached_body: bytes = None):
+    def __init__(
+        self, tenant: Optional[str] = None, cached_body: Optional[bytes] = None
+    ):
+        """Initialize MockState with optional tenant and cached_body"""
         if tenant:
             self.tenant = tenant
         if cached_body:
@@ -31,7 +34,14 @@ class MockState:
 class MockRequest:
     """Mock FastAPI Request object for testing"""
 
-    def __init__(self, path: str, method: str = "GET", tenant: str = None, cached_body: bytes = None):
+    def __init__(
+        self,
+        path: str,
+        method: str = "GET",
+        tenant: Optional[str] = None,
+        cached_body: Optional[bytes] = None,
+    ):
+        """Initialize MockRequest with path, method, and optional tenant/cached_body"""
         self.url = URL(path)
         self.method = method
         self.state = MockState(tenant=tenant, cached_body=cached_body)
@@ -99,7 +109,9 @@ class TestExtractCollectionResourceIdFromPostBody:
         cached_body = json.dumps(body_data).encode()
         request = MockRequest("/collections", method="POST", cached_body=cached_body)
 
-        resource_id = _extract_collection_resource_id_from_post_body(cast(Request, request))
+        resource_id = _extract_collection_resource_id_from_post_body(
+            cast(Request, request)
+        )
         assert resource_id == "stac:collection:faketenant1:*"
 
     def test_collection_without_tenant(self):
@@ -108,7 +120,9 @@ class TestExtractCollectionResourceIdFromPostBody:
         cached_body = json.dumps(body_data).encode()
         request = MockRequest("/collections", method="POST", cached_body=cached_body)
 
-        resource_id = _extract_collection_resource_id_from_post_body(cast(Request, request))
+        resource_id = _extract_collection_resource_id_from_post_body(
+            cast(Request, request)
+        )
         assert resource_id == "stac:collection:public:*"
 
     def test_collection_with_tenant_in_properties(self):
@@ -120,14 +134,18 @@ class TestExtractCollectionResourceIdFromPostBody:
         cached_body = json.dumps(body_data).encode()
         request = MockRequest("/collections", method="POST", cached_body=cached_body)
 
-        resource_id = _extract_collection_resource_id_from_post_body(cast(Request, request))
+        resource_id = _extract_collection_resource_id_from_post_body(
+            cast(Request, request)
+        )
         assert resource_id == "stac:collection:faketenant2:*"
 
     def test_no_cached_body_returns_none(self):
         """Missing cached body should return None"""
         request = MockRequest("/collections", method="POST")
 
-        resource_id = _extract_collection_resource_id_from_post_body(cast(Request, request))
+        resource_id = _extract_collection_resource_id_from_post_body(
+            cast(Request, request)
+        )
         assert resource_id is None
 
     def test_invalid_json_returns_none(self):
@@ -135,7 +153,9 @@ class TestExtractCollectionResourceIdFromPostBody:
         cached_body = b"not valid json"
         request = MockRequest("/collections", method="POST", cached_body=cached_body)
 
-        resource_id = _extract_collection_resource_id_from_post_body(cast(Request, request))
+        resource_id = _extract_collection_resource_id_from_post_body(
+            cast(Request, request)
+        )
         assert resource_id is None
 
 
@@ -144,7 +164,11 @@ class TestExtractStacResourceId:
 
     def test_collection_get_with_tenant_in_url(self):
         """GET collection with tenant in URL should return tenant-specific resource ID"""
-        request = MockRequest("/api/stac/faketenant1/collections/test-collection", method="GET", tenant="faketenant1")
+        request = MockRequest(
+            "/api/stac/faketenant1/collections/test-collection",
+            method="GET",
+            tenant="faketenant1",
+        )
 
         resource_id = extract_stac_resource_id(cast(Request, request))
         assert resource_id == "stac:collection:faketenant1:*"
@@ -357,4 +381,3 @@ class TestExtractIngestResourceId:
 
         resource_id = extract_ingest_resource_id(cast(Request, request))
         assert resource_id is None
-
