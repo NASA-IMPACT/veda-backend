@@ -5,6 +5,7 @@ import subprocess
 
 from aws_cdk import App, Aspects, Stack, Tags, aws_iam
 from constructs import Construct
+from ec2_instance.infrastructure.construct import Ec2InstanceConstruct
 
 from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
@@ -134,6 +135,15 @@ ingestor = ingestor_construct(
     table=ingest_api.table,
     db_secret=database.pgstac.secret,
     db_vpc=vpc.vpc,
+)
+
+# EC2 instance in the same VPC as the database, with Session Manager enabled
+ec2_instance = Ec2InstanceConstruct(
+    veda_stack,
+    "ec2-instance",
+    vpc=vpc.vpc,
+    database_security_groups=[db_security_group],
+    stage=veda_app_settings.stage_name(),
 )
 
 for key, value in {
