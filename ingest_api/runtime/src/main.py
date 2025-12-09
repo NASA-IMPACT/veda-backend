@@ -296,11 +296,7 @@ async def get_writable_tenant_access(
 
             all_tenants = sorted(list(set(collection_tenants + item_tenants)))
 
-            return schemas.TenantAccessResponse(
-                tenants=all_tenants,
-                collection_tenants=collection_tenants,
-                item_tenants=item_tenants,
-            )
+            return schemas.TenantAccessResponse(tenants=all_tenants)
         finally:
             # Clean up client
             pdp_client.close()
