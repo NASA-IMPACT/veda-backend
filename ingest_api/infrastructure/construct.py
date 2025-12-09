@@ -47,6 +47,14 @@ class ApiConstruct(Construct):
             "GIT_SHA": config.git_sha,
         }
 
+        if config.resource_server_client_id:
+            lambda_env["RESOURCE_SERVER_CLIENT_ID"] = config.resource_server_client_id
+
+        if config.resource_server_client_secret:
+            lambda_env[
+                "RESOURCE_SERVER_CLIENT_SECRET"
+            ] = config.resource_server_client_secret
+
         build_api_lambda_params = {
             "table": self.table,
             "db_secret": db_secret,
@@ -239,6 +247,14 @@ class IngestorConstruct(Construct):
             "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
             "GIT_SHA": config.git_sha,
         }
+
+        if config.resource_server_client_id:
+            lambda_env["RESOURCE_SERVER_CLIENT_ID"] = config.resource_server_client_id
+
+        if config.resource_server_client_secret:
+            lambda_env[
+                "RESOURCE_SERVER_CLIENT_SECRET"
+            ] = config.resource_server_client_secret
 
         if config.raster_data_access_role_arn:
             lambda_env["DATA_ACCESS_ROLE_ARN"] = config.raster_data_access_role_arn

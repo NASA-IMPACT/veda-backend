@@ -26,5 +26,13 @@ class Settings(BaseSettings):
         "", description="Git SHA of the deployed service"
     )  # default to str so that docker compose tests work
 
+    resource_server_client_id: Optional[str] = Field(
+        None, description="Keycloak UMA resource server client ID"
+    )
+
+    resource_server_client_secret: Optional[str] = Field(
+        None, description="Keycloak UMA resource server client secret"
+    )
+
 
 settings = Settings()

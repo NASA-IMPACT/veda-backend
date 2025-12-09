@@ -215,6 +215,106 @@ def who_am_i(claims=Depends(oidc_auth.valid_token_dependency)):
     return claims
 
 
+@app.get(
+    "/auth/tenants/writable", response_model=schemas.TenantAccessResponse, tags=["Auth"]
+)
+async def get_writable_tenant_access(
+    request: Request,
+    claims=Depends(oidc_auth.valid_token_dependency),
+):
+    """
+    Returns the list of tenants the user has create and update access to.
+    """
+    from veda_auth.keycloak_client import KeycloakPDPClient
+
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Authorization header required",
+        )
+
+    user_access_token = auth_header[7:]
+
+    oidc_url = (
+        str(auth_settings.openid_configuration_url)
+        if auth_settings.openid_configuration_url
+        else None
+    )
+    if not oidc_url:
+        raise HTTPException(
+            status_code=503,
+            detail="Missing OPENID_CONFIGURATION_URL",
+        )
+
+    # Extract Keycloak URL and realm from OIDC URL
+    if "/realms/" not in oidc_url:
+        raise HTTPException(
+            status_code=503,
+            detail="Invalid OpenID configuration URL format",
+        )
+
+    keycloak_url = oidc_url.split("/realms/")[0]
+    realm_parts = oidc_url.split("/realms/")
+    if len(realm_parts) < 2:
+        raise HTTPException(
+            status_code=503,
+            detail="Could not extract realm from OpenID configuration URL",
+        )
+    realm = realm_parts[1].split("/")[0]
+
+    resource_server_client_id = settings.resource_server_client_id
+    if not resource_server_client_id:
+        raise HTTPException(
+            status_code=503,
+            detail="UMA authorization not configured (missing RESOURCE_SERVER_CLIENT_ID)",
+        )
+
+    resource_server_client_secret = settings.resource_server_client_secret
+
+    try:
+        pdp_client = KeycloakPDPClient(
+            keycloak_url=keycloak_url,
+            realm=realm,
+            client_id=resource_server_client_id,
+            client_secret=resource_server_client_secret,
+            timeout=10.0,
+        )
+
+        try:
+            # Get tenants with create/update access for collections
+            collection_tenants = pdp_client.get_tenants_with_create_update_access(
+                access_token=user_access_token,
+                resource_type="collection",
+            )
+
+            # Get tenants with create/update access for items
+            item_tenants = pdp_client.get_tenants_with_create_update_access(
+                access_token=user_access_token,
+                resource_type="item",
+            )
+
+            all_tenants = sorted(list(set(collection_tenants + item_tenants)))
+
+            return schemas.TenantAccessResponse(
+                tenants=all_tenants,
+                collection_tenants=collection_tenants,
+                item_tenants=item_tenants,
+            )
+        finally:
+            # Clean up client
+            pdp_client.close()
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting tenant access: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to retrieve tenant access: {str(e)}",
+        )
+
+
 app.add_middleware(ObservabilityMiddleware)
 
 
