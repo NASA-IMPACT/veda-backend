@@ -7,7 +7,7 @@ to make authorization decisions via UMA (User-Managed Access) protocol.
 import base64
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlencode
 
 import httpx
@@ -266,121 +266,23 @@ class KeycloakPDPClient:
     ) -> List[str]:
         """Get list of tenants the user has create and update access to"""
 
-        # extract tenants from token
         if tenant_list is None:
             tenant_list = self._extract_tenants_from_token(access_token)
             if "public" not in tenant_list:
                 tenant_list.append("public")
 
         try:
-            rpt_response = self.get_rpt(
-                access_token=access_token,
-                resources=[],  # empty resources so it get all permissions
-            )
-
-            permissions = rpt_response.get("permissions", [])
-            logger.info(f"Got {len(permissions)} permissions from RPT response JSON")
-
-            if not permissions:
-                rpt_jwt = rpt_response.get("access_token")
-                if rpt_jwt:
-                    logger.info(
-                        "No permissions in response JSON, extracting from JWT token"
-                    )
-                    permissions = self._extract_permissions_from_jwt(rpt_jwt)
-                    logger.info(
-                        f"Extracted {len(permissions)} permissions from RPT JWT"
-                    )
-                    if permissions:
-                        logger.debug(
-                            f"Sample permission from JWT: {permissions[0] if permissions else 'None'}"
-                        )
-                else:
-                    logger.warning(
-                        "No permissions in RPT response and no access_token JWT"
-                    )
+            permissions = self._get_permissions_from_rpt(access_token)
 
             if not permissions:
                 logger.warning("No permissions found in RPT response")
                 return []
 
-            logger.info(
-                f"Processing {len(permissions)} permissions for resource_type={resource_type}"
+            tenant_scopes = self._process_permissions_for_tenants(
+                permissions, resource_type
             )
 
-            # Extract tenants that have both create and update scopes
-            tenant_scopes: Dict[str, set] = {}
-
-            for permission in permissions:
-                # Get resource identifier - use rsname (resource name) or resource_id
-                # rsname contains the actual resource name like "stac:collection:tenant:*"
-                resource_identifier = permission.get("rsname") or permission.get(
-                    "resource_id"
-                )
-
-                if not resource_identifier:
-                    logger.info(f"Permission missing resource identifier: {permission}")
-                    continue
-
-                logger.info(
-                    f"Processing permission: resource_identifier={resource_identifier}, scopes={permission.get('scopes', [])}"
-                )
-
-                # Parse resource name: "stac:collection:tenant:*" or "stac:item:tenant:*"
-                # Skip if it's a UUID (doesn't contain colons in the expected format)
-                if ":" not in resource_identifier:
-                    logger.info(
-                        f"Skipping UUID resource identifier (not a resource name): {resource_identifier}"
-                    )
-                    continue
-
-                parts = resource_identifier.split(":")
-                logger.info(f"Split resource_identifier into parts: {parts}")
-
-                if len(parts) >= 3:
-                    resource_category = parts[1]  # "collection" or "item"
-                    tenant = parts[2]
-                    scopes = set(permission.get("scopes", []))
-
-                    logger.info(
-                        f"Resource: category={resource_category}, tenant={tenant}, scopes={scopes} {resource_type}"
-                    )
-
-                    if resource_category == resource_type:
-                        if tenant not in tenant_scopes:
-                            tenant_scopes[tenant] = set()
-
-                        tenant_scopes[tenant].update(scopes)
-                        logger.info(
-                            f"Found tenant {tenant} with scopes {scopes} for {resource_type}"
-                        )
-                    else:
-                        logger.info(
-                            f"Skipping {resource_category} (not {resource_type})"
-                        )
-                else:
-                    logger.info(
-                        f"Resource identifier doesn't have enough parts: {parts}"
-                    )
-
-            # Filter tenants that have both create and update
-            result = []
-            logger.info(
-                f"Checking {len(tenant_scopes)} tenants for create, update access: {list(tenant_scopes.keys())}"
-            )
-            for tenant, scopes in tenant_scopes.items():
-                logger.info(f"Tenant {tenant} has scopes: {scopes}")
-                if "create" in scopes and "update" in scopes:
-                    result.append(tenant)
-                else:
-                    logger.info(
-                        f"Tenant {tenant} missing create or update: actual scopes are {scopes})"
-                    )
-
-            logger.info(
-                f"Returning {len(result)} tenants with create/update access: {result}"
-            )
-            return sorted(result)
+            return self._filter_tenants_with_create_update(tenant_scopes)
 
         except httpx.HTTPStatusError as e:
             logger.error(
@@ -392,6 +294,133 @@ class KeycloakPDPClient:
         except Exception as e:
             logger.error(f"Error getting tenant access: {e}")
             raise
+
+    def _get_permissions_from_rpt(self, access_token: str) -> List[Dict[str, Any]]:
+        """Get permissions from RPT response (either from JSON or JWT)"""
+        rpt_response = self.get_rpt(
+            access_token=access_token,
+            resources=[],  # empty resources so it gets all permissions
+        )
+
+        permissions = rpt_response.get("permissions", [])
+        logger.info(f"Got {len(permissions)} permissions from RPT response JSON")
+
+        if not permissions:
+            rpt_jwt = rpt_response.get("access_token")
+            if rpt_jwt:
+                logger.info(
+                    "No permissions in response JSON, extracting from JWT token"
+                )
+                permissions = self._extract_permissions_from_jwt(rpt_jwt)
+                logger.info(f"Extracted {len(permissions)} permissions from RPT JWT")
+                if permissions:
+                    logger.debug(
+                        f"Sample permission from JWT: {permissions[0] if permissions else 'None'}"
+                    )
+            else:
+                logger.warning("No permissions in RPT response and no access_token JWT")
+
+        return permissions
+
+    def _process_permissions_for_tenants(
+        self, permissions: List[Dict[str, Any]], resource_type: str
+    ) -> Dict[str, set]:
+        """Process permissions and extract tenant scopes by resource type"""
+        logger.info(
+            f"Processing {len(permissions)} permissions for resource_type={resource_type}"
+        )
+
+        tenant_scopes: Dict[str, set] = {}
+
+        for permission in permissions:
+            resource_identifier = self._extract_resource_identifier(permission)
+            if not resource_identifier:
+                continue
+
+            tenant, scopes = self._parse_resource_permission(
+                resource_identifier, permission, resource_type
+            )
+
+            if tenant and scopes:
+                if tenant not in tenant_scopes:
+                    tenant_scopes[tenant] = set()
+                tenant_scopes[tenant].update(scopes)
+                logger.info(
+                    f"Found tenant {tenant} with scopes {scopes} for {resource_type}"
+                )
+
+        return tenant_scopes
+
+    def _extract_resource_identifier(self, permission: Dict[str, Any]) -> Optional[str]:
+        """Extract resource identifier from permission, skipping UUIDs"""
+        resource_identifier = permission.get("rsname") or permission.get("resource_id")
+
+        if not resource_identifier:
+            logger.info(f"Permission missing resource identifier: {permission}")
+            return None
+
+        logger.info(
+            f"Processing permission: resource_identifier={resource_identifier}, scopes={permission.get('scopes', [])}"
+        )
+
+        if ":" not in resource_identifier:
+            logger.info(
+                f"Skipping UUID resource identifier (not a resource name): {resource_identifier}"
+            )
+            return None
+
+        return resource_identifier
+
+    def _parse_resource_permission(
+        self,
+        resource_identifier: str,
+        permission: Dict[str, Any],
+        resource_type: str,
+    ) -> Tuple[Optional[str], Optional[set]]:
+        """Parse resource identifier and return Tuple(tenant and scopes) if matches resource_type"""
+        parts = resource_identifier.split(":")
+        logger.info(f"Split resource_identifier into parts: {parts}")
+
+        if len(parts) < 3:
+            logger.info(f"Resource identifier doesn't have enough parts: {parts}")
+            return None, None
+
+        resource_category = parts[1]  # "collection" or "item"
+        tenant = parts[2]
+        scopes = set(permission.get("scopes", []))
+
+        logger.info(
+            f"Resource: category={resource_category}, tenant={tenant}, scopes={scopes}, looking for {resource_type}"
+        )
+
+        if resource_category == resource_type:
+            return tenant, scopes
+        else:
+            logger.info(f"Skipping {resource_category} (not {resource_type})")
+            return None, None
+
+    def _filter_tenants_with_create_update(
+        self, tenant_scopes: Dict[str, set]
+    ) -> List[str]:
+        """Filter tenants that have both create and update scopes"""
+        result = []
+        logger.info(
+            f"Checking {len(tenant_scopes)} tenants for create and update access: {list(tenant_scopes.keys())}"
+        )
+
+        for tenant, scopes in tenant_scopes.items():
+            logger.info(f"Tenant {tenant} has scopes: {scopes}")
+            if "create" in scopes and "update" in scopes:
+                result.append(tenant)
+            else:
+                logger.info(
+                    f"Tenant {tenant} missing create or update: actual scopes are {scopes}"
+                )
+
+        logger.info(
+            f"Returning {len(result)} tenants with create/update access: {result}"
+        )
+        return sorted(result)
 
     def close(self):
         """Close the HTTP client"""
