@@ -116,12 +116,11 @@ class _ApiSettings(Settings):
         if self.pgstac_secret_arn:
             secret = get_secret_dict(self.pgstac_secret_arn)
             return PostgresSettings(
-                postgres_host_reader=secret["host"],
-                postgres_host_writer=secret["host"],
-                postgres_dbname=secret["dbname"],
-                postgres_user=secret["username"],
-                postgres_pass=secret["password"],
-                postgres_port=secret["port"],
+                pghost=secret["host"],
+                pgdatabase=secret["dbname"],
+                pguser=secret["username"],
+                pgpassword=secret["password"],
+                pgport=secret["port"],
             )
         return PostgresSettings()
 
