@@ -239,12 +239,11 @@ def test_environ():
     os.environ["VEDA_STAC_ROOT_PATH"] = "/api/stac"
 
     # Config mocks
-    os.environ["POSTGRES_USER"] = "username"
-    os.environ["POSTGRES_PASS"] = "password"
-    os.environ["POSTGRES_DBNAME"] = "postgis"
-    os.environ["POSTGRES_HOST_READER"] = "0.0.0.0"
-    os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
-    os.environ["POSTGRES_PORT"] = "5439"
+    os.environ["PGUSER"] = "username"
+    os.environ["PGPASSWORD"] = "password"
+    os.environ["PGDATABASE"] = "postgis"
+    os.environ["PGHOST"] = "0.0.0.0"
+    os.environ["PGPORT"] = "5439"
 
 
 def override_jwks_client():
