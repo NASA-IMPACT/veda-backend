@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
     await connect_to_db(
         app,
         postgres_settings=api_settings.postgres_settings,
-        add_write_connection_pool=True,
+        add_write_connection_pool=api_settings.enable_transactions,
     )
     yield
     await close_db_connection(app)
@@ -136,7 +136,9 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
             ],
             r"^/collections/([^/]+)/bulk_items$": [["POST", "stac:item:create"]],
         },
-        allowed_jwt_audiences="account",
+        allowed_jwt_audiences=api_settings.jwt_audience
+        if api_settings.jwt_audience
+        else None,
     )
 else:
     # Use standard FastAPI app when authentication is disabled

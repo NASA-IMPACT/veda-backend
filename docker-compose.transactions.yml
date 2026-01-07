@@ -1,0 +1,8 @@
+# Docker Compose override for testing with transactions enabled
+# Usage: docker compose -f docker-compose.yml -f docker-compose.transactions.yml up
+services:
+  stac:
+    environment:
+      - VEDA_STAC_ENABLE_TRANSACTIONS=True
+      # Disable JWT audience validation for local testing with mock OIDC server
+      - VEDA_STAC_JWT_AUDIENCE=
