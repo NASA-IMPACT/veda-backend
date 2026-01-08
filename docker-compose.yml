@@ -180,7 +180,7 @@ services:
     image: ghcr.io/alukach/mock-oidc-server:latest
     environment:
       ISSUER: http://localhost:8888
-      SCOPES: item:create,item:update,item:delete,collection:create,collection:update,collection:delete
+      SCOPES: stac:item:create,stac:item:update,stac:item:delete,stac:collection:create,stac:collection:update,stac:collection:delete
       PORT: 8888
     ports:
       - "8888:8888"

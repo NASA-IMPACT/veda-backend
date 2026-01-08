@@ -93,6 +93,10 @@ class _ApiSettings(Settings):
         False,
         description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
     )
+    jwt_audience: Optional[str] = Field(
+        "account",
+        description="Expected JWT audience claim. Set to None or empty string to disable audience validation.",
+    )
     swagger_ui_endpoint: str = "/docs"
     openapi_spec_endpoint: str = "/openapi.json"
     custom_host: Optional[str] = Field(

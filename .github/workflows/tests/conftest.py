@@ -5,6 +5,9 @@ Test fixtures and data for STAC and Raster API integration testing.
 import httpx
 import pytest
 
+# OIDC server configuration for token generation
+OIDC_ENDPOINT = "http://localhost:8888"
+
 SEEDED_COLLECTION = "noaa-emergency-response"
 SEEDED_ID = "20200307aC0853900w361030"
 
@@ -289,3 +292,67 @@ def tenant_collections():
         dict: A dictionary of tenant collections
     """
     return TENANT_COLLECTIONS
+
+
+# Auth fixtures used for transactions tests
+
+
+@pytest.fixture(scope="session")
+def auth_token():
+    """
+    Generate a valid JWT token from the mock OIDC server.
+
+    The mock OIDC server at localhost:8888 provides a POST / endpoint
+    that generates JWT tokens with specified username and scopes.
+
+    Returns:
+        str: A valid JWT access token for STAC transactions.
+    """
+    scopes = (
+        "openid profile "
+        "stac:item:create stac:item:update stac:item:delete "
+        "stac:collection:create stac:collection:update stac:collection:delete"
+    )
+
+    response = httpx.post(
+        OIDC_ENDPOINT,
+        data={
+            "username": "test-user",
+            "scopes": scopes,
+        },
+        follow_redirects=True,
+    )
+
+    if response.status_code != 200:
+        pytest.skip(
+            f"Could not generate auth token from OIDC server: {response.status_code}"
+        )
+
+    # Parse the token from the HTML response
+    # The mock OIDC server returns HTML with the token in a textarea
+    html = response.text
+    if "token" not in html:
+        pytest.skip("OIDC server did not return a token")
+
+    # Extract token from textarea element
+    import re
+
+    match = re.search(r'<textarea[^>]*id="token"[^>]*>([^<]+)</textarea>', html)
+    if not match:
+        pytest.skip("Could not parse token from OIDC server response")
+
+    return match.group(1).strip()
+
+
+@pytest.fixture(scope="session")
+def auth_headers(auth_token):
+    """
+    Generate HTTP headers with authorization for STAC transactions.
+
+    Returns:
+        dict: Headers dict with Authorization Bearer token.
+    """
+    return {
+        "Authorization": f"Bearer {auth_token}",
+        "Content-Type": "application/json",
+    }
