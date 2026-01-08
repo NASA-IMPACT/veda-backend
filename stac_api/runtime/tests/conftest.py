@@ -326,7 +326,7 @@ async def app():
     """
     from src.app import app
 
-    await connect_to_db(app)
+    await connect_to_db(app, add_write_connection_pool=True)
     yield app
     await close_db_connection(app)
 

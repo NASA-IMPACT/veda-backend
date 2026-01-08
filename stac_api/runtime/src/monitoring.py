@@ -93,7 +93,7 @@ class ObservabilityMiddleware:
             if message["type"] == "http.response.start":
                 status_holder["status"] = message.get("status", 500)
                 # If Content-Length is set, remember it; otherwise we’ll sum body chunks
-                for (h, v) in message.get("headers", []) or []:
+                for h, v in message.get("headers", []) or []:
                     if h.lower() == b"content-length":
                         try:
                             resp_size_holder["bytes"] = int(v.decode("latin1"))

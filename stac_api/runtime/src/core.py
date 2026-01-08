@@ -1,4 +1,5 @@
 """CoreCrudClient extensions for the VEDA STAC API."""
+
 from typing import Any, Dict, Union
 
 from stac_fastapi.pgstac.core import CoreCrudClient
