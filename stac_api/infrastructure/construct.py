@@ -42,9 +42,11 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_PROJECT_DESCRIPTION": veda_stac_settings.project_description,
             "VEDA_STAC_ROOT_PATH": veda_stac_settings.stac_root_path,
             "VEDA_STAC_STAGE": stage,
-            "VEDA_STAC_CLIENT_ID": veda_stac_settings.keycloak_stac_api_client_id
-            if veda_stac_settings.keycloak_stac_api_client_id
-            else "",
+            "VEDA_STAC_CLIENT_ID": (
+                veda_stac_settings.keycloak_stac_api_client_id
+                if veda_stac_settings.keycloak_stac_api_client_id
+                else ""
+            ),
             "VEDA_STAC_OPENID_CONFIGURATION_URL": str(
                 veda_stac_settings.openid_configuration_url
             ),
@@ -56,7 +58,6 @@ class StacApiLambdaConstruct(Construct):
             ),
             "DB_MIN_CONN_SIZE": "0",
             "DB_MAX_CONN_SIZE": "1",
-            "ENABLE_TRANSACTIONS_EXTENSIONS": True if veda_stac_settings.stac_enable_transactions else False,
             "PYSTAC_STAC_VERSION_OVERRIDE": veda_stac_settings.pystac_stac_version_override,
             **{k.upper(): v for k, v in veda_stac_settings.env.items()},
             "VEDA_STAC_GIT_SHA": veda_stac_settings.git_sha,

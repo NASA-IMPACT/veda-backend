@@ -51,7 +51,11 @@ tiles_settings = TilesApiSettings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Get a database connection on startup, close it on shutdown."""
-    await connect_to_db(app, postgres_settings=api_settings.postgres_settings)
+    await connect_to_db(
+        app,
+        postgres_settings=api_settings.postgres_settings,
+        add_write_connection_pool=True,
+    )
     yield
     await close_db_connection(app)
 
