@@ -24,7 +24,6 @@ services:
       - PGDATABASE=postgis
       - PGHOST=database
       - PGPORT=5432
-      - ENABLE_TRANSACTIONS_EXTENSIONS=TRUE
       - DB_MIN_CONN_SIZE=1
       - DB_MAX_CONN_SIZE=10
       # https://github.com/developmentseed/eoAPI/issues/16
