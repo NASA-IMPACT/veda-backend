@@ -22,3 +22,17 @@ To enable a multi-tenant STAC backend with transaction support and authenticatio
 - Transaction endpoints require authentication with appropriate scopes:
   - `stac:collection:create`, `stac:collection:update`, `stac:collection:delete`
   - `stac:item:create`, `stac:item:update`, `stac:item:delete`
+
+When multi-tenancy is enabled on a STAC catalog, a collection has the option to be added to a tenant in order to be filtered by that tenant value. This also means that a collection does not need to belong to any tenant. It will still be available and retrievable in the STAC catalog.
+
+### Migrating Existing Data to a Tenant Tagged Catalog
+
+Existing collections in the STAC catalog need the `eic:tenant` field added to be visible in tenant-specific catalogs. Without this field, collections will only be accessible via the base `/api/stac/collections` endpoint and will not be able to be filtered by tenant.
+
+**Migration Process:**
+
+A migration DAG is available in the [veda-data-airflow](https://github.com/NASA-IMPACT/veda-data-airflow) repository to add tenant fields to existing collections. The migration adds the `eic:tenant` field to collection metadata for the specified set of collections
+
+**Field Format:**
+
+The `eic:tenant` field should contain a string identifier for the tenant.
