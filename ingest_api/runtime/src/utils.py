@@ -1,3 +1,4 @@
+import json
 from enum import Enum
 from typing import Sequence, Union
 
@@ -36,6 +37,16 @@ def get_db_credentials(secret_arn: str) -> DbCreds:
     client = session.client(service_name="secretsmanager")
     response = client.get_secret_value(SecretId=secret_arn)
     return DbCreds.parse_raw(response["SecretString"])
+
+
+def get_keycloak_client_credentials(secret_arn: str) -> dict:
+    """
+    Load Keycloak UMA resource server client credentials from AWS Secrets Manager
+    """
+    session = boto3.session.Session(region_name=secret_arn.split(":")[3])
+    client = session.client(service_name="secretsmanager")
+    response = client.get_secret_value(SecretId=secret_arn)
+    return json.loads(response["SecretString"])
 
 
 def load_items(items: Sequence[AccessibleItem], loader):

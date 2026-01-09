@@ -263,14 +263,20 @@ async def get_writable_tenant_access(
         )
     realm = realm_parts[1].split("/")[0]
 
-    resource_server_client_id = settings.resource_server_client_id
+    if settings.keycloak_uma_resource_server_client_secret_arn:
+        from src.utils import get_keycloak_client_credentials
+
+        keycloak_creds = get_keycloak_client_credentials(
+            settings.keycloak_uma_resource_server_client_secret_arn
+        )
+        resource_server_client_id = keycloak_creds.get("client_id")
+        resource_server_client_secret = keycloak_creds.get("client_secret")
+
     if not resource_server_client_id:
         raise HTTPException(
             status_code=503,
-            detail="UMA authorization not configured (missing RESOURCE_SERVER_CLIENT_ID)",
+            detail="UMA authorization not configured (missing KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_ARN)",
         )
-
-    resource_server_client_secret = settings.resource_server_client_secret
 
     try:
         pdp_client = KeycloakPDPClient(

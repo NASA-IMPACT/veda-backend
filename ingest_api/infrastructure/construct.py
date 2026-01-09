@@ -47,13 +47,10 @@ class ApiConstruct(Construct):
             "GIT_SHA": config.git_sha,
         }
 
-        if config.resource_server_client_id:
-            lambda_env["RESOURCE_SERVER_CLIENT_ID"] = config.resource_server_client_id
-
-        if config.resource_server_client_secret:
+        if config.keycloak_uma_resource_server_client_secret_arn:
             lambda_env[
-                "RESOURCE_SERVER_CLIENT_SECRET"
-            ] = config.resource_server_client_secret
+                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_ARN"
+            ] = config.keycloak_uma_resource_server_client_secret_arn
 
         build_api_lambda_params = {
             "table": self.table,
@@ -248,13 +245,17 @@ class IngestorConstruct(Construct):
             "GIT_SHA": config.git_sha,
         }
 
-        if config.resource_server_client_id:
-            lambda_env["RESOURCE_SERVER_CLIENT_ID"] = config.resource_server_client_id
-
-        if config.resource_server_client_secret:
+        if config.keycloak_uma_resource_server_client_secret_arn:
             lambda_env[
-                "RESOURCE_SERVER_CLIENT_SECRET"
-            ] = config.resource_server_client_secret
+                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_ARN"
+            ] = config.keycloak_uma_resource_server_client_secret_arn
+        elif config.resource_server_client_id:
+            # Fallback to individual env vars for backward compatibility
+            lambda_env["RESOURCE_SERVER_CLIENT_ID"] = config.resource_server_client_id
+            if config.resource_server_client_secret:
+                lambda_env[
+                    "RESOURCE_SERVER_CLIENT_SECRET"
+                ] = config.resource_server_client_secret
 
         if config.raster_data_access_role_arn:
             lambda_env["DATA_ACCESS_ROLE_ARN"] = config.raster_data_access_role_arn
