@@ -52,11 +52,16 @@ class ApiConstruct(Construct):
                 "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_ARN"
             ] = config.keycloak_uma_resource_server_client_secret_arn
 
+        keycloak_secret = get_keycloak_secret(
+            self, config.keycloak_uma_resource_server_client_secret_arn
+        )
+
         build_api_lambda_params = {
             "table": self.table,
             "db_secret": db_secret,
             "db_vpc": db_vpc,
             "db_security_group": db_security_group,
+            "keycloak_secret": keycloak_secret,
             "pgstac_version": config.db_pgstac_version,
         }
 
@@ -114,6 +119,7 @@ class ApiConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
+        keycloak_secret: Optional[secretsmanager.ISecret] = None,
         data_access_role: Union[iam.IRole, None] = None,
         pgstac_version: str,
         code_dir: str = "./",
@@ -161,6 +167,10 @@ class ApiConstruct(Construct):
             )
         # Allow handler to read DB secret
         db_secret.grant_read(handler)
+
+        # Allow handler to read Keycloak secret if provided
+        if keycloak_secret:
+            keycloak_secret.grant_read(handler)
 
         # Allow handler to connect to DB
         db_security_group.add_ingress_rule(
@@ -253,6 +263,10 @@ class IngestorConstruct(Construct):
         if config.raster_data_access_role_arn:
             lambda_env["DATA_ACCESS_ROLE_ARN"] = config.raster_data_access_role_arn
 
+        keycloak_secret = get_keycloak_secret(
+            self, config.keycloak_uma_resource_server_client_secret_arn
+        )
+
         db_security_group = ec2.SecurityGroup.from_security_group_id(
             self,
             "db-security-group",
@@ -265,6 +279,7 @@ class IngestorConstruct(Construct):
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
+            keycloak_secret=keycloak_secret,
             pgstac_version=config.db_pgstac_version,
         )
 
@@ -276,6 +291,7 @@ class IngestorConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
+        keycloak_secret: Optional[secretsmanager.ISecret] = None,
         pgstac_version: str,
         code_dir: str = "./",
     ) -> aws_lambda.Function:
@@ -298,6 +314,10 @@ class IngestorConstruct(Construct):
 
         # Allow handler to read DB secret
         db_secret.grant_read(handler)
+
+        # Allow handler to read Keycloak secret if provided
+        if keycloak_secret:
+            keycloak_secret.grant_read(handler)
 
         # Allow handler to connect to DB
         db_security_group.add_ingress_rule(
@@ -347,4 +367,15 @@ def get_db_secret(
 ) -> secretsmanager.ISecret:
     return secretsmanager.Secret.from_secret_name_v2(
         ctx, f"pgstac-db-secret-{stage}", secret_name
+    )
+
+
+def get_keycloak_secret(
+    ctx: Construct, secret_arn: Optional[str]
+) -> Optional[secretsmanager.ISecret]:
+    """Get Keycloak UMA resource server client secret from ARN."""
+    if not secret_arn:
+        return None
+    return secretsmanager.Secret.from_secret_arn(
+        ctx, "keycloak-uma-resource-server-secret", secret_arn
     )
