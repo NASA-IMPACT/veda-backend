@@ -7,6 +7,8 @@ from src.collection_publisher import CollectionPublisher, ItemPublisher
 from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
+from src.utils import get_keycloak_client_credentials
+from veda_auth.keycloak_client import KeycloakPDPClient
 
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
@@ -215,27 +217,19 @@ def who_am_i(claims=Depends(oidc_auth.valid_token_dependency)):
     return claims
 
 
-@app.get(
-    "/auth/tenants/writable", response_model=schemas.TenantAccessResponse, tags=["Auth"]
-)
-async def get_writable_tenant_access(
-    request: Request,
-    claims=Depends(oidc_auth.valid_token_dependency),
-):
-    """
-    Returns the list of tenants the user has create and update access to.
-    """
-    from veda_auth.keycloak_client import KeycloakPDPClient
-
+def _extract_access_token(request: Request) -> str:
+    """Extract and validate Bearer token from Authorization header"""
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         raise HTTPException(
             status_code=401,
             detail="Authorization header required",
         )
+    return auth_header[7:]
 
-    user_access_token = auth_header[7:]
 
+def _parse_keycloak_config() -> tuple[str, str]:
+    """Extract Keycloak URL and realm from OIDC configuration URL"""
     oidc_url = (
         str(auth_settings.openid_configuration_url)
         if auth_settings.openid_configuration_url
@@ -247,7 +241,6 @@ async def get_writable_tenant_access(
             detail="Missing OPENID_CONFIGURATION_URL",
         )
 
-    # Extract Keycloak URL and realm from OIDC URL
     if "/realms/" not in oidc_url:
         raise HTTPException(
             status_code=503,
@@ -262,38 +255,59 @@ async def get_writable_tenant_access(
             detail="Could not extract realm from OpenID configuration URL",
         )
     realm = realm_parts[1].split("/")[0]
+    return keycloak_url, realm
 
-    resource_server_client_id = None
-    resource_server_client_secret = None
 
-    if settings.keycloak_uma_resource_server_client_secret_name:
-        from src.utils import get_keycloak_client_credentials
-
-        try:
-            keycloak_creds = get_keycloak_client_credentials(
-                settings.keycloak_uma_resource_server_client_secret_name
-            )
-            resource_server_client_id = keycloak_creds.get("client_id")
-            resource_server_client_secret = keycloak_creds.get("client_secret")
-        except Exception as e:
-            logger.error(f"Failed to retrieve Keycloak credentials: {e}")
-            raise HTTPException(
-                status_code=503,
-                detail=f"Failed to retrieve Keycloak credentials: {str(e)}",
-            )
-
-    if not resource_server_client_id:
+def _get_keycloak_credentials() -> tuple[str, str]:
+    """Retrieve Keycloak UMA resource server credentials from the Secrets Manager"""
+    if not settings.keycloak_uma_resource_server_client_secret_name:
         raise HTTPException(
             status_code=503,
             detail="UMA authorization not configured (missing KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME)",
         )
 
     try:
+        keycloak_creds = get_keycloak_client_credentials(
+            settings.keycloak_uma_resource_server_client_secret_name
+        )
+        client_id = keycloak_creds.get("client_id")
+        client_secret = keycloak_creds.get("client_secret")
+        if not client_id:
+            raise HTTPException(
+                status_code=503,
+                detail="Keycloak secret missing client_id",
+            )
+        return client_id, client_secret
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to retrieve Keycloak credentials: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Failed to retrieve Keycloak credentials: {str(e)}",
+        ) from e
+
+
+@app.get(
+    "/auth/tenants/writable", response_model=schemas.TenantAccessResponse, tags=["Auth"]
+)
+async def get_writable_tenant_access(
+    request: Request,
+    claims=Depends(oidc_auth.valid_token_dependency),
+):
+    """
+    Returns the list of tenants the user has create and update access to.
+    """
+    user_access_token = _extract_access_token(request)
+    keycloak_url, realm = _parse_keycloak_config()
+    client_id, client_secret = _get_keycloak_credentials()
+
+    try:
         pdp_client = KeycloakPDPClient(
             keycloak_url=keycloak_url,
             realm=realm,
-            client_id=resource_server_client_id,
-            client_secret=resource_server_client_secret,
+            client_id=client_id,
+            client_secret=client_secret,
             timeout=10.0,
         )
 
