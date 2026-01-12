@@ -39,13 +39,13 @@ def get_db_credentials(secret_arn: str) -> DbCreds:
     return DbCreds.parse_raw(response["SecretString"])
 
 
-def get_keycloak_client_credentials(secret_arn: str) -> dict:
+def get_keycloak_client_credentials(secret_name: str) -> dict:
     """
     Load Keycloak UMA resource server client credentials from AWS Secrets Manager
     """
-    session = boto3.session.Session(region_name=secret_arn.split(":")[3])
+    session = boto3.session.Session()
     client = session.client(service_name="secretsmanager")
-    response = client.get_secret_value(SecretId=secret_arn)
+    response = client.get_secret_value(SecretId=secret_name)
     return json.loads(response["SecretString"])
 
 
