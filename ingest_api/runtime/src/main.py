@@ -270,12 +270,12 @@ def _get_keycloak_credentials() -> tuple[str, str]:
         keycloak_creds = get_keycloak_client_credentials(
             settings.keycloak_uma_resource_server_client_secret_name
         )
-        client_id = keycloak_creds.get("client_id")
-        client_secret = keycloak_creds.get("client_secret")
+        client_id = keycloak_creds.get("id")
+        client_secret = keycloak_creds.get("secret")
         if not client_id:
             raise HTTPException(
                 status_code=503,
-                detail="Keycloak secret missing client_id",
+                detail="Keycloak secret missing id",
             )
         return client_id, client_secret
     except HTTPException:
