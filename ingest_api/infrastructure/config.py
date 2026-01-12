@@ -91,9 +91,9 @@ class IngestorConfig(BaseSettings):
 
     openid_configuration_url: AnyHttpUrl = Field(description="OpenID config url")
 
-    keycloak_uma_resource_server_client_secret_arn: Optional[str] = Field(
+    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
         None,
-        description="ARN of secret containing Keycloak UMA resource server client_id and client_secret",
+        description="Name of secret containing Keycloak UMA resource server client_id and client_secret",
     )
     model_config = SettingsConfigDict(
         case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"

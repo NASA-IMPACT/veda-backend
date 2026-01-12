@@ -263,11 +263,11 @@ async def get_writable_tenant_access(
         )
     realm = realm_parts[1].split("/")[0]
 
-    if settings.keycloak_uma_resource_server_client_secret_arn:
+    if settings.keycloak_uma_resource_server_client_secret_name:
         from src.utils import get_keycloak_client_credentials
 
         keycloak_creds = get_keycloak_client_credentials(
-            settings.keycloak_uma_resource_server_client_secret_arn
+            settings.keycloak_uma_resource_server_client_secret_name
         )
         resource_server_client_id = keycloak_creds.get("client_id")
         resource_server_client_secret = keycloak_creds.get("client_secret")
@@ -275,7 +275,7 @@ async def get_writable_tenant_access(
     if not resource_server_client_id:
         raise HTTPException(
             status_code=503,
-            detail="UMA authorization not configured (missing KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_ARN)",
+            detail="UMA authorization not configured (missing KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME)",
         )
 
     try:

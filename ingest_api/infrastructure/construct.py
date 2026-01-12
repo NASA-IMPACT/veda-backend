@@ -47,13 +47,13 @@ class ApiConstruct(Construct):
             "GIT_SHA": config.git_sha,
         }
 
-        if config.keycloak_uma_resource_server_client_secret_arn:
+        if config.keycloak_uma_resource_server_client_secret_name:
             lambda_env[
-                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_ARN"
-            ] = config.keycloak_uma_resource_server_client_secret_arn
+                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
+            ] = config.keycloak_uma_resource_server_client_secret_name
 
         keycloak_secret = get_keycloak_secret(
-            self, config.keycloak_uma_resource_server_client_secret_arn
+            self, config.keycloak_uma_resource_server_client_secret_name
         )
 
         build_api_lambda_params = {
@@ -255,16 +255,16 @@ class IngestorConstruct(Construct):
             "GIT_SHA": config.git_sha,
         }
 
-        if config.keycloak_uma_resource_server_client_secret_arn:
+        if config.keycloak_uma_resource_server_client_secret_name:
             lambda_env[
-                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_ARN"
-            ] = config.keycloak_uma_resource_server_client_secret_arn
+                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
+            ] = config.keycloak_uma_resource_server_client_secret_name
 
         if config.raster_data_access_role_arn:
             lambda_env["DATA_ACCESS_ROLE_ARN"] = config.raster_data_access_role_arn
 
         keycloak_secret = get_keycloak_secret(
-            self, config.keycloak_uma_resource_server_client_secret_arn
+            self, config.keycloak_uma_resource_server_client_secret_name
         )
 
         db_security_group = ec2.SecurityGroup.from_security_group_id(
@@ -371,11 +371,11 @@ def get_db_secret(
 
 
 def get_keycloak_secret(
-    ctx: Construct, secret_arn: Optional[str]
+    ctx: Construct, secret_name: Optional[str]
 ) -> Optional[secretsmanager.ISecret]:
     """Get Keycloak UMA resource server client secret from ARN."""
-    if not secret_arn:
+    if not secret_name:
         return None
     return secretsmanager.Secret.from_secret_name_v2(
-        ctx, "keycloak-uma-resource-server-secret", secret_arn
+        ctx, "keycloak-uma-resource-server-secret", secret_name
     )
