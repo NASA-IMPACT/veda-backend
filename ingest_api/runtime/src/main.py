@@ -263,14 +263,24 @@ async def get_writable_tenant_access(
         )
     realm = realm_parts[1].split("/")[0]
 
+    resource_server_client_id = None
+    resource_server_client_secret = None
+
     if settings.keycloak_uma_resource_server_client_secret_name:
         from src.utils import get_keycloak_client_credentials
 
-        keycloak_creds = get_keycloak_client_credentials(
-            settings.keycloak_uma_resource_server_client_secret_name
-        )
-        resource_server_client_id = keycloak_creds.get("client_id")
-        resource_server_client_secret = keycloak_creds.get("client_secret")
+        try:
+            keycloak_creds = get_keycloak_client_credentials(
+                settings.keycloak_uma_resource_server_client_secret_name
+            )
+            resource_server_client_id = keycloak_creds.get("client_id")
+            resource_server_client_secret = keycloak_creds.get("client_secret")
+        except Exception as e:
+            logger.error(f"Failed to retrieve Keycloak credentials: {e}")
+            raise HTTPException(
+                status_code=503,
+                detail=f"Failed to retrieve Keycloak credentials: {str(e)}",
+            )
 
     if not resource_server_client_id:
         raise HTTPException(
