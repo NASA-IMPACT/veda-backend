@@ -95,6 +95,11 @@ class IngestorConfig(BaseSettings):
         None,
         description="Name of secret containing Keycloak UMA resource server client_id and client_secret",
     )
+
+    keycloak_secret_kms_key_arn: Optional[str] = Field(
+        None,
+        description="ARN of KMS key used to encrypt the Keycloak secret",
+    )
     model_config = SettingsConfigDict(
         case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"
     )

@@ -7,6 +7,7 @@ from aws_cdk import aws_apigatewayv2_alpha, aws_apigatewayv2_integrations_alpha
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_iam as iam
+from aws_cdk import aws_kms as kms
 from aws_cdk import aws_lambda
 from aws_cdk import aws_lambda_event_sources as events
 from aws_cdk import aws_secretsmanager as secretsmanager
@@ -62,6 +63,7 @@ class ApiConstruct(Construct):
             "db_vpc": db_vpc,
             "db_security_group": db_security_group,
             "keycloak_secret": keycloak_secret,
+            "config": config,
             "pgstac_version": config.db_pgstac_version,
         }
 
@@ -120,6 +122,7 @@ class ApiConstruct(Construct):
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
         keycloak_secret: Optional[secretsmanager.ISecret] = None,
+        config: "IngestorConfig",
         data_access_role: Union[iam.IRole, None] = None,
         pgstac_version: str,
         code_dir: str = "./",
@@ -171,6 +174,11 @@ class ApiConstruct(Construct):
         # Allow handler to read Keycloak secret if provided
         if keycloak_secret:
             keycloak_secret.grant_read(handler)
+            if config.keycloak_secret_kms_key_arn:
+                kms_key = kms.Key.from_key_arn(
+                    self, "keycloak-secret-kms-key", config.keycloak_secret_kms_key_arn
+                )
+                kms_key.grant(handler, "kms:Decrypt", "kms:GenerateDataKey")
 
         # Allow handler to connect to DB
         db_security_group.add_ingress_rule(
