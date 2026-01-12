@@ -376,6 +376,6 @@ def get_keycloak_secret(
     """Get Keycloak UMA resource server client secret from ARN."""
     if not secret_arn:
         return None
-    return secretsmanager.Secret.from_secret_arn(
+    return secretsmanager.Secret.from_secret_name_v2(
         ctx, "keycloak-uma-resource-server-secret", secret_arn
     )
