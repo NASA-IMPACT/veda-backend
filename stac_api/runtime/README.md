@@ -31,7 +31,7 @@ Existing collections in the STAC catalog need the `eic:tenant` field added to be
 
 **Migration Process:**
 
-A migration DAG is available in the [veda-data-airflow](https://github.com/NASA-IMPACT/veda-data-airflow) repository to add tenant fields to existing collections. The migration adds the `eic:tenant` field to collection metadata for the specified set of collections
+A [migration DAG ](https://github.com/NASA-IMPACT/veda-data-airflow/blob/dev/dags/veda_data_pipeline/veda_tenant_tagging_pipeline.py)is available in the [veda-data-airflow](https://github.com/NASA-IMPACT/veda-data-airflow) repository to add tenant fields to existing collections. The migration adds the `eic:tenant` field to collection metadata for the specified set of collections
 
 **Field Format:**
 
