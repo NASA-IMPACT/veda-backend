@@ -385,5 +385,5 @@ def get_keycloak_secret(
     if not secret_name:
         return None
     return secretsmanager.Secret.from_secret_name_v2(
-        ctx, "keycloak-uma-resource-server-secret", secret_name
+        ctx, "veda-keycloak-{stage}-client-uma-resource-server", secret_name
     )

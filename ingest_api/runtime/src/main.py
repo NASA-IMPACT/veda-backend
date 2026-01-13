@@ -302,6 +302,7 @@ async def get_writable_tenant_access(
     keycloak_url, realm = _parse_keycloak_config()
     client_id, client_secret = _get_keycloak_credentials()
 
+    pdp_client = None
     try:
         pdp_client = KeycloakPDPClient(
             keycloak_url=keycloak_url,
@@ -311,25 +312,21 @@ async def get_writable_tenant_access(
             timeout=10.0,
         )
 
-        try:
-            # Get tenants with create/update access for collections
-            collection_tenants = pdp_client.get_tenants_with_create_update_access(
-                access_token=user_access_token,
-                resource_type="collection",
-            )
+        # Get tenants with create/update access for collections
+        collection_tenants = pdp_client.get_tenants_with_create_update_access(
+            access_token=user_access_token,
+            resource_type="collection",
+        )
 
-            # Get tenants with create/update access for items
-            item_tenants = pdp_client.get_tenants_with_create_update_access(
-                access_token=user_access_token,
-                resource_type="item",
-            )
+        # Get tenants with create/update access for items
+        item_tenants = pdp_client.get_tenants_with_create_update_access(
+            access_token=user_access_token,
+            resource_type="item",
+        )
 
-            all_tenants = sorted(list(set(collection_tenants + item_tenants)))
+        all_tenants = sorted(list(set(collection_tenants + item_tenants)))
 
-            return schemas.TenantAccessResponse(tenants=all_tenants)
-        finally:
-            # Clean up client
-            pdp_client.close()
+        return schemas.TenantAccessResponse(tenants=all_tenants)
 
     except HTTPException:
         raise
@@ -339,6 +336,9 @@ async def get_writable_tenant_access(
             status_code=502,
             detail=f"Failed to retrieve tenant access: {str(e)}",
         )
+    finally:
+        if pdp_client:
+            pdp_client.close()
 
 
 app.add_middleware(ObservabilityMiddleware)
