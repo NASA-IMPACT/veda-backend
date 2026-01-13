@@ -34,7 +34,7 @@ def _add_base64_padding(payload: str) -> str:
 class KeycloakPDPClient:
     """Client for Keycloak Policy Decision Point (Authorization Services)
 
-    This client calls Keycloak's UMA endpoints to get authorization decisions.
+    This client calls Keycloak's User Managed Access (UMA) endpoints to get authorization decisions.
     """
 
     def __init__(
@@ -130,7 +130,7 @@ class KeycloakPDPClient:
             raise
 
     def _extract_permissions_from_jwt(self, jwt_token: str) -> List[Dict[str, Any]]:
-        """Extract permissions from RPT JWT token"""
+        """Extract permissions from RPT (requesting party token) JWT token"""
         try:
             parts = jwt_token.split(".")
             if len(parts) != 3:
