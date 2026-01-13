@@ -63,20 +63,7 @@ jobs:
       - name: Wait for STAC API to be ready
         run: |
           echo "Waiting for STAC API to be available at localhost:8081..."
-          echo "DEBUG: Checking container status..."
-          docker ps --filter "name=veda.stac" --format "table {{.Names}}\t{{.Status}}"
-          timeout 120 bash -c '
-            while true; do
-              http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/api/stac/_mgmt/ping 2>/dev/null || echo "000")
-              if [ "$http_code" = "200" ]; then
-                echo "STAC API is ready! (HTTP $http_code)"
-                break
-              else
-                echo "Waiting... (HTTP $http_code)"
-                sleep 1
-              fi
-            done
-          '
+          timeout 120 bash -c 'until curl -f http://localhost:8081/api/stac/_mgmt/ping 2>/dev/null; do sleep 0.25; done'
           echo "STAC API is ready!"
 
       - name: Integrations tests
