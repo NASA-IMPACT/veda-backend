@@ -136,17 +136,20 @@ Requests an RPT (Requesting Party Token) from Keycloak containing the user's per
 ### Resource Identifier Format
 
 Resources in Keycloak should follow this naming convention:
-```
+
+```json
 stac:{resource_type}:{tenant_name}
 ```
 
-They are defined by the resource server configuration settings. For more examples, see [veda-keycloak config](https://github.com/NASA-IMPACT/veda-keycloak/blob/main/keycloak-config-cli/config/dev/veda.yaml#L331)
+These resource definitions must match the resources configured in Keycloak's authorization services.
+
+For the actual resource definitions used in VEDA, see the [veda-keycloak configuration](https://github.com/NASA-IMPACT/veda-keycloak/blob/main/keycloak-config-cli/config/dev/veda.yaml#L334).
 
 Examples:
 
-- `stac:collection:tenant1`
-- `stac:item:tenant2`
-- `stac:collection:public`
+- `stac:collection:tenant1:*`
+- `stac:item:tenant2:*`
+- `stac:collection:public:*`
 
 ### Token Claims
 
