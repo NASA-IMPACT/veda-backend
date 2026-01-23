@@ -7,6 +7,8 @@ from src.collection_publisher import CollectionPublisher, ItemPublisher
 from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
+from src.utils import get_keycloak_client_credentials
+from veda_auth.keycloak_client import KeycloakPDPClient
 
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
@@ -213,6 +215,130 @@ def who_am_i(claims=Depends(oidc_auth.valid_token_dependency)):
     Return claims for the provided JWT
     """
     return claims
+
+
+def _extract_access_token(request: Request) -> str:
+    """Extract and validate Bearer token from Authorization header"""
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Authorization header required",
+        )
+    return auth_header[7:]
+
+
+def _parse_keycloak_config() -> tuple[str, str]:
+    """Extract Keycloak URL and realm from OIDC configuration URL"""
+    oidc_url = (
+        str(auth_settings.openid_configuration_url)
+        if auth_settings.openid_configuration_url
+        else None
+    )
+    if not oidc_url:
+        raise HTTPException(
+            status_code=503,
+            detail="Missing OPENID_CONFIGURATION_URL",
+        )
+
+    if "/realms/" not in oidc_url:
+        raise HTTPException(
+            status_code=503,
+            detail="Invalid OpenID configuration URL format",
+        )
+
+    keycloak_url = oidc_url.split("/realms/")[0]
+    realm_parts = oidc_url.split("/realms/")
+    if len(realm_parts) < 2:
+        raise HTTPException(
+            status_code=503,
+            detail="Could not extract realm from OpenID configuration URL",
+        )
+    realm = realm_parts[1].split("/")[0]
+    return keycloak_url, realm
+
+
+def _get_keycloak_credentials() -> tuple[str, str]:
+    """Retrieve Keycloak UMA resource server credentials from the Secrets Manager"""
+    if not settings.keycloak_uma_resource_server_client_secret_name:
+        raise HTTPException(
+            status_code=503,
+            detail="UMA authorization not configured (missing KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME)",
+        )
+
+    try:
+        keycloak_creds = get_keycloak_client_credentials(
+            settings.keycloak_uma_resource_server_client_secret_name
+        )
+        client_id = keycloak_creds.get("id")
+        client_secret = keycloak_creds.get("secret")
+        if not client_id:
+            raise HTTPException(
+                status_code=503,
+                detail="Keycloak secret missing id",
+            )
+        return client_id, client_secret
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to retrieve Keycloak credentials: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Failed to retrieve Keycloak credentials: {str(e)}",
+        ) from e
+
+
+@app.get(
+    "/auth/tenants/writable", response_model=schemas.TenantAccessResponse, tags=["Auth"]
+)
+async def get_writable_tenant_access(
+    request: Request,
+    claims=Depends(oidc_auth.valid_token_dependency),
+):
+    """
+    Returns the list of tenants the user has create and update access to.
+    """
+    user_access_token = _extract_access_token(request)
+    keycloak_url, realm = _parse_keycloak_config()
+    client_id, client_secret = _get_keycloak_credentials()
+
+    pdp_client = None
+    try:
+        pdp_client = KeycloakPDPClient(
+            keycloak_url=keycloak_url,
+            realm=realm,
+            client_id=client_id,
+            client_secret=client_secret,
+            timeout=10.0,
+        )
+
+        # Get tenants with create/update access for collections
+        collection_tenants = pdp_client.get_tenants_with_create_update_access(
+            access_token=user_access_token,
+            resource_type="collection",
+        )
+
+        # Get tenants with create/update access for items
+        item_tenants = pdp_client.get_tenants_with_create_update_access(
+            access_token=user_access_token,
+            resource_type="item",
+        )
+
+        all_tenants = sorted(list(set(collection_tenants + item_tenants)))
+
+        return schemas.TenantAccessResponse(tenants=all_tenants)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting tenant access: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to retrieve tenant access: {str(e)}",
+        )
+    finally:
+        if pdp_client:
+            pdp_client.close()
 
 
 app.add_middleware(ObservabilityMiddleware)

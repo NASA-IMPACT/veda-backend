@@ -39,7 +39,8 @@ services:
       - database
       - raster
       - oidc
-    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
+    # command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && /start.sh"
+    command: bash -c "bash /tmp/scripts/wait-for-it.sh -t 120 -h database -p 5432 && bash /tmp/scripts/wait-for-it.sh -t 120 -h oidc -p 8888 && /start.sh"
     volumes:
       - ./scripts:/tmp/scripts
       - ./stac_api/runtime/src:/opt/bitnami/python/lib/python3.12/site-packages/src/

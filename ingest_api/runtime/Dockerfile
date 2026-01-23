@@ -8,6 +8,12 @@ WORKDIR /tmp
 COPY ingest_api/runtime/requirements.txt /tmp/ingestor/requirements.txt
 RUN pip install -r /tmp/ingestor/requirements.txt pypgstac==${PGSTAC_VERSION} -t /asset --no-binary pydantic uvicorn
 RUN rm -rf /tmp/ingestor
+
+# Install common/auth package (veda_auth)
+COPY common/auth /tmp/common_auth
+RUN pip install /tmp/common_auth -t /asset --no-binary pydantic
+RUN rm -rf /tmp/common_auth
+
 # TODO this is temporary until we use a real packaging system like setup.py or poetry
 COPY ingest_api/runtime/src /asset/src
 
