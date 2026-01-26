@@ -7,6 +7,7 @@ import pytest
 from veda_auth.resource_extractors import (
     _extract_collection_resource_id_from_post_body,
     _extract_tenant_from_body,
+    extract_ingest_resource_id,
     extract_stac_resource_id,
 )
 
@@ -176,3 +177,17 @@ class TestExtractStacResourceId:
 
         result = await extract_stac_resource_id(request)
         assert result == "stac:collection:test-tenant:*"
+
+
+class TestExtractIngestResourceId:
+    """Test Ingest API resource ID extraction"""
+
+    async def test_delete_collection_returns_collection_id(self):
+        """DELETE /collections/{id} should return collection-specific resource ID"""
+        request = MagicMock(spec=Request)
+        request.url.path = "/collection/test-collection"
+        request.method = "DELETE"
+        request.state.tenant = "test-tenant"
+
+        resource_id = await extract_ingest_resource_id(request)
+        assert resource_id == "collection:test-collection"

@@ -110,3 +110,19 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
         return None
 
     return None
+
+
+async def extract_ingest_resource_id(request: Request) -> Optional[str]:
+    """Extract resource ID for Ingest API requests"""
+    path = request.url.path
+    method = request.method
+
+    if path.endswith("/collections") and method == "POST":
+        return await _extract_collection_resource_id_from_post_body(request)
+
+    match = re.match(r".*?/collections/([^/]+)$", path)
+    if match and method == "DELETE":
+        collection_id = match.group(1)
+        return f"collection:{collection_id}"
+
+    return None
