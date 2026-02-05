@@ -22,6 +22,25 @@ STAC_ITEM_PUBLIC = "stac:item:public:*"
 STAC_COLLECTION_TEMPLATE = "stac:collection:{}:*"
 STAC_ITEM_TEMPLATE = "stac:item:{}:*"
 
+_COLLECTIONS_PATH_PATTERN = re.compile(r".*?/collections/([^/]+)$")
+_COLLECTIONS_ITEM_PATH_PATTERN = re.compile(r".*?/collections/([^/]+)/items/([^/]+)$")
+_COLLECTIONS_ITEMS_PATH_PATTERN = re.compile(r".*?/collections/([^/]+)/items$")
+_COLLECTIONS_BULK_ITEMS_PATH_PATTERN = re.compile(
+    r".*?/collections/([^/]+)/bulk_items$"
+)
+
+
+def _stac_collection_resource_id(request: Request) -> str:
+    """Return tenant-based or public STAC collection resource ID."""
+    tenant = getattr(request.state, "tenant", None)
+    return STAC_COLLECTION_TEMPLATE.format(tenant) if tenant else STAC_COLLECTION_PUBLIC
+
+
+def _stac_item_resource_id(request: Request) -> str:
+    """Return tenant-based or public STAC item resource ID."""
+    tenant = getattr(request.state, "tenant", None)
+    return STAC_ITEM_TEMPLATE.format(tenant) if tenant else STAC_ITEM_PUBLIC
+
 
 def _extract_tenant_from_body(
     body_data: Dict[str, Any], tenant_field: Optional[str] = None
@@ -78,36 +97,18 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
     path = request.url.path
     method = request.method
 
-    match = re.match(r".*?/collections/([^/]+)$", path)
-    if match:
+    if _COLLECTIONS_PATH_PATTERN.match(path):
         if method in ("PUT", "PATCH"):
             return await _extract_collection_resource_id_from_post_body(request)
+        return _stac_collection_resource_id(request)
 
-        tenant = getattr(request.state, "tenant", None)
-        if tenant:
-            return STAC_COLLECTION_TEMPLATE.format(tenant)
-        return STAC_COLLECTION_PUBLIC
+    if _COLLECTIONS_ITEM_PATH_PATTERN.match(path):
+        return _stac_item_resource_id(request)
 
-    match = re.match(r".*?/collections/([^/]+)/items/([^/]+)$", path)
-    if match:
-        tenant = getattr(request.state, "tenant", None)
-        if tenant:
-            return STAC_ITEM_TEMPLATE.format(tenant)
-        return STAC_ITEM_PUBLIC
-
-    match = re.match(r".*?/collections/([^/]+)/items$", path)
-    if match:
-        tenant = getattr(request.state, "tenant", None)
-        if tenant:
-            return STAC_COLLECTION_TEMPLATE.format(tenant)
-        return STAC_COLLECTION_PUBLIC
-
-    match = re.match(r".*?/collections/([^/]+)/bulk_items$", path)
-    if match:
-        tenant = getattr(request.state, "tenant", None)
-        if tenant:
-            return STAC_COLLECTION_TEMPLATE.format(tenant)
-        return STAC_COLLECTION_PUBLIC
+    if _COLLECTIONS_ITEMS_PATH_PATTERN.match(
+        path
+    ) or _COLLECTIONS_BULK_ITEMS_PATH_PATTERN.match(path):
+        return _stac_collection_resource_id(request)
 
     if "/queryables" in path or "/search" in path:
         return None
