@@ -5,13 +5,16 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from veda_auth.resource_extractors import (
+    STAC_COLLECTION_PUBLIC,
+    STAC_COLLECTION_TEMPLATE,
+    STAC_ITEM_TEMPLATE,
     _extract_collection_resource_id_from_post_body,
     _extract_tenant_from_body,
     extract_ingest_resource_id,
     extract_stac_resource_id,
 )
 
-from fastapi import Request
+from fastapi import HTTPException, Request
 
 
 class TestExtractTenantFromBody:
@@ -57,7 +60,7 @@ class TestExtractCollectionResourceIdFromPostBody:
         request.body = AsyncMock(return_value=test_body)
 
         result = await _extract_collection_resource_id_from_post_body(request)
-        assert result == "stac:collection:test-tenant:*"
+        assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
 
     @pytest.mark.asyncio
     async def test_extract_without_tenant(self):
@@ -69,16 +72,18 @@ class TestExtractCollectionResourceIdFromPostBody:
         request.body = AsyncMock(return_value=test_body)
 
         result = await _extract_collection_resource_id_from_post_body(request)
-        assert result == "stac:collection:public:*"
+        assert result == STAC_COLLECTION_PUBLIC
 
     @pytest.mark.asyncio
     async def test_extract_with_empty_body(self):
-        """Test extracting resource ID with empty body, returns None"""
+        """Test extracting resource ID with empty body raises HTTPException 400"""
         request = MagicMock(spec=Request)
         request.body = AsyncMock(return_value=b"")
 
-        result = await _extract_collection_resource_id_from_post_body(request)
-        assert result is None
+        with pytest.raises(HTTPException) as exc_info:
+            await _extract_collection_resource_id_from_post_body(request)
+        assert exc_info.value.status_code == 400
+        assert "empty body" in exc_info.value.detail.lower()
 
     @pytest.mark.asyncio
     async def test_extract_with_invalid_json(self):
@@ -102,7 +107,7 @@ class TestExtractCollectionResourceIdFromPostBody:
         request.body = AsyncMock(return_value=test_body)
 
         result = await _extract_collection_resource_id_from_post_body(request)
-        assert result == "stac:collection:test-tenant:*"
+        assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
 
 
 class TestExtractStacResourceId:
@@ -117,7 +122,7 @@ class TestExtractStacResourceId:
         request.state.tenant = "test-tenant"
 
         result = await extract_stac_resource_id(request)
-        assert result == "stac:collection:test-tenant:*"
+        assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
 
     @pytest.mark.asyncio
     async def test_get_collection_without_tenant(self):
@@ -129,7 +134,7 @@ class TestExtractStacResourceId:
         delattr(request.state, "tenant")
 
         result = await extract_stac_resource_id(request)
-        assert result == "stac:collection:public:*"
+        assert result == STAC_COLLECTION_PUBLIC
 
     @pytest.mark.asyncio
     async def test_put_collection_with_tenant_in_body(self):
@@ -143,7 +148,7 @@ class TestExtractStacResourceId:
         request.body = AsyncMock(return_value=test_body)
 
         result = await extract_stac_resource_id(request)
-        assert result == "stac:collection:test-tenant:*"
+        assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
 
     @pytest.mark.asyncio
     async def test_get_item_with_tenant(self):
@@ -154,7 +159,7 @@ class TestExtractStacResourceId:
         request.state.tenant = "test-tenant"
 
         result = await extract_stac_resource_id(request)
-        assert result == "stac:item:test-tenant:*"
+        assert result == STAC_ITEM_TEMPLATE.format("test-tenant")
 
     @pytest.mark.asyncio
     async def test_post_items_with_tenant(self):
@@ -165,7 +170,7 @@ class TestExtractStacResourceId:
         request.state.tenant = "test-tenant"
 
         result = await extract_stac_resource_id(request)
-        assert result == "stac:collection:test-tenant:*"
+        assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
 
     @pytest.mark.asyncio
     async def test_post_bulk_items_with_tenant(self):
@@ -176,7 +181,7 @@ class TestExtractStacResourceId:
         request.state.tenant = "test-tenant"
 
         result = await extract_stac_resource_id(request)
-        assert result == "stac:collection:test-tenant:*"
+        assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
 
 
 class TestExtractIngestResourceId:
@@ -185,7 +190,7 @@ class TestExtractIngestResourceId:
     async def test_delete_collection_returns_collection_id(self):
         """DELETE /collections/{id} should return collection-specific resource ID"""
         request = MagicMock(spec=Request)
-        request.url.path = "/collection/test-collection"
+        request.url.path = "/collections/test-collection"
         request.method = "DELETE"
         request.state.tenant = "test-tenant"
 

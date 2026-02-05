@@ -12,11 +12,15 @@ import os
 import re
 from typing import Any, Dict, Optional
 
-from fastapi import Request
+from fastapi import HTTPException, Request
 
 logger = logging.getLogger(__name__)
 
 TENANT_FIELD = os.getenv("VEDA_TENANT_FILTER_FIELD", "eic:tenant")
+STAC_COLLECTION_PUBLIC = "stac:collection:public:*"
+STAC_ITEM_PUBLIC = "stac:item:public:*"
+STAC_COLLECTION_TEMPLATE = "stac:collection:{}:*"
+STAC_ITEM_TEMPLATE = "stac:item:{}:*"
 
 
 def _extract_tenant_from_body(
@@ -50,17 +54,16 @@ async def _extract_collection_resource_id_from_post_body(
     try:
         request_body = await request.body()
         if not request_body:
-            logger.warning(
-                "Cannot extract resource ID: empty body for collection operation"
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot extract resource ID: empty body for collection operation",
             )
-            return None
 
         body_data = json.loads(request_body)
         tenant = _extract_tenant_from_body(body_data)
         if tenant:
-            return f"stac:collection:{tenant}:*"
-        else:
-            return "stac:collection:public:*"
+            return STAC_COLLECTION_TEMPLATE.format(tenant)
+        return STAC_COLLECTION_PUBLIC
     except (json.JSONDecodeError, AttributeError, TypeError) as e:
         logger.warning(f"Failed to extract resource ID from collection body: {e}")
         return None
@@ -69,8 +72,8 @@ async def _extract_collection_resource_id_from_post_body(
 async def extract_stac_resource_id(request: Request) -> Optional[str]:
     """Extract resource ID for STAC API requests
     Resource ID format matches Keycloak resource definitions (wildcard patterns):
-    - Collections: "stac:collection:{tenant}:*" or "stac:collection:public:*"
-    - Items: "stac:item:{tenant}:*" or "stac:item:public:*"
+    - Collections: STAC_COLLECTION_TEMPLATE or STAC_COLLECTION_PUBLIC
+    - Items: STAC_ITEM_TEMPLATE or STAC_ITEM_PUBLIC
     """
     path = request.url.path
     method = request.method
@@ -82,29 +85,29 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
 
         tenant = getattr(request.state, "tenant", None)
         if tenant:
-            return f"stac:collection:{tenant}:*"
-        return "stac:collection:public:*"
+            return STAC_COLLECTION_TEMPLATE.format(tenant)
+        return STAC_COLLECTION_PUBLIC
 
     match = re.match(r".*?/collections/([^/]+)/items/([^/]+)$", path)
     if match:
         tenant = getattr(request.state, "tenant", None)
         if tenant:
-            return f"stac:item:{tenant}:*"
-        return "stac:item:public:*"
+            return STAC_ITEM_TEMPLATE.format(tenant)
+        return STAC_ITEM_PUBLIC
 
     match = re.match(r".*?/collections/([^/]+)/items$", path)
     if match:
         tenant = getattr(request.state, "tenant", None)
         if tenant:
-            return f"stac:collection:{tenant}:*"
-        return "stac:collection:public:*"
+            return STAC_COLLECTION_TEMPLATE.format(tenant)
+        return STAC_COLLECTION_PUBLIC
 
     match = re.match(r".*?/collections/([^/]+)/bulk_items$", path)
     if match:
         tenant = getattr(request.state, "tenant", None)
         if tenant:
-            return f"stac:collection:{tenant}:*"
-        return "stac:collection:public:*"
+            return STAC_COLLECTION_TEMPLATE.format(tenant)
+        return STAC_COLLECTION_PUBLIC
 
     if "/queryables" in path or "/search" in path:
         return None
