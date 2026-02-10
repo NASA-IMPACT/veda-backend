@@ -136,6 +136,34 @@ class TestExtractStacResourceId:
         assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
 
     @pytest.mark.asyncio
+    async def test_post_collections_create_with_tenant_in_body(self):
+        """Test extracting resource ID for STAC POST /collections (create, from transactions enabled) with tenant in body"""
+        body_data = {"eic:tenant": "test-tenant", "id": "new-collection"}
+        test_body = json.dumps(body_data).encode("utf-8")
+
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections"
+        request.method = "POST"
+        request.body = AsyncMock(return_value=test_body)
+
+        result = await extract_stac_resource_id(request)
+        assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
+
+    @pytest.mark.asyncio
+    async def test_post_collections_create_without_tenant_in_body(self):
+        """Test extracting resource ID for STAC POST /collections (create, from transactions enabled) without tenant (defaults to public)"""
+        body_data = {"id": "new-collection", "type": "Collection"}
+        test_body = json.dumps(body_data).encode("utf-8")
+
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections"
+        request.method = "POST"
+        request.body = AsyncMock(return_value=test_body)
+
+        result = await extract_stac_resource_id(request)
+        assert result == STAC_COLLECTION_PUBLIC
+
+    @pytest.mark.asyncio
     async def test_get_item_with_tenant(self):
         """Test extracting resource ID for GET item with tenant"""
         request = MagicMock(spec=Request)

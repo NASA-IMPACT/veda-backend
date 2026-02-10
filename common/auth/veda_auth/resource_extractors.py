@@ -22,6 +22,7 @@ STAC_ITEM_PUBLIC = "stac:item:public:*"
 STAC_COLLECTION_TEMPLATE = "stac:collection:{}:*"
 STAC_ITEM_TEMPLATE = "stac:item:{}:*"
 
+_COLLECTIONS_CREATE_PATH_PATTERN = re.compile(r".*?/collections$")
 _COLLECTIONS_PATH_PATTERN = re.compile(r".*?/collections/([^/]+)$")
 _COLLECTIONS_ITEM_PATH_PATTERN = re.compile(r".*?/collections/([^/]+)/items/([^/]+)$")
 _COLLECTIONS_ITEMS_PATH_PATTERN = re.compile(r".*?/collections/([^/]+)/items$")
@@ -90,6 +91,9 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
     """
     path = request.url.path
     method = request.method
+
+    if _COLLECTIONS_CREATE_PATH_PATTERN.match(path) and method == "POST":
+        return await _extract_collection_resource_id_from_post_body(request)
 
     if _COLLECTIONS_PATH_PATTERN.match(path):
         if method in ("PUT", "PATCH"):

@@ -12,8 +12,7 @@ The `KeycloakPDPClient` enables applications to:
 
 - Request a RPT (Requesting Party Token) from Keycloak
 - Check user permissions for specific resources and scopes
-- Extract tenant information from user tokens
-- Get lists of tenants where users have create/update access
+- Extract tenant information from user token claims to help build the list of tenants where users have create/update access (for example, for the writable-tenants API endpoint)
 
 ### Installation
 
@@ -93,6 +92,7 @@ tenants = pdp_client.get_tenants_with_create_update_access(
 # Returns: ["tenant1", "tenant2", "public"]
 ```
 
+
 #### `check_permission(access_token, resource_id, scope)`
 
 Checks if a user has a specific permission for a resource.
@@ -153,10 +153,42 @@ Examples:
 
 ### Token Claims
 
-The client extracts tenant information from JWT token claims. It looks for tenants in:
+The `KeycloakPDPClient` extracts tenant names from the user's JWT when building the list of tenants the user can write to (for example, in `get_tenants_with_create_update_access` and the **GET `/auth/tenants/writable`** endpoint). This extraction is used only to **return** a list of writable tenants.
 
-- `group_membership.tenants` array
-- `groups` array
+Tenant names are read from these claims:
+
+- `group_membership.tenants` array – an array of group path strings
+- `groups` array – an array of group path strings
+
+Each group value is expected to contain the segment `/Tenants/`. The tenant name is taken as the third path component when splitting the string on `/`. For example:
+
+- `"/Tenants/veda"`, the tenant extracted is `"veda"`
+- `"/realm/role/Tenants/veda"`, the tenant extracted is  `"veda"`
+
+### Resource Extractor Use Cases
+
+This section summarizes how the resource extractor functions in `veda_auth.resource_extractors` derive the **Keycloak resource ID** for different API calls.
+
+#### STAC API (`extract_stac_resource_id` function)
+
+| Path pattern                           | Methods                           |  Resource          | Tenant source for resource ID                         | Resource ID returned (shape)                     | Notes                                                                                     |
+|----------------------------------------------------|-----------------------------------|-------------------------------|-------------------------------------------------------|--------------------------------------------------|-------------------------------------------------------------------------------------------|
+| `/collections`                                     | `POST`                            | Create collection             | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | STAC create collection; same body-based extraction as PUT/PATCH.                          |
+| `/collections/{collection_id}`                     | `GET`, `DELETE`   | Single collection             | `request.state.tenant` (from URL), or public fallback | `stac:collection:{tenant}:*` or public           | When the URL contains a tenant, the tenant comes from the URL path, otherwise it falls back to `public`.    |
+| `/collections/{collection_id}`                     | `PUT`, `PATCH`                    | Single collection (write)     | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | It reads the JSON body to determine tenant, if empty body it returns `None`.                    |
+| `/collections/{collection_id}/items/{item_id}`     | All methods                       | Single item                   | `request.state.tenant` (from URL), or public fallback | `stac:item:{tenant}:*` or public                | Item body is **not** read for tenant; only URL-derived tenant (or public) is used.        |
+| `/collections/{collection_id}/items`               | `GET`, `POST`                     | Items under a collection      | `request.state.tenant` (from URL), or public fallback | `stac:collection:{tenant}:*` or public           | Collection-scoped resource ID for listing/creating items.                                 |
+| `/collections/{collection_id}/bulk_items`          | `POST`                            | Bulk item operations          | `request.state.tenant` (from URL), or public fallback | `stac:collection:{tenant}:*` or public           | Bulk operations are treated as collection-scoped actions.                                 |
+| Any path containing `/queryables` or `/search`     | Any                               | Query/search endpoints        | _n/a_                                                 | `None`                                           | Resource ID is not extracted for query/search endpoints.                                  |
+
+\* For methods on `/collections/{collection_id}` other than `PUT`/`PATCH`, the extractor uses the URL-derived tenant (or public) via `_stac_collection_resource_id`.
+
+#### Ingest API (`extract_ingest_resource_id` function)
+
+| Path pattern          | Method | Resource      | Tenant source for resource ID                          | Resource ID returned (shape)            | Notes                                                                                   |
+|------------------------------------|--------|---------------------------|--------------------------------------------------------|-----------------------------------------|-----------------------------------------------------------------------------------------|
+| `/collections`                     | `POST` | Create collection request | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | Uses the same body-based extraction helper as the STAC collection write case.           |
+| `/collections/{collection_id}`     | `DELETE` | Delete collection        | _none_ (no tenant used)                                | `collection:{collection_id}`           | Ingest delete uses an ID-scoped resource (`collection:{id}`) without tenant component. Tenant-aware deletes will be handled in Phase 2. |
 
 ### See Also
 
