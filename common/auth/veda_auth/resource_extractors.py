@@ -54,12 +54,6 @@ def _extract_tenant_from_body(
         if tenant:
             return tenant
 
-        properties = body_data.get("properties", {})
-        if isinstance(properties, dict):
-            tenant = properties.get(tenant_field)
-            if tenant:
-                return tenant
-
         return None
     except (AttributeError, TypeError) as e:
         logger.debug(f"Failed to extract tenant from body: {e}")

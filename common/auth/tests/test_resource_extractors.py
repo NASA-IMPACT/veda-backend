@@ -94,21 +94,6 @@ class TestExtractCollectionResourceIdFromPostBody:
         result = await _extract_collection_resource_id_from_post_body(request)
         assert result is None
 
-    @pytest.mark.asyncio
-    async def test_extract_tenant_from_properties(self):
-        """Test extracting resource ID when tenant is in properties"""
-        body_data = {
-            "id": "test-collection",
-            "properties": {"eic:tenant": "test-tenant"},
-        }
-        test_body = json.dumps(body_data).encode("utf-8")
-
-        request = MagicMock(spec=Request)
-        request.body = AsyncMock(return_value=test_body)
-
-        result = await _extract_collection_resource_id_from_post_body(request)
-        assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
-
 
 class TestExtractStacResourceId:
     """Tests for extract_stac_resource_id function"""
