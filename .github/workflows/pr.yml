@@ -83,6 +83,9 @@ jobs:
       - name: Stac-api extensions unit tests
         run: python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
 
+      - name: Auth unit tests
+        run: python -m pytest common/auth/tests/ -vv -s
+
       - name: Stop services
         run: docker compose stop
 
