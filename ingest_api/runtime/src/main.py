@@ -8,7 +8,7 @@ from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
 from src.utils import get_keycloak_client_credentials
-from veda_auth.keycloak_client import KeycloakPDPClient
+from veda_auth.keycloak_client import KeycloakPDPClient, parse_keycloak_from_openid_url
 
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
@@ -229,33 +229,11 @@ def _extract_access_token(request: Request) -> str:
 
 
 def _parse_keycloak_config() -> tuple[str, str]:
-    """Extract Keycloak URL and realm from OIDC configuration URL"""
-    oidc_url = (
-        str(auth_settings.openid_configuration_url)
-        if auth_settings.openid_configuration_url
-        else None
-    )
-    if not oidc_url:
-        raise HTTPException(
-            status_code=503,
-            detail="Missing OPENID_CONFIGURATION_URL",
-        )
-
-    if "/realms/" not in oidc_url:
-        raise HTTPException(
-            status_code=503,
-            detail="Invalid OpenID configuration URL format",
-        )
-
-    keycloak_url = oidc_url.split("/realms/")[0]
-    realm_parts = oidc_url.split("/realms/")
-    if len(realm_parts) < 2:
-        raise HTTPException(
-            status_code=503,
-            detail="Could not extract realm from OpenID configuration URL",
-        )
-    realm = realm_parts[1].split("/")[0]
-    return keycloak_url, realm
+    """Extract Keycloak URL and realm from OIDC configuration URL."""
+    try:
+        return parse_keycloak_from_openid_url(auth_settings.openid_configuration_url)
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
 
 
 def _get_keycloak_credentials() -> tuple[str, str]:

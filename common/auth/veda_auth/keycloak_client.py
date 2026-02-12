@@ -7,12 +7,37 @@ to make authorization decisions via UMA (User-Managed Access) protocol.
 import base64
 import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import urlencode
+from typing import Any, Dict, List, Optional, Tuple, Union
+from urllib.parse import urlparse, urlencode
 
 import httpx
 
 logger = logging.getLogger(__name__)
+
+
+def parse_keycloak_from_openid_url(
+    openid_configuration_url: Union[str, Any]
+) -> Tuple[str, str]:
+    """Extract Keycloak base URL and realm from an OpenID discovery URL such as https://<host>/realms/<realm>/.well-known/openid-configuration"""
+    url_str = str(openid_configuration_url).strip() if openid_configuration_url else ""
+    if not url_str:
+        raise ValueError("Missing or empty OpenID configuration URL")
+
+    parsed = urlparse(url_str)
+    path = (parsed.path or "").rstrip("/")
+
+    if "/realms/" not in path:
+        raise ValueError(
+            "OpenID configuration URL must contain /realms/<realm>/ "
+            "(e.g. .../realms/my-realm/.well-known/openid-configuration)"
+        )
+
+    realm = path.split("/realms/")[-1].split("/")[0]
+    if not realm:
+        raise ValueError("Could not extract realm from OpenID configuration URL")
+
+    keycloak_url = f"{parsed.scheme}://{parsed.netloc}"
+    return keycloak_url, realm
 
 
 def _add_base64_padding(payload: str) -> str:
