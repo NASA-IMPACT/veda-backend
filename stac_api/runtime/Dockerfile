@@ -2,6 +2,9 @@ FROM --platform=linux/amd64 public.ecr.aws/sam/build-python3.12:latest
 
 WORKDIR /tmp
 
+COPY common/auth /tmp/common_auth
+RUN pip install /tmp/common_auth -t /asset
+
 COPY stac_api/runtime /tmp/stac
 
 RUN pip install "mangum" "plpygis>=0.2.1" /tmp/stac -t /asset --no-binary pydantic
