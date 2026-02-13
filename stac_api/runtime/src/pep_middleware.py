@@ -73,14 +73,23 @@ class PEPMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         matched_request = self._get_matching_scope_and_route(request)
         if matched_request is None:
+            logger.debug(
+                "PEP: no protected route match for %s %s... continuing",
+                request.method, request.url.path,
+            )
             return await call_next(request)
 
         scope, _method = matched_request
+        logger.info(
+            "PEP: matched protected route %s %s and scope=%s",
+            _method, request.url.path, scope,
+        )
 
         pdp_client = self._get_pdp_client()
 
         token = self._get_bearer_token(request)
         if not token:
+            logger.warning("PEP: missing Bearer token for %s %s", _method, request.url.path)
             return JSONResponse(
                 status_code=401,
                 content={
@@ -91,11 +100,16 @@ class PEPMiddleware(BaseHTTPMiddleware):
 
         resource_id = await extract_stac_resource_id(request)
         if not resource_id:
-            logger.warning("PEP middleware: no resource ID for %s %s", _method, request.url.path)
+            logger.warning("PEP: no resource ID for %s %s", _method, request.url.path)
             return JSONResponse(
                 status_code=403,
                 content={"detail": "Could not determine resource for authorization"},
             )
+
+        logger.info(
+            "PEP: checking permission resource_id=%s, scope=%s, path=%s",
+            resource_id, scope, request.url.path,
+        )
 
         try:
             authorized = pdp_client.check_permission(
@@ -104,13 +118,22 @@ class PEPMiddleware(BaseHTTPMiddleware):
                 scope=scope,
             )
         except Exception as e:
-            logger.exception("PEP middleware: Keycloak check failed: %s", e)
+            logger.exception("PEP: Keycloak check failed for resource_id=%s scope=%s: %s", resource_id, scope, e)
             return JSONResponse(
                 status_code=502,
                 content={"detail": "Authorization service temporarily unavailable"},
             )
 
+        logger.info(
+            "PEP: authorization result=%s for resource_id=%s, scope=%s, path=%s",
+            authorized, resource_id, scope, request.url.path,
+        )
+
         if not authorized:
+            logger.warning(
+                "PEP: denied %s %s  resource_id=%s, scope=%s",
+                _method, request.url.path, resource_id, scope,
+            )
             return JSONResponse(
                 status_code=403,
                 content={"detail": "Insufficient permissions for this request"},

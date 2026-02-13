@@ -167,7 +167,15 @@ if (
     and api_settings.keycloak_resource_server_client_id
     and api_settings.keycloak_resource_server_client_secret
 ):
+    logger.info("PEP middleware enabled, resource server client_id=%s", api_settings.keycloak_resource_server_client_id)
     app.add_middleware(PEPMiddleware, pdp_client=_get_keycloak_pdp_client)
+else:
+    logger.info(
+        "PEP middleware disabled openid_url=%s, client_id=%s, has_secret=%s",
+        bool(api_settings.openid_configuration_url),
+        bool(api_settings.keycloak_resource_server_client_id),
+        bool(api_settings.keycloak_resource_server_client_secret),
+    )
 
 # Note: we want this to be added after stac_auth_proxy so that it runs before stac_auth_proxy's middleware
 app.add_middleware(TenantExtractionMiddleware)
