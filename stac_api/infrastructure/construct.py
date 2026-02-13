@@ -79,11 +79,11 @@ class StacApiLambdaConstruct(Construct):
             )
         if veda_stac_settings.keycloak_resource_server_client_id is not None:
             lambda_env[
-                "VEDA_KEYCLOAK_RESOURCE_SERVER_CLIENT_ID"
+                "VEDA_STAC_KEYCLOAK_RESOURCE_SERVER_CLIENT_ID"
             ] = veda_stac_settings.keycloak_resource_server_client_id
         if veda_stac_settings.keycloak_resource_server_client_secret is not None:
             lambda_env[
-                "VEDA_RESOURCE_SERVER_CLIENT_SECRET"
+                "VEDA_STAC_KEYCLOAK_RESOURCE_SERVER_CLIENT_SECRET"
             ] = veda_stac_settings.keycloak_resource_server_client_secret
 
         lambda_function = aws_lambda.Function(
