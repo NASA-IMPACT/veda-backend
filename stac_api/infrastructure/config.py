@@ -72,6 +72,14 @@ class vedaSTACSettings(BaseSettings):
         False,
         description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
     )
+    keycloak_resource_server_client_id: Optional[str] = Field(
+        None,
+        description="Resource server client ID for PEP (UMA). When set with resource_server_client_secret and openid_configuration_url, PEP enforces UMA.",
+    )
+    keycloak_resource_server_client_secret: Optional[str] = Field(
+        None,
+        description="Resource server client secret for PEP middleware.",
+    )
 
     @model_validator(mode="before")
     def check_transaction_fields(cls, values):

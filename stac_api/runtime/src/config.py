@@ -103,6 +103,14 @@ class _ApiSettings(Settings):
         "eic:tenant",
         description="The field name used for tenant filtering",
     )
+    keycloak_resource_server_client_id: Optional[str] = Field(
+        None,
+        description="Resource server client ID for PEP. When set with resource_server_client_secret and openid_configuration_url, PEP enforces user managed access",
+    )
+    keycloak_resource_server_client_secret: Optional[str] = Field(
+        None,
+        description="Resource server client secret for PEP middleware",
+    )
 
     @field_validator("cors_origins")
     @classmethod
