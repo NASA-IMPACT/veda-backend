@@ -10,7 +10,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
-from veda_auth.keycloak_client import KeycloakPDPClient
+from veda_auth.keycloak_client import KeycloakPDPClient, TokenError
 from veda_auth.resource_extractors import (
     COLLECTIONS_CREATE_PATH_RE,
     extract_stac_resource_id,
@@ -116,6 +116,15 @@ class PEPMiddleware(BaseHTTPMiddleware):
                 access_token=token,
                 resource_id=resource_id,
                 scope=scope,
+            )
+        except TokenError as e:
+            logger.warning(
+                "PEP: token error for %s %s: %s", _method, request.url.path, e.detail
+            )
+            return JSONResponse(
+                status_code=401,
+                content={"detail": e.detail},
+                headers={"WWW-Authenticate": "Bearer error=\"invalid_token\""},
             )
         except Exception as e:
             logger.exception("PEP: Keycloak check failed for resource_id=%s scope=%s: %s", resource_id, scope, e)

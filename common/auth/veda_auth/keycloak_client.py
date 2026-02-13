@@ -15,6 +15,16 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
+class TokenError(Exception):
+    """Raised when the access token is expired, revoked, or invalid.
+    Keycloak returns HTTP 401
+    """
+
+    def __init__(self, detail: str = "Access token is expired or invalid"):
+        self.detail = detail
+        super().__init__(detail)
+
+
 def parse_keycloak_from_openid_url(
     openid_configuration_url: Union[str, Any]
 ) -> Tuple[str, str]:
@@ -229,7 +239,14 @@ class KeycloakPDPClient:
 
             return False
         except httpx.HTTPStatusError as e:
-            if e.response.status_code in (401, 403):
+            if e.response.status_code == 401:
+                logger.warning(
+                    "Token rejected (401): %s", e.response.text
+                )
+                raise TokenError(
+                    "Access token is expired or invalid. Please re-authenticate."
+                ) from e
+            if e.response.status_code == 403:
                 return False
             logger.error(
                 f"Permission check failed: {e.response.status_code} {e.response.text}"
