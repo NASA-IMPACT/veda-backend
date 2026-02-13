@@ -136,7 +136,13 @@ class PEPMiddleware(BaseHTTPMiddleware):
             )
             return JSONResponse(
                 status_code=403,
-                content={"detail": "Insufficient permissions for this request"},
+                content={
+                    "detail": (
+                        f"You do not have permission to {scope} this resource "
+                        f"({resource_id}). Verify that your user belongs to "
+                        f"the required tenant and role needed."
+                    )
+                },
             )
 
         return await call_next(request)

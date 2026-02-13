@@ -220,13 +220,9 @@ class KeycloakPDPClient:
 
             # https://www.keycloak.org/docs/latest/authorization_services/#_service_rpt_overview
             for permission in permissions:
-                # Check rsid (RPT token format), resource_id (introspection format), or rsname (resource name)
-                resource_identifier = (
-                    permission.get("rsid")
-                    or permission.get("resource_id")
-                    or permission.get("rsname")
-                )
-                if resource_identifier == resource_id:
+                # rsname is the user defined resource name ("stac:collection:tenant:*") so use it instead
+                rsname = permission.get("rsname") or permission.get("resource_id")
+                if rsname == resource_id:
                     scopes = permission.get("scopes", [])
                     if scope in scopes:
                         return True
