@@ -8,7 +8,7 @@ import base64
 import json
 import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
-from urllib.parse import urlparse, urlencode
+from urllib.parse import urlencode, urlparse
 
 import httpx
 
