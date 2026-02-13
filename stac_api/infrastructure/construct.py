@@ -1,6 +1,7 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
 
 import os
+from typing import Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -9,8 +10,10 @@ from aws_cdk import (
     aws_apigatewayv2_alpha,
     aws_apigatewayv2_integrations_alpha,
     aws_ec2,
+    aws_kms as kms,
     aws_lambda,
     aws_logs,
+    aws_secretsmanager as secretsmanager,
 )
 from constructs import Construct
 
@@ -77,14 +80,10 @@ class StacApiLambdaConstruct(Construct):
             lambda_env["VEDA_STAC_OPENID_CONFIGURATION_URL"] = str(
                 veda_stac_settings.openid_configuration_url
             )
-        if veda_stac_settings.keycloak_resource_server_client_id is not None:
+        if veda_stac_settings.keycloak_uma_resource_server_client_secret_name:
             lambda_env[
-                "VEDA_STAC_KEYCLOAK_RESOURCE_SERVER_CLIENT_ID"
-            ] = veda_stac_settings.keycloak_resource_server_client_id
-        if veda_stac_settings.keycloak_resource_server_client_secret is not None:
-            lambda_env[
-                "VEDA_STAC_KEYCLOAK_RESOURCE_SERVER_CLIENT_SECRET"
-            ] = veda_stac_settings.keycloak_resource_server_client_secret
+                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
+            ] = veda_stac_settings.keycloak_uma_resource_server_client_secret_name
 
         lambda_function = aws_lambda.Function(
             self,
@@ -105,6 +104,19 @@ class StacApiLambdaConstruct(Construct):
 
         # # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
         database.pgstac.secret.grant_read(lambda_function)
+
+        keycloak_secret = _get_keycloak_secret(
+            self, veda_stac_settings.keycloak_uma_resource_server_client_secret_name
+        )
+        if keycloak_secret:
+            keycloak_secret.grant_read(lambda_function)
+            if veda_stac_settings.keycloak_secret_kms_key_arn:
+                kms_key = kms.Key.from_key_arn(
+                    self,
+                    "keycloak-secret-kms-key",
+                    veda_stac_settings.keycloak_secret_kms_key_arn,
+                )
+                kms_key.grant(lambda_function, "kms:Decrypt", "kms:GenerateDataKey")
         database.pgstac.connections.allow_from(
             lambda_function, port_range=aws_ec2.Port.tcp(5432)
         )
@@ -148,3 +160,14 @@ class StacApiLambdaConstruct(Construct):
             export_name=f"{stack_name}-stac-url",
             key="stacapiurl",
         )
+
+
+def _get_keycloak_secret(
+    ctx: Construct, secret_name: Optional[str]
+) -> Optional[secretsmanager.ISecret]:
+    """Look up Keycloak UMA resource server secret by name"""
+    if not secret_name:
+        return None
+    return secretsmanager.Secret.from_secret_name_v2(
+        ctx, "keycloak-uma-resource-server-secret", secret_name
+    )

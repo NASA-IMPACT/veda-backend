@@ -72,13 +72,13 @@ class vedaSTACSettings(BaseSettings):
         False,
         description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
     )
-    keycloak_resource_server_client_id: Optional[str] = Field(
+    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
         None,
-        description="Resource server client ID for PEP (UMA). When set with resource_server_client_secret and openid_configuration_url, PEP enforces UMA.",
+        description="Name of AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret",
     )
-    keycloak_resource_server_client_secret: Optional[str] = Field(
+    keycloak_secret_kms_key_arn: Optional[str] = Field(
         None,
-        description="Resource server client secret for PEP middleware.",
+        description="ARN of KMS key used to encrypt the Keycloak secret",
     )
 
     @model_validator(mode="before")
