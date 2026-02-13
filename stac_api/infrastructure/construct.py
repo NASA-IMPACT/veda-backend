@@ -82,7 +82,7 @@ class StacApiLambdaConstruct(Construct):
             )
         if veda_stac_settings.keycloak_uma_resource_server_client_secret_name:
             lambda_env[
-                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
+                "VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
             ] = veda_stac_settings.keycloak_uma_resource_server_client_secret_name
 
         lambda_function = aws_lambda.Function(
