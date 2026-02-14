@@ -10,11 +10,10 @@ from aws_cdk import (
     aws_apigatewayv2_alpha,
     aws_apigatewayv2_integrations_alpha,
     aws_ec2,
-    aws_kms as kms,
-    aws_lambda,
-    aws_logs,
-    aws_secretsmanager as secretsmanager,
 )
+from aws_cdk import aws_kms as kms
+from aws_cdk import aws_lambda, aws_logs
+from aws_cdk import aws_secretsmanager as secretsmanager
 from constructs import Construct
 
 from .config import veda_stac_settings

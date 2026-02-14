@@ -16,6 +16,7 @@ from src.config import (
 )
 from src.extension import TiTilerExtension
 from stac_auth_proxy import configure_app
+from veda_auth.pep_middleware import PEPMiddleware
 
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -31,7 +32,6 @@ from starlette_cramjam.middleware import CompressionMiddleware
 from .core import VedaCrudClient
 from .filters import CollectionFilter, ItemFilter
 from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
-from veda_auth.pep_middleware import PEPMiddleware
 from .prefix_redirect_middleware import PrefixRedirectMiddleware
 from .tenant_extraction_middleware import TenantExtractionMiddleware
 from .tenant_links_middleware import TenantLinksMiddleware
@@ -162,9 +162,7 @@ def _get_keycloak_pdp_client():
     client_id = secret.get("id")
     client_secret = secret.get("secret")
     if not client_id:
-        raise RuntimeError(
-            "Keycloak UMA secret is missing 'id' (client_id)"
-        )
+        raise RuntimeError("Keycloak UMA secret is missing 'id' (client_id)")
 
     return KeycloakPDPClient(
         keycloak_url=keycloak_url,

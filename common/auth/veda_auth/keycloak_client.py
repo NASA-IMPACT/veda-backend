@@ -21,6 +21,7 @@ class TokenError(Exception):
     """
 
     def __init__(self, detail: str = "Access token is expired or invalid"):
+        """To use when there is a token error for RPT call"""
         self.detail = detail
         super().__init__(detail)
 
@@ -240,9 +241,7 @@ class KeycloakPDPClient:
             return False
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
-                logger.warning(
-                    "Token rejected (401): %s", e.response.text
-                )
+                logger.warning("Token rejected (401): %s", e.response.text)
                 raise TokenError(
                     "Access token is expired or invalid. Please re-authenticate."
                 ) from e
