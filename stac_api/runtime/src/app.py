@@ -31,7 +31,7 @@ from starlette_cramjam.middleware import CompressionMiddleware
 from .core import VedaCrudClient
 from .filters import CollectionFilter, ItemFilter
 from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
-from .pep_middleware import PEPMiddleware
+from veda_auth.pep_middleware import PEPMiddleware
 from .prefix_redirect_middleware import PrefixRedirectMiddleware
 from .tenant_extraction_middleware import TenantExtractionMiddleware
 from .tenant_links_middleware import TenantLinksMiddleware
@@ -182,7 +182,13 @@ if (
         "PEP middleware enabled, secret_name=%s",
         api_settings.keycloak_uma_resource_server_client_secret_name,
     )
-    app.add_middleware(PEPMiddleware, pdp_client=_get_keycloak_pdp_client)
+    from veda_auth.resource_extractors import extract_stac_resource_id
+
+    app.add_middleware(
+        PEPMiddleware,
+        pdp_client=_get_keycloak_pdp_client,
+        resource_extractor=extract_stac_resource_id,
+    )
 else:
     logger.info(
         "PEP middleware disabled,  openid_url=%s, secret_name=%s",
