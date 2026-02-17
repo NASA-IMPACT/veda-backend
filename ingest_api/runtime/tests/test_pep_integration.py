@@ -88,10 +88,8 @@ def pep_client(pep_app):
 
 def _collection(tenant: str | None = None) -> dict:
     """Builds a valid collection body"""
-    body = {
-        **VALID_COLLECTION_TEMPLATE,
-        "id": f"pep-test-{uuid.uuid4().hex[:8]}",
-    }
+    body = dict(VALID_COLLECTION_TEMPLATE)
+    body["id"] = f"pep-test-{uuid.uuid4().hex[:8]}"
     if tenant:
         body["eic:tenant"] = tenant
     return body
