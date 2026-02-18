@@ -24,8 +24,7 @@ VALID_COLLECTION_TEMPLATE = {
     "stac_version": "1.0.0",
 }
 
-ROOT_PATH = "/api/stac"
-COLLECTIONS_ENDPOINT = f"{ROOT_PATH}/collections"
+COLLECTIONS_ENDPOINT = "/collections"
 
 
 MOCK_KEYCLOAK_SECRET = {
@@ -36,15 +35,19 @@ MOCK_KEYCLOAK_SECRET = {
 
 @pytest.fixture(autouse=True)
 def pep_environ():
-    """Set UMA env vars for PEP middleware"""
+    """Set UMA and transaction env vars for PEP middleware tests"""
     os.environ[
         "VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
     ] = "test/keycloak-uma-secret"
     os.environ[
         "VEDA_STAC_OPENID_CONFIGURATION_URL"
     ] = "https://auth.example.com/realms/test-realm/.well-known/openid-configuration"
+    os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
+    os.environ["VEDA_STAC_ENABLE_STAC_AUTH_PROXY"] = "True"
     yield
     os.environ.pop("VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME", None)
+    os.environ.pop("VEDA_STAC_ENABLE_TRANSACTIONS", None)
+    os.environ.pop("VEDA_STAC_ENABLE_STAC_AUTH_PROXY", None)
 
 
 @pytest.fixture
