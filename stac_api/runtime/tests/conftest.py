@@ -322,7 +322,9 @@ async def app():
         FastAPI: The FastAPI application instance.
     """
     import logging
+
     import src.config
+
     log = logging.getLogger(__name__)
     log.info(
         "conftest api_settings when loading app \n"
