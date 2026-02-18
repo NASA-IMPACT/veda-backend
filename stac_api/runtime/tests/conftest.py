@@ -318,12 +318,18 @@ async def app():
     This fixture imports and returns the FastAPI application instance
     for testing purposes.
 
-    Args:
-        test_environ: A fixture setting up the test environment.
-
     Returns:
         FastAPI: The FastAPI application instance.
     """
+    import logging
+    import src.config
+    log = logging.getLogger(__name__)
+    log.info(
+        "conftest api_settings when loading app \n"
+        "enable_transactions=%s root_path=%r",
+        src.config.api_settings.enable_transactions,
+        src.config.api_settings.root_path,
+    )
     from src.app import app
 
     await connect_to_db(app, add_write_connection_pool=True)
