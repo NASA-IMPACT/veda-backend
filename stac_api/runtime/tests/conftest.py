@@ -319,6 +319,9 @@ async def app(test_environ):
     This fixture imports and returns the FastAPI application instance
     for testing purposes.
 
+    Args:
+        test_environ: A fixture setting up the test environment.
+
     Returns:
         FastAPI: The FastAPI application instance.
     """
