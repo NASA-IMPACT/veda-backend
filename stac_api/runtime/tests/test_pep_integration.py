@@ -24,7 +24,8 @@ VALID_COLLECTION_TEMPLATE = {
     "stac_version": "1.0.0",
 }
 
-COLLECTIONS_ENDPOINT = "/collections"
+ROOT_PATH = "/api/stac"
+COLLECTIONS_ENDPOINT = f"{ROOT_PATH}/collections"
 
 
 MOCK_KEYCLOAK_SECRET = {
@@ -44,10 +45,12 @@ def pep_environ():
     ] = "https://auth.example.com/realms/test-realm/.well-known/openid-configuration"
     os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
     os.environ["VEDA_STAC_ENABLE_STAC_AUTH_PROXY"] = "True"
+    os.environ["VEDA_STAC_ROOT_PATH"] = ROOT_PATH
     yield
     os.environ.pop("VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME", None)
     os.environ.pop("VEDA_STAC_ENABLE_TRANSACTIONS", None)
     os.environ.pop("VEDA_STAC_ENABLE_STAC_AUTH_PROXY", None)
+    os.environ.pop("VEDA_STAC_ROOT_PATH", None)
 
 
 @pytest.fixture
@@ -62,7 +65,8 @@ def mock_pdp_client():
 async def pep_app(mock_pdp_client):
     """Load the STAC app with PEP and PDP client mocks"""
 
-    # reload to re-read the environment
+    # clear config cache and reload so we get root_path/transactions from pep_environ
+    src.config.ApiSettings.cache_clear()
     importlib.reload(src.config)
 
     with patch("src.config.get_secret_dict", return_value=MOCK_KEYCLOAK_SECRET), patch(
@@ -77,6 +81,7 @@ async def pep_app(mock_pdp_client):
         await close_db_connection(app)
 
     # restore original module
+    src.config.ApiSettings.cache_clear()
     importlib.reload(src.config)
 
 
