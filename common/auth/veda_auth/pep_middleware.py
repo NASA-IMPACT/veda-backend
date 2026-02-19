@@ -35,6 +35,19 @@ DEFAULT_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
 )
 
 
+def pep_error_response(
+    status_code: int,
+    detail: str,
+    headers: Optional[dict] = None,
+) -> JSONResponse:
+    """Abstracted error response function"""
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": detail},
+        headers=headers or {},
+    )
+
+
 class PEPMiddleware(BaseHTTPMiddleware):
     """Middleware that enforces UMA authorization"""
 
@@ -103,20 +116,17 @@ class PEPMiddleware(BaseHTTPMiddleware):
             logger.warning(
                 "PEP: missing Bearer token for %s %s", _method, request.url.path
             )
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "detail": "Missing or invalid Authorization header (Bearer token required)"
-                },
-                headers={"WWW-Authenticate": "Bearer"},
+            return pep_error_response(
+                401,
+                "Missing or invalid Authorization header (Bearer token required)",
+                {"WWW-Authenticate": "Bearer"},
             )
 
         resource_id = await self._extract_resource_id(request)
         if not resource_id:
             logger.warning("PEP: no resource ID for %s %s", _method, request.url.path)
-            return JSONResponse(
-                status_code=403,
-                content={"detail": "Could not determine resource for authorization"},
+            return pep_error_response(
+                403, "Could not determine resource for authorization"
             )
 
         logger.info(
@@ -136,10 +146,8 @@ class PEPMiddleware(BaseHTTPMiddleware):
             logger.warning(
                 "PEP: token error for %s %s: %s", _method, request.url.path, e.detail
             )
-            return JSONResponse(
-                status_code=401,
-                content={"detail": e.detail},
-                headers={"WWW-Authenticate": 'Bearer error="invalid_token"'},
+            return pep_error_response(
+                401, e.detail, {"WWW-Authenticate": 'Bearer error="invalid_token"'}
             )
         except Exception as e:
             logger.exception(
@@ -148,9 +156,8 @@ class PEPMiddleware(BaseHTTPMiddleware):
                 scope,
                 e,
             )
-            return JSONResponse(
-                status_code=502,
-                content={"detail": "Authorization service temporarily unavailable"},
+            return pep_error_response(
+                502, "Authorization service temporarily unavailable"
             )
 
         logger.info(
@@ -169,15 +176,13 @@ class PEPMiddleware(BaseHTTPMiddleware):
                 resource_id,
                 scope,
             )
-            return JSONResponse(
-                status_code=403,
-                content={
-                    "detail": (
-                        f"You do not have permission to {scope} this resource "
-                        f"({resource_id}). Verify that your user belongs to "
-                        f"the required tenant and role needed."
-                    )
-                },
+            return pep_error_response(
+                403,
+                (
+                    f"You do not have permission to {scope} this resource "
+                    f"({resource_id}). Verify that your user belongs to "
+                    f"the required tenant and role needed."
+                ),
             )
 
         return await call_next(request)

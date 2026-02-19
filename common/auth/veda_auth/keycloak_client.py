@@ -40,7 +40,8 @@ def parse_keycloak_from_openid_url(
     if "/realms/" not in path:
         raise ValueError(
             "OpenID configuration URL must contain /realms/<realm>/ "
-            "(e.g. .../realms/my-realm/.well-known/openid-configuration)"
+            "(e.g. .../realms/my-realm/.well-known/openid-configuration). "
+            f"Got path: {repr(path)}"
         )
 
     realm = path.split("/realms/")[-1].split("/")[0]
