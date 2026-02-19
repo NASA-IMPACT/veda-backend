@@ -30,9 +30,9 @@ def parse_keycloak_from_openid_url(
     openid_configuration_url: Union[str, Any]
 ) -> Tuple[str, str]:
     """Extract Keycloak base URL and realm from an OpenID discovery URL such as https://<host>/realms/<realm>/.well-known/openid-configuration"""
-    url_str = str(openid_configuration_url).strip() if openid_configuration_url else ""
-    if not url_str:
+    if not openid_configuration_url:
         raise ValueError("Missing or empty OpenID configuration URL")
+    url_str = str(openid_configuration_url).strip()
 
     parsed = urlparse(url_str)
     path = (parsed.path or "").rstrip("/")
