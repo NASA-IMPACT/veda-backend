@@ -26,6 +26,18 @@ class TokenError(Exception):
         super().__init__(detail)
 
 
+class ResourceNotFoundError(Exception):
+    """Raised when Keycloak returns HTTP 400 with invalid_resource error.
+    This means the requested resource (tenant) does not exist in the
+    resource server
+    """
+
+    def __init__(self, resource_id: str):
+        """Initialize with the resource ID that was not found"""
+        self.resource_id = resource_id
+        super().__init__(f"Resource not found: {resource_id}")
+
+
 def parse_keycloak_from_openid_url(
     openid_configuration_url: Union[str, Any]
 ) -> Tuple[str, str]:
@@ -194,13 +206,69 @@ class KeycloakPDPClient:
             logger.warning(f"Failed to extract permissions from JWT: {e}")
             return []
 
+    def _resolve_permissions(
+        self, rpt_response: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Extract permissions from an RPT response, and fall back to the JWT"""
+        permissions = rpt_response.get("permissions", [])
+        if not permissions:
+            rpt_jwt = rpt_response.get("access_token")
+            if rpt_jwt:
+                permissions = self._extract_permissions_from_jwt(rpt_jwt)
+                logger.debug(f"Extracted {len(permissions)} permissions from RPT JWT")
+        return permissions
+
+    def _has_matching_permission(
+        self,
+        permissions: List[Dict[str, Any]],
+        resource_id: str,
+        scope: str,
+    ) -> bool:
+        """Return True if permissions contain a grant for resource_id and scope
+
+        See https://www.keycloak.org/docs/latest/authorization_services/#_service_rpt_overview
+        """
+        for permission in permissions:
+            rsname = permission.get("rsname") or permission.get("resource_id")
+            if rsname == resource_id and scope in permission.get("scopes", []):
+                return True
+        return False
+
+    def _handle_rpt_http_error(
+        self, error: httpx.HTTPStatusError, resource_id: str
+    ) -> bool:
+        """Translate an HTTPStatusError from get_rpt
+
+        Returns False for a 403 (permission denied).
+        Raises TokenError for 401, ResourceNotFoundError for 400 invalid_resource.
+        Re-raises unhandled status codes.
+        """
+        if error.response.status_code == 401:
+            logger.warning("Token rejected (401): %s", error.response.text)
+            raise TokenError(
+                "Access token is expired or invalid. Please re-authenticate."
+            ) from error
+        if error.response.status_code == 403:
+            return False
+        if error.response.status_code == 400:
+            try:
+                error_body = error.response.json()
+            except Exception:
+                error_body = {}
+            if error_body.get("error") == "invalid_resource":
+                raise ResourceNotFoundError(resource_id=resource_id) from error
+        logger.error(
+            f"Permission check failed: {error.response.status_code} {error.response.text}"
+        )
+        raise error
+
     def check_permission(
         self,
         access_token: str,
         resource_id: str,
         scope: str,
     ) -> bool:
-        """Check if user has permission for a resource and scope
+        """Check if user has permission for a resource and scope.
 
         Args:
             access_token: User's access token
@@ -220,38 +288,10 @@ class KeycloakPDPClient:
                     }
                 ],
             )
-
-            permissions = rpt_response.get("permissions", [])
-            if not permissions:
-                rpt_jwt = rpt_response.get("access_token")
-                if rpt_jwt:
-                    permissions = self._extract_permissions_from_jwt(rpt_jwt)
-                    logger.debug(
-                        f"Extracted {len(permissions)} permissions from RPT JWT"
-                    )
-
-            # https://www.keycloak.org/docs/latest/authorization_services/#_service_rpt_overview
-            for permission in permissions:
-                # rsname is the user defined resource name ("stac:collection:tenant:*") so use it instead
-                rsname = permission.get("rsname") or permission.get("resource_id")
-                if rsname == resource_id:
-                    scopes = permission.get("scopes", [])
-                    if scope in scopes:
-                        return True
-
-            return False
+            permissions = self._resolve_permissions(rpt_response)
+            return self._has_matching_permission(permissions, resource_id, scope)
         except httpx.HTTPStatusError as e:
-            if e.response.status_code == 401:
-                logger.warning("Token rejected (401): %s", e.response.text)
-                raise TokenError(
-                    "Access token is expired or invalid. Please re-authenticate."
-                ) from e
-            if e.response.status_code == 403:
-                return False
-            logger.error(
-                f"Permission check failed: {e.response.status_code} {e.response.text}"
-            )
-            raise
+            return self._handle_rpt_http_error(e, resource_id)
         except Exception as e:
             logger.error(f"Unexpected error checking permission: {e}")
             raise

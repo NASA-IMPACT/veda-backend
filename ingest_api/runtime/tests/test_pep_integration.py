@@ -6,6 +6,7 @@ import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
+from veda_auth.keycloak_client import ResourceNotFoundError
 
 from fastapi.testclient import TestClient
 
@@ -177,3 +178,20 @@ class TestIngestPEPIntegration:
         call_kwargs = mock_pdp_client.check_permission.call_args
         resource_id = call_kwargs.kwargs.get("resource_id")
         assert resource_id == "stac:collection:public:*"
+
+    def test_post_collection_nonexistent_tenant_returns_404(
+        self, pep_client, mock_pdp_client
+    ):
+        """POST /collections with a tenant that doesn't exist in Keycloak should return 404"""
+        mock_pdp_client.check_permission.side_effect = ResourceNotFoundError(
+            resource_id="stac:collection:nonexistent-tenant:*"
+        )
+
+        response = pep_client.post(
+            COLLECTIONS_ENDPOINT,
+            json=_collection(tenant="nonexistent-tenant"),
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
+        assert response.status_code == 404
+        assert "does not exist" in response.json()["detail"]
+        assert "nonexistent-tenant" in response.json()["detail"]

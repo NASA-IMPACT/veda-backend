@@ -8,6 +8,7 @@ import pytest
 import src.app
 import src.config
 from httpx import ASGITransport, AsyncClient
+from veda_auth.keycloak_client import ResourceNotFoundError
 
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 
@@ -215,6 +216,24 @@ class TestPEPIntegration:
             f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
             headers={"Authorization": "Bearer fake-valid-token"},
         )
+
+    @pytest.mark.asyncio
+    async def test_post_collection_nonexistent_tenant_returns_404(
+        self, pep_client, mock_pdp_client
+    ):
+        """POST /collections with a tenant that doesn't exist in Keycloak should return 404"""
+        mock_pdp_client.check_permission.side_effect = ResourceNotFoundError(
+            resource_id="stac:collection:nonexistent-tenant:*"
+        )
+
+        response = await pep_client.post(
+            COLLECTIONS_ENDPOINT,
+            json=_collection(tenant="nonexistent-tenant"),
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
+        assert response.status_code == 404
+        assert "does not exist" in response.json()["detail"]
+        assert "nonexistent-tenant" in response.json()["detail"]
 
     @pytest.mark.asyncio
     async def test_get_collections_not_affected_by_pep(self, pep_client):

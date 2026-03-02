@@ -5,7 +5,11 @@ import re
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Optional, Sequence
 
-from veda_auth.keycloak_client import KeycloakPDPClient, TokenError
+from veda_auth.keycloak_client import (
+    KeycloakPDPClient,
+    ResourceNotFoundError,
+    TokenError,
+)
 from veda_auth.resource_extractors import COLLECTIONS_CREATE_PATH_RE
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -148,6 +152,18 @@ class PEPMiddleware(BaseHTTPMiddleware):
             )
             return pep_error_response(
                 401, e.detail, {"WWW-Authenticate": 'Bearer error="invalid_token"'}
+            )
+        except ResourceNotFoundError as e:
+            logger.warning(
+                "PEP: resource not found for %s %s: %s",
+                _method,
+                request.url.path,
+                e.resource_id,
+            )
+            return pep_error_response(
+                404,
+                f"The requested tenant resource ({e.resource_id}) does not exist. "
+                "Verify that the tenant name is correct.",
             )
         except Exception as e:
             logger.exception(
