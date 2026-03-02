@@ -3,6 +3,7 @@
 import importlib
 import os
 import uuid
+from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -87,7 +88,7 @@ def pep_client(pep_app):
     return TestClient(pep_app)
 
 
-def _collection(tenant: str | None = None) -> dict:
+def _collection(tenant: Optional[str] = None) -> dict:
     """Builds a valid collection body"""
     body = dict(VALID_COLLECTION_TEMPLATE)
     body["id"] = f"pep-test-{uuid.uuid4().hex[:8]}"

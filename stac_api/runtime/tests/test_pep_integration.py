@@ -2,6 +2,7 @@
 import importlib
 import os
 import uuid
+from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -95,7 +96,7 @@ async def pep_client(pep_app):
         yield client
 
 
-def _collection(tenant: str | None = None) -> dict:
+def _collection(tenant: Optional[str] = None) -> dict:
     """Build a valid STAC collection"""
     body = dict(VALID_COLLECTION_TEMPLATE)
     body["id"] = f"pep-test-{uuid.uuid4().hex[:8]}"
