@@ -379,11 +379,16 @@ def get_db_secret(
 
 
 def get_keycloak_secret(
-    ctx: Construct, secret_name: Optional[str]
+    ctx: Construct, secret_name_or_arn: Optional[str]
 ) -> Optional[secretsmanager.ISecret]:
-    """Get Keycloak UMA resource server client secret from ARN."""
-    if not secret_name:
+    """Get Keycloak UMA resource server client secret by name or ARN.
+    """
+    if not secret_name_or_arn:
         return None
+    if secret_name_or_arn.startswith("arn:"):
+        return secretsmanager.Secret.from_secret_complete_arn(
+            ctx, "veda-keycloak-client-uma-resource-server", secret_name_or_arn
+        )
     return secretsmanager.Secret.from_secret_name_v2(
-        ctx, "veda-keycloak-{stage}-client-uma-resource-server", secret_name
+        ctx, "veda-keycloak-client-uma-resource-server", secret_name_or_arn
     )
