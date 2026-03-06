@@ -9,7 +9,7 @@ import pytest
 import src.app
 import src.config
 from httpx import ASGITransport, AsyncClient
-from veda_auth.keycloak_client import ResourceNotFoundError
+from veda_auth.keycloak_client import PermissionDeniedError, ResourceNotFoundError
 
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 
@@ -145,7 +145,9 @@ class TestPEPIntegration:
         self, pep_client, mock_pdp_client
     ):
         """POST /collections with valid Bearer where PDP denies with 403"""
-        mock_pdp_client.check_permission.return_value = False
+        mock_pdp_client.check_permission.side_effect = PermissionDeniedError(
+            resource_id="stac:collection:test", scope="create"
+        )
 
         response = await pep_client.post(
             COLLECTIONS_ENDPOINT,

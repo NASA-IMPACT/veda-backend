@@ -7,7 +7,7 @@ from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
-from veda_auth.keycloak_client import ResourceNotFoundError
+from veda_auth.keycloak_client import PermissionDeniedError, ResourceNotFoundError
 
 from fastapi.testclient import TestClient
 
@@ -124,7 +124,9 @@ class TestIngestPEPIntegration:
 
     def test_post_collection_denied_returns_403(self, pep_client, mock_pdp_client):
         """POST /collections with valid Bearer where PDP denies should return 403"""
-        mock_pdp_client.check_permission.return_value = False
+        mock_pdp_client.check_permission.side_effect = PermissionDeniedError(
+            resource_id="stac:collection:test", scope="create"
+        )
 
         response = pep_client.post(
             COLLECTIONS_ENDPOINT,
