@@ -428,6 +428,7 @@ class TestTenantFiltering:
         url = url.replace("{collection_id}", collection_id)
         url = url.replace("{item_id}", item_id)
         resp = httpx.request(method, url, json={} if method == "POST" else None)
+
         assert resp.status_code == 200
         data = resp.json()
 
