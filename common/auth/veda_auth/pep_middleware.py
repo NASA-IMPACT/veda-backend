@@ -7,6 +7,7 @@ from typing import Awaitable, Callable, Optional, Sequence
 
 from veda_auth.keycloak_client import (
     KeycloakPDPClient,
+    PermissionDeniedError,
     ResourceNotFoundError,
     TokenError,
 )
@@ -165,6 +166,22 @@ class PEPMiddleware(BaseHTTPMiddleware):
                 f"The requested tenant resource ({e.resource_id}) does not exist. "
                 "Verify that the tenant name is correct.",
             )
+        except PermissionDeniedError as e:
+            logger.warning(
+                "PEP: denied %s %s resource_id=%s, scope=%s",
+                _method,
+                request.url.path,
+                e.resource_id,
+                e.scope,
+            )
+            return pep_error_response(
+                403,
+                (
+                    f"You do not have permission to {e.scope or scope} this resource "
+                    f"({e.resource_id}). Verify that your user belongs to "
+                    f"the required tenant and role needed."
+                ),
+            )
         except Exception as e:
             logger.exception(
                 "PEP: Keycloak check failed for resource_id=%s scope=%s: %s",
@@ -177,28 +194,10 @@ class PEPMiddleware(BaseHTTPMiddleware):
             )
 
         logger.info(
-            "PEP: authorization result=%s for resource_id=%s, scope=%s, path=%s",
-            authorized,
+            "PEP: authorized for resource_id=%s, scope=%s, path=%s",
             resource_id,
             scope,
             request.url.path,
         )
-
-        if not authorized:
-            logger.warning(
-                "PEP: denied %s %s  resource_id=%s, scope=%s",
-                _method,
-                request.url.path,
-                resource_id,
-                scope,
-            )
-            return pep_error_response(
-                403,
-                (
-                    f"You do not have permission to {scope} this resource "
-                    f"({resource_id}). Verify that your user belongs to "
-                    f"the required tenant and role needed."
-                ),
-            )
 
         return await call_next(request)

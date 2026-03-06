@@ -38,6 +38,18 @@ class ResourceNotFoundError(Exception):
         super().__init__(f"Resource not found: {resource_id}")
 
 
+class PermissionDeniedError(Exception):
+    """Raised when Keycloak returns HTTP 403 forbidden which means
+    the user does not have permission for the requested resource and scope.
+    """
+
+    def __init__(self, resource_id: str, scope: Optional[str] = None):
+        """Initialize with the resource ID and optional scope that was denied"""
+        self.resource_id = resource_id
+        self.scope = scope
+        super().__init__(f"Permission denied: {resource_id}")
+
+
 def parse_keycloak_from_openid_url(
     openid_configuration_url: Union[str, Any]
 ) -> Tuple[str, str]:
@@ -235,12 +247,12 @@ class KeycloakPDPClient:
         return False
 
     def _handle_rpt_http_error(
-        self, error: httpx.HTTPStatusError, resource_id: str
-    ) -> bool:
+        self, error: httpx.HTTPStatusError, resource_id: str, scope: Optional[str] = None
+    ) -> None:
         """Translate an HTTPStatusError from get_rpt
 
-        Returns False for a 403 (permission denied).
-        Raises TokenError for 401, ResourceNotFoundError for 400 invalid_resource.
+        Raises TokenError for 401, PermissionDeniedError for 403,
+        ResourceNotFoundError for 400 invalid_resource.
         Re-raises unhandled status codes.
         """
         if error.response.status_code == 401:
@@ -249,7 +261,7 @@ class KeycloakPDPClient:
                 "Access token is expired or invalid. Please re-authenticate."
             ) from error
         if error.response.status_code == 403:
-            return False
+            raise PermissionDeniedError(resource_id=resource_id, scope=scope) from error
         if error.response.status_code == 400:
             try:
                 error_body = error.response.json()
@@ -291,7 +303,7 @@ class KeycloakPDPClient:
             permissions = self._resolve_permissions(rpt_response)
             return self._has_matching_permission(permissions, resource_id, scope)
         except httpx.HTTPStatusError as e:
-            return self._handle_rpt_http_error(e, resource_id)
+            self._handle_rpt_http_error(e, resource_id, scope=scope)
         except Exception as e:
             logger.error(f"Unexpected error checking permission: {e}")
             raise
