@@ -247,7 +247,10 @@ class KeycloakPDPClient:
         return False
 
     def _handle_rpt_http_error(
-        self, error: httpx.HTTPStatusError, resource_id: str, scope: Optional[str] = None
+        self,
+        error: httpx.HTTPStatusError,
+        resource_id: str,
+        scope: Optional[str] = None,
     ) -> None:
         """Translate an HTTPStatusError from get_rpt
 

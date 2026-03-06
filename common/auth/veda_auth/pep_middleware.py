@@ -142,7 +142,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
         )
 
         try:
-            authorized = pdp_client.check_permission(
+            pdp_client.check_permission(
                 access_token=token,
                 resource_id=resource_id,
                 scope=scope,
