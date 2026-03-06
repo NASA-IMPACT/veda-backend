@@ -279,8 +279,8 @@ class KeycloakPDPClient:
         access_token: str,
         resource_id: str,
         scope: str,
-    ) -> bool:
-        """Check if user has permission for a resource and scope.
+    ):
+        """Check if user has permission for a resource and scope
 
         Args:
             access_token: User's access token
