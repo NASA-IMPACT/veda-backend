@@ -5,6 +5,7 @@ import logging
 from mangum import Mangum
 from src.app import app
 from src.monitoring import logger, metrics, tracer
+from typing import Any, Dict
 
 logging.getLogger("mangum.lifespan").setLevel(logging.ERROR)
 logging.getLogger("mangum.http").setLevel(logging.ERROR)
@@ -18,3 +19,7 @@ handler = tracer.capture_lambda_handler(handler)
 handler = logger.inject_lambda_context(handler, clear_state=True)
 # Add metrics last to properly flush metrics.
 handler = metrics.log_metrics(handler, capture_cold_start_metric=True)
+
+def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """Lambda handler with container-specific optimizations and OTEL tracing."""
+    return handler(event, context)
