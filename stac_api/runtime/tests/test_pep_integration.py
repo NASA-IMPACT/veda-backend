@@ -365,3 +365,45 @@ class TestPEPCollectionUpdateDelete:
         await pep_client.delete(
             f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
+
+    @pytest.mark.asyncio
+    async def test_delete_collection_no_token_returns_401(
+        self, pep_client, mock_pdp_client
+    ):
+        """DELETE /collections/{id} without token returns 401"""
+        # Test setup
+        collection = _collection()
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
+        )
+        response = await pep_client.delete(f"{COLLECTIONS_ENDPOINT}/{collection['id']}")
+        assert response.status_code == 401
+
+        # Test cleanup
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
+        )
+
+    @pytest.mark.asyncio
+    async def test_delete_collection_authorized_succeeds(
+        self, pep_client, mock_pdp_client
+    ):
+        """DELETE /collections/{id} with token succeeds, scope delete"""
+        # Test setup
+        mock_pdp_client.check_permission.return_value = True
+        collection = _collection()
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
+        )
+        response = await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
+            headers=AUTH_HEADERS,
+        )
+        assert response.status_code == 200
+        call_kwargs = mock_pdp_client.check_permission.call_args
+        assert call_kwargs.kwargs.get("scope") == "delete"
+
+        # Test cleanup
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
+        )
