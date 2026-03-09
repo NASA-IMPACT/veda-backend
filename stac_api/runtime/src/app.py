@@ -16,7 +16,6 @@ from src.config import (
 )
 from src.extension import TiTilerExtension
 from stac_auth_proxy import configure_app
-from veda_auth.pep_middleware import PEPMiddleware
 
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -180,6 +179,7 @@ if (
         "PEP middleware enabled, secret_name=%s",
         api_settings.keycloak_uma_resource_server_client_secret_name,
     )
+    from veda_auth.pep_middleware import PEPMiddleware
     from veda_auth.resource_extractors import extract_stac_resource_id
 
     app.add_middleware(
@@ -189,7 +189,7 @@ if (
     )
 else:
     logger.info(
-        "PEP middleware disabled,  openid_url=%s, secret_name=%s",
+        "PEP middleware disabled, openid_url=%s, secret_name=%s",
         bool(api_settings.openid_configuration_url),
         bool(api_settings.keycloak_uma_resource_server_client_secret_name),
     )
