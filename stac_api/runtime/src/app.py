@@ -179,13 +179,14 @@ if (
         "PEP middleware enabled, secret_name=%s",
         api_settings.keycloak_uma_resource_server_client_secret_name,
     )
-    from veda_auth.pep_middleware import PEPMiddleware
+    from veda_auth.pep_middleware import STAC_PROTECTED_ROUTES, PEPMiddleware
     from veda_auth.resource_extractors import extract_stac_resource_id
 
     app.add_middleware(
         PEPMiddleware,
         pdp_client=_get_keycloak_pdp_client,
         resource_extractor=extract_stac_resource_id,
+        protected_routes=STAC_PROTECTED_ROUTES,
     )
 else:
     logger.info(
