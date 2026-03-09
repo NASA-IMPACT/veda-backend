@@ -142,6 +142,58 @@ else:
     # Use standard FastAPI app when authentication is disabled
     app = api.app
 
+
+def _get_keycloak_pdp_client():
+    """Build Keycloak PDP client for PEP from UMA resource server credentials stored in AWS Secrets Manager."""
+    from src.config import get_secret_dict
+    from veda_auth.keycloak_client import (
+        KeycloakPDPClient,
+        parse_keycloak_from_openid_url,
+    )
+
+    keycloak_url, realm = parse_keycloak_from_openid_url(
+        api_settings.openid_configuration_url
+    )
+
+    secret = get_secret_dict(
+        api_settings.keycloak_uma_resource_server_client_secret_name
+    )
+    client_id = secret.get("id")
+    client_secret = secret.get("secret")
+    if not client_id:
+        raise RuntimeError("Keycloak UMA secret is missing 'id' (client_id)")
+
+    return KeycloakPDPClient(
+        keycloak_url=keycloak_url,
+        realm=realm,
+        client_id=client_id,
+        client_secret=client_secret,
+    )
+
+
+if (
+    api_settings.openid_configuration_url
+    and api_settings.keycloak_uma_resource_server_client_secret_name
+):
+    logger.info(
+        "PEP middleware enabled, secret_name=%s",
+        api_settings.keycloak_uma_resource_server_client_secret_name,
+    )
+    from veda_auth.pep_middleware import PEPMiddleware
+    from veda_auth.resource_extractors import extract_stac_resource_id
+
+    app.add_middleware(
+        PEPMiddleware,
+        pdp_client=_get_keycloak_pdp_client,
+        resource_extractor=extract_stac_resource_id,
+    )
+else:
+    logger.info(
+        "PEP middleware disabled, openid_url=%s, secret_name=%s",
+        bool(api_settings.openid_configuration_url),
+        bool(api_settings.keycloak_uma_resource_server_client_secret_name),
+    )
+
 # Note: we want this to be added after stac_auth_proxy so that it runs before stac_auth_proxy's middleware
 app.add_middleware(TenantExtractionMiddleware)
 app.add_middleware(TenantLinksMiddleware)

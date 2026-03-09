@@ -106,16 +106,26 @@ The scope is defined by the resource server. To see the definition for veda, che
 
 **Returns:**
 
-- `bool`: `True` if permission granted, `False` otherwise
+- `bool`: `True` if permission granted
+
+**Raises:**
+
+- `TokenError`: Access token expired or invalid (401)
+- `PermissionDeniedError`: User lacks permission for the resource/scope (403)
+- `ResourceNotFoundError`: Resource (tenant) does not exist (400 invalid_resource)
 
 **Example:**
 
 ```python
-can_create = pdp_client.check_permission(
-    access_token=token,
-    resource_id="collection:my-tenant",
-    scope="create"
-)
+try:
+    pdp_client.check_permission(
+        access_token=token,
+        resource_id="collection:my-tenant",
+        scope="create"
+    )
+    # permission granted
+except PermissionDeniedError:
+    # permission denied
 ```
 
 #### `get_rpt(access_token, resources)`

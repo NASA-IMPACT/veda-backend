@@ -7,6 +7,7 @@ setup for testing with mock AWS and PostgreSQL configurations.
 """
 
 import copy
+import importlib
 import os
 import uuid
 from unittest.mock import MagicMock, patch
@@ -311,7 +312,7 @@ def mock_stac_validation():
 
 
 @pytest.fixture
-async def app():
+async def app(test_environ):
     """
     Fixture to initialize the FastAPI application.
 
@@ -324,7 +325,13 @@ async def app():
     Returns:
         FastAPI: The FastAPI application instance.
     """
-    from src.app import app
+    import src.app
+    import src.config
+
+    src.config.ApiSettings.cache_clear()
+    importlib.reload(src.config)
+    importlib.reload(src.app)
+    app = src.app.app
 
     await connect_to_db(app, add_write_connection_pool=True)
     yield app

@@ -22,13 +22,17 @@ STAC_ITEM_PUBLIC = "stac:item:public:*"
 STAC_COLLECTION_TEMPLATE = "stac:collection:{}:*"
 STAC_ITEM_TEMPLATE = "stac:item:{}:*"
 
-_COLLECTIONS_CREATE_PATH_PATTERN = re.compile(r".*?/collections$")
-_COLLECTIONS_PATH_PATTERN = re.compile(r".*?/collections/([^/]+)$")
-_COLLECTIONS_ITEM_PATH_PATTERN = re.compile(r".*?/collections/([^/]+)/items/([^/]+)$")
-_COLLECTIONS_ITEMS_PATH_PATTERN = re.compile(r".*?/collections/([^/]+)/items$")
-_COLLECTIONS_BULK_ITEMS_PATH_PATTERN = re.compile(
-    r".*?/collections/([^/]+)/bulk_items$"
-)
+COLLECTIONS_CREATE_PATH_RE = r".*?/collections$"
+COLLECTIONS_PATH_RE = r".*?/collections/([^/]+)$"
+COLLECTIONS_ITEM_PATH_RE = r".*?/collections/([^/]+)/items/([^/]+)$"
+COLLECTIONS_ITEMS_PATH_RE = r".*?/collections/([^/]+)/items$"
+COLLECTIONS_BULK_ITEMS_PATH_RE = r".*?/collections/([^/]+)/bulk_items$"
+
+_COLLECTIONS_CREATE_PATH_PATTERN = re.compile(COLLECTIONS_CREATE_PATH_RE)
+_COLLECTIONS_PATH_PATTERN = re.compile(COLLECTIONS_PATH_RE)
+_COLLECTIONS_ITEM_PATH_PATTERN = re.compile(COLLECTIONS_ITEM_PATH_RE)
+_COLLECTIONS_ITEMS_PATH_PATTERN = re.compile(COLLECTIONS_ITEMS_PATH_RE)
+_COLLECTIONS_BULK_ITEMS_PATH_PATTERN = re.compile(COLLECTIONS_BULK_ITEMS_PATH_RE)
 
 
 def _stac_collection_resource_id(request: Request) -> str:

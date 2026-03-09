@@ -103,6 +103,10 @@ class _ApiSettings(Settings):
         "eic:tenant",
         description="The field name used for tenant filtering",
     )
+    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
+        None,
+        description="Name of AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret. When set with openid_configuration_url, PEP enforces UMA.",
+    )
 
     @field_validator("cors_origins")
     @classmethod

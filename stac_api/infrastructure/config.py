@@ -72,6 +72,14 @@ class vedaSTACSettings(BaseSettings):
         False,
         description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
     )
+    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
+        None,
+        description="Name of AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret",
+    )
+    keycloak_secret_kms_key_arn: Optional[str] = Field(
+        None,
+        description="ARN of KMS key used to encrypt the Keycloak secret",
+    )
 
     @model_validator(mode="before")
     def check_transaction_fields(cls, values):
