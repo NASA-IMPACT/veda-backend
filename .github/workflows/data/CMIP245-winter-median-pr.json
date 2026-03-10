@@ -23,11 +23,56 @@
     "dashboard": {
       "bidx": [1],
       "title": "VEDA Dashboard Render Parameters",
-      "assets": ["cog_default"],
+      "assets": ["tmax_above_90"],
       "nodata": "nan",
-      "rescale": [[-60, 60]],
+      "rescale": [[0, 365]],
       "resampling": "bilinear",
-      "colormap_name": "rdbu"
+      "colormap_name": "ylorrd"
+    },
+    "tmax_above_86": {
+      "bidx": [1],
+      "title": "VEDA Dashboard Render Parameters",
+      "assets": ["tmax_above_86"],
+      "nodata": "nan",
+      "rescale": [[0, 365]],
+      "resampling": "bilinear",
+      "colormap_name": "ylorrd"
+    },
+    "tmax_above_90": {
+      "bidx": [1],
+      "title": "VEDA Dashboard Render Parameters",
+      "assets": ["tmax_above_90"],
+      "nodata": "nan",
+      "rescale": [[0, 365]],
+      "resampling": "bilinear",
+      "colormap_name": "ylorrd"
+    },
+    "tmax_above_100": {
+      "bidx": [1],
+      "title": "VEDA Dashboard Render Parameters",
+      "assets": ["tmax_above_100"],
+      "nodata": "nan",
+      "rescale": [[0, 365]],
+      "resampling": "bilinear",
+      "colormap_name": "ylorrd"
+    },
+    "tmax_above_110": {
+      "bidx": [1],
+      "title": "VEDA Dashboard Render Parameters",
+      "assets": ["tmax_above_110"],
+      "nodata": "nan",
+      "rescale": [[0, 365]],
+      "resampling": "bilinear",
+      "colormap_name": "ylorrd"
+    },
+    "tmax_above_115": {
+      "bidx": [1],
+      "title": "VEDA Dashboard Render Parameters",
+      "assets": ["tmax_above_115"],
+      "nodata": "nan",
+      "rescale": [[0, 365]],
+      "resampling": "bilinear",
+      "colormap_name": "ylorrd"
     }
   },
   "providers": [
