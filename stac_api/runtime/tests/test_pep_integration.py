@@ -559,3 +559,55 @@ class TestPEPItems:
         await pep_client.delete(
             f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
+
+
+class TestPEPBulkItems:
+    """PEP for POST bulk_items endpoint"""
+
+    @pytest.mark.asyncio
+    async def test_post_bulk_items_no_token_returns_401(
+        self, pep_client, mock_pdp_client
+    ):
+        """POST /collections/{id}/bulk_items without token returns 401"""
+        collection = _collection()
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
+        )
+        item = _item(collection["id"])
+        payload = {"items": {item["id"]: item}, "method": "upsert"}
+        response = await pep_client.post(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/bulk_items",
+            json=payload,
+        )
+        assert response.status_code == 401
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
+        )
+
+    @pytest.mark.asyncio
+    async def test_post_bulk_items_authorized_succeeds(
+        self, pep_client, mock_pdp_client
+    ):
+        """POST /collections/{id}/bulk_items with token succeeds, scope create"""
+        mock_pdp_client.check_permission.return_value = True
+        collection = _collection()
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
+        )
+        item = _item(collection["id"])
+        payload = {"items": {item["id"]: item}, "method": "upsert"}
+        response = await pep_client.post(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/bulk_items",
+            json=payload,
+            headers=AUTH_HEADERS,
+        )
+        assert response.status_code == 200
+        call_kwargs = mock_pdp_client.check_permission.call_args
+        assert call_kwargs.kwargs.get("scope") == "create"
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items/{item['id']}",
+            headers=AUTH_HEADERS,
+        )
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
+        )
