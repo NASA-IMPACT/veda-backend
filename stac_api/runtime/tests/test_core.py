@@ -5,10 +5,10 @@ Unit tests for VedaCrudClient._search_base in core.py
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from src.core import VedaCrudClient
+
 from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
-
-from src.core import VedaCrudClient
 
 
 def make_client():
@@ -17,6 +17,7 @@ def make_client():
 
 
 def make_item(collection_id="test-collection"):
+    """Create a test item"""
     return {
         "id": "test-item",
         "type": "Feature",
@@ -32,12 +33,20 @@ def make_item(collection_id="test-collection"):
 
 
 def make_item_collection(features=None):
+    """Create a test item collection"""
     return {"type": "FeatureCollection", "features": features or [], "links": []}
 
 
 class TestSearchBase:
+    """
+    Test cases VedaCrudClient.
+
+    This class contains unit tests to ensure that the Veda STAC API Client class functions correctly. Specifically _search_base
+    """
+
     @pytest.fixture(autouse=True)
     def setup(self):
+        """Initialize mocks"""
         self.client = make_client()
         self.search_request = MagicMock(spec=PgstacSearch)
         self.request = MagicMock()
@@ -152,11 +161,24 @@ class TestSearchBase:
         item = make_item()
         result = make_item_collection([item])
         render_params_1 = {"nodata": 0, "assets": ["ndvi"]}
-        render_params_2 = {"nodata": 0, "assets": ["colorIR"], "bidx": [1, 2, 3], "rescale": [[0, 255]]}
-        render_params_3 = {"nodata": -9999, "assets": ["burnRatio"], "rescale": [[-1, 1]]}
+        render_params_2 = {
+            "nodata": 0,
+            "assets": ["colorIR"],
+            "bidx": [1, 2, 3],
+            "rescale": [[0, 255]],
+        }
+        render_params_3 = {
+            "nodata": -9999,
+            "assets": ["burnRatio"],
+            "rescale": [[-1, 1]],
+        }
         collection = {
             "id": "test-collection",
-            "renders": {"ndvi": render_params_1, "colorIR": render_params_2 ,"dashboard": render_params_3},
+            "renders": {
+                "ndvi": render_params_1,
+                "colorIR": render_params_2,
+                "dashboard": render_params_3,
+            },
         }
 
         with patch.object(
@@ -175,13 +197,21 @@ class TestSearchBase:
         assert len(returned["features"]) == 1
 
         links = returned["features"][0]["links"]
-        titles = [l["title"] for l in links]
-        expected_map_link_title_values = ['Map of Item for ndvi', 'Map of Item for colorIR', 'Map of Item for dashboard']
+        titles = [link["title"] for link in links]
+        expected_map_link_title_values = [
+            "Map of Item for ndvi",
+            "Map of Item for colorIR",
+            "Map of Item for dashboard",
+        ]
         # Check that all expected Map links are generated for all assets in render config
         assert titles == expected_map_link_title_values
 
         assets = returned["features"][0]["assets"]
         assets_keys = list(assets.keys())
-        expected_render_assets = ['rendered_preview_ndvi', 'rendered_preview_colorIR', 'rendered_preview_dashboard']
+        expected_render_assets = [
+            "rendered_preview_ndvi",
+            "rendered_preview_colorIR",
+            "rendered_preview_dashboard",
+        ]
         # Check that all expected render previews are generated for all assets in render config
         assert assets_keys == expected_render_assets

@@ -16,13 +16,19 @@ class VedaCrudClient(CoreCrudClient):
     """Veda STAC API Client."""
 
     def inject_item_links(
-        self, item: Item, render_key: str, render_params: Dict[str, Any], request: Request
+        self,
+        item: Item,
+        render_key: str,
+        render_params: Dict[str, Any],
+        request: Request,
     ) -> Item:
         """Add extra/non-mandatory links to an Item"""
         collection_id = item.get("collection", "")
 
         if collection_id:
-            LinkInjector(collection_id, render_key, render_params, request).inject_item(item)
+            LinkInjector(collection_id, render_key, render_params, request).inject_item(
+                item
+            )
 
         return item
 
@@ -57,9 +63,7 @@ class VedaCrudClient(CoreCrudClient):
                             **{
                                 **result,
                                 "features": [
-                                    self.inject_item_links(
-                                        i, key, value, request
-                                    )
+                                    self.inject_item_links(i, key, value, request)
                                     for i in result.get("features", [])
                                 ],
                             }
