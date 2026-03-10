@@ -1,6 +1,7 @@
 """Integration tests for PEP middleware"""
 import importlib
 import os
+import copy
 import uuid
 from typing import Optional
 from unittest.mock import MagicMock, patch
@@ -12,6 +13,7 @@ from httpx import ASGITransport, AsyncClient
 from veda_auth.keycloak_client import PermissionDeniedError, ResourceNotFoundError
 
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
+from .conftest import VALID_ITEM
 
 VALID_COLLECTION_TEMPLATE = {
     "type": "Collection",
@@ -106,26 +108,14 @@ def _collection(tenant: Optional[str] = None) -> dict:
 
 
 def _item(collection_id: str, item_id: Optional[str] = None) -> dict:
-    """Build a valid STAC item for PEP tests based on https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md"""
-    provider_id = item_id or f"pep-item-{uuid.uuid4().hex[:8]}"
-    return {
-        "type": "Feature",
-        "stac_version": "1.0.0",
-        "id": provider_id,
-        "geometry": {
-            "type": "Polygon",
-            "coordinates": [
-                [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]
-            ],
-        },
-        "bbox": [-180.0, -90.0, 180.0, 90.0],
-        "collection": collection_id,
-        "properties": {
-            "datetime": "2017-12-31T00:00:00",
-        },
-        "links": [],
-        "assets": {},
-    }
+    """Build a STAC item"""
+    item_id_value = item_id or f"pep-item-{uuid.uuid4().hex[:8]}"
+    item = copy.deepcopy(VALID_ITEM)
+    item["id"] = item_id_value
+    item["collection"] = collection_id
+    item.setdefault("properties", {})
+    item["properties"].setdefault("datetime", "2023-01-01T00:00:00+00:00")
+    return item
 
 
 AUTH_HEADERS = {"Authorization": "Bearer fake-valid-token"}
