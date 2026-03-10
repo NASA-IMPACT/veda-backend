@@ -421,14 +421,14 @@ class TestPEPItems:
         )
         item = _item(collection["id"])
         response = await pep_client.post(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']/items",
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items",
             json=item,
         )
         assert response.status_code == 401
 
         # Test cleanup
         await pep_client.delete(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']", headers=AUTH_HEADERS
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
 
     @pytest.mark.asyncio
@@ -442,7 +442,7 @@ class TestPEPItems:
         )
         item = _item(collection["id"])
         response = await pep_client.post(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']/items",
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items",
             json=item,
             headers=AUTH_HEADERS,
         )
@@ -453,7 +453,7 @@ class TestPEPItems:
 
         # Test cleanup
         await pep_client.delete(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']", headers=AUTH_HEADERS
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
 
     @pytest.mark.asyncio
@@ -465,13 +465,13 @@ class TestPEPItems:
         )
         item = _item(collection["id"])
         response = await pep_client.put(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']/items", json=item
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items/{item['id']}", json=item
         )
         assert response.status_code == 401
 
         # Test cleanup
         await pep_client.delete(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']", headers=AUTH_HEADERS
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
 
     @pytest.mark.asyncio
@@ -484,18 +484,28 @@ class TestPEPItems:
             COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
         )
         item = _item(collection["id"])
-        response = await pep_client.put(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']/items",
+        # Create the item first
+        await pep_client.post(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items",
             json=item,
             headers=AUTH_HEADERS,
         )
-        assert response.status_code == 201
+        response = await pep_client.put(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items/{item['id']}",
+            json=item,
+            headers=AUTH_HEADERS,
+        )
+        assert response.status_code == 200
         call_kwargs = mock_pdp_client.check_permission.call_args
-        assert call_kwargs.kwargs.get("scope") == "create"
+        assert call_kwargs.kwargs.get("scope") == "update"
 
         # Test cleanup
         await pep_client.delete(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']", headers=AUTH_HEADERS
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items/{item['id']}",
+            headers=AUTH_HEADERS,
+        )
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
 
     @pytest.mark.asyncio
@@ -507,13 +517,14 @@ class TestPEPItems:
         )
         item = _item(collection["id"])
         response = await pep_client.patch(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']/items", json=item
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items/{item['id']}",
+            json={"properties": {"updated": True}},
         )
         assert response.status_code == 401
 
         # Test cleanup
         await pep_client.delete(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']", headers=AUTH_HEADERS
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
 
     @pytest.mark.asyncio
@@ -526,18 +537,28 @@ class TestPEPItems:
             COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
         )
         item = _item(collection["id"])
-        response = await pep_client.patch(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']/items",
+        # Create the item first
+        await pep_client.post(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items",
             json=item,
             headers=AUTH_HEADERS,
         )
-        assert response.status_code == 201
+        response = await pep_client.patch(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items/{item['id']}",
+            json={"properties": {"updated": True}},
+            headers=AUTH_HEADERS,
+        )
+        assert response.status_code == 200
         call_kwargs = mock_pdp_client.check_permission.call_args
-        assert call_kwargs.kwargs.get("scope") == "create"
+        assert call_kwargs.kwargs.get("scope") == "update"
 
         # Test cleanup
         await pep_client.delete(
-            f"{COLLECTIONS_ENDPOINT}/collection['id']", headers=AUTH_HEADERS
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items/{item['id']}",
+            headers=AUTH_HEADERS,
+        )
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
 
     @pytest.mark.asyncio
