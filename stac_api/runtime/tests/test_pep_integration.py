@@ -1,7 +1,7 @@
 """Integration tests for PEP middleware"""
+import copy
 import importlib
 import os
-import copy
 import uuid
 from typing import Optional
 from unittest.mock import MagicMock, patch
@@ -13,6 +13,7 @@ from httpx import ASGITransport, AsyncClient
 from veda_auth.keycloak_client import PermissionDeniedError, ResourceNotFoundError
 
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
+
 from .conftest import VALID_ITEM
 
 VALID_COLLECTION_TEMPLATE = {
@@ -113,8 +114,6 @@ def _item(collection_id: str, item_id: Optional[str] = None) -> dict:
     item = copy.deepcopy(VALID_ITEM)
     item["id"] = item_id_value
     item["collection"] = collection_id
-    item.setdefault("properties", {})
-    item["properties"].setdefault("datetime", "2023-01-01T00:00:00+00:00")
     return item
 
 
