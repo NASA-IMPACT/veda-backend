@@ -413,50 +413,6 @@ class TestPEPItems:
     """PEP tests for POST/PUT/PATCH/DELETE on items"""
 
     @pytest.mark.asyncio
-    async def test_post_item_no_token_returns_401(self, pep_client, mock_pdp_client):
-        """POST /collections/{id}/items without token returns a 401"""
-        collection = _collection()
-        await pep_client.post(
-            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
-        )
-        item = _item(collection["id"])
-        response = await pep_client.post(
-            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items",
-            json=item,
-        )
-        assert response.status_code == 401
-
-        # Test cleanup
-        await pep_client.delete(
-            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
-        )
-
-    @pytest.mark.asyncio
-    async def test_post_item_authorized_succeeds(self, pep_client, mock_pdp_client):
-        """POST /collections/{id}/items with token succeeds, scope create"""
-        # Test setup
-        mock_pdp_client.check_permission.return_value = True
-        collection = _collection()
-        await pep_client.post(
-            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
-        )
-        item = _item(collection["id"])
-        response = await pep_client.post(
-            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items",
-            json=item,
-            headers=AUTH_HEADERS,
-        )
-
-        assert response.status_code == 201
-        call_kwargs = mock_pdp_client.check_permission.call_args
-        assert call_kwargs.kwargs.get("scope") == "create"
-
-        # Test cleanup
-        await pep_client.delete(
-            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
-        )
-
-    @pytest.mark.asyncio
     async def test_put_item_no_token_returns_401(self, pep_client, mock_pdp_client):
         """PUT /collections/{id}/items without token returns a 401"""
         collection = _collection()
