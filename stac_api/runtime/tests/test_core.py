@@ -106,6 +106,7 @@ class TestSearchBase:
 
             assert returned == result
 
+    # Old logic -> make sure works as expected
     async def test_features_with_dashboard_renders_injects_links(self):
         """When collection has 'dashboard' renders, expected links and rendered_preview asset are injected into each item."""
         client = self.client
@@ -138,6 +139,49 @@ class TestSearchBase:
         links = returned["features"][0]["links"]
         assets = returned["features"][0]["assets"]
         expected_key = "title"
-        expected_value = "Map of Item"
+        expected_value = "Map of Item for dashboard"
         assert any(d.get(expected_key) == expected_value for d in links)
-        assert "rendered_preview" in assets
+        assert "rendered_preview_dashboard" in assets
+
+    async def test_features_with_renders_injects_links(self):
+        """Generate expected links and rendered_preview asset for each item."""
+        client = self.client
+        search_request = self.search_request
+        request = self.request
+
+        item = make_item()
+        result = make_item_collection([item])
+        render_params_1 = {"nodata": 0, "assets": ["ndvi"]}
+        render_params_2 = {"nodata": 0, "assets": ["colorIR"], "bidx": [1, 2, 3], "rescale": [[0, 255]]}
+        render_params_3 = {"nodata": -9999, "assets": ["burnRatio"], "rescale": [[-1, 1]]}
+        collection = {
+            "id": "test-collection",
+            "renders": {"ndvi": render_params_1, "colorIR": render_params_2 ,"dashboard": render_params_3},
+        }
+
+        with patch.object(
+            CoreCrudClient, "_search_base", new_callable=AsyncMock
+        ) as mock_super_search, patch.object(
+            CoreCrudClient, "get_collection", new_callable=AsyncMock
+        ) as mock_get_collection, patch(
+            "src.links.tiles_settings.titiler_endpoint",
+            new="https://fake-titiler.example.com",
+        ):
+            mock_super_search.return_value = result
+            mock_get_collection.return_value = collection
+
+            returned = await client._search_base(search_request, request=request)
+        assert "features" in returned
+        assert len(returned["features"]) == 1
+
+        links = returned["features"][0]["links"]
+        titles = [l["title"] for l in links]
+        expected_map_link_title_values = ['Map of Item for ndvi', 'Map of Item for colorIR', 'Map of Item for dashboard']
+        # Check that all expected Map links are generated for all assets in render config
+        assert titles == expected_map_link_title_values
+
+        assets = returned["features"][0]["assets"]
+        assets_keys = list(assets.keys())
+        expected_render_assets = ['rendered_preview_ndvi', 'rendered_preview_colorIR', 'rendered_preview_dashboard']
+        # Check that all expected render previews are generated for all assets in render config
+        assert assets_keys == expected_render_assets

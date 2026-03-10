@@ -16,13 +16,13 @@ class VedaCrudClient(CoreCrudClient):
     """Veda STAC API Client."""
 
     def inject_item_links(
-        self, item: Item, render_params: Dict[str, Any], request: Request
+        self, item: Item, render_key: str, render_params: Dict[str, Any], request: Request
     ) -> Item:
         """Add extra/non-mandatory links to an Item"""
         collection_id = item.get("collection", "")
 
         if collection_id:
-            LinkInjector(collection_id, render_params, request).inject_item(item)
+            LinkInjector(collection_id, render_key, render_params, request).inject_item(item)
 
         return item
 
@@ -51,19 +51,19 @@ class VedaCrudClient(CoreCrudClient):
                 collection = await _super.get_collection(collection_id, request=request)
 
                 render_params = collection.get("renders", {})
-
-                if "dashboard" in render_params:
-                    item_collection = ItemCollection(
-                        **{
-                            **result,
-                            "features": [
-                                self.inject_item_links(
-                                    i, render_params["dashboard"], request
-                                )
-                                for i in result.get("features", [])
-                            ],
-                        }
-                    )
+                if len(render_params):
+                    for key, value in render_params.items():
+                        item_collection = ItemCollection(
+                            **{
+                                **result,
+                                "features": [
+                                    self.inject_item_links(
+                                        i, key, value, request
+                                    )
+                                    for i in result.get("features", [])
+                                ],
+                            }
+                        )
                 else:
                     item_collection = result
             except Exception:
