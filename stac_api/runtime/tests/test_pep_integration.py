@@ -396,5 +396,3 @@ class TestPEPCollectionUpdateDelete:
         await pep_client.delete(
             f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
-
-

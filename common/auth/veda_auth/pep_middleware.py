@@ -12,10 +12,7 @@ from veda_auth.keycloak_client import (
     TokenError,
 )
 from veda_auth.resource_extractors import (
-    COLLECTIONS_BULK_ITEMS_PATH_RE,
     COLLECTIONS_CREATE_PATH_RE,
-    COLLECTIONS_ITEM_PATH_RE,
-    COLLECTIONS_ITEMS_PATH_RE,
     COLLECTIONS_PATH_RE,
 )
 
@@ -55,8 +52,7 @@ STAC_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
     ProtectedRoute(path_re=COLLECTIONS_CREATE_PATH_RE, method="POST", scope="create"),
     ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="PUT", scope="update"),
     ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="PATCH", scope="update"),
-    ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="DELETE", scope="delete")
-
+    ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="DELETE", scope="delete"),
 )
 
 
