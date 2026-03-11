@@ -10,7 +10,7 @@ import json
 import logging
 import os
 import re
-from typing import Any, Awaitable, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import HTTPException, Request
 
@@ -21,8 +21,6 @@ STAC_COLLECTION_PUBLIC = "stac:collection:public:*"
 STAC_ITEM_PUBLIC = "stac:item:public:*"
 STAC_COLLECTION_TEMPLATE = "stac:collection:{}:*"
 STAC_ITEM_TEMPLATE = "stac:item:{}:*"
-
-CollectionTenantResolver = Callable[[str], Awaitable[Optional[str]]]
 
 COLLECTIONS_CREATE_PATH_RE = r".*?/collections$"
 COLLECTIONS_PATH_RE = r".*?/collections/([^/]+)$"
@@ -47,17 +45,6 @@ def _stac_item_resource_id(request: Request) -> str:
     """Return tenant-based or public STAC item resource ID."""
     tenant = getattr(request.state, "tenant", None)
     return STAC_ITEM_TEMPLATE.format(tenant) if tenant else STAC_ITEM_PUBLIC
-
-
-def _get_collection_tenant_resolver(
-    request: Request,
-) -> Optional[CollectionTenantResolver]:
-    """Return optional collection-tenant resolver from app state if its configured"""
-    app = getattr(request, "app", None)
-    if app is None:
-        return None
-    state = getattr(app, "state", None)
-    return getattr(state, "collection_tenant_resolver", None)
 
 
 def _extract_tenant_from_body(
@@ -115,34 +102,6 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
     if _COLLECTIONS_PATH_PATTERN.match(path):
         if method in ("PUT", "PATCH"):
             return await _extract_collection_resource_id_from_post_body(request)
-
-        if method == "DELETE":
-            match = _COLLECTIONS_PATH_PATTERN.match(path)
-            collection_id = match.group(1) if match else None
-            resolver = _get_collection_tenant_resolver(request)
-
-            if collection_id and resolver:
-                try:
-                    tenant = await resolver(collection_id)
-                except Exception as e:
-                    logger.warning(
-                        "Failed to resolve collection tenant for DELETE %s: %s",
-                        collection_id,
-                        e,
-                    )
-                    tenant = None
-                if tenant:
-                    # Use the collection's stored tenant for auth check for deletes
-                    return STAC_COLLECTION_TEMPLATE.format(tenant)
-                raise HTTPException(
-                    status_code=500,
-                    detail=(
-                        f"Could not determine tenant for collection '{collection_id}' "
-                        "when processing DELETE. Ensure the collection has a tenant assigned."
-                    ),
-                )
-            # Keep existing URL-tenant/public behavior for tenantless collections
-            return _stac_collection_resource_id(request)
         return _stac_collection_resource_id(request)
 
     if _COLLECTIONS_ITEM_PATH_PATTERN.match(path):
