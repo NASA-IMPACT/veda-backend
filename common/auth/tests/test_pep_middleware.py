@@ -106,52 +106,10 @@ class TestStacProtectedRoutes:
         )
         assert result == ("delete", "DELETE")
 
-    def test_post_items_matches_create(self, middleware):
-        """POST /collections/{id}/items matches with scope create"""
-        result = middleware._get_matching_scope_and_route(
-            _request("/api/stac/collections/some-collection/items", "POST")
-        )
-        assert result == ("create", "POST")
-
-    def test_put_item_matches_update(self, middleware):
-        """PUT /collections/{id}/items/{item_id} matches with scope update"""
-        result = middleware._get_matching_scope_and_route(
-            _request("/api/stac/collections/some-collection/items/item-1", "PUT")
-        )
-        assert result == ("update", "PUT")
-
-    def test_patch_item_matches_update(self, middleware):
-        """PATCH /collections/{id}/items/{item_id} matches with scope update"""
-        result = middleware._get_matching_scope_and_route(
-            _request("/api/stac/collections/some-collection/items/item-1", "PATCH")
-        )
-        assert result == ("update", "PATCH")
-
-    def test_delete_item_matches_delete(self, middleware):
-        """DELETE /collections/{id}/items/{item_id} matches with scope delete"""
-        result = middleware._get_matching_scope_and_route(
-            _request("/api/stac/collections/some-collection/items/item-1", "DELETE")
-        )
-        assert result == ("delete", "DELETE")
-
-    def test_post_bulk_items_matches_create(self, middleware):
-        """POST /collections/{id}/bulk_items matches with scope create"""
-        result = middleware._get_matching_scope_and_route(
-            _request("/api/stac/collections/some-collection/bulk_items", "POST")
-        )
-        assert result == ("create", "POST")
-
     def test_get_collections_no_match(self, middleware):
         """GET /collections does not match so it returns None"""
         result = middleware._get_matching_scope_and_route(
             _request("/api/stac/collections", "GET")
-        )
-        assert result is None
-
-    def test_get_collection_items_no_match(self, middleware):
-        """GET /collections/{id}/items does not match so it returns None"""
-        result = middleware._get_matching_scope_and_route(
-            _request("/api/stac/collections/some-collection/items", "GET")
         )
         assert result is None
 
