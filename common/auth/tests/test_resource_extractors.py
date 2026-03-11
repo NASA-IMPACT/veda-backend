@@ -122,6 +122,39 @@ class TestExtractStacResourceId:
         assert result == STAC_COLLECTION_PUBLIC
 
     @pytest.mark.asyncio
+    async def test_delete_collection_uses_resolver_tenant_when_available(self):
+        """Test that resolver tenant is used when its available on a collection"""
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/test-collection"
+        request.method = "DELETE"
+        request.state.tenant = "some-url-tenant"
+        request.app = MagicMock()
+        request.app.state = MagicMock()
+        request.app.state.collection_tenant_resolver = AsyncMock(
+            return_value="collection-tenant"
+        )
+
+        result = await extract_stac_resource_id(request)
+        assert result == STAC_COLLECTION_TEMPLATE.format("collection-tenant")
+        request.app.state.collection_tenant_resolver.assert_awaited_once_with(
+            "test-collection"
+        )
+
+    @pytest.mark.asyncio
+    async def test_delete_collection_raises_when_collection_tenant_missing(self):
+        """Test case when tenant is missing on collection"""
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/test-collection"
+        request.method = "DELETE"
+        request.state.tenant = "url-tenant"
+        request.app = MagicMock()
+        request.app.state = MagicMock()
+        request.app.state.collection_tenant_resolver = AsyncMock(return_value=None)
+        with pytest.raises(HTTPException) as exc:
+            await extract_stac_resource_id(request)
+        assert exc.value.status_code == 500
+
+    @pytest.mark.asyncio
     async def test_put_collection_with_tenant_in_body(self):
         """Test extracting resource ID for PUT collection with tenant in body"""
         body_data = {"eic:tenant": "test-tenant", "id": "test-collection"}
