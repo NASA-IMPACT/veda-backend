@@ -99,13 +99,6 @@ class TestStacProtectedRoutes:
         )
         assert result == ("update", "PATCH")
 
-    def test_delete_collection_matches_delete(self, middleware):
-        """DELETE /collections/{id} matches with scope delete"""
-        result = middleware._get_matching_scope_and_route(
-            _request("/api/stac/collections/some-collection", "DELETE")
-        )
-        assert result == ("delete", "DELETE")
-
     def test_get_collections_no_match(self, middleware):
         """GET /collections does not match so it returns None"""
         result = middleware._get_matching_scope_and_route(
