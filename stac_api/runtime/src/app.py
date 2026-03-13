@@ -3,6 +3,7 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from aws_lambda_powertools.metrics import MetricUnit
 from src.config import (
@@ -56,6 +57,26 @@ async def lifespan(app: FastAPI):
         postgres_settings=api_settings.postgres_settings,
         add_write_connection_pool=True,
     )
+
+    async def collection_tenant_resolver(
+        request: Request, collection_id: str
+    ) -> Optional[str]:
+        """Resolve a collection's tenant from the database for PEP """
+        try:
+            from stac_fastapi.types.errors import NotFoundError
+
+            collection = await api.client.get_collection(
+                collection_id, request=request
+            )
+            tenant_field = api_settings.tenant_filter_field
+            return collection.get(tenant_field) or None
+        except NotFoundError:
+            return None
+        except Exception:
+            return None
+
+    app.state.collection_tenant_resolver = collection_tenant_resolver
+
     yield
     await close_db_connection(app)
 
@@ -142,6 +163,10 @@ else:
     # Use standard FastAPI app when authentication is disabled
     app = api.app
 
+# Ensure the proxy app also exposes the resolver to PEP
+if hasattr(api.app.state, "collection_tenant_resolver"):
+    app.state.collection_tenant_resolver = api.app.state.collection_tenant_resolver
+
 
 def _get_keycloak_pdp_client():
     """Build Keycloak PDP client for PEP from UMA resource server credentials stored in AWS Secrets Manager."""
@@ -179,13 +204,14 @@ if (
         "PEP middleware enabled, secret_name=%s",
         api_settings.keycloak_uma_resource_server_client_secret_name,
     )
-    from veda_auth.pep_middleware import PEPMiddleware
+    from veda_auth.pep_middleware import PEPMiddleware, STAC_PROTECTED_ROUTES
     from veda_auth.resource_extractors import extract_stac_resource_id
 
     app.add_middleware(
         PEPMiddleware,
         pdp_client=_get_keycloak_pdp_client,
         resource_extractor=extract_stac_resource_id,
+        protected_routes=STAC_PROTECTED_ROUTES,
     )
 else:
     logger.info(

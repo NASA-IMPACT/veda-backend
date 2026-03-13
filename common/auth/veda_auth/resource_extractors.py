@@ -10,7 +10,7 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 from fastapi import HTTPException, Request
 
@@ -27,6 +27,8 @@ COLLECTIONS_PATH_RE = r".*?/collections/([^/]+)$"
 COLLECTIONS_ITEM_PATH_RE = r".*?/collections/([^/]+)/items/([^/]+)$"
 COLLECTIONS_ITEMS_PATH_RE = r".*?/collections/([^/]+)/items$"
 COLLECTIONS_BULK_ITEMS_PATH_RE = r".*?/collections/([^/]+)/bulk_items$"
+
+CollectionTenantResolver = Callable[[Request, str], Awaitable[Optional[str]]]
 
 _COLLECTIONS_CREATE_PATH_PATTERN = re.compile(COLLECTIONS_CREATE_PATH_RE)
 _COLLECTIONS_PATH_PATTERN = re.compile(COLLECTIONS_PATH_RE)
@@ -45,6 +47,35 @@ def _stac_item_resource_id(request: Request) -> str:
     """Return tenant-based or public STAC item resource ID."""
     tenant = getattr(request.state, "tenant", None)
     return STAC_ITEM_TEMPLATE.format(tenant) if tenant else STAC_ITEM_PUBLIC
+
+
+def _get_collection_tenant_resolver(
+    request: Request,
+) -> Optional[CollectionTenantResolver]:
+    """Return optional collection-tenant resolver from app state if configured"""
+    app = getattr(request, "app", None)
+    if app is None:
+        return None
+    state = getattr(app, "state", None)
+    return getattr(state, "collection_tenant_resolver", None)
+
+
+async def _collection_tenant_for_item(
+    request: Request, collection_id: str
+) -> Optional[str]:
+    """Resolve collection tenant for item operations"""
+    resolver = _get_collection_tenant_resolver(request)
+    if not resolver:
+        return None
+    try:
+        return await resolver(request, collection_id)
+    except Exception as e:
+        logger.warning(
+            "Failed to resolve collection tenant for item ops %s: %s",
+            collection_id,
+            e,
+        )
+        return None
 
 
 def _extract_tenant_from_body(
@@ -105,11 +136,32 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
         return _stac_collection_resource_id(request)
 
     if _COLLECTIONS_ITEM_PATH_PATTERN.match(path):
+        # For single item operations, prefer collection tenant when available
+        match = _COLLECTIONS_ITEM_PATH_PATTERN.match(path)
+        collection_id = match.group(1) if match else None
+        if collection_id:
+            tenant = await _collection_tenant_for_item(request, collection_id)
+            if tenant:
+                return STAC_ITEM_TEMPLATE.format(tenant)
         return _stac_item_resource_id(request)
 
-    if _COLLECTIONS_ITEMS_PATH_PATTERN.match(
-        path
-    ) or _COLLECTIONS_BULK_ITEMS_PATH_PATTERN.match(path):
+    if _COLLECTIONS_ITEMS_PATH_PATTERN.match(path):
+        # use collection tenant when available, otherwise collection/public
+        match = _COLLECTIONS_ITEMS_PATH_PATTERN.match(path)
+        collection_id = match.group(1) if match else None
+        if collection_id:
+            tenant = await _collection_tenant_for_item(request, collection_id)
+            if tenant:
+                return STAC_ITEM_TEMPLATE.format(tenant)
+        return _stac_collection_resource_id(request)
+
+    if _COLLECTIONS_BULK_ITEMS_PATH_PATTERN.match(path):
+        match = _COLLECTIONS_BULK_ITEMS_PATH_PATTERN.match(path)
+        collection_id = match.group(1) if match else None
+        if collection_id:
+            tenant = await _collection_tenant_for_item(request, collection_id)
+            if tenant:
+                return STAC_ITEM_TEMPLATE.format(tenant)
         return _stac_collection_resource_id(request)
 
     if "/queryables" in path or "/search" in path:

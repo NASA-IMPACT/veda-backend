@@ -11,7 +11,13 @@ from veda_auth.keycloak_client import (
     ResourceNotFoundError,
     TokenError,
 )
-from veda_auth.resource_extractors import COLLECTIONS_CREATE_PATH_RE
+from veda_auth.resource_extractors import (
+    COLLECTIONS_BULK_ITEMS_PATH_RE,
+    COLLECTIONS_CREATE_PATH_RE,
+    COLLECTIONS_ITEM_PATH_RE,
+    COLLECTIONS_ITEMS_PATH_RE,
+    COLLECTIONS_PATH_RE,
+)
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -37,6 +43,23 @@ class ProtectedRoute:
 
 DEFAULT_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
     ProtectedRoute(path_re=COLLECTIONS_CREATE_PATH_RE, method="POST", scope="create"),
+)
+
+STAC_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
+    # Collections
+    ProtectedRoute(path_re=COLLECTIONS_CREATE_PATH_RE, method="POST", scope="create"),
+    ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="PUT", scope="update"),
+    ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="PATCH", scope="update"),
+    ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="DELETE", scope="delete"),
+    # Items
+    ProtectedRoute(path_re=COLLECTIONS_ITEMS_PATH_RE, method="POST", scope="create"),
+    ProtectedRoute(path_re=COLLECTIONS_ITEM_PATH_RE, method="PUT", scope="update"),
+    ProtectedRoute(path_re=COLLECTIONS_ITEM_PATH_RE, method="PATCH", scope="update"),
+    ProtectedRoute(path_re=COLLECTIONS_ITEM_PATH_RE, method="DELETE", scope="delete"),
+    # Bulk items
+    ProtectedRoute(
+        path_re=COLLECTIONS_BULK_ITEMS_PATH_RE, method="POST", scope="create"
+    ),
 )
 
 
