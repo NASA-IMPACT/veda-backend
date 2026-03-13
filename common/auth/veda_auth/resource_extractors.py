@@ -118,15 +118,10 @@ async def _extract_collection_resource_id_from_post_body(
         return None
 
 
-async def extract_stac_resource_id(request: Request) -> Optional[str]:
-    """Extract resource ID for STAC API requests
-    Resource ID format matches Keycloak resource definitions (wildcard patterns):
-    - Collections: STAC_COLLECTION_TEMPLATE or STAC_COLLECTION_PUBLIC
-    - Items: STAC_ITEM_TEMPLATE or STAC_ITEM_PUBLIC
-    """
-    path = request.url.path
-    method = request.method
-
+async def _extract_collection_stac_resource_id(
+    request: Request, path: str, method: str
+) -> Optional[str]:
+    """Extract resource ID for collection endpoints, or None if not a collection path"""
     if _COLLECTIONS_CREATE_PATH_PATTERN.match(path) and method == "POST":
         return await _extract_collection_resource_id_from_post_body(request)
 
@@ -135,6 +130,13 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
             return await _extract_collection_resource_id_from_post_body(request)
         return _stac_collection_resource_id(request)
 
+    return None
+
+
+async def _extract_item_stac_resource_id(
+    request: Request, path: str, method: str
+) -> Optional[str]:
+    """Extract resource ID for item endpoints, or None if not an item path"""
     if _COLLECTIONS_ITEM_PATH_PATTERN.match(path):
         # For single item operations, prefer collection tenant when available
         match = _COLLECTIONS_ITEM_PATH_PATTERN.match(path)
@@ -163,6 +165,27 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
             if tenant:
                 return STAC_ITEM_TEMPLATE.format(tenant)
         return _stac_collection_resource_id(request)
+
+    return None
+
+
+async def extract_stac_resource_id(request: Request) -> Optional[str]:
+    """Extract resource ID for STAC API requests
+
+    Resource ID format matches Keycloak resource definitions (wildcard patterns):
+    - Collections: STAC_COLLECTION_TEMPLATE or STAC_COLLECTION_PUBLIC
+    - Items: STAC_ITEM_TEMPLATE or STAC_ITEM_PUBLIC
+    """
+    path = request.url.path
+    method = request.method
+
+    collection_id = await _extract_collection_stac_resource_id(request, path, method)
+    if collection_id is not None:
+        return collection_id
+
+    item_id = await _extract_item_stac_resource_id(request, path, method)
+    if item_id is not None:
+        return item_id
 
     if "/queryables" in path or "/search" in path:
         return None

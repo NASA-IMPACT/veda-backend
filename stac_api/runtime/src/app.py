@@ -61,13 +61,11 @@ async def lifespan(app: FastAPI):
     async def collection_tenant_resolver(
         request: Request, collection_id: str
     ) -> Optional[str]:
-        """Resolve a collection's tenant from the database for PEP """
+        """Resolve a collection's tenant from the database for PEP"""
         try:
             from stac_fastapi.types.errors import NotFoundError
 
-            collection = await api.client.get_collection(
-                collection_id, request=request
-            )
+            collection = await api.client.get_collection(collection_id, request=request)
             tenant_field = api_settings.tenant_filter_field
             return collection.get(tenant_field) or None
         except NotFoundError:
@@ -204,7 +202,7 @@ if (
         "PEP middleware enabled, secret_name=%s",
         api_settings.keycloak_uma_resource_server_client_secret_name,
     )
-    from veda_auth.pep_middleware import PEPMiddleware, STAC_PROTECTED_ROUTES
+    from veda_auth.pep_middleware import STAC_PROTECTED_ROUTES, PEPMiddleware
     from veda_auth.resource_extractors import extract_stac_resource_id
 
     app.add_middleware(
