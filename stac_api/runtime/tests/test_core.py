@@ -15,28 +15,6 @@ def make_client():
     """Create a VedaCrudClient instance without calling __init__."""
     return VedaCrudClient.__new__(VedaCrudClient)
 
-
-def make_item(collection_id="test-collection"):
-    """Create a test item"""
-    return {
-        "id": "test-item",
-        "type": "Feature",
-        "collection": collection_id,
-        "links": [],
-        "assets": {},
-        "geometry": None,
-        "bbox": None,
-        "properties": {"datetime": "2021-01-01T00:00:00Z"},
-        "stac_version": "1.0.0",
-        "stac_extensions": [],
-    }
-
-
-def make_item_collection(features=None):
-    """Create a test item collection"""
-    return {"type": "FeatureCollection", "features": features or [], "links": []}
-
-
 class TestSearchBase:
     """
     Test cases VedaCrudClient.
