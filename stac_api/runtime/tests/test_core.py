@@ -10,7 +10,6 @@ from src.core import VedaCrudClient
 from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
-
 def make_client():
     """Create a VedaCrudClient instance without calling __init__."""
     return VedaCrudClient.__new__(VedaCrudClient)
