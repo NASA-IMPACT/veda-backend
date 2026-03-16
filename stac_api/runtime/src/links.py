@@ -60,7 +60,7 @@ class LinkInjector:
             self.tiler_href,
             f"collections/{collection_id}/items/{item_id}/WebMercatorQuad/map?{qs}",
         )
-        title = f"Map of Item for {self.render_key}"
+        title = f"Map of {self.render_key} asset"
         return {
             "title": title,
             "href": href,

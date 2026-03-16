@@ -128,7 +128,7 @@ VALID_ITEM = {
             "href": "https://dev.openveda.cloud/api/stac/collections/test-collection/items/OMI_trno2_0.10x0.10_2023_Col3_V4",
         },
         {
-            "title": "Map of Item",
+            "title": "Map of dashboard asset",
             "href": "https://dev.openveda.cloud/api/raster/stac/map?collection=test-collection&item=OMI_trno2_0.10x0.10_2023_Col3_V4&assets=cog_default&rescale=0%2C3000000000000000&colormap_name=reds",
             "rel": "preview",
             "type": "text/html",

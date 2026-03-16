@@ -112,7 +112,7 @@ class TestSearchBase:
         links = returned["features"][0]["links"]
         assets = returned["features"][0]["assets"]
         expected_key = "title"
-        expected_value = "Map of Item for dashboard"
+        expected_value = "Map of dashboard asset"
         assert any(d.get(expected_key) == expected_value for d in links)
         assert "rendered_preview_dashboard" in assets
 
@@ -140,9 +140,9 @@ class TestSearchBase:
         links = returned["features"][0]["links"]
         titles = [link["title"] for link in links]
         expected_map_link_title_values = [
-            "Map of Item for colorIR",
-            "Map of Item for burnRatio",
-            "Map of Item for dashboard",
+            "Map of colorIR asset",
+            "Map of burnRatio asset",
+            "Map of dashboard asset",
         ]
         # Check that all expected Map links are generated for all assets in render config
         assert titles == expected_map_link_title_values
