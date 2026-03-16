@@ -20,6 +20,15 @@ from pystac.errors import STACValidationError
 from fastapi import FastAPI
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 
+VALID_SHELL_FEATURE_COLLECTION = {
+    "id": "test-collection",
+    "type": "FeatureCollection",
+    "features": [],
+    "links": [],
+    "stac_version": "1.0.0",
+    "renders": {},
+}
+
 VALID_COLLECTION = {
     "id": "test-collection",
     "type": "Collection",
@@ -78,6 +87,19 @@ VALID_COLLECTION = {
             "roles": ["thumbnail"],
         }
     },
+}
+
+VALID_SHELL_ITEM = {
+    "id": "test-item",
+    "type": "Feature",
+    "collection": "test-collection",
+    "links": [],
+    "assets": {},
+    "geometry": None,
+    "bbox": None,
+    "properties": {"datetime": "2021-01-01T00:00:00Z"},
+    "stac_version": "1.0.0",
+    "stac_extensions": [],
 }
 
 VALID_ITEM = {
@@ -436,3 +458,54 @@ async def collection_in_db(app: FastAPI, api_client, valid_stac_collection):
     await api_client.delete(
         f"{app.root_path}/collections/{valid_stac_collection['id']}"
     )
+
+@pytest.fixture
+def valid_stac_features_collection_empty():
+    """
+    Fixture providing a valid STAC features collection with empty features.
+
+    Returns:
+        dict: A valid STAC features collection with empty features.
+    """
+    coll = copy.deepcopy(VALID_SHELL_FEATURE_COLLECTION)
+    return coll
+
+@pytest.fixture
+def valid_stac_collection_multi_cog_asset_renders():
+    """
+    Fixture providing a valid STAC feature collection with renders configuration without dashboard for multiple COG assets.
+
+    Returns:
+        dict: An valid STAC collection with renders configuration for 3 assets.
+    """
+    coll = copy.deepcopy(VALID_SHELL_FEATURE_COLLECTION)
+    coll['features'] = [VALID_SHELL_ITEM]
+    renders = coll.get("renders")
+    renders["colorIR"] =  {
+            "nodata": 0,
+            "assets": ["colorIR"],
+            "bidx": [1, 2, 3],
+            "rescale": [[0, 255]],
+        }
+    renders["burnRatio"] = {
+            "nodata": -9999,
+            "assets": ["burnRatio"],
+            "rescale": [[-1, 1]],
+        } # ... 
+
+
+    coll["renders"] = renders
+    return coll
+
+@pytest.fixture
+def valid_stac_collection_multi_cog_asset_renders_with_dashboard(valid_stac_collection_multi_cog_asset_renders):
+    """
+    Fixture providing a valid STAC feature collection with renders configuration with dashboard for multiple COG assets.
+
+    Returns:
+        dict: An valid STAC collection with renders configuration for 3 assets.
+    """
+    coll = copy.deepcopy(valid_stac_collection_multi_cog_asset_renders)
+    coll['renders']['dashboard'] = {"nodata": -9999, "assets": ["burnRatio"]}
+    return coll
+  
