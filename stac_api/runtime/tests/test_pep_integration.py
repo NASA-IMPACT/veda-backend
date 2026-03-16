@@ -105,8 +105,31 @@ def _collection(tenant: Optional[str] = None) -> dict:
     return body
 
 
+def _item(collection_id: str, item_id: Optional[str] = None) -> dict:
+    """Build a valid STAC item for PEP tests based on https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md"""
+    provider_id = item_id or f"pep-item-{uuid.uuid4().hex[:8]}"
+    return {
+        "type": "Feature",
+        "stac_version": "1.0.0",
+        "id": provider_id,
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]
+            ],
+        },
+        "bbox": [-180.0, -90.0, 180.0, 90.0],
+        "collection": collection_id,
+        "properties": {
+            "datetime": "2017-12-31T00:00:00",
+        },
+        "links": [],
+        "assets": {},
+    }
+
+
 class TestPEPIntegration:
-    """Integration tests for PEP middleware for POST /collections endpoint"""
+    """Integration tests for PEP middleware for STAC collection and item endpoints"""
 
     @pytest.mark.asyncio
     async def test_post_collection_no_token_returns_401(self, pep_client):
@@ -135,6 +158,45 @@ class TestPEPIntegration:
         assert call_kwargs.kwargs.get("access_token") == "fake-valid-token"
         assert call_kwargs.kwargs.get("scope") == "create"
 
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
+
+    @pytest.mark.asyncio
+    async def test_post_item_with_tenant_uses_item_resource(
+        self, pep_client, mock_pdp_client
+    ):
+        """POST /collections/{collection_id}/items with tenant should use item resource ID"""
+        mock_pdp_client.check_permission.return_value = True
+        collection = _collection(tenant="veda")
+
+        # Create a collection with tenant
+        create_collection_response = await pep_client.post(
+            COLLECTIONS_ENDPOINT,
+            json=collection,
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
+        assert create_collection_response.status_code == 201
+
+        item = _item(collection["id"])
+
+        response = await pep_client.post(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items",
+            json=item,
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
+        assert response.status_code in (200, 201)
+
+        calls = mock_pdp_client.check_permission.call_args_list
+        resource_ids = [c.kwargs.get("resource_id") for c in calls]
+        assert "stac:item:veda:*" in resource_ids
+
+        # Cleanup
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items/{item['id']}",
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
         await pep_client.delete(
             f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
             headers={"Authorization": "Bearer fake-valid-token"},

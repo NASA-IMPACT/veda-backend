@@ -7,6 +7,7 @@ import pytest
 from veda_auth.resource_extractors import (
     STAC_COLLECTION_PUBLIC,
     STAC_COLLECTION_TEMPLATE,
+    STAC_ITEM_PUBLIC,
     STAC_ITEM_TEMPLATE,
     _extract_collection_resource_id_from_post_body,
     _extract_tenant_from_body,
@@ -175,6 +176,17 @@ class TestExtractStacResourceId:
         assert result == STAC_ITEM_TEMPLATE.format("test-tenant")
 
     @pytest.mark.asyncio
+    async def test_get_item_without_tenant_uses_public(self):
+        """Test extracting resource ID for GET item without tenant (defaults to public)"""
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/test-collection/items/test-item"
+        request.method = "GET"
+        request.state = MagicMock()
+
+        result = await extract_stac_resource_id(request)
+        assert result == STAC_ITEM_TEMPLATE.format("public")
+
+    @pytest.mark.asyncio
     async def test_post_items_with_tenant(self):
         """Test extracting resource ID for POST items with tenant"""
         request = MagicMock(spec=Request)
@@ -195,6 +207,56 @@ class TestExtractStacResourceId:
 
         result = await extract_stac_resource_id(request)
         assert result == STAC_COLLECTION_TEMPLATE.format("test-tenant")
+
+    @pytest.mark.asyncio
+    async def test_item_paths_use_collection_tenant_resolver_when_available(self):
+        """Item endpoints should use collection_tenant_resolver when configured on app state"""
+        resolver = AsyncMock(return_value="resolver-tenant")
+
+        def _build_request(path: str, method: str) -> Request:
+            request = MagicMock(spec=Request)
+            request.url.path = path
+            request.method = method
+            request.state = MagicMock()
+            app = MagicMock()
+            app.state.collection_tenant_resolver = resolver
+            request.app = app
+            return request
+
+        item_request = _build_request(
+            "/collections/test-collection/items/test-item", "GET"
+        )
+        item_result = await extract_stac_resource_id(item_request)
+        assert item_result == STAC_ITEM_TEMPLATE.format("resolver-tenant")
+
+        items_request = _build_request("/collections/test-collection/items", "POST")
+        items_result = await extract_stac_resource_id(items_request)
+        assert items_result == STAC_ITEM_TEMPLATE.format("resolver-tenant")
+
+    @pytest.mark.asyncio
+    async def test_collection_tenant_resolver_failure_falls_back_to_public(self):
+        """When collection_tenant_resolver fails, item requests fall back to public"""
+        resolver = AsyncMock(side_effect=Exception("resolver failed"))
+
+        def _build_request(path: str, method: str) -> Request:
+            request = MagicMock(spec=Request)
+            request.url.path = path
+            request.method = method
+            request.state = MagicMock()
+            app = MagicMock()
+            app.state.collection_tenant_resolver = resolver
+            request.app = app
+            return request
+
+        item_request = _build_request(
+            "/collections/test-collection/items/test-item", "GET"
+        )
+        item_result = await extract_stac_resource_id(item_request)
+        assert item_result == STAC_ITEM_PUBLIC
+
+        items_request = _build_request("/collections/test-collection/items", "POST")
+        items_result = await extract_stac_resource_id(items_request)
+        assert items_result == STAC_COLLECTION_PUBLIC
 
 
 class TestExtractIngestResourceId:
