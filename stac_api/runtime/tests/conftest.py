@@ -459,6 +459,7 @@ async def collection_in_db(app: FastAPI, api_client, valid_stac_collection):
         f"{app.root_path}/collections/{valid_stac_collection['id']}"
     )
 
+
 @pytest.fixture
 def valid_stac_features_collection_empty():
     """
@@ -470,6 +471,7 @@ def valid_stac_features_collection_empty():
     coll = copy.deepcopy(VALID_SHELL_FEATURE_COLLECTION)
     return coll
 
+
 @pytest.fixture
 def valid_stac_collection_multi_cog_asset_renders():
     """
@@ -479,26 +481,28 @@ def valid_stac_collection_multi_cog_asset_renders():
         dict: An valid STAC collection with renders configuration for 3 assets.
     """
     coll = copy.deepcopy(VALID_SHELL_FEATURE_COLLECTION)
-    coll['features'] = [VALID_SHELL_ITEM]
+    coll["features"] = [VALID_SHELL_ITEM]
     renders = coll.get("renders")
-    renders["colorIR"] =  {
-            "nodata": 0,
-            "assets": ["colorIR"],
-            "bidx": [1, 2, 3],
-            "rescale": [[0, 255]],
-        }
+    renders["colorIR"] = {
+        "nodata": 0,
+        "assets": ["colorIR"],
+        "bidx": [1, 2, 3],
+        "rescale": [[0, 255]],
+    }
     renders["burnRatio"] = {
-            "nodata": -9999,
-            "assets": ["burnRatio"],
-            "rescale": [[-1, 1]],
-        } # ... 
-
+        "nodata": -9999,
+        "assets": ["burnRatio"],
+        "rescale": [[-1, 1]],
+    }  # ...
 
     coll["renders"] = renders
     return coll
 
+
 @pytest.fixture
-def valid_stac_collection_multi_cog_asset_renders_with_dashboard(valid_stac_collection_multi_cog_asset_renders):
+def valid_stac_collection_multi_cog_asset_renders_with_dashboard(
+    valid_stac_collection_multi_cog_asset_renders,
+):
     """
     Fixture providing a valid STAC feature collection with renders configuration with dashboard for multiple COG assets.
 
@@ -506,6 +510,5 @@ def valid_stac_collection_multi_cog_asset_renders_with_dashboard(valid_stac_coll
         dict: An valid STAC collection with renders configuration for 3 assets.
     """
     coll = copy.deepcopy(valid_stac_collection_multi_cog_asset_renders)
-    coll['renders']['dashboard'] = {"nodata": -9999, "assets": ["burnRatio"]}
+    coll["renders"]["dashboard"] = {"nodata": -9999, "assets": ["burnRatio"]}
     return coll
-  

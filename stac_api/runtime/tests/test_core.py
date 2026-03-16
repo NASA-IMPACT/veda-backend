@@ -51,7 +51,9 @@ class TestSearchBase:
         self.search_request = MagicMock(spec=PgstacSearch)
         self.request = MagicMock()
 
-    async def test_empty_features_returns_result_unchanged(self, valid_stac_features_collection_empty):
+    async def test_empty_features_returns_result_unchanged(
+        self, valid_stac_features_collection_empty
+    ):
         """When result has no features, return the result as-is without calling get_collection."""
         client = self.client
         search_request = self.search_request
@@ -69,7 +71,9 @@ class TestSearchBase:
             assert result == valid_stac_features_collection_empty
             mock_get_collection.assert_not_called()
 
-    async def test_features_without_dashboard_renders_returns_result_unchanged(self, valid_stac_collection_multi_cog_asset_renders):
+    async def test_features_without_dashboard_renders_returns_result_unchanged(
+        self, valid_stac_collection_multi_cog_asset_renders
+    ):
         """When collection has no 'dashboard' key in renders, return result unchanged."""
         client = self.client
         search_request = self.search_request
@@ -80,15 +84,21 @@ class TestSearchBase:
         ) as mock_super_search, patch.object(
             CoreCrudClient, "get_collection", new_callable=AsyncMock
         ) as mock_get_collection:
-            mock_super_search.return_value = valid_stac_collection_multi_cog_asset_renders
-            mock_get_collection.return_value = valid_stac_collection_multi_cog_asset_renders
+            mock_super_search.return_value = (
+                valid_stac_collection_multi_cog_asset_renders
+            )
+            mock_get_collection.return_value = (
+                valid_stac_collection_multi_cog_asset_renders
+            )
 
             returned = await client._search_base(search_request, request=request)
 
             assert returned == valid_stac_collection_multi_cog_asset_renders
 
     # Old logic -> make sure works as expected
-    async def test_features_with_dashboard_renders_injects_links(self, valid_stac_collection_multi_cog_asset_renders_with_dashboard):
+    async def test_features_with_dashboard_renders_injects_links(
+        self, valid_stac_collection_multi_cog_asset_renders_with_dashboard
+    ):
         """When collection has 'dashboard' renders, expected links and rendered_preview asset are injected into each item."""
         client = self.client
         search_request = self.search_request
@@ -102,8 +112,12 @@ class TestSearchBase:
             "src.links.tiles_settings.titiler_endpoint",
             new="https://fake-titiler.example.com",
         ):
-            mock_super_search.return_value = valid_stac_collection_multi_cog_asset_renders_with_dashboard
-            mock_get_collection.return_value = valid_stac_collection_multi_cog_asset_renders_with_dashboard
+            mock_super_search.return_value = (
+                valid_stac_collection_multi_cog_asset_renders_with_dashboard
+            )
+            mock_get_collection.return_value = (
+                valid_stac_collection_multi_cog_asset_renders_with_dashboard
+            )
 
             returned = await client._search_base(search_request, request=request)
         assert "features" in returned
@@ -116,7 +130,9 @@ class TestSearchBase:
         assert any(d.get(expected_key) == expected_value for d in links)
         assert "rendered_preview_dashboard" in assets
 
-    async def test_features_with_renders_injects_links(self, valid_stac_collection_multi_cog_asset_renders_with_dashboard):
+    async def test_features_with_renders_injects_links(
+        self, valid_stac_collection_multi_cog_asset_renders_with_dashboard
+    ):
         """Generate expected links and rendered_preview asset for each item."""
         client = self.client
         search_request = self.search_request
@@ -130,8 +146,12 @@ class TestSearchBase:
             "src.links.tiles_settings.titiler_endpoint",
             new="https://fake-titiler.example.com",
         ):
-            mock_super_search.return_value = valid_stac_collection_multi_cog_asset_renders_with_dashboard
-            mock_get_collection.return_value = valid_stac_collection_multi_cog_asset_renders_with_dashboard
+            mock_super_search.return_value = (
+                valid_stac_collection_multi_cog_asset_renders_with_dashboard
+            )
+            mock_get_collection.return_value = (
+                valid_stac_collection_multi_cog_asset_renders_with_dashboard
+            )
 
             returned = await client._search_base(search_request, request=request)
         assert "features" in returned
