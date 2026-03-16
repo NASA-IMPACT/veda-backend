@@ -1,6 +1,5 @@
 """
 Unit tests for VedaCrudClient._search_base in core.py
-@NOTE-SANDRA: Ask if we should move into .github/workflows/tests/ ?
 """
 from unittest.mock import AsyncMock, MagicMock, patch
 
