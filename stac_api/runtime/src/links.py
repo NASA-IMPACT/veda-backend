@@ -41,7 +41,6 @@ class LinkInjector:
 
         self.collection_id = collection_id
         self.render_config = get_render_config(render_params)
-        # self.tiler_href = tiles_settings.titiler_endpoint or ""
         self.tiler_href = tiler_url_override or tiles_settings.titiler_endpoint or ""
 
     def inject_item(self, item: Item) -> None:
