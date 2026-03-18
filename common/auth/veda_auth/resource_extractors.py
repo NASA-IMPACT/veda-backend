@@ -40,13 +40,17 @@ _COLLECTIONS_BULK_ITEMS_PATH_PATTERN = re.compile(COLLECTIONS_BULK_ITEMS_PATH_RE
 def _stac_collection_resource_id(request: Request) -> str:
     """Return tenant-based or public STAC collection resource ID."""
     tenant = getattr(request.state, "tenant", None)
-    return STAC_COLLECTION_TEMPLATE.format(tenant) if tenant else STAC_COLLECTION_PUBLIC
+    if not isinstance(tenant, str) or not tenant:
+        return STAC_COLLECTION_PUBLIC
+    return STAC_COLLECTION_TEMPLATE.format(tenant)
 
 
 def _stac_item_resource_id(request: Request) -> str:
     """Return tenant-based or public STAC item resource ID."""
     tenant = getattr(request.state, "tenant", None)
-    return STAC_ITEM_TEMPLATE.format(tenant) if tenant else STAC_ITEM_PUBLIC
+    if not isinstance(tenant, str) or not tenant:
+        return STAC_ITEM_PUBLIC
+    return STAC_ITEM_TEMPLATE.format(tenant)
 
 
 def _get_collection_tenant_resolver(
