@@ -57,24 +57,6 @@ async def lifespan(app: FastAPI):
         postgres_settings=api_settings.postgres_settings,
         add_write_connection_pool=True,
     )
-
-    async def collection_tenant_resolver(
-        request: Request, collection_id: str
-    ) -> Optional[str]:
-        """Resolve a collection's tenant from the database for PEP"""
-        try:
-            from stac_fastapi.types.errors import NotFoundError
-
-            collection = await api.client.get_collection(collection_id, request=request)
-            tenant_field = api_settings.tenant_filter_field
-            return collection.get(tenant_field) or None
-        except NotFoundError:
-            return None
-        except Exception:
-            return None
-
-    app.state.collection_tenant_resolver = collection_tenant_resolver
-
     yield
     await close_db_connection(app)
 
@@ -112,6 +94,25 @@ api = StacApi(
         Middleware(PrefixRedirectMiddleware),
     ],
 )
+
+
+async def collection_tenant_resolver(
+    request: Request, collection_id: str
+) -> Optional[str]:
+    """Resolve a collection's tenant from the database for PEP"""
+    try:
+        from stac_fastapi.types.errors import NotFoundError
+
+        collection = await api.client.get_collection(collection_id, request=request)
+        tenant_field = api_settings.tenant_filter_field
+        return collection.get(tenant_field) or None
+    except NotFoundError:
+        return None
+    except Exception:
+        return None
+
+
+api.app.state.collection_tenant_resolver = collection_tenant_resolver
 
 if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy:
     # Use stac-auth-proxy when authentication is enabled, which it will be for production envs
