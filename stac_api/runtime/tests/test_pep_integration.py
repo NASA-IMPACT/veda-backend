@@ -1,4 +1,5 @@
 """Integration tests for PEP middleware"""
+import copy
 import importlib
 import os
 import uuid
@@ -12,6 +13,8 @@ from httpx import ASGITransport, AsyncClient
 from veda_auth.keycloak_client import PermissionDeniedError, ResourceNotFoundError
 
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
+
+from .conftest import VALID_ITEM
 
 VALID_COLLECTION_TEMPLATE = {
     "type": "Collection",
@@ -103,6 +106,18 @@ def _collection(tenant: Optional[str] = None) -> dict:
     if tenant:
         body["eic:tenant"] = tenant
     return body
+
+
+def _item(collection_id: str, item_id: Optional[str] = None) -> dict:
+    """Build a STAC item"""
+    item_id_value = item_id or f"pep-item-{uuid.uuid4().hex[:8]}"
+    item = copy.deepcopy(VALID_ITEM)
+    item["id"] = item_id_value
+    item["collection"] = collection_id
+    return item
+
+
+AUTH_HEADERS = {"Authorization": "Bearer fake-valid-token"}
 
 
 class TestPEPIntegration:
@@ -243,3 +258,99 @@ class TestPEPIntegration:
         """GET /collections should not be intercepted by PEP (because its not a protected route)"""
         response = await pep_client.get(COLLECTIONS_ENDPOINT)
         assert response.status_code == 200
+
+
+class TestPEPCollectionUpdateDelete:
+    """PEP for PUT/PATCH/DELETE collection"""
+
+    @pytest.mark.asyncio
+    async def test_put_collection_no_token_returns_401(
+        self, pep_client, mock_pdp_client
+    ):
+        """PUT /collections/{id} without token returns 401"""
+        collection = _collection()
+        # Create collection, then try to update it without token
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
+        )
+        response = await pep_client.put(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
+            json=collection,
+        )
+        # Should fail with 401
+        assert response.status_code == 401
+        # Cleanup
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
+        )
+
+    @pytest.mark.asyncio
+    async def test_put_collection_authorized_succeeds(
+        self, pep_client, mock_pdp_client
+    ):
+        """PUT /collections/{id} with token and PDP allow succeeds, scope update"""
+        # Test setup
+        mock_pdp_client.check_permission.return_value = True
+        collection = _collection()
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
+        )
+        response = await pep_client.put(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
+            json=collection,
+            headers=AUTH_HEADERS,
+        )
+        assert response.status_code == 200
+        call_kwargs = mock_pdp_client.check_permission.call_args
+        assert call_kwargs.kwargs.get("scope") == "update"
+
+        # Test cleanup
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
+        )
+
+    @pytest.mark.asyncio
+    async def test_patch_collection_no_token_returns_401(
+        self, pep_client, mock_pdp_client
+    ):
+        """PATCH /collections/{id} without token returns 401"""
+        # Test setup
+        collection = _collection()
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
+        )
+        response = await pep_client.patch(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
+            json={"description": "Updated"},
+        )
+        assert response.status_code == 401
+
+        # Test cleanup
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
+        )
+
+    @pytest.mark.asyncio
+    async def test_patch_collection_authorized_succeeds(
+        self, pep_client, mock_pdp_client
+    ):
+        """PATCH /collections/{id} with token succeeds, scope update"""
+        # Test setup
+        mock_pdp_client.check_permission.return_value = True
+        collection = _collection()
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT, json=collection, headers=AUTH_HEADERS
+        )
+        response = await pep_client.patch(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
+            json={"description": "Updated"},
+            headers=AUTH_HEADERS,
+        )
+        assert response.status_code == 200
+        call_kwargs = mock_pdp_client.check_permission.call_args
+        assert call_kwargs.kwargs.get("scope") == "update"
+
+        # Test cleanup
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
+        )

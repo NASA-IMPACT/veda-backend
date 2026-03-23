@@ -11,7 +11,10 @@ from veda_auth.keycloak_client import (
     ResourceNotFoundError,
     TokenError,
 )
-from veda_auth.resource_extractors import COLLECTIONS_CREATE_PATH_RE
+from veda_auth.resource_extractors import (
+    COLLECTIONS_CREATE_PATH_RE,
+    COLLECTIONS_PATH_RE,
+)
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -35,8 +38,20 @@ class ProtectedRoute:
     scope: str
 
 
-DEFAULT_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
+CREATE_COLLECTION_ROUTE = ProtectedRoute(
+    path_re=COLLECTIONS_CREATE_PATH_RE,
+    method="POST",
+    scope="create",
+)
+
+DEFAULT_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (CREATE_COLLECTION_ROUTE,)
+
+
+STAC_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
+    # Collections
     ProtectedRoute(path_re=COLLECTIONS_CREATE_PATH_RE, method="POST", scope="create"),
+    ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="PUT", scope="update"),
+    ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="PATCH", scope="update"),
 )
 
 
