@@ -163,9 +163,7 @@ else:
     # Use standard FastAPI app when authentication is disabled
     app = api.app
 
-# Ensure the proxy app also exposes the resolver to PEP
-if hasattr(api.app.state, "collection_tenant_resolver"):
-    app.state.collection_tenant_resolver = api.app.state.collection_tenant_resolver
+app.state.collection_tenant_resolver = api.app.state.collection_tenant_resolver
 
 
 def _get_keycloak_pdp_client():

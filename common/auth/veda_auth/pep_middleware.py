@@ -49,14 +49,6 @@ CREATE_COLLECTION_ROUTE = ProtectedRoute(
 
 DEFAULT_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (CREATE_COLLECTION_ROUTE,)
 
-
-STAC_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
-    # Collections
-    ProtectedRoute(path_re=COLLECTIONS_CREATE_PATH_RE, method="POST", scope="create"),
-    ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="PUT", scope="update"),
-    ProtectedRoute(path_re=COLLECTIONS_PATH_RE, method="PATCH", scope="update"),
-)
-
 STAC_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
     # Collections
     ProtectedRoute(path_re=COLLECTIONS_CREATE_PATH_RE, method="POST", scope="create"),
