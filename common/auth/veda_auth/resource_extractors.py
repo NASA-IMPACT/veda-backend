@@ -129,9 +129,16 @@ async def _extract_collection_stac_resource_id(
     if _COLLECTIONS_CREATE_PATH_PATTERN.match(path) and method == "POST":
         return await _extract_collection_resource_id_from_post_body(request)
 
-    if _COLLECTIONS_PATH_PATTERN.match(path):
+    match = _COLLECTIONS_PATH_PATTERN.match(path)
+    if match:
         if method in ("PUT", "PATCH"):
             return await _extract_collection_resource_id_from_post_body(request)
+        if method == "DELETE":
+            collection_id = match.group(1)
+            tenant = await _collection_tenant_for_item(request, collection_id)
+            if tenant:
+                return STAC_COLLECTION_TEMPLATE.format(tenant)
+            return _stac_collection_resource_id(request)
         return _stac_collection_resource_id(request)
 
     return None

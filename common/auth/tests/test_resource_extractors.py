@@ -259,6 +259,47 @@ class TestExtractStacResourceId:
         items_result = await extract_stac_resource_id(items_request)
         assert items_result == STAC_COLLECTION_PUBLIC
 
+        delete_collection_request = _build_request(
+            "/collections/test-collection", "DELETE"
+        )
+        delete_collection_result = await extract_stac_resource_id(
+            delete_collection_request
+        )
+        assert delete_collection_result == STAC_COLLECTION_PUBLIC
+
+    @pytest.mark.asyncio
+    async def test_delete_collection_uses_collection_tenant_resolver_when_available(
+        self,
+    ):
+        """DELETE /collections/{id} should use collection_tenant_resolver"""
+        resolver = AsyncMock(return_value="some-tenant")
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/test-collection"
+        request.method = "DELETE"
+        request.state = MagicMock()
+        app = MagicMock()
+        app.state.collection_tenant_resolver = resolver
+        request.app = app
+
+        result = await extract_stac_resource_id(request)
+        assert result == STAC_COLLECTION_TEMPLATE.format("some-tenant")
+        resolver.assert_awaited_once_with(request, "test-collection")
+
+    @pytest.mark.asyncio
+    async def test_delete_collection_resolver_none_falls_back_to_url_tenant(self):
+        """When resolver returns None, fall back to request.state.tenant if present"""
+        resolver = AsyncMock(return_value=None)
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/my-col"
+        request.method = "DELETE"
+        request.state = SimpleNamespace(tenant="url-tenant")
+        request.app = SimpleNamespace(
+            state=SimpleNamespace(collection_tenant_resolver=resolver)
+        )
+
+        result = await extract_stac_resource_id(request)
+        assert result == STAC_COLLECTION_TEMPLATE.format("url-tenant")
+
 
 class TestExtractIngestResourceId:
     """Test Ingest API resource ID extraction"""

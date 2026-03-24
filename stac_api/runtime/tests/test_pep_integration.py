@@ -393,3 +393,27 @@ class TestPEPCollectionUpdateDelete:
         await pep_client.delete(
             f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
+
+    @pytest.mark.asyncio
+    async def test_delete_collection_uses_resolved_tenant_for_pep_resource_id(
+        self, pep_client, mock_pdp_client
+    ):
+        """DELETE /collections/{id} passes tenant from collection JSON to PDP"""
+        mock_pdp_client.check_permission.return_value = True
+        collection = _collection(tenant="veda")
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT,
+            json=collection,
+            headers=AUTH_HEADERS,
+        )
+        mock_pdp_client.reset_mock()
+
+        response = await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
+            headers=AUTH_HEADERS,
+        )
+        assert response.status_code in (200, 204)
+        mock_pdp_client.check_permission.assert_called_once()
+        call_kwargs = mock_pdp_client.check_permission.call_args.kwargs
+        assert call_kwargs.get("resource_id") == "stac:collection:veda:*"
+        assert call_kwargs.get("scope") == "delete"
