@@ -215,14 +215,16 @@ async def extract_ingest_resource_id(request: Request) -> Optional[str]:
     match = re.match(r".*?/collections/([^/]+)$", path)
     if match and method == "DELETE":
         collection_id = match.group(1)
-        resolved_tenant = await _collection_tenant_for_item(request, collection_id)
-        if resolved_tenant:
+        tenant = await _collection_tenant_for_item(request, collection_id)
+        if tenant:
+            resource_id = STAC_COLLECTION_TEMPLATE.format(tenant)
             logger.debug(
-                "Ingest DELETE /collections/%s: resolved tenant=%s (resource_id remains collection:%s)",
+                "Ingest DELETE /collections/%s: resolved tenant=%s -> %s",
                 collection_id,
-                resolved_tenant,
-                collection_id,
+                tenant,
+                resource_id,
             )
-        return f"collection:{collection_id}"
+            return resource_id
+        return _stac_collection_resource_id(request)
 
     return None

@@ -12,7 +12,7 @@ from src.doc import DESCRIPTION
 from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
 from src.utils import get_keycloak_client_credentials
 from veda_auth.keycloak_client import KeycloakPDPClient, parse_keycloak_from_openid_url
-from veda_auth.pep_middleware import PEPMiddleware
+from veda_auth.pep_middleware import INGEST_PROTECTED_ROUTES, PEPMiddleware
 from veda_auth.resource_extractors import extract_ingest_resource_id
 
 from fastapi import Depends, FastAPI, HTTPException, Security
@@ -307,6 +307,7 @@ if (
         PEPMiddleware,
         pdp_client=_get_keycloak_pdp_client,
         resource_extractor=extract_ingest_resource_id,
+        protected_routes=INGEST_PROTECTED_ROUTES,
     )
 else:
     pep_logger.info(
