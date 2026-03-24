@@ -1,6 +1,6 @@
 """CoreCrudClient extensions for the VEDA STAC API."""
 
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, Optional
 
 from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
@@ -21,19 +21,20 @@ class VedaCrudClient(CoreCrudClient):
         render_key: str,
         render_params: Dict[str, Any],
         request: Request,
+        tiler_url_override: Optional[str] = None,
     ) -> Item:
         """Add extra/non-mandatory links to an Item"""
         collection_id = item.get("collection", "")
 
         if collection_id:
-            LinkInjector(collection_id, render_key, render_params, request).inject_item(
+            LinkInjector(collection_id, render_key, render_params, request, tiler_url_override).inject_item(
                 item
             )
 
         return item
 
     async def _search_base(
-        self, search_request: PgstacSearch, **kwargs: Any
+        self, search_request: PgstacSearch, tiler_url_override: Optional[str] = None, **kwargs: Any
     ) -> ItemCollection:
         """Cross catalog search (POST).
         Called with `POST /search`.
@@ -44,7 +45,6 @@ class VedaCrudClient(CoreCrudClient):
         """
         _super: CoreCrudClient = super()
         request = kwargs["request"]
-
         result = await _super._search_base(search_request, **kwargs)
         # Without assigning item_collection here we will get the error
         # UnboundLocalError: local variable 'item_collection' referenced before assignment (cloudfront 500 error)
@@ -63,7 +63,7 @@ class VedaCrudClient(CoreCrudClient):
                             **{
                                 **result,
                                 "features": [
-                                    self.inject_item_links(i, key, value, request)
+                                    self.inject_item_links(i, key, value, request, tiler_url_override)
                                     for i in result.get("features", [])
                                 ],
                             }

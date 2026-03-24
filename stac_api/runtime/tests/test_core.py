@@ -154,3 +154,34 @@ class TestSearchBase:
         ]
         # Check that all expected render previews are generated for all assets in render config
         assert assets_keys == expected_render_assets
+
+    async def test_tiler_url_override_in_injected_links(
+        self, valid_stac_collection_multi_cog_asset_renders_with_dashboard
+    ):
+        """When collection has 'dashboard' renders, expected links and rendered_preview asset are injected into each item."""
+        client = self.client
+        search_request = self.search_request
+        request = self.request
+        override_tiler = "https://fake-titiler-override.example.com"
+
+        with patch.object(
+            CoreCrudClient, "_search_base", new_callable=AsyncMock
+        ) as mock_super_search, patch.object(
+            CoreCrudClient, "get_collection", new_callable=AsyncMock
+        ) as mock_get_collection, patch(
+            "src.links.tiles_settings.titiler_endpoint",
+            new="https://fake-titiler.example.com",
+        ):
+            mock_super_search.return_value = (
+                valid_stac_collection_multi_cog_asset_renders_with_dashboard
+            )
+            mock_get_collection.return_value = (
+                valid_stac_collection_multi_cog_asset_renders_with_dashboard
+            )
+
+            returned = await client._search_base(search_request, override_tiler, request=request)
+        links = returned["features"][0]["links"]
+        assets = returned["features"][0]["assets"]
+
+        assert override_tiler in links[0]["href"]
+        assert override_tiler in assets["rendered_preview_colorIR"]["href"]
