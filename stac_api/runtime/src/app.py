@@ -223,8 +223,9 @@ async def viewer_page(request: Request):
     """Search viewer."""
     path = api_settings.root_path or ""
     return templates.TemplateResponse(
+        request,
         "stac-viewer.html",
-        {"request": request, "endpoint": str(request.url).replace("/index.html", path)},
+        {"endpoint": str(request.url).replace("/index.html", path)},
         media_type="text/html",
     )
 
