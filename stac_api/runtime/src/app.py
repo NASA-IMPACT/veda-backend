@@ -57,6 +57,7 @@ async def lifespan(app: FastAPI):
         postgres_settings=api_settings.postgres_settings,
         add_write_connection_pool=True,
     )
+
     yield
     await close_db_connection(app)
 
