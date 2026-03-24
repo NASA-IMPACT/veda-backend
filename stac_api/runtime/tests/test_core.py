@@ -179,7 +179,9 @@ class TestSearchBase:
                 valid_stac_collection_multi_cog_asset_renders_with_dashboard
             )
 
-            returned = await client._search_base(search_request, override_tiler, request=request)
+            returned = await client._search_base(
+                search_request, override_tiler, request=request
+            )
         links = returned["features"][0]["links"]
         assets = returned["features"][0]["assets"]
 

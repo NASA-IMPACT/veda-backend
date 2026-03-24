@@ -1,6 +1,6 @@
 """CoreCrudClient extensions for the VEDA STAC API."""
 
-from typing import Any, Dict, Union, Optional
+from typing import Any, Dict, Optional, Union
 
 from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
@@ -27,14 +27,17 @@ class VedaCrudClient(CoreCrudClient):
         collection_id = item.get("collection", "")
 
         if collection_id:
-            LinkInjector(collection_id, render_key, render_params, request, tiler_url_override).inject_item(
-                item
-            )
+            LinkInjector(
+                collection_id, render_key, render_params, request, tiler_url_override
+            ).inject_item(item)
 
         return item
 
     async def _search_base(
-        self, search_request: PgstacSearch, tiler_url_override: Optional[str] = None, **kwargs: Any
+        self,
+        search_request: PgstacSearch,
+        tiler_url_override: Optional[str] = None,
+        **kwargs: Any
     ) -> ItemCollection:
         """Cross catalog search (POST).
         Called with `POST /search`.
@@ -63,7 +66,9 @@ class VedaCrudClient(CoreCrudClient):
                             **{
                                 **result,
                                 "features": [
-                                    self.inject_item_links(i, key, value, request, tiler_url_override)
+                                    self.inject_item_links(
+                                        i, key, value, request, tiler_url_override
+                                    )
                                     for i in result.get("features", [])
                                 ],
                             }

@@ -54,6 +54,7 @@ class LinkInjector:
             item["assets"][
                 f"rendered_preview_{self.render_key}"
             ] = self._get_item_preview_link(item_id, self.collection_id)
+
     def _get_item_map_link(self, item_id: str, collection_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs()
         href = urljoin(
