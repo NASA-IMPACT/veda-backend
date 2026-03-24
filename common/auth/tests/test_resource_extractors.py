@@ -1,6 +1,7 @@
 """Tests for resource extractors"""
 
 import json
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -268,6 +269,59 @@ class TestExtractIngestResourceId:
         request.url.path = "/collections/test-collection"
         request.method = "DELETE"
         request.state.tenant = "test-tenant"
+        request.app = SimpleNamespace(state=SimpleNamespace())
 
         resource_id = await extract_ingest_resource_id(request)
         assert resource_id == "collection:test-collection"
+
+    async def test_delete_collection_without_resolver_still_returns_collection_id(self):
+        """DELETE without collection_tenant_resolver on app state returns collection:{id}."""
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/foo"
+        request.method = "DELETE"
+        request.state = SimpleNamespace()
+        request.app = SimpleNamespace(state=SimpleNamespace())
+
+        assert await extract_ingest_resource_id(request) == "collection:foo"
+
+    async def test_delete_collection_invokes_resolver_resource_id_unchanged(self):
+        """When resolver is set, it is awaited; resource id stays collection:{id} (phase 1)."""
+        resolver = AsyncMock(return_value="veda")
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/foo"
+        request.method = "DELETE"
+        request.state = SimpleNamespace()
+        request.app = SimpleNamespace(
+            state=SimpleNamespace(collection_tenant_resolver=resolver)
+        )
+
+        rid = await extract_ingest_resource_id(request)
+        assert rid == "collection:foo"
+        resolver.assert_awaited_once_with(request, "foo")
+
+    async def test_delete_collection_resolver_raises_still_returns_collection_id(self):
+        """Resolver failures are swallowed by shared helper; resource id unchanged."""
+        resolver = AsyncMock(side_effect=RuntimeError("db unavailable"))
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/foo"
+        request.method = "DELETE"
+        request.state = SimpleNamespace()
+        request.app = SimpleNamespace(
+            state=SimpleNamespace(collection_tenant_resolver=resolver)
+        )
+
+        assert await extract_ingest_resource_id(request) == "collection:foo"
+
+    async def test_delete_collection_magicmock_state_resolver_still_works(self):
+        """Resolver runs even when request.state is a MagicMock (no real tenant)."""
+        resolver = AsyncMock(return_value="tenant-a")
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/bar"
+        request.method = "DELETE"
+        request.state = MagicMock()
+        request.app = SimpleNamespace(
+            state=SimpleNamespace(collection_tenant_resolver=resolver)
+        )
+
+        assert await extract_ingest_resource_id(request) == "collection:bar"
+        resolver.assert_awaited_once_with(request, "bar")

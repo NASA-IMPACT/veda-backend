@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import src.dependencies as dependencies
 import src.schemas as schemas
@@ -42,6 +43,16 @@ app = FastAPI(
 
 collection_publisher = CollectionPublisher()
 item_publisher = ItemPublisher()
+
+
+async def collection_tenant_resolver(
+    _request: Request, collection_id: str
+) -> Optional[str]:
+    """Resolve tenant from the collection record in PgSTAC"""
+    return collection_publisher.get_collection_tenant(collection_id)
+
+
+app.state.collection_tenant_resolver = collection_tenant_resolver
 
 
 @app.get(

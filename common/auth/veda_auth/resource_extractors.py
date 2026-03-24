@@ -208,6 +208,14 @@ async def extract_ingest_resource_id(request: Request) -> Optional[str]:
     match = re.match(r".*?/collections/([^/]+)$", path)
     if match and method == "DELETE":
         collection_id = match.group(1)
+        resolved_tenant = await _collection_tenant_for_item(request, collection_id)
+        if resolved_tenant:
+            logger.debug(
+                "Ingest DELETE /collections/%s: resolved tenant=%s (resource_id remains collection:%s)",
+                collection_id,
+                resolved_tenant,
+                collection_id,
+            )
         return f"collection:{collection_id}"
 
     return None
