@@ -30,6 +30,10 @@ class Settings(BaseSettings):
         None,
         description="Name or ARN of the AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret. Use a full ARN for cross-account access.",
     )
+    tenant_filter_field: str = Field(
+        "eic:tenant",
+        description="Collection field name used to resolve tenant ownership."
+    )
 
 
 settings = Settings()

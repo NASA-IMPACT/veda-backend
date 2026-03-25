@@ -3,6 +3,7 @@ import os
 from typing import Any, Dict, Optional
 
 from pypgstac.db import PgstacDB
+from src.config import settings
 from src.schemas import DashboardCollection
 from src.utils import IngestionType, get_db_credentials, load_into_pgstac
 from src.vedaloader import VEDALoader
@@ -36,7 +37,7 @@ class CollectionPublisher:
 
     def get_collection_tenant(self, collection_id: str) -> Optional[str]:
         """Return tenant field from collection JSON in PgSTAC, or None if not found"""
-        tenant_field = os.getenv("VEDA_TENANT_FILTER_FIELD", "eic:tenant")
+        tenant_field = settings.tenant_filter_field
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
         try:
             with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
