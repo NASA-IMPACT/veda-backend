@@ -88,6 +88,7 @@ async def _collection_tenant_for_item(
             "Failed to resolve collection tenant for item ops %s: %s",
             collection_id,
             e,
+            exc_info=True,
         )
         return None
 
