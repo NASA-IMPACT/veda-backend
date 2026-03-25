@@ -62,36 +62,34 @@ class CollectionPublisher:
             collection_id,
             type(collection_content).__name__,
         )
-        content_dict: Optional[Dict[str, Any]] = None
-        if isinstance(collection_content, tuple) and collection_content:
-            content_dict = collection_content[0]
-        elif isinstance(collection_content, dict):
-            content_dict = collection_content
-        logger.info(
-            "collection_content normalized for %s: normalized_is_dict=%s tenant_field_present=%s",
-            collection_id,
-            isinstance(content_dict, dict),
-            isinstance(content_dict, dict) and tenant_field in content_dict,
-        )
-        if isinstance(content_dict, dict):
-            tenant_value = content_dict.get(tenant_field)
-            if tenant_value:
-                logger.info(
-                    "Resolved tenant for collection %s: tenant_field=%s tenant=%s source=content(canonical)",
-                    collection_id,
-                    tenant_field,
-                    tenant_value,
-                )
-                return str(tenant_value)
+        content_dict = collection_content
+        if not isinstance(content_dict, dict):
             logger.info(
-                "Collection %s has no value for tenant_field=%s in content",
+                "Collection %s content payload is not a dict during tenant lookup",
                 collection_id,
-                tenant_field,
             )
             return None
+
         logger.info(
-            "Collection %s content payload is not a dict during tenant lookup",
+            "collection_content tenant_field_present for %s: tenant_field_present=%s",
             collection_id,
+            tenant_field in content_dict,
+        )
+
+        tenant_value = content_dict.get(tenant_field)
+        if tenant_value:
+            logger.info(
+                "Resolved tenant for collection %s: tenant_field=%s tenant=%s source=content(canonical)",
+                collection_id,
+                tenant_field,
+                tenant_value,
+            )
+            return str(tenant_value)
+
+        logger.info(
+            "Collection %s has no value for tenant_field=%s in content",
+            collection_id,
+            tenant_field,
         )
         return None
 
