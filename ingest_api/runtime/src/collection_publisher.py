@@ -49,6 +49,10 @@ class CollectionPublisher:
                 loader = VEDALoader(db=db)
                 base_item: Dict[str, Any]
                 base_item, _, _ = loader.collection_json(collection_id)
+                collection_content = db.query_one(
+                    "SELECT content FROM collections WHERE id=%s",
+                    (collection_id,),
+                )
         except Exception:
             logger.warning(
                 "Could not load collection %s for tenant lookup (tenant_field=%s)",
@@ -61,22 +65,41 @@ class CollectionPublisher:
                 "Collection %s payload is not a dict during tenant lookup",
                 collection_id,
             )
-            return None
+            base_item = {}
         val = base_item.get(tenant_field)
+        if val:
+            logger.info(
+                "Resolved tenant for collection %s: tenant_field=%s tenant=%s source=base_item",
+                collection_id,
+                tenant_field,
+                val,
+            )
+            return str(val)
+
+        content_dict = None
+        if isinstance(collection_content, tuple) and collection_content:
+            content_dict = collection_content[0]
+        elif isinstance(collection_content, dict):
+            content_dict = collection_content
+        if isinstance(content_dict, dict):
+            val = content_dict.get(tenant_field)
+            if val:
+                logger.info(
+                    "Resolved tenant for collection %s: tenant_field=%s tenant=%s source=content",
+                    collection_id,
+                    tenant_field,
+                    val,
+                )
+                return str(val)
+
         if not val:
             logger.debug(
-                "Collection %s has no value for tenant_field=%s",
+                "Collection %s has no value for tenant_field=%s in base_item/content",
                 collection_id,
                 tenant_field,
             )
             return None
-        logger.info(
-            "Resolved tenant for collection %s: tenant_field=%s tenant=%s",
-            collection_id,
-            tenant_field,
-            val,
-        )
-        return str(val) if val else None
+        return str(val)
 
 
 class ItemPublisher:

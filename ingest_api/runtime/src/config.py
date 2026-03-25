@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     )
     tenant_filter_field: str = Field(
         "eic:tenant",
+        validation_alias="VEDA_TENANT_FILTER_FIELD",
         description="Collection field name used to resolve tenant ownership.",
     )
 
