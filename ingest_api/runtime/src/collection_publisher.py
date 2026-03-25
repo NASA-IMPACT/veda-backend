@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from pypgstac.db import PgstacDB
 from src.config import settings
