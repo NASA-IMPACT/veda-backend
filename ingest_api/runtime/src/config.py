@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     )
     tenant_filter_field: str = Field(
         "eic:tenant",
-        description="Collection field name used to resolve tenant ownership."
+        description="Collection field name used to resolve tenant ownership.",
     )
 
 
