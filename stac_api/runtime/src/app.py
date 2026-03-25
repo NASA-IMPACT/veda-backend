@@ -56,6 +56,7 @@ async def lifespan(app: FastAPI):
         postgres_settings=api_settings.postgres_settings,
         add_write_connection_pool=True,
     )
+
     yield
     await close_db_connection(app)
 
@@ -179,13 +180,14 @@ if (
         "PEP middleware enabled, secret_name=%s",
         api_settings.keycloak_uma_resource_server_client_secret_name,
     )
-    from veda_auth.pep_middleware import PEPMiddleware
+    from veda_auth.pep_middleware import STAC_PROTECTED_ROUTES, PEPMiddleware
     from veda_auth.resource_extractors import extract_stac_resource_id
 
     app.add_middleware(
         PEPMiddleware,
         pdp_client=_get_keycloak_pdp_client,
         resource_extractor=extract_stac_resource_id,
+        protected_routes=STAC_PROTECTED_ROUTES,
     )
 else:
     logger.info(
@@ -221,8 +223,9 @@ async def viewer_page(request: Request):
     """Search viewer."""
     path = api_settings.root_path or ""
     return templates.TemplateResponse(
+        request,
         "stac-viewer.html",
-        {"request": request, "endpoint": str(request.url).replace("/index.html", path)},
+        {"endpoint": str(request.url).replace("/index.html", path)},
         media_type="text/html",
     )
 

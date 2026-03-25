@@ -5,7 +5,7 @@ RUN dnf install -y gcc-c++
 WORKDIR /tmp
 
 COPY raster_api/runtime /tmp/raster
-RUN pip install mangum /tmp/raster["psycopg-binary"] -t /asset --no-binary pydantic
+RUN pip install "mangum<=0.19" /tmp/raster["psycopg-binary"] -t /asset --no-binary pydantic
 RUN rm -rf /tmp/raster
 RUN cp /usr/lib64/libexpat.so.1 /asset/
 
