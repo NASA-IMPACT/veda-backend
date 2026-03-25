@@ -198,7 +198,9 @@ This section summarizes how the resource extractor functions in `veda_auth.resou
 | Path pattern          | Method | Resource      | Tenant source for resource ID                          | Resource ID returned (shape)            | Notes                                                                                   |
 |------------------------------------|--------|---------------------------|--------------------------------------------------------|-----------------------------------------|-----------------------------------------------------------------------------------------|
 | `/collections`                     | `POST` | Create collection request | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | Uses the same body-based extraction helper as the STAC collection write case.           |
-| `/collections/{collection_id}`     | `DELETE` | Delete collection        | _none_ (no tenant used)                                | `collection:{collection_id}`           | Ingest delete uses an ID-scoped resource (`collection:{id}`) without tenant component. Tenant-aware deletes will be handled in Phase 2. |
+| `/collections/{collection_id}`     | `DELETE` | Delete collection        | `collection_tenant_resolver`, else URL tenant, else public | `stac:collection:{tenant}:*` or public | Same Keycloak resource shape as STAC; Ingest PEP uses `INGEST_PROTECTED_ROUTES` (POST + DELETE). |
+
+The Ingest app passes `protected_routes=INGEST_PROTECTED_ROUTES` to `PEPMiddleware` so **POST** `/collections` and **DELETE** `/collections/{collection_id}` both invoke UMA (`extract_ingest_resource_id`).
 
 ### See Also
 
