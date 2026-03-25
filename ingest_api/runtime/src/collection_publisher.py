@@ -46,9 +46,6 @@ class CollectionPublisher:
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
         try:
             with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
-                loader = VEDALoader(db=db)
-                base_item: Dict[str, Any]
-                base_item, _, _ = loader.collection_json(collection_id)
                 collection_content = db.query_one(
                     "SELECT content FROM collections WHERE id=%s",
                     (collection_id,),
@@ -60,46 +57,43 @@ class CollectionPublisher:
                 tenant_field,
             )
             return None
-        if not isinstance(base_item, dict):
-            logger.debug(
-                "Collection %s payload is not a dict during tenant lookup",
-                collection_id,
-            )
-            base_item = {}
-        val = base_item.get(tenant_field)
-        if val:
-            logger.info(
-                "Resolved tenant for collection %s: tenant_field=%s tenant=%s source=base_item",
-                collection_id,
-                tenant_field,
-                val,
-            )
-            return str(val)
-
-        content_dict = None
+        logger.debug(
+            "collection_content shape for %s is collection_content_type=%s",
+            collection_id,
+            type(collection_content).__name__,
+        )
+        content_dict: Optional[Dict[str, Any]] = None
         if isinstance(collection_content, tuple) and collection_content:
             content_dict = collection_content[0]
         elif isinstance(collection_content, dict):
             content_dict = collection_content
+        logger.debug(
+            "collection_content normalized for %s: normalized_is_dict=%s tenant_field_present=%s",
+            collection_id,
+            isinstance(content_dict, dict),
+            isinstance(content_dict, dict) and tenant_field in content_dict,
+        )
         if isinstance(content_dict, dict):
-            val = content_dict.get(tenant_field)
-            if val:
+            tenant_value = content_dict.get(tenant_field)
+            if tenant_value:
                 logger.info(
-                    "Resolved tenant for collection %s: tenant_field=%s tenant=%s source=content",
+                    "Resolved tenant for collection %s: tenant_field=%s tenant=%s source=content(canonical)",
                     collection_id,
                     tenant_field,
-                    val,
+                    tenant_value,
                 )
-                return str(val)
-
-        if not val:
+                return str(tenant_value)
             logger.debug(
-                "Collection %s has no value for tenant_field=%s in base_item/content",
+                "Collection %s has no value for tenant_field=%s in content",
                 collection_id,
                 tenant_field,
             )
             return None
-        return str(val)
+        logger.debug(
+            "Collection %s content payload is not a dict during tenant lookup",
+            collection_id,
+        )
+        return None
 
 
 class ItemPublisher:
