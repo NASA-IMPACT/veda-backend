@@ -304,8 +304,8 @@ class TestExtractStacResourceId:
 class TestExtractIngestResourceId:
     """Test Ingest API resource ID extraction"""
 
-    async def test_delete_collection_returns_collection_id(self):
-        """DELETE /collections/{id} should return collection-specific resource ID"""
+    async def test_delete_collection_falls_back_to_url_tenant_without_resolver(self):
+        """DELETE with no resolver uses request.state.tenant when tenant-prefixed path set it"""
         request = MagicMock(spec=Request)
         request.url.path = "/collections/test-collection"
         request.method = "DELETE"
@@ -313,20 +313,35 @@ class TestExtractIngestResourceId:
         request.app = SimpleNamespace(state=SimpleNamespace())
 
         resource_id = await extract_ingest_resource_id(request)
-        assert resource_id == "collection:test-collection"
+        assert resource_id == STAC_COLLECTION_TEMPLATE.format("test-tenant")
 
-    async def test_delete_collection_without_resolver_still_returns_collection_id(self):
-        """DELETE without collection_tenant_resolver on app state returns collection:{id}."""
+    async def test_delete_collection_without_resolver_or_url_tenant_is_public(self):
+        """DELETE with no resolver and no state.tenant uses stac:collection:public:*"""
         request = MagicMock(spec=Request)
         request.url.path = "/collections/foo"
         request.method = "DELETE"
         request.state = SimpleNamespace()
         request.app = SimpleNamespace(state=SimpleNamespace())
 
-        assert await extract_ingest_resource_id(request) == "collection:foo"
+        assert await extract_ingest_resource_id(request) == STAC_COLLECTION_PUBLIC
 
-    async def test_delete_collection_invokes_resolver_resource_id_unchanged(self):
-        """When resolver is set, it is awaited; resource id stays collection:{id} (phase 1)."""
+    async def test_delete_collection_resolver_none_falls_back_to_url_tenant(self):
+        """When resolver returns None, use request.state.tenant if set (tenant-prefixed paths)"""
+        resolver = AsyncMock(return_value=None)
+        request = MagicMock(spec=Request)
+        request.url.path = "/collections/my-col"
+        request.method = "DELETE"
+        request.state = SimpleNamespace(tenant="url-tenant")
+        request.app = SimpleNamespace(
+            state=SimpleNamespace(collection_tenant_resolver=resolver)
+        )
+
+        assert await extract_ingest_resource_id(
+            request
+        ) == STAC_COLLECTION_TEMPLATE.format("url-tenant")
+
+    async def test_delete_collection_uses_resolver_tenant(self):
+        """DELETE uses resolved tenant (from database lookup) for Keycloak resource ID"""
         resolver = AsyncMock(return_value="veda")
         request = MagicMock(spec=Request)
         request.url.path = "/collections/foo"
@@ -337,11 +352,11 @@ class TestExtractIngestResourceId:
         )
 
         rid = await extract_ingest_resource_id(request)
-        assert rid == "collection:foo"
+        assert rid == STAC_COLLECTION_TEMPLATE.format("veda")
         resolver.assert_awaited_once_with(request, "foo")
 
-    async def test_delete_collection_resolver_raises_still_returns_collection_id(self):
-        """Resolver failures are swallowed by shared helper; resource id unchanged."""
+    async def test_delete_collection_resolver_raises_falls_back_to_public(self):
+        """Resolver failures fall back to _stac_collection_resource_id (public if no URL tenant)"""
         resolver = AsyncMock(side_effect=RuntimeError("db unavailable"))
         request = MagicMock(spec=Request)
         request.url.path = "/collections/foo"
@@ -351,7 +366,7 @@ class TestExtractIngestResourceId:
             state=SimpleNamespace(collection_tenant_resolver=resolver)
         )
 
-        assert await extract_ingest_resource_id(request) == "collection:foo"
+        assert await extract_ingest_resource_id(request) == STAC_COLLECTION_PUBLIC
 
     async def test_delete_collection_magicmock_state_resolver_still_works(self):
         """Resolver runs even when request.state is a MagicMock (no real tenant)."""
@@ -364,5 +379,7 @@ class TestExtractIngestResourceId:
             state=SimpleNamespace(collection_tenant_resolver=resolver)
         )
 
-        assert await extract_ingest_resource_id(request) == "collection:bar"
+        assert await extract_ingest_resource_id(
+            request
+        ) == STAC_COLLECTION_TEMPLATE.format("tenant-a")
         resolver.assert_awaited_once_with(request, "bar")
