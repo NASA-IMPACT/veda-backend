@@ -70,9 +70,19 @@ async def _collection_tenant_for_item(
     """Resolve collection tenant for item operations"""
     resolver = _get_collection_tenant_resolver(request)
     if not resolver:
+        logger.debug(
+            "No collection_tenant_resolver configured on app.state for collection %s",
+            collection_id,
+        )
         return None
     try:
-        return await resolver(request, collection_id)
+        tenant = await resolver(request, collection_id)
+        if not tenant:
+            logger.debug(
+                "collection_tenant_resolver returned no tenant for collection %s",
+                collection_id,
+            )
+        return tenant
     except Exception as e:
         logger.warning(
             "Failed to resolve collection tenant for item ops %s: %s",
@@ -225,6 +235,13 @@ async def extract_ingest_resource_id(request: Request) -> Optional[str]:
                 resource_id,
             )
             return resource_id
-        return _stac_collection_resource_id(request)
+        fallback_resource_id = _stac_collection_resource_id(request)
+        logger.info(
+            "Ingest DELETE /collections/%s: falling back to resource_id=%s (resolver_none_or_missing), path=%s",
+            collection_id,
+            fallback_resource_id,
+            path,
+        )
+        return fallback_resource_id
 
     return None

@@ -38,6 +38,11 @@ class CollectionPublisher:
     def get_collection_tenant(self, collection_id: str) -> Optional[str]:
         """Return tenant field from collection JSON in PgSTAC, or None if not found"""
         tenant_field = settings.tenant_filter_field
+        logger.debug(
+            "Resolving tenant for collection %s using tenant_field=%s",
+            collection_id,
+            tenant_field,
+        )
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
         try:
             with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
@@ -45,14 +50,32 @@ class CollectionPublisher:
                 base_item: Dict[str, Any]
                 base_item, _, _ = loader.collection_json(collection_id)
         except Exception:
-            logger.debug(
-                "Could not load collection %s for tenant lookup",
+            logger.warning(
+                "Could not load collection %s for tenant lookup (tenant_field=%s)",
                 collection_id,
+                tenant_field,
             )
             return None
         if not isinstance(base_item, dict):
+            logger.debug(
+                "Collection %s payload is not a dict during tenant lookup",
+                collection_id,
+            )
             return None
         val = base_item.get(tenant_field)
+        if not val:
+            logger.debug(
+                "Collection %s has no value for tenant_field=%s",
+                collection_id,
+                tenant_field,
+            )
+            return None
+        logger.info(
+            "Resolved tenant for collection %s: tenant_field=%s tenant=%s",
+            collection_id,
+            tenant_field,
+            val,
+        )
         return str(val) if val else None
 
 
