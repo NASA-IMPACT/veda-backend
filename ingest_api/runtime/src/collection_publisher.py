@@ -38,11 +38,6 @@ class CollectionPublisher:
     def get_collection_tenant(self, collection_id: str) -> Optional[str]:
         """Return tenant field from collection JSON in PgSTAC, or None if not found"""
         tenant_field = settings.tenant_filter_field
-        logger.info(
-            "Resolving tenant for collection %s using tenant_field=%s",
-            collection_id,
-            tenant_field,
-        )
         creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
         try:
             with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
@@ -57,11 +52,6 @@ class CollectionPublisher:
                 tenant_field,
             )
             return None
-        logger.info(
-            "collection_content shape for %s is collection_content_type=%s",
-            collection_id,
-            type(collection_content).__name__,
-        )
         content_dict = collection_content
         if not isinstance(content_dict, dict):
             logger.info(
@@ -79,7 +69,7 @@ class CollectionPublisher:
         tenant_value = content_dict.get(tenant_field)
         if tenant_value:
             logger.info(
-                "Resolved tenant for collection %s: tenant_field=%s tenant=%s source=content(canonical)",
+                "Resolved tenant for collection %s: tenant_field=%s tenant=%s",
                 collection_id,
                 tenant_field,
                 tenant_value,
