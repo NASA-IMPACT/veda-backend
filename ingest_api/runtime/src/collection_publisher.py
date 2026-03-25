@@ -38,7 +38,7 @@ class CollectionPublisher:
     def get_collection_tenant(self, collection_id: str) -> Optional[str]:
         """Return tenant field from collection JSON in PgSTAC, or None if not found"""
         tenant_field = settings.tenant_filter_field
-        logger.debug(
+        logger.info(
             "Resolving tenant for collection %s using tenant_field=%s",
             collection_id,
             tenant_field,
@@ -57,7 +57,7 @@ class CollectionPublisher:
                 tenant_field,
             )
             return None
-        logger.debug(
+        logger.info(
             "collection_content shape for %s is collection_content_type=%s",
             collection_id,
             type(collection_content).__name__,
@@ -67,7 +67,7 @@ class CollectionPublisher:
             content_dict = collection_content[0]
         elif isinstance(collection_content, dict):
             content_dict = collection_content
-        logger.debug(
+        logger.info(
             "collection_content normalized for %s: normalized_is_dict=%s tenant_field_present=%s",
             collection_id,
             isinstance(content_dict, dict),
@@ -83,13 +83,13 @@ class CollectionPublisher:
                     tenant_value,
                 )
                 return str(tenant_value)
-            logger.debug(
+            logger.info(
                 "Collection %s has no value for tenant_field=%s in content",
                 collection_id,
                 tenant_field,
             )
             return None
-        logger.debug(
+        logger.info(
             "Collection %s content payload is not a dict during tenant lookup",
             collection_id,
         )
