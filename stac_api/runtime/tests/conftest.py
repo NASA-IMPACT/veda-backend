@@ -512,3 +512,19 @@ def valid_stac_collection_multi_cog_asset_renders_with_dashboard(
     coll = copy.deepcopy(valid_stac_collection_multi_cog_asset_renders)
     coll["renders"]["dashboard"] = {"nodata": -9999, "assets": ["burnRatio"]}
     return coll
+
+
+@pytest.fixture
+def valid_stac_collection_renders_with_tiler_url(
+    valid_stac_collection_multi_cog_asset_renders,
+):
+    """
+    Fixture providing a valid STAC feature collection with renders configuration
+    that includes an optional 'tiler_url' override attribute.
+
+    Returns:
+        dict: A valid STAC collection with renders configuration including tiler_url.
+    """
+    coll = copy.deepcopy(valid_stac_collection_multi_cog_asset_renders)
+    coll["renders"]["tiler_url"] = "https://custom-tiler.example.com"
+    return coll

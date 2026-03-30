@@ -1,6 +1,6 @@
 """A module for injecting links to STAC entries"""
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from urllib.parse import urljoin
 
 import pystac
@@ -34,6 +34,7 @@ class LinkInjector:
         render_key: str,
         render_params: Dict[str, Any],
         request: Request,
+        tiler_override: Optional[str] = None,
     ) -> None:
         """Initialize a LinkInjector"""
 
@@ -42,7 +43,7 @@ class LinkInjector:
         self.collection_id = collection_id
         self.render_key = render_key
         self.render_config = get_render_config(render_params)
-        self.tiler_href = tiles_settings.titiler_endpoint or ""
+        self.tiler_href = tiler_override or tiles_settings.titiler_endpoint or ""
 
     def inject_item(self, item: Item) -> None:
         """Inject rendering links to an item"""
