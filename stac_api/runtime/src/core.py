@@ -1,6 +1,6 @@
 """CoreCrudClient extensions for the VEDA STAC API."""
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Union
 
 from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
@@ -21,15 +21,14 @@ class VedaCrudClient(CoreCrudClient):
         render_key: str,
         render_params: Dict[str, Any],
         request: Request,
-        tiler_override: Optional[str] = None,
     ) -> Item:
         """Add extra/non-mandatory links to an Item"""
         collection_id = item.get("collection", "")
 
         if collection_id:
-            LinkInjector(
-                collection_id, render_key, render_params, request, tiler_override
-            ).inject_item(item)
+            LinkInjector(collection_id, render_key, render_params, request).inject_item(
+                item
+            )
 
         return item
 
@@ -59,15 +58,12 @@ class VedaCrudClient(CoreCrudClient):
 
                 render_params = collection.get("renders", {})
                 if len(render_params):
-                    tiler_override = render_params.get("tiler_url")
                     for key, value in render_params.items():
                         item_collection = ItemCollection(
                             **{
                                 **result,
                                 "features": [
-                                    self.inject_item_links(
-                                        i, key, value, request, tiler_override
-                                    )
+                                    self.inject_item_links(i, key, value, request)
                                     for i in result.get("features", [])
                                 ],
                             }

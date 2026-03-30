@@ -526,5 +526,6 @@ def valid_stac_collection_renders_with_tiler_url(
         dict: A valid STAC collection with renders configuration including tiler_url.
     """
     coll = copy.deepcopy(valid_stac_collection_multi_cog_asset_renders)
-    coll["renders"]["tiler_url"] = "https://custom-tiler.example.com"
+    for render_config in coll["renders"].values():
+        render_config["tiler_url"] = "https://custom-tiler.example.com"
     return coll
