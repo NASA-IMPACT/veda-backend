@@ -155,10 +155,8 @@ async def _extract_collection_stac_resource_id(
     return None
 
 
-async def _extract_item_stac_resource_id(
-    request: Request, path: str, method: str
-) -> Optional[str]:
-    """Extract resource ID for item endpoints, or None if not an item path"""
+async def _extract_item_stac_resource_id(request: Request, path: str) -> Optional[str]:
+    """Extract resource ID for item endpoints based on path, or None"""
     if _COLLECTIONS_ITEM_PATH_PATTERN.match(path):
         # For single item operations, prefer collection tenant when available
         match = _COLLECTIONS_ITEM_PATH_PATTERN.match(path)
@@ -169,24 +167,15 @@ async def _extract_item_stac_resource_id(
                 return STAC_ITEM_TEMPLATE.format(tenant)
         return _stac_item_resource_id(request)
 
-    if _COLLECTIONS_ITEMS_PATH_PATTERN.match(path):
-        # use collection tenant when available, otherwise collection/public
-        match = _COLLECTIONS_ITEMS_PATH_PATTERN.match(path)
-        collection_id = match.group(1) if match else None
-        if collection_id:
-            tenant = await _collection_tenant_for_item(request, collection_id)
+    for pattern in (
+        _COLLECTIONS_ITEMS_PATH_PATTERN,
+        _COLLECTIONS_BULK_ITEMS_PATH_PATTERN,
+    ):
+        if match := pattern.match(path):
+            tenant = await _collection_tenant_for_item(request, match.group(1))
             if tenant:
                 return STAC_ITEM_TEMPLATE.format(tenant)
-        return _stac_collection_resource_id(request)
-
-    if _COLLECTIONS_BULK_ITEMS_PATH_PATTERN.match(path):
-        match = _COLLECTIONS_BULK_ITEMS_PATH_PATTERN.match(path)
-        collection_id = match.group(1) if match else None
-        if collection_id:
-            tenant = await _collection_tenant_for_item(request, collection_id)
-            if tenant:
-                return STAC_ITEM_TEMPLATE.format(tenant)
-        return _stac_collection_resource_id(request)
+            return _stac_collection_resource_id(request)
 
     return None
 
@@ -205,7 +194,7 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
     if collection_id is not None:
         return collection_id
 
-    item_id = await _extract_item_stac_resource_id(request, path, method)
+    item_id = await _extract_item_stac_resource_id(request, path)
     if item_id is not None:
         return item_id
 
