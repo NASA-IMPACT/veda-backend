@@ -3,7 +3,7 @@ import src.schemas as schemas
 import src.services as services
 from aws_lambda_powertools.metrics import MetricUnit
 from src.auth import auth_settings, get_username, oidc_auth
-from src.collection_publisher import CollectionPublisher, ItemPublisher
+from src.collection_publisher import CollectionPublisher
 from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
@@ -33,7 +33,6 @@ app = FastAPI(
 )
 
 collection_publisher = CollectionPublisher()
-item_publisher = ItemPublisher()
 
 
 @app.get(
@@ -182,29 +181,6 @@ def delete_collection(collection_id: str):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=400, detail=(f"{e}"))
-
-
-@app.post(
-    "/items",
-    tags=["Items"],
-    status_code=201,
-    dependencies=[
-        Security(oidc_auth.valid_token_dependency, scopes="stac:item:create")
-    ],
-)
-def publish_item(item: schemas.Item):
-    """
-    Publish an item to the STAC database.
-    """
-    # pgstac create item
-    try:
-        item_publisher.ingest(item)
-        return {f"Successfully published: {item.id}"}
-    except Exception as e:
-        raise HTTPException(
-            status_code=400,
-            detail=(f"Unable to publish item: {e}"),
-        )
 
 
 @app.get("/auth/me", tags=["Auth"])
