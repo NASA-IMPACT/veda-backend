@@ -23,7 +23,7 @@ jobs:
           with:
             fetch-depth: 0
         - name: Python Semantic Release
-          uses: python-semantic-release/python-semantic-release@26bb37cfab71a5a372e3db0f48a6eac57519a4a6 #v9.21.0
+          uses: python-semantic-release/python-semantic-release@26bb37cfab71a5a372e3db0f48a6eac57519a4a6 # v9.21.0
           with:
             changelog: "false"
             github_token: ${{ secrets.GITHUB_TOKEN }}
