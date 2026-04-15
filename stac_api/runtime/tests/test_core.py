@@ -154,3 +154,49 @@ class TestSearchBase:
         ]
         # Check that all expected render previews are generated for all assets in render config
         assert assets_keys == expected_render_assets
+
+    async def test_tiler_url_override_in_renders(
+        self, valid_stac_collection_renders_with_tiler_url
+    ):
+        """When 'tiler_url' is present in renders config, uses instead of the default titiler_endpoint."""
+        client = self.client
+        search_request = self.search_request
+        request = self.request
+
+        custom_tiler_url = "https://custom-tiler.example.com"
+        default_tiler_url = "https://default-titiler.example.com"
+
+        with patch.object(
+            CoreCrudClient, "_search_base", new_callable=AsyncMock
+        ) as mock_super_search, patch.object(
+            CoreCrudClient, "get_collection", new_callable=AsyncMock
+        ) as mock_get_collection, patch(
+            "src.links.tiles_settings.titiler_endpoint",
+            new=default_tiler_url,
+        ):
+            mock_super_search.return_value = (
+                valid_stac_collection_renders_with_tiler_url
+            )
+            mock_get_collection.return_value = (
+                valid_stac_collection_renders_with_tiler_url
+            )
+
+            returned = await client._search_base(search_request, request=request)
+
+        assert "features" in returned
+        feature = returned["features"][0]
+
+        links = feature["links"]
+        assets = feature["assets"]
+
+        # All generated hrefs should use the custom tiler_url, not the default endpoint
+        for link in links:
+            assert link["href"].startswith(
+                custom_tiler_url
+            ), f"Expected link href to use tiler_url ({custom_tiler_url}), got: {link['href']}"
+
+        rendered_preview_keys = [k for k in assets if k.startswith("rendered_preview_")]
+        for key in rendered_preview_keys:
+            assert assets[key]["href"].startswith(
+                custom_tiler_url
+            ), f"Expected preview href to use tiler_url ({custom_tiler_url}), got: {assets[key]['href']}"

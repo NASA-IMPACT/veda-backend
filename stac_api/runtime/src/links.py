@@ -42,7 +42,9 @@ class LinkInjector:
         self.collection_id = collection_id
         self.render_key = render_key
         self.render_config = get_render_config(render_params)
-        self.tiler_href = tiles_settings.titiler_endpoint or ""
+        self.tiler_href = (
+            render_params.get("tiler_url") or tiles_settings.titiler_endpoint or ""
+        )
 
     def inject_item(self, item: Item) -> None:
         """Inject rendering links to an item"""
