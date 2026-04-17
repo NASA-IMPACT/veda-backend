@@ -104,7 +104,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e4 #v4.3.0
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Configure awscli
         uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 #v4.1.0
