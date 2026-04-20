@@ -81,7 +81,7 @@ These can be installed with [homebrew](https://brew.sh/) on MacOS
 brew install node
 brew install nvm # Make sure to add nvm to your path
 brew install jq
-nvm install 20 # .github/workflows/pr.yml uses node version 20
+nvm install 22 # .github/workflows/pr.yml uses node version 22
 ```
 
 #### Virtual environment example
@@ -97,7 +97,7 @@ source .venv/bin/activate
 #### Install requirements
 
 ```bash
-nvm use 20
+nvm use 22
 npm install --location=global aws-cdk
 python3 -m pip install --upgrade pip
 python3 -m pip install -e ".[dev,deploy,test]"
