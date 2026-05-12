@@ -1,6 +1,6 @@
 # veda.stac_api
 
-## Enabling Multi-tenant STAC Backend
+## Enabling Multitenant STAC Backend
 
 To enable a multi-tenant STAC backend with transaction support and authentication, the following must be set:
 
@@ -23,7 +23,7 @@ To enable a multi-tenant STAC backend with transaction support and authenticatio
   - `stac:collection:create`, `stac:collection:update`, `stac:collection:delete`
   - `stac:item:create`, `stac:item:update`, `stac:item:delete`
 
-When multi-tenancy is enabled on a STAC catalog, a collection has the option to be added to a tenant in order to be filtered by that tenant value. This also means that a collection does not need to belong to any tenant. It will still be available and retrievable in the STAC catalog.
+When multitenancy is enabled on a STAC catalog, a collection has the option to be added to a tenant in order to be filtered by that tenant value. This also means that a collection does not need to belong to any tenant. It will still be available and retrievable in the STAC catalog.
 
 ### Migrating Existing Data to a Tenant Tagged Catalog
 
@@ -36,3 +36,22 @@ A [migration DAG ](https://github.com/NASA-IMPACT/veda-data-airflow/blob/dev/dag
 **Field Format:**
 
 The `eic:tenant` field should contain a string identifier for the tenant.
+
+## Disabling Multitenancy
+
+Multi-tenancy is composed of two independent layers: **tenant-scoped filtering** and **PEP authorization**. Both require `VEDA_STAC_OPENID_CONFIGURATION_URL` to be set, but each has its own second toggle which can be enabled or disabled independently of each other.
+
+| Layer | What it does | Enabled when |
+| --- | --- | --- |
+| **Tenant-scoped filtering** | Wraps the app with `stac-auth-proxy`, adding `CollectionFilter` / `ItemFilter` and OIDC-protected write endpoints | `VEDA_STAC_OPENID_CONFIGURATION_URL` is set **and** `VEDA_STAC_ENABLE_STAC_AUTH_PROXY=True` |
+| **PEP authorization** | Adds Keycloak UMA middleware that checks per-tenant resource permissions on protected routes | `VEDA_STAC_OPENID_CONFIGURATION_URL` is set **and** `VEDA_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME` is set |
+
+### Turning off each layer individually
+
+**To disable PEP authorization only** (keep tenant filtering if configured):
+
+- Unset `VEDA_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME`. This prevents the Keycloak UMA `PEPMiddleware` from being added. Write endpoints will still require a valid OIDC token (enforced by `stac-auth-proxy`), but there will be no per-tenant resource permission checks.
+
+**To disable transaction (write) endpoints:**
+
+- Set `VEDA_STAC_ENABLE_TRANSACTIONS=False` (or leave unset). This is independent of both layers above and removes the POST/PUT/DELETE routes for collections and items.
