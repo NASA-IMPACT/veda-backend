@@ -47,6 +47,7 @@ def _stac_client_with_root_path(root_path: str) -> TestClient:
 
 
 def test_preserves_trailing_slash_on_stac_root():
+    """Keep root_path/ unchanged"""
     client = _stac_client_with_root_path("/api/stac")
     response = client.get("/api/stac/")
     assert response.status_code == 200
@@ -57,6 +58,7 @@ def test_preserves_trailing_slash_on_stac_root():
 
 
 def test_strips_trailing_slash_on_nested_path():
+    """Normalize trailing slash on non-root paths under root_path"""
     client = _stac_client_with_root_path("/api/stac")
     response = client.get("/api/stac/collections/")
     assert response.status_code == 200
@@ -84,6 +86,7 @@ def test_strips_trailing_slash_when_root_path_empty():
 
 
 def test_extracts_tenant_and_rewrites_path_for_tenant_collections():
+    """Strip tenant segment from path and set request.state.tenant"""
     client = _stac_client_with_root_path("/api/stac")
     response = client.get("/api/stac/veda/collections/")
     assert response.status_code == 200
