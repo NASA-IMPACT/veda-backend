@@ -4,7 +4,7 @@
 
 Tenant-related behavior comes from **several middleware components**. Each row names one component, what it does, and how it is turned on (some are always on; others depend on environment variables).
 
-| Component | Role | Enabled when: |
+| Component | Role | Enabled when |
 | --- | --- | --- |
 | **`TenantExtractionMiddleware`** | Parses tenant URLs such as `{root_path}/{tenant}/collections`, sets `request.state.tenant`, and rewrites `scope["path"]` so routing matches the usual STAC paths. | **Always** (see `app.py`). Independent of `VEDA_STAC_ENABLE_STAC_AUTH_PROXY`. |
 | **`TenantLinksMiddleware`** | For JSON STAC responses, rewrites `links` so clients stay on the tenant-prefixed URL when a tenant is present. | **Always** (see `app.py`). |
@@ -13,7 +13,7 @@ Tenant-related behavior comes from **several middleware components**. Each row n
 
 **How this fits together:**
 
-- **Tenant in the URL** (`/api/stac/veda/collections`, …) is handled by the **two URL-tenant middleware components** in the table so the core STAC app still sees `/api/stac/collections` while `request.state.tenant` is set. That works even when the auth proxy wrapper is **off**.
+- **Tenant in the URL** (`/api/stac/{Tenant=veda}/collections`, …) is handled by the **two URL-tenant middleware components** in the table so the core STAC app still sees `/api/stac/collections` while `request.state.tenant` is set. That works even when the auth proxy wrapper is **off**.
 - **Tenant in collection metadata** (filtering which collections/items appear for a tenant) is driven by the **filters registered through `stac-auth-proxy`** when the proxy is **on**. Turning the proxy off removes that integration; it does **not** remove URL parsing or link rewriting from the tenant middleware.
 - **Transactions** still require `VEDA_STAC_ENABLE_TRANSACTIONS=True` and, per configuration rules, `VEDA_STAC_ENABLE_STAC_AUTH_PROXY=True` when transactions are enabled.
 
@@ -60,12 +60,12 @@ The `eic:tenant` field should contain a string identifier for the tenant.
 
 Multi-tenancy has several parts. The **two optional layers** below (auth-proxy filter integration and PEP) are toggled independently. Both require `VEDA_STAC_OPENID_CONFIGURATION_URL` to be set, plus each layer’s own second flag.
 
-| Layer | What it does | Enabled when |
-| --- | --- | --- |
-| **Tenant-scoped filtering** | Wraps the app with `stac-auth-proxy`: OpenID Connect, registers `CollectionFilter` / `ItemFilter` for tenant-aware list/search, OAuth-scoped write endpoints | `VEDA_STAC_OPENID_CONFIGURATION_URL` is set **and** `VEDA_STAC_ENABLE_STAC_AUTH_PROXY=True` |
-| **PEP authorization** | Adds Keycloak UMA middleware that checks per-tenant resource permissions on protected routes | `VEDA_STAC_OPENID_CONFIGURATION_URL` is set **and** `VEDA_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME` is set |
+| Layer | What it does | Enabled when | Disabled when |
+| --- | --- | --- | --- |
+| **Tenant-scoped filtering** | Wraps the app with `stac-auth-proxy`: OpenID Connect, registers `CollectionFilter` / `ItemFilter` for tenant-aware list/search, OAuth-scoped write endpoints | `VEDA_STAC_OPENID_CONFIGURATION_URL` is set **and** `VEDA_STAC_ENABLE_STAC_AUTH_PROXY=True` | `VEDA_STAC_OPENID_CONFIGURATION_URL` is not set **or** `VEDA_STAC_ENABLE_STAC_AUTH_PROXY=False` |
+| **PEP authorization** | Adds Keycloak UMA middleware that checks per-tenant resource permissions on protected routes | `VEDA_STAC_OPENID_CONFIGURATION_URL` is set **and** `VEDA_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME` is set | `VEDA_STAC_OPENID_CONFIGURATION_URL` is not set **or** `VEDA_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME` is not set |
 
-> **_NOTE:_**  `TenantExtractionMiddleware` and `TenantLinksMiddleware` (URL tenant prefix and JSON link rewriting) are **always** registered. They do not appear in this table because they are not toggled by these env vars; see [Middleware and multitenancy](#middleware-and-multitenancy). When clients only use normal STAC paths (for example `/api/stac/collections` with no extra path segment), tenant extraction is a no-op.
+> **_NOTE:_**  `TenantExtractionMiddleware` and `TenantLinksMiddleware` (URL tenant prefix and JSON link rewriting) are **always** registered. They do not appear in this table because they are not toggled by these env vars; see [Middleware and multitenancy components](#middleware-and-multitenancy-components). When clients only use normal STAC paths (for example `/api/stac/collections` with no extra path segment), tenant extraction is a no-op.
 
 ### Turning off each layer individually
 
