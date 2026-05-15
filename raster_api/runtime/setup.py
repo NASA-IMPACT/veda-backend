@@ -10,15 +10,15 @@ inst_reqs = [
     # highest-tested versions of raster_api dependencies
     "rio-tiler>=7.0,<8.0",
     "titiler.pgstac==1.5.0",
-    # use highest available titiler based on rio-tiler and titiler-pgstac pins (not 2.0 yet though)
+    # use highest available titiler based on rio-tiler and titiler-pgstac pins
     "titiler.core<0.20",
-    "titiler.mosaic<0.20",
-    "titiler.extensions[cogeo]<0.20",
+    "titiler.mosaic",
+    "titiler.extensions[cogeo]",
     "starlette-cramjam>=0.3,<0.4",
     # based on AWS observability requirements
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
-    "python-multipart==0.0.7",
+    "python-multipart>=0.0.27,<0.1",
 ]
 
 extra_reqs = {
