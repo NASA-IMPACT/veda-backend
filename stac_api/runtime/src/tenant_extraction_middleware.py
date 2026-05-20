@@ -50,10 +50,14 @@ class TenantExtractionMiddleware:
         root_path = scope.get("root_path", "")
 
         original_path = scope["path"]
-        if original_path.endswith("/") and original_path not in [
-            "/",
-            root_path,
-        ]:
+        paths_keep_trailing_slash = {"/", root_path}
+        if root_path and not root_path.endswith("/"):
+            paths_keep_trailing_slash.add(f"{root_path}/")
+
+        if (
+            original_path.endswith("/")
+            and original_path not in paths_keep_trailing_slash
+        ):
             logger.debug(f"{original_path=}")
             scope["path"] = original_path.rstrip("/")
             logger.debug(f"Removed trailing slash so now path is {scope['path']}")
