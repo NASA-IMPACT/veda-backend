@@ -121,7 +121,7 @@ AUTH_HEADERS = {"Authorization": "Bearer fake-valid-token"}
 
 
 class TestPEPIntegration:
-    """Integration tests for PEP middleware for POST /collections endpoint"""
+    """Integration tests for PEP middleware for STAC collection and item endpoints"""
 
     @pytest.mark.asyncio
     async def test_post_collection_no_token_returns_401(self, pep_client):
@@ -150,6 +150,45 @@ class TestPEPIntegration:
         assert call_kwargs.kwargs.get("access_token") == "fake-valid-token"
         assert call_kwargs.kwargs.get("scope") == "create"
 
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
+
+    @pytest.mark.asyncio
+    async def test_post_item_with_tenant_uses_item_resource(
+        self, pep_client, mock_pdp_client
+    ):
+        """POST /collections/{collection_id}/items with tenant should use item resource ID"""
+        mock_pdp_client.check_permission.return_value = True
+        collection = _collection(tenant="veda")
+
+        # Create a collection with tenant
+        create_collection_response = await pep_client.post(
+            COLLECTIONS_ENDPOINT,
+            json=collection,
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
+        assert create_collection_response.status_code == 201
+
+        item = _item(collection["id"])
+
+        response = await pep_client.post(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items",
+            json=item,
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
+        assert response.status_code in (200, 201)
+
+        calls = mock_pdp_client.check_permission.call_args_list
+        resource_ids = [c.kwargs.get("resource_id") for c in calls]
+        assert "stac:item:veda:*" in resource_ids
+
+        # Cleanup
+        await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}/items/{item['id']}",
+            headers={"Authorization": "Bearer fake-valid-token"},
+        )
         await pep_client.delete(
             f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
             headers={"Authorization": "Bearer fake-valid-token"},
@@ -354,3 +393,27 @@ class TestPEPCollectionUpdateDelete:
         await pep_client.delete(
             f"{COLLECTIONS_ENDPOINT}/{collection['id']}", headers=AUTH_HEADERS
         )
+
+    @pytest.mark.asyncio
+    async def test_delete_collection_uses_resolved_tenant_for_pep_resource_id(
+        self, pep_client, mock_pdp_client
+    ):
+        """DELETE /collections/{id} passes tenant from collection JSON to PDP"""
+        mock_pdp_client.check_permission.return_value = True
+        collection = _collection(tenant="veda")
+        await pep_client.post(
+            COLLECTIONS_ENDPOINT,
+            json=collection,
+            headers=AUTH_HEADERS,
+        )
+        mock_pdp_client.reset_mock()
+
+        response = await pep_client.delete(
+            f"{COLLECTIONS_ENDPOINT}/{collection['id']}",
+            headers=AUTH_HEADERS,
+        )
+        assert response.status_code in (200, 204)
+        mock_pdp_client.check_permission.assert_called_once()
+        call_kwargs = mock_pdp_client.check_permission.call_args.kwargs
+        assert call_kwargs.get("resource_id") == "stac:collection:veda:*"
+        assert call_kwargs.get("scope") == "delete"

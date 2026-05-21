@@ -198,3 +198,51 @@ class TestIngestPEPIntegration:
         assert response.status_code == 404
         assert "does not exist" in response.json()["detail"]
         assert "nonexistent-tenant" in response.json()["detail"]
+
+    def test_delete_collection_no_token_returns_401(self, pep_client):
+        """DELETE /collections/{id} without Bearer is rejected"""
+        response = pep_client.delete(f"{COLLECTIONS_ENDPOINT}/any-id")
+        assert response.status_code == 401
+
+    def test_delete_collection_pep_uses_tenant_resource(
+        self, pep_client, mock_pdp_client
+    ):
+        """DELETE checks PDP for stac:collection:{tenant}:* when collection has a tenant"""
+        mock_pdp_client.check_permission.return_value = True
+        collection_id = "pep-delete-tenant-test"
+
+        with patch(
+            "src.main.collection_publisher.get_collection_tenant",
+            return_value="veda",
+        ), patch("src.main.collection_publisher.delete"):
+            response = pep_client.delete(
+                f"{COLLECTIONS_ENDPOINT}/{collection_id}",
+                headers={"Authorization": "Bearer fake-valid-token"},
+            )
+
+        assert response.status_code == 200
+        mock_pdp_client.check_permission.assert_called_once()
+        kwargs = mock_pdp_client.check_permission.call_args.kwargs
+        assert kwargs.get("resource_id") == "stac:collection:veda:*"
+        assert kwargs.get("scope") == "delete"
+
+    def test_delete_collection_pep_denied_returns_403(
+        self, pep_client, mock_pdp_client
+    ):
+        """DELETE denied by PDP returns 403"""
+        mock_pdp_client.check_permission.side_effect = PermissionDeniedError(
+            resource_id="stac:collection:veda:*", scope="delete"
+        )
+        collection_id = "pep-delete-denied"
+
+        with patch(
+            "src.main.collection_publisher.get_collection_tenant",
+            return_value="veda",
+        ), patch("src.main.collection_publisher.delete"):
+            response = pep_client.delete(
+                f"{COLLECTIONS_ENDPOINT}/{collection_id}",
+                headers={"Authorization": "Bearer fake-valid-token"},
+            )
+
+        assert response.status_code == 403
+        assert "do not have permission" in response.json()["detail"]

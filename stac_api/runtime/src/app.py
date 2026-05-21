@@ -3,6 +3,7 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 """
 
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from aws_lambda_powertools.metrics import MetricUnit
 from src.config import (
@@ -95,6 +96,25 @@ api = StacApi(
     ],
 )
 
+
+async def collection_tenant_resolver(
+    request: Request, collection_id: str
+) -> Optional[str]:
+    """Resolve a collection's tenant from the database for PEP"""
+    try:
+        from stac_fastapi.types.errors import NotFoundError
+
+        collection = await api.client.get_collection(collection_id, request=request)
+        tenant_field = api_settings.tenant_filter_field
+        return collection.get(tenant_field) or None
+    except NotFoundError:
+        return None
+    except Exception:
+        return None
+
+
+api.app.state.collection_tenant_resolver = collection_tenant_resolver
+
 if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy:
     # Use stac-auth-proxy when authentication is enabled, which it will be for production envs
     app = configure_app(
@@ -142,6 +162,8 @@ if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy
 else:
     # Use standard FastAPI app when authentication is disabled
     app = api.app
+
+app.state.collection_tenant_resolver = api.app.state.collection_tenant_resolver
 
 
 def _get_keycloak_pdp_client():
@@ -221,11 +243,10 @@ if tiles_settings.titiler_endpoint:
 @app.get("/index.html", response_class=HTMLResponse)
 async def viewer_page(request: Request):
     """Search viewer."""
-    path = api_settings.root_path or ""
     return templates.TemplateResponse(
         request,
         "stac-viewer.html",
-        {"endpoint": str(request.url).replace("/index.html", path)},
+        {"endpoint": str(request.url).replace("/index.html", "")},
         media_type="text/html",
     )
 

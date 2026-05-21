@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import src.dependencies as dependencies
 import src.schemas as schemas
@@ -11,7 +12,7 @@ from src.doc import DESCRIPTION
 from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
 from src.utils import get_keycloak_client_credentials
 from veda_auth.keycloak_client import KeycloakPDPClient, parse_keycloak_from_openid_url
-from veda_auth.pep_middleware import PEPMiddleware
+from veda_auth.pep_middleware import INGEST_PROTECTED_ROUTES, PEPMiddleware
 from veda_auth.resource_extractors import extract_ingest_resource_id
 
 from fastapi import Depends, FastAPI, HTTPException, Security
@@ -42,6 +43,16 @@ app = FastAPI(
 
 collection_publisher = CollectionPublisher()
 item_publisher = ItemPublisher()
+
+
+async def collection_tenant_resolver(
+    _request: Request, collection_id: str
+) -> Optional[str]:
+    """Resolve tenant from the collection record in PgSTAC"""
+    return collection_publisher.get_collection_tenant(collection_id)
+
+
+app.state.collection_tenant_resolver = collection_tenant_resolver
 
 
 @app.get(
@@ -296,6 +307,7 @@ if (
         PEPMiddleware,
         pdp_client=_get_keycloak_pdp_client,
         resource_extractor=extract_ingest_resource_id,
+        protected_routes=INGEST_PROTECTED_ROUTES,
     )
 else:
     pep_logger.info(

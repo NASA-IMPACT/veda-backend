@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from veda_auth.pep_middleware import (
     DEFAULT_PROTECTED_ROUTES,
+    INGEST_PROTECTED_ROUTES,
     STAC_PROTECTED_ROUTES,
     PEPMiddleware,
 )
@@ -112,3 +113,32 @@ class TestStacProtectedRoutes:
             _request("/api/stac/search", "POST")
         )
         assert result is None
+
+
+class TestIngestProtectedRoutes:
+    """INGEST_PROTECTED_ROUTES (ingest collection POST and DELETE endpoints)"""
+
+    @pytest.fixture
+    def middleware(self):
+        """PEP middleware mock for ingest endpoints"""
+        app = MagicMock()
+        return PEPMiddleware(
+            app,
+            pdp_client=MagicMock(),
+            resource_extractor=MagicMock(),
+            protected_routes=INGEST_PROTECTED_ROUTES,
+        )
+
+    def test_post_collections_matches_create(self, middleware):
+        """POST /collections matches with scope create"""
+        result = middleware._get_matching_scope_and_route(
+            _request("/collections", "POST")
+        )
+        assert result == ("create", "POST")
+
+    def test_delete_collection_matches_delete_scope(self, middleware):
+        """DELETE /collections matches with scope delete"""
+        result = middleware._get_matching_scope_and_route(
+            _request("/collections/my-collection", "DELETE")
+        )
+        assert result == ("delete", "DELETE")

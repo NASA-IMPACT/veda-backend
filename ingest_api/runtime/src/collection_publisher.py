@@ -1,10 +1,15 @@
+import logging
 import os
+from typing import Optional
 
 from pypgstac.db import PgstacDB
+from src.config import settings
 from src.schemas import DashboardCollection
 from src.utils import IngestionType, get_db_credentials, load_into_pgstac
 from src.vedaloader import VEDALoader
 from stac_pydantic import Item
+
+logger = logging.getLogger(__name__)
 
 
 class CollectionPublisher:
@@ -29,6 +34,54 @@ class CollectionPublisher:
         with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
             loader = VEDALoader(db=db)
             loader.delete_collection(collection_id)
+
+    def get_collection_tenant(self, collection_id: str) -> Optional[str]:
+        """Return tenant field from collection JSON in PgSTAC, or None if not found"""
+        tenant_field = settings.tenant_filter_field
+        creds = get_db_credentials(os.environ["DB_SECRET_ARN"])
+        try:
+            with PgstacDB(dsn=creds.dsn_string, debug=True) as db:
+                collection_content = db.query_one(
+                    "SELECT content FROM collections WHERE id=%s",
+                    (collection_id,),
+                )
+        except Exception:
+            logger.warning(
+                "Could not load collection %s for tenant lookup (tenant_field=%s)",
+                collection_id,
+                tenant_field,
+            )
+            return None
+        content_dict = collection_content
+        if not isinstance(content_dict, dict):
+            logger.info(
+                "Collection %s content payload is not a dict during tenant lookup",
+                collection_id,
+            )
+            return None
+
+        logger.info(
+            "collection_content tenant_field_present for %s: tenant_field_present=%s",
+            collection_id,
+            tenant_field in content_dict,
+        )
+
+        tenant_value = content_dict.get(tenant_field)
+        if tenant_value:
+            logger.info(
+                "Resolved tenant for collection %s: tenant_field=%s tenant=%s",
+                collection_id,
+                tenant_field,
+                tenant_value,
+            )
+            return str(tenant_value)
+
+        logger.info(
+            "Collection %s has no value for tenant_field=%s in content",
+            collection_id,
+            tenant_field,
+        )
+        return None
 
 
 class ItemPublisher:

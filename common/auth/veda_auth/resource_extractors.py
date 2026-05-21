@@ -10,7 +10,7 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 from fastapi import HTTPException, Request
 
@@ -28,6 +28,8 @@ COLLECTIONS_ITEM_PATH_RE = r".*?/collections/([^/]+)/items/([^/]+)$"
 COLLECTIONS_ITEMS_PATH_RE = r".*?/collections/([^/]+)/items$"
 COLLECTIONS_BULK_ITEMS_PATH_RE = r".*?/collections/([^/]+)/bulk_items$"
 
+CollectionTenantResolver = Callable[[Request, str], Awaitable[Optional[str]]]
+
 _COLLECTIONS_CREATE_PATH_PATTERN = re.compile(COLLECTIONS_CREATE_PATH_RE)
 _COLLECTIONS_PATH_PATTERN = re.compile(COLLECTIONS_PATH_RE)
 _COLLECTIONS_ITEM_PATH_PATTERN = re.compile(COLLECTIONS_ITEM_PATH_RE)
@@ -38,13 +40,57 @@ _COLLECTIONS_BULK_ITEMS_PATH_PATTERN = re.compile(COLLECTIONS_BULK_ITEMS_PATH_RE
 def _stac_collection_resource_id(request: Request) -> str:
     """Return tenant-based or public STAC collection resource ID."""
     tenant = getattr(request.state, "tenant", None)
-    return STAC_COLLECTION_TEMPLATE.format(tenant) if tenant else STAC_COLLECTION_PUBLIC
+    if not isinstance(tenant, str) or not tenant:
+        return STAC_COLLECTION_PUBLIC
+    return STAC_COLLECTION_TEMPLATE.format(tenant)
 
 
 def _stac_item_resource_id(request: Request) -> str:
     """Return tenant-based or public STAC item resource ID."""
     tenant = getattr(request.state, "tenant", None)
-    return STAC_ITEM_TEMPLATE.format(tenant) if tenant else STAC_ITEM_PUBLIC
+    if not isinstance(tenant, str) or not tenant:
+        return STAC_ITEM_PUBLIC
+    return STAC_ITEM_TEMPLATE.format(tenant)
+
+
+def _get_collection_tenant_resolver(
+    request: Request,
+) -> Optional[CollectionTenantResolver]:
+    """Return optional collection-tenant resolver from app state if configured"""
+    app = getattr(request, "app", None)
+    if app is None:
+        return None
+    state = getattr(app, "state", None)
+    return getattr(state, "collection_tenant_resolver", None)
+
+
+async def _collection_tenant_for_item(
+    request: Request, collection_id: str
+) -> Optional[str]:
+    """Resolve collection tenant for item operations"""
+    resolver = _get_collection_tenant_resolver(request)
+    if not resolver:
+        logger.debug(
+            "No collection_tenant_resolver configured on app.state for collection %s",
+            collection_id,
+        )
+        return None
+    try:
+        tenant = await resolver(request, collection_id)
+        if not tenant:
+            logger.debug(
+                "collection_tenant_resolver returned no tenant for collection %s",
+                collection_id,
+            )
+        return tenant
+    except Exception as e:
+        logger.warning(
+            "Failed to resolve collection tenant for item ops %s: %s",
+            collection_id,
+            e,
+            exc_info=True,
+        )
+        return None
 
 
 def _extract_tenant_from_body(
@@ -87,8 +133,56 @@ async def _extract_collection_resource_id_from_post_body(
         return None
 
 
+async def _extract_collection_stac_resource_id(
+    request: Request, path: str, method: str
+) -> Optional[str]:
+    """Extract resource ID for collection endpoints, or None if not a collection path"""
+    if _COLLECTIONS_CREATE_PATH_PATTERN.match(path) and method == "POST":
+        return await _extract_collection_resource_id_from_post_body(request)
+
+    match = _COLLECTIONS_PATH_PATTERN.match(path)
+    if match:
+        if method in ("PUT", "PATCH"):
+            return await _extract_collection_resource_id_from_post_body(request)
+        if method == "DELETE":
+            collection_id = match.group(1)
+            tenant = await _collection_tenant_for_item(request, collection_id)
+            if tenant:
+                return STAC_COLLECTION_TEMPLATE.format(tenant)
+            return _stac_collection_resource_id(request)
+        return _stac_collection_resource_id(request)
+
+    return None
+
+
+async def _extract_item_stac_resource_id(request: Request, path: str) -> Optional[str]:
+    """Extract resource ID for item endpoints based on path, or None"""
+    if _COLLECTIONS_ITEM_PATH_PATTERN.match(path):
+        # For single item operations, prefer collection tenant when available
+        match = _COLLECTIONS_ITEM_PATH_PATTERN.match(path)
+        collection_id = match.group(1) if match else None
+        if collection_id:
+            tenant = await _collection_tenant_for_item(request, collection_id)
+            if tenant:
+                return STAC_ITEM_TEMPLATE.format(tenant)
+        return _stac_item_resource_id(request)
+
+    for pattern in (
+        _COLLECTIONS_ITEMS_PATH_PATTERN,
+        _COLLECTIONS_BULK_ITEMS_PATH_PATTERN,
+    ):
+        if match := pattern.match(path):
+            tenant = await _collection_tenant_for_item(request, match.group(1))
+            if tenant:
+                return STAC_ITEM_TEMPLATE.format(tenant)
+            return _stac_collection_resource_id(request)
+
+    return None
+
+
 async def extract_stac_resource_id(request: Request) -> Optional[str]:
     """Extract resource ID for STAC API requests
+
     Resource ID format matches Keycloak resource definitions (wildcard patterns):
     - Collections: STAC_COLLECTION_TEMPLATE or STAC_COLLECTION_PUBLIC
     - Items: STAC_ITEM_TEMPLATE or STAC_ITEM_PUBLIC
@@ -96,21 +190,13 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
     path = request.url.path
     method = request.method
 
-    if _COLLECTIONS_CREATE_PATH_PATTERN.match(path) and method == "POST":
-        return await _extract_collection_resource_id_from_post_body(request)
+    collection_id = await _extract_collection_stac_resource_id(request, path, method)
+    if collection_id is not None:
+        return collection_id
 
-    if _COLLECTIONS_PATH_PATTERN.match(path):
-        if method in ("PUT", "PATCH"):
-            return await _extract_collection_resource_id_from_post_body(request)
-        return _stac_collection_resource_id(request)
-
-    if _COLLECTIONS_ITEM_PATH_PATTERN.match(path):
-        return _stac_item_resource_id(request)
-
-    if _COLLECTIONS_ITEMS_PATH_PATTERN.match(
-        path
-    ) or _COLLECTIONS_BULK_ITEMS_PATH_PATTERN.match(path):
-        return _stac_collection_resource_id(request)
+    item_id = await _extract_item_stac_resource_id(request, path)
+    if item_id is not None:
+        return item_id
 
     if "/queryables" in path or "/search" in path:
         return None
@@ -129,6 +215,23 @@ async def extract_ingest_resource_id(request: Request) -> Optional[str]:
     match = re.match(r".*?/collections/([^/]+)$", path)
     if match and method == "DELETE":
         collection_id = match.group(1)
-        return f"collection:{collection_id}"
+        tenant = await _collection_tenant_for_item(request, collection_id)
+        if tenant:
+            resource_id = STAC_COLLECTION_TEMPLATE.format(tenant)
+            logger.debug(
+                "Ingest DELETE /collections/%s: resolved tenant=%s -> %s",
+                collection_id,
+                tenant,
+                resource_id,
+            )
+            return resource_id
+        fallback_resource_id = _stac_collection_resource_id(request)
+        logger.info(
+            "Ingest DELETE /collections/%s: falling back to resource_id=%s (resolver_none_or_missing), path=%s",
+            collection_id,
+            fallback_resource_id,
+            path,
+        )
+        return fallback_resource_id
 
     return None

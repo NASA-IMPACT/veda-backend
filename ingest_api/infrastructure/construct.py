@@ -46,6 +46,7 @@ class ApiConstruct(Construct):
             "CLIENT_ID": config.keycloak_ingest_api_client_id,
             "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
             "GIT_SHA": config.git_sha,
+            "VEDA_TENANT_FILTER_FIELD": config.tenant_filter_field,
         }
 
         if config.keycloak_uma_resource_server_client_secret_name:
@@ -261,6 +262,7 @@ class IngestorConstruct(Construct):
             "CLIENT_ID": config.keycloak_ingest_api_client_id,
             "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
             "GIT_SHA": config.git_sha,
+            "VEDA_TENANT_FILTER_FIELD": config.tenant_filter_field,
         }
 
         if config.keycloak_uma_resource_server_client_secret_name:
