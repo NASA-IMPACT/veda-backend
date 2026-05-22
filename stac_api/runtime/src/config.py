@@ -107,7 +107,6 @@ class _ApiSettings(Settings):
         None,
         description="Name of AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret. When set with openid_configuration_url, PEP enforces UMA.",
     )
-    git_sha: Optional[str] = None
 
     @field_validator("cors_origins")
     @classmethod
