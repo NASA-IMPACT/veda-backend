@@ -90,6 +90,7 @@ api = StacApi(
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
     middlewares=[
+        Middleware(CompressionMiddleware),
         Middleware(ValidationMiddleware),
         Middleware(PrefixRedirectMiddleware),
     ],
