@@ -26,5 +26,10 @@ class Settings(BaseSettings):
         "", description="Git SHA of the deployed service"
     )  # default to str so that docker compose tests work
 
+    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
+        None,
+        description="Name or ARN of the AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret. Use a full ARN for cross-account access.",
+    )
+
 
 settings = Settings()

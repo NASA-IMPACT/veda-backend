@@ -82,10 +82,31 @@ class _ApiSettings(Settings):
     openid_configuration_url: Optional[AnyHttpUrl] = Field(
         None, description="OpenID config url"
     )
+    openid_configuration_internal_url: Optional[AnyHttpUrl] = Field(
+        None, description="OpenID config url"
+    )
     enable_transactions: bool = Field(
-        False, description="Whether to enable transactions"
+        False,
+        description="Whether to enable transactions. If True, set enable_stac_auth_proxy to True.",
+    )
+    enable_stac_auth_proxy: bool = Field(
+        False,
+        description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
+    )
+    swagger_ui_endpoint: str = "/docs"
+    openapi_spec_endpoint: str = "/openapi.json"
+    custom_host: Optional[str] = Field(
+        "http://localhost:8081", description="Custom host URL"
     )
     git_sha: Optional[str] = None
+    tenant_filter_field: str = Field(
+        "eic:tenant",
+        description="The field name used for tenant filtering",
+    )
+    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
+        None,
+        description="Name of AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret. When set with openid_configuration_url, PEP enforces UMA.",
+    )
 
     @field_validator("cors_origins")
     @classmethod
@@ -99,12 +120,11 @@ class _ApiSettings(Settings):
         if self.pgstac_secret_arn:
             secret = get_secret_dict(self.pgstac_secret_arn)
             return PostgresSettings(
-                postgres_host_reader=secret["host"],
-                postgres_host_writer=secret["host"],
-                postgres_dbname=secret["dbname"],
-                postgres_user=secret["username"],
-                postgres_pass=secret["password"],
-                postgres_port=secret["port"],
+                pghost=secret["host"],
+                pgdatabase=secret["dbname"],
+                pguser=secret["username"],
+                pgpassword=secret["password"],
+                pgport=secret["port"],
             )
         return PostgresSettings()
 
