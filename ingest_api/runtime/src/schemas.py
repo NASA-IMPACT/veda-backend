@@ -109,6 +109,14 @@ class AuthResponse(BaseModel):
     )
 
 
+class TenantAccessResponse(BaseModel):
+    """Response model for list tenant access (create and update) endpoint"""
+
+    tenants: List[str] = Field(
+        ..., description="List of tenant names the user has create/update access to"
+    )
+
+
 class Ingestion(BaseModel):
     id: str = Field(..., description="ID of the STAC item")
     status: Status = Field(..., description="Status of the ingestion")

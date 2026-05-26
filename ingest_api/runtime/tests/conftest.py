@@ -1,11 +1,31 @@
 import os
+from unittest.mock import MagicMock, patch
 
 import boto3
 import pytest
 from moto import mock_dynamodb, mock_ssm
-from stac_pydantic import Item
+from stac_pydantic.item import Item
 
 from fastapi.testclient import TestClient
+
+
+def override_validated_token_for_ingest():
+    """Mock function to override validated token dependency for ingest API."""
+    return {
+        "preferred_username": "test-user",
+        "sub": "test-user-id-subject",
+        "aud": "account",
+    }
+
+
+@pytest.fixture(autouse=True)
+def mock_auth():
+    """Mock the OpenIdConnectAuth to bypass OIDC calls"""
+    with patch("eoapi.auth_utils.OpenIdConnectAuth") as mock_auth_class:
+        mock_instance = MagicMock()
+        mock_instance.valid_token_dependency = override_validated_token_for_ingest
+        mock_auth_class.return_value = mock_instance
+        yield mock_instance
 
 
 @pytest.fixture
@@ -162,6 +182,6 @@ def example_ingestion(example_stac_item):
         id=example_stac_item["id"],
         created_by="test-user",
         status=schemas.Status.queued,
-        item=Item.parse_obj(example_stac_item),
+        item=Item.model_validate(example_stac_item),
         created_at=datetime.now(),
     )

@@ -58,6 +58,7 @@ class ApiSettings(BaseSettings):
     debug: bool = False
     root_path: Optional[str] = None
     stage: Optional[str] = None
+    git_sha: Optional[str] = None
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False

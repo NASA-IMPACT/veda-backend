@@ -1,6 +1,7 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
 
 import os
+from typing import Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -9,9 +10,10 @@ from aws_cdk import (
     aws_apigatewayv2_alpha,
     aws_apigatewayv2_integrations_alpha,
     aws_ec2,
-    aws_lambda,
-    aws_logs,
 )
+from aws_cdk import aws_kms as kms
+from aws_cdk import aws_lambda, aws_logs
+from aws_cdk import aws_secretsmanager as secretsmanager
 from constructs import Construct
 
 from .config import veda_stac_settings
@@ -42,19 +44,32 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_PROJECT_DESCRIPTION": veda_stac_settings.project_description,
             "VEDA_STAC_ROOT_PATH": veda_stac_settings.stac_root_path,
             "VEDA_STAC_STAGE": stage,
-            "VEDA_STAC_CLIENT_ID": veda_stac_settings.keycloak_stac_api_client_id
-            if veda_stac_settings.keycloak_stac_api_client_id
-            else "",
+            "VEDA_STAC_CLIENT_ID": (
+                veda_stac_settings.keycloak_stac_api_client_id
+                if veda_stac_settings.keycloak_stac_api_client_id
+                else ""
+            ),
             "VEDA_STAC_OPENID_CONFIGURATION_URL": str(
                 veda_stac_settings.openid_configuration_url
             ),
             "VEDA_STAC_ENABLE_TRANSACTIONS": str(
                 veda_stac_settings.stac_enable_transactions
             ),
+            "VEDA_STAC_ENABLE_STAC_AUTH_PROXY": str(
+                veda_stac_settings.enable_stac_auth_proxy
+            ),
             "DB_MIN_CONN_SIZE": "0",
             "DB_MAX_CONN_SIZE": "1",
+            "PYSTAC_STAC_VERSION_OVERRIDE": veda_stac_settings.pystac_stac_version_override,
             **{k.upper(): v for k, v in veda_stac_settings.env.items()},
+            "VEDA_STAC_GIT_SHA": veda_stac_settings.git_sha,
         }
+
+        if veda_stac_settings.custom_host:
+            custom_host = veda_stac_settings.custom_host
+            if not custom_host.startswith(("http://", "https://")):
+                custom_host = f"https://{custom_host}"
+            lambda_env["VEDA_STAC_CUSTOM_HOST"] = custom_host
 
         if veda_stac_settings.keycloak_stac_api_client_id is not None:
             lambda_env[
@@ -64,6 +79,10 @@ class StacApiLambdaConstruct(Construct):
             lambda_env["VEDA_STAC_OPENID_CONFIGURATION_URL"] = str(
                 veda_stac_settings.openid_configuration_url
             )
+        if veda_stac_settings.keycloak_uma_resource_server_client_secret_name:
+            lambda_env[
+                "VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
+            ] = veda_stac_settings.keycloak_uma_resource_server_client_secret_name
 
         lambda_function = aws_lambda.Function(
             self,
@@ -84,6 +103,19 @@ class StacApiLambdaConstruct(Construct):
 
         # # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
         database.pgstac.secret.grant_read(lambda_function)
+
+        keycloak_secret = _get_keycloak_secret(
+            self, veda_stac_settings.keycloak_uma_resource_server_client_secret_name
+        )
+        if keycloak_secret:
+            keycloak_secret.grant_read(lambda_function)
+            if veda_stac_settings.keycloak_secret_kms_key_arn:
+                kms_key = kms.Key.from_key_arn(
+                    self,
+                    "keycloak-secret-kms-key",
+                    veda_stac_settings.keycloak_secret_kms_key_arn,
+                )
+                kms_key.grant(lambda_function, "kms:Decrypt", "kms:GenerateDataKey")
         database.pgstac.connections.allow_from(
             lambda_function, port_range=aws_ec2.Port.tcp(5432)
         )
@@ -127,3 +159,14 @@ class StacApiLambdaConstruct(Construct):
             export_name=f"{stack_name}-stac-url",
             key="stacapiurl",
         )
+
+
+def _get_keycloak_secret(
+    ctx: Construct, secret_name: Optional[str]
+) -> Optional[secretsmanager.ISecret]:
+    """Look up Keycloak UMA resource server secret by name"""
+    if not secret_name:
+        return None
+    return secretsmanager.Secret.from_secret_name_v2(
+        ctx, "keycloak-uma-resource-server-secret", secret_name
+    )

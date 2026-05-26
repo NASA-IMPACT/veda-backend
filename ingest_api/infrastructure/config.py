@@ -1,3 +1,4 @@
+import subprocess
 from getpass import getuser
 from typing import List, Optional
 
@@ -89,8 +90,23 @@ class IngestorConfig(BaseSettings):
     keycloak_ingest_api_client_id: str = Field(description="Auth client ID")
 
     openid_configuration_url: AnyHttpUrl = Field(description="OpenID config url")
+
+    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
+        None,
+        description="Name or ARN of the AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret. Use a full ARN for cross-account access.",
+    )
+
+    keycloak_secret_kms_key_arn: Optional[str] = Field(
+        None,
+        description="ARN of KMS key used to encrypt the Keycloak secret",
+    )
     model_config = SettingsConfigDict(
         case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"
+    )
+
+    git_sha: Optional[str] = Field(
+        subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
+        description="Git SHA of the current commit, used to track deployment version",
     )
 
     @property

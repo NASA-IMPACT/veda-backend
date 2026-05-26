@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse
 from stac_fastapi.types.extension import ApiExtension
 from starlette.requests import Request
 
-from .monitoring import LoggerRouteHandler, tracer
+from .monitoring import tracer
 
 api_settings = ApiSettings()
 
@@ -30,16 +30,19 @@ class TiTilerExtension(ApiExtension):
             None
 
         """
-        router = APIRouter(route_class=LoggerRouteHandler)
+        router = APIRouter()
 
         @tracer.capture_method
         @router.get(
-            "/collections/{collectionId}/items/{itemId}/tilejson.json",
+            "/collections/{collectionId}/items/{itemId}/{tileMatrixSetId}/tilejson.json",
         )
         async def tilejson(
             request: Request,
             collectionId: str = Path(..., description="Collection ID"),
             itemId: str = Path(..., description="Item ID"),
+            tileMatrixSetId: str = Path(
+                ..., description="TileMatrixSet name (e.g. WebMercatorQuad)."
+            ),
             tile_format: Optional[str] = Query(
                 None, description="Output image type. Default is auto."
             ),
@@ -91,7 +94,7 @@ class TiTilerExtension(ApiExtension):
             qs.append(("collection", collectionId))
 
             return RedirectResponse(
-                f"{titiler_endpoint}/stac/tilejson.json?{urlencode(qs)}"
+                f"{titiler_endpoint}/stac/{tileMatrixSetId}/tilejson.json?{urlencode(qs)}"
             )
 
         @tracer.capture_method

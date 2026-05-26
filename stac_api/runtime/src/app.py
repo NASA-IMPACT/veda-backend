@@ -15,8 +15,9 @@ from src.config import (
     post_request_model,
 )
 from src.extension import TiTilerExtension
+from stac_auth_proxy import configure_app
 
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.app import StacApi
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
@@ -28,10 +29,12 @@ from starlette.templating import Jinja2Templates
 from starlette_cramjam.middleware import CompressionMiddleware
 
 from .core import VedaCrudClient
-from .monitoring import LoggerRouteHandler, logger, metrics, tracer
+from .filters import CollectionFilter, ItemFilter
+from .monitoring import ObservabilityMiddleware, logger, metrics, tracer
+from .prefix_redirect_middleware import PrefixRedirectMiddleware
+from .tenant_extraction_middleware import TenantExtractionMiddleware
+from .tenant_links_middleware import TenantLinksMiddleware
 from .validation import ValidationMiddleware
-
-from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 
 try:
     from importlib.resources import files as resources_files  # type: ignore
@@ -43,13 +46,17 @@ except ImportError:
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 tiles_settings = TilesApiSettings()
-auth_settings = OpenIdConnectSettings(_env_prefix="VEDA_STAC_")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Get a database connection on startup, close it on shutdown."""
-    await connect_to_db(app, postgres_settings=api_settings.postgres_settings)
+    await connect_to_db(
+        app,
+        postgres_settings=api_settings.postgres_settings,
+        add_write_connection_pool=True,
+    )
+
     yield
     await close_db_connection(app)
 
@@ -57,17 +64,17 @@ async def lifespan(app: FastAPI):
 api = StacApi(
     app=FastAPI(
         title=f"{api_settings.project_name} STAC API",
-        openapi_url="/openapi.json",
-        docs_url="/docs",
+        openapi_url=api_settings.openapi_spec_endpoint,
+        docs_url=api_settings.swagger_ui_endpoint,
         root_path=api_settings.root_path,
         swagger_ui_init_oauth=(
             {
                 "appName": "STAC API",
-                "clientId": auth_settings.client_id,
+                "clientId": api_settings.client_id,
                 "usePkceWithAuthorizationCodeGrant": True,
                 "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
             }
-            if auth_settings.client_id
+            if api_settings.client_id
             else {}
         ),
         lifespan=lifespan,
@@ -82,10 +89,117 @@ api = StacApi(
     collections_get_request_model=collections_get_request_model,
     items_get_request_model=items_get_request_model,
     response_class=ORJSONResponse,
-    middlewares=[Middleware(CompressionMiddleware), Middleware(ValidationMiddleware)],
-    router=APIRouter(route_class=LoggerRouteHandler),
+    middlewares=[
+        Middleware(ValidationMiddleware),
+        Middleware(PrefixRedirectMiddleware),
+    ],
 )
-app = api.app
+
+if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy:
+    # Use stac-auth-proxy when authentication is enabled, which it will be for production envs
+    app = configure_app(
+        api.app,
+        upstream_url=(api_settings.custom_host + (api_settings.root_path or "")),
+        default_public=True,
+        oidc_discovery_url=str(api_settings.openid_configuration_url),
+        oidc_discovery_internal_url=(
+            str(api_settings.openid_configuration_internal_url)
+            if api_settings.openid_configuration_internal_url
+            else None
+        ),
+        openapi_spec_endpoint=api_settings.openapi_spec_endpoint,
+        root_path=api_settings.root_path,
+        collections_filter={
+            "cls": f"{CollectionFilter.__module__}:{CollectionFilter.__name__}",
+            "kwargs": {
+                "tenant_filter_field": api_settings.tenant_filter_field,
+            },
+        },
+        items_filter={
+            "cls": f"{ItemFilter.__module__}:{ItemFilter.__name__}",
+            "kwargs": {
+                "api_url": api_settings.custom_host + (api_settings.root_path or ""),
+            },
+        },
+        enable_compression=False,
+        private_endpoints={
+            r"^/collections$": [["POST", "stac:collection:create"]],
+            r"^/collections/([^/]+)$": [
+                ["PUT", "stac:collection:update"],
+                ["PATCH", "stac:collection:update"],
+                ["DELETE", "stac:collection:delete"],
+            ],
+            r"^/collections/([^/]+)/items$": [["POST", "stac:item:create"]],
+            r"^/collections/([^/]+)/items/([^/]+)$": [
+                ["PUT", "stac:item:update"],
+                ["PATCH", "stac:item:update"],
+                ["DELETE", "stac:item:delete"],
+            ],
+            r"^/collections/([^/]+)/bulk_items$": [["POST", "stac:item:create"]],
+        },
+        allowed_jwt_audiences="account",
+    )
+else:
+    # Use standard FastAPI app when authentication is disabled
+    app = api.app
+
+
+def _get_keycloak_pdp_client():
+    """Build Keycloak PDP client for PEP from UMA resource server credentials stored in AWS Secrets Manager."""
+    from src.config import get_secret_dict
+    from veda_auth.keycloak_client import (
+        KeycloakPDPClient,
+        parse_keycloak_from_openid_url,
+    )
+
+    keycloak_url, realm = parse_keycloak_from_openid_url(
+        api_settings.openid_configuration_url
+    )
+
+    secret = get_secret_dict(
+        api_settings.keycloak_uma_resource_server_client_secret_name
+    )
+    client_id = secret.get("id")
+    client_secret = secret.get("secret")
+    if not client_id:
+        raise RuntimeError("Keycloak UMA secret is missing 'id' (client_id)")
+
+    return KeycloakPDPClient(
+        keycloak_url=keycloak_url,
+        realm=realm,
+        client_id=client_id,
+        client_secret=client_secret,
+    )
+
+
+if (
+    api_settings.openid_configuration_url
+    and api_settings.keycloak_uma_resource_server_client_secret_name
+):
+    logger.info(
+        "PEP middleware enabled, secret_name=%s",
+        api_settings.keycloak_uma_resource_server_client_secret_name,
+    )
+    from veda_auth.pep_middleware import STAC_PROTECTED_ROUTES, PEPMiddleware
+    from veda_auth.resource_extractors import extract_stac_resource_id
+
+    app.add_middleware(
+        PEPMiddleware,
+        pdp_client=_get_keycloak_pdp_client,
+        resource_extractor=extract_stac_resource_id,
+        protected_routes=STAC_PROTECTED_ROUTES,
+    )
+else:
+    logger.info(
+        "PEP middleware disabled, openid_url=%s, secret_name=%s",
+        bool(api_settings.openid_configuration_url),
+        bool(api_settings.keycloak_uma_resource_server_client_secret_name),
+    )
+
+# Note: we want this to be added after stac_auth_proxy so that it runs before stac_auth_proxy's middleware
+app.add_middleware(TenantExtractionMiddleware)
+app.add_middleware(TenantLinksMiddleware)
+app.add_middleware(CompressionMiddleware)
 
 # Set all CORS enabled origins
 if api_settings.cors_origins:
@@ -97,34 +211,6 @@ if api_settings.cors_origins:
         allow_headers=["*"],
     )
 
-if api_settings.enable_transactions and auth_settings.client_id:
-    oidc_auth = OpenIdConnectAuth(
-        openid_configuration_url=auth_settings.openid_configuration_url,
-        allowed_jwt_audiences="account",
-    )
-
-    restricted_prefixes_methods = {
-        "/collections": [("POST", "stac:collection:create")],
-        "/collections/{collection_id}": [
-            ("PUT", "stac:collection:update"),
-            ("DELETE", "stac:collection:delete"),
-        ],
-        "/collections/{collection_id}/items": [("POST", "stac:item:create")],
-        "/collections/{collection_id}/items/{item_id}": [
-            ("PUT", "stac:item:update"),
-            ("DELETE", "stac:item:delete"),
-        ],
-        "/collections/{collection_id}/bulk_items": [("POST", "stac:item:create")],
-    }
-
-    for route in app.router.routes:
-        method_scopes = restricted_prefixes_methods.get(route.path)
-        if not method_scopes:
-            continue
-        for method, scope in method_scopes:
-            if method not in route.methods:
-                continue
-            oidc_auth.apply_auth_dependencies(route, required_token_scopes=[scope])
 
 if tiles_settings.titiler_endpoint:
     # Register to the TiTiler extension to the api
@@ -137,10 +223,14 @@ async def viewer_page(request: Request):
     """Search viewer."""
     path = api_settings.root_path or ""
     return templates.TemplateResponse(
+        request,
         "stac-viewer.html",
-        {"request": request, "endpoint": str(request.url).replace("/index.html", path)},
+        {"endpoint": str(request.url).replace("/index.html", path)},
         media_type="text/html",
     )
+
+
+app.add_middleware(ObservabilityMiddleware)
 
 
 # If the correlation header is used in the UI, we can analyze traces that originate from a given user or client

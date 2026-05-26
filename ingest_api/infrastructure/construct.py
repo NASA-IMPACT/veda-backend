@@ -7,6 +7,7 @@ from aws_cdk import aws_apigatewayv2_alpha, aws_apigatewayv2_integrations_alpha
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_iam as iam
+from aws_cdk import aws_kms as kms
 from aws_cdk import aws_lambda
 from aws_cdk import aws_lambda_event_sources as events
 from aws_cdk import aws_secretsmanager as secretsmanager
@@ -44,13 +45,25 @@ class ApiConstruct(Construct):
             "STAGE": config.stage,
             "CLIENT_ID": config.keycloak_ingest_api_client_id,
             "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
+            "GIT_SHA": config.git_sha,
         }
+
+        if config.keycloak_uma_resource_server_client_secret_name:
+            lambda_env[
+                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
+            ] = config.keycloak_uma_resource_server_client_secret_name
+
+        keycloak_secret = get_keycloak_secret(
+            self, config.keycloak_uma_resource_server_client_secret_name
+        )
 
         build_api_lambda_params = {
             "table": self.table,
             "db_secret": db_secret,
             "db_vpc": db_vpc,
             "db_security_group": db_security_group,
+            "keycloak_secret": keycloak_secret,
+            "config": config,
             "pgstac_version": config.db_pgstac_version,
         }
 
@@ -108,6 +121,8 @@ class ApiConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
+        keycloak_secret: Optional[secretsmanager.ISecret] = None,
+        config: "IngestorConfig",
         data_access_role: Union[iam.IRole, None] = None,
         pgstac_version: str,
         code_dir: str = "./",
@@ -155,6 +170,15 @@ class ApiConstruct(Construct):
             )
         # Allow handler to read DB secret
         db_secret.grant_read(handler)
+
+        # Allow handler to read Keycloak secret if provided
+        if keycloak_secret:
+            keycloak_secret.grant_read(handler)
+            if config.keycloak_secret_kms_key_arn:
+                kms_key = kms.Key.from_key_arn(
+                    self, "keycloak-secret-kms-key", config.keycloak_secret_kms_key_arn
+                )
+                kms_key.grant(handler, "kms:Decrypt", "kms:GenerateDataKey")
 
         # Allow handler to connect to DB
         db_security_group.add_ingress_rule(
@@ -236,10 +260,20 @@ class IngestorConstruct(Construct):
             "RASTER_URL": config.veda_raster_api_cf_url,
             "CLIENT_ID": config.keycloak_ingest_api_client_id,
             "OPENID_CONFIGURATION_URL": str(config.openid_configuration_url),
+            "GIT_SHA": config.git_sha,
         }
+
+        if config.keycloak_uma_resource_server_client_secret_name:
+            lambda_env[
+                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
+            ] = config.keycloak_uma_resource_server_client_secret_name
 
         if config.raster_data_access_role_arn:
             lambda_env["DATA_ACCESS_ROLE_ARN"] = config.raster_data_access_role_arn
+
+        keycloak_secret = get_keycloak_secret(
+            self, config.keycloak_uma_resource_server_client_secret_name
+        )
 
         db_security_group = ec2.SecurityGroup.from_security_group_id(
             self,
@@ -253,6 +287,7 @@ class IngestorConstruct(Construct):
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,
+            keycloak_secret=keycloak_secret,
             pgstac_version=config.db_pgstac_version,
         )
 
@@ -264,6 +299,7 @@ class IngestorConstruct(Construct):
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
+        keycloak_secret: Optional[secretsmanager.ISecret] = None,
         pgstac_version: str,
         code_dir: str = "./",
     ) -> aws_lambda.Function:
@@ -286,6 +322,10 @@ class IngestorConstruct(Construct):
 
         # Allow handler to read DB secret
         db_secret.grant_read(handler)
+
+        # Allow handler to read Keycloak secret if provided
+        if keycloak_secret:
+            keycloak_secret.grant_read(handler)
 
         # Allow handler to connect to DB
         db_security_group.add_ingress_rule(
@@ -335,4 +375,19 @@ def get_db_secret(
 ) -> secretsmanager.ISecret:
     return secretsmanager.Secret.from_secret_name_v2(
         ctx, f"pgstac-db-secret-{stage}", secret_name
+    )
+
+
+def get_keycloak_secret(
+    ctx: Construct, secret_name_or_arn: Optional[str]
+) -> Optional[secretsmanager.ISecret]:
+    """Get Keycloak UMA resource server client secret by name or ARN."""
+    if not secret_name_or_arn:
+        return None
+    if secret_name_or_arn.startswith("arn:"):
+        return secretsmanager.Secret.from_secret_complete_arn(
+            ctx, "veda-keycloak-client-uma-resource-server", secret_name_or_arn
+        )
+    return secretsmanager.Secret.from_secret_name_v2(
+        ctx, "veda-keycloak-client-uma-resource-server", secret_name_or_arn
     )

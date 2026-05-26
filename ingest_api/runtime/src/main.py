@@ -1,17 +1,25 @@
+import logging
+
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
 from aws_lambda_powertools.metrics import MetricUnit
 from src.auth import auth_settings, get_username, oidc_auth
-from src.collection_publisher import CollectionPublisher, ItemPublisher
+from src.collection_publisher import CollectionPublisher
 from src.config import settings
 from src.doc import DESCRIPTION
-from src.monitoring import LoggerRouteHandler, logger, metrics, tracer
+from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
+from src.utils import get_keycloak_client_credentials
+from veda_auth.keycloak_client import KeycloakPDPClient, parse_keycloak_from_openid_url
+from veda_auth.pep_middleware import PEPMiddleware
+from veda_auth.resource_extractors import extract_ingest_resource_id
 
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
+
+pep_logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="VEDA Ingestion API",
@@ -32,10 +40,7 @@ app = FastAPI(
     },
 )
 
-app.router.route_class = LoggerRouteHandler
-
 collection_publisher = CollectionPublisher()
-item_publisher = ItemPublisher()
 
 
 @app.get(
@@ -186,35 +191,150 @@ def delete_collection(collection_id: str):
         raise HTTPException(status_code=400, detail=(f"{e}"))
 
 
-@app.post(
-    "/items",
-    tags=["Items"],
-    status_code=201,
-    dependencies=[
-        Security(oidc_auth.valid_token_dependency, scopes="stac:item:create")
-    ],
-)
-def publish_item(item: schemas.Item):
-    """
-    Publish an item to the STAC database.
-    """
-    # pgstac create item
-    try:
-        item_publisher.ingest(item)
-        return {f"Successfully published: {item.id}"}
-    except Exception as e:
-        raise HTTPException(
-            status_code=400,
-            detail=(f"Unable to publish item: {e}"),
-        )
-
-
 @app.get("/auth/me", tags=["Auth"])
 def who_am_i(claims=Depends(oidc_auth.valid_token_dependency)):
     """
     Return claims for the provided JWT
     """
     return claims
+
+
+def _extract_access_token(request: Request) -> str:
+    """Extract and validate Bearer token from Authorization header"""
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Authorization header required",
+        )
+    return auth_header[7:]
+
+
+def _parse_keycloak_config() -> tuple[str, str]:
+    """Extract Keycloak URL and realm from OIDC configuration URL."""
+    try:
+        return parse_keycloak_from_openid_url(auth_settings.openid_configuration_url)
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+
+
+def _get_keycloak_credentials() -> tuple[str, str]:
+    """Retrieve Keycloak UMA resource server credentials from the Secrets Manager"""
+    if not settings.keycloak_uma_resource_server_client_secret_name:
+        raise HTTPException(
+            status_code=503,
+            detail="UMA authorization not configured (missing KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME)",
+        )
+
+    try:
+        keycloak_creds = get_keycloak_client_credentials(
+            settings.keycloak_uma_resource_server_client_secret_name
+        )
+        client_id = keycloak_creds.get("id")
+        client_secret = keycloak_creds.get("secret")
+        if not client_id:
+            raise HTTPException(
+                status_code=503,
+                detail="Keycloak secret missing id",
+            )
+        return client_id, client_secret
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to retrieve Keycloak credentials: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Failed to retrieve Keycloak credentials: {str(e)}",
+        ) from e
+
+
+def _get_keycloak_pdp_client() -> KeycloakPDPClient:
+    """Build Keycloak PDP client for PEP middleware from UMA resource server credentials"""
+    keycloak_url, realm = _parse_keycloak_config()
+    client_id, client_secret = _get_keycloak_credentials()
+    return KeycloakPDPClient(
+        keycloak_url=keycloak_url,
+        realm=realm,
+        client_id=client_id,
+        client_secret=client_secret,
+    )
+
+
+if (
+    auth_settings.openid_configuration_url
+    and settings.keycloak_uma_resource_server_client_secret_name
+):
+    pep_logger.info(
+        "PEP middleware enabled for Ingest API, secret_name=%s",
+        settings.keycloak_uma_resource_server_client_secret_name,
+    )
+    app.add_middleware(
+        PEPMiddleware,
+        pdp_client=_get_keycloak_pdp_client,
+        resource_extractor=extract_ingest_resource_id,
+    )
+else:
+    pep_logger.info(
+        "PEP middleware disabled for Ingest API, openid_url=%s, secret_name=%s",
+        bool(auth_settings.openid_configuration_url),
+        bool(settings.keycloak_uma_resource_server_client_secret_name),
+    )
+
+
+@app.get(
+    "/auth/tenants/writable", response_model=schemas.TenantAccessResponse, tags=["Auth"]
+)
+async def get_writable_tenant_access(
+    request: Request,
+    claims=Depends(oidc_auth.valid_token_dependency),
+):
+    """
+    Returns the list of tenants the user has create and update access to.
+    """
+    user_access_token = _extract_access_token(request)
+    keycloak_url, realm = _parse_keycloak_config()
+    client_id, client_secret = _get_keycloak_credentials()
+
+    pdp_client = None
+    try:
+        pdp_client = KeycloakPDPClient(
+            keycloak_url=keycloak_url,
+            realm=realm,
+            client_id=client_id,
+            client_secret=client_secret,
+            timeout=10.0,
+        )
+
+        # Get tenants with create/update access for collections
+        collection_tenants = pdp_client.get_tenants_with_create_update_access(
+            access_token=user_access_token,
+            resource_type="collection",
+        )
+
+        # Get tenants with create/update access for items
+        item_tenants = pdp_client.get_tenants_with_create_update_access(
+            access_token=user_access_token,
+            resource_type="item",
+        )
+
+        all_tenants = sorted(list(set(collection_tenants + item_tenants)))
+
+        return schemas.TenantAccessResponse(tenants=all_tenants)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting tenant access: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to retrieve tenant access: {str(e)}",
+        )
+    finally:
+        if pdp_client:
+            pdp_client.close()
+
+
+app.add_middleware(ObservabilityMiddleware)
 
 
 # If the correlation header is used in the UI, we can analyze traces that originate from a given user or client

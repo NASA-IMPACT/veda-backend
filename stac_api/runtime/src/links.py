@@ -1,4 +1,5 @@
 """A module for injecting links to STAC entries"""
+
 from typing import Any, Dict
 from urllib.parse import urljoin
 
@@ -30,6 +31,7 @@ class LinkInjector:
     def __init__(
         self,
         collection_id: str,
+        render_key: str,
         render_params: Dict[str, Any],
         request: Request,
     ) -> None:
@@ -38,8 +40,11 @@ class LinkInjector:
         render_params.pop("title", render_params)
 
         self.collection_id = collection_id
+        self.render_key = render_key
         self.render_config = get_render_config(render_params)
-        self.tiler_href = tiles_settings.titiler_endpoint or ""
+        self.tiler_href = (
+            render_params.get("tiler_url") or tiles_settings.titiler_endpoint or ""
+        )
 
     def inject_item(self, item: Item) -> None:
         """Inject rendering links to an item"""
@@ -47,9 +52,9 @@ class LinkInjector:
         item["links"] = item.get("links", [])
         if self.tiler_href:
             item["links"].append(self._get_item_map_link(item_id, self.collection_id))
-            item["assets"]["rendered_preview"] = self._get_item_preview_link(
-                item_id, self.collection_id
-            )
+            item["assets"][
+                f"rendered_preview_{self.render_key}"
+            ] = self._get_item_preview_link(item_id, self.collection_id)
 
     def _get_item_map_link(self, item_id: str, collection_id: str) -> Dict[str, Any]:
         qs = self.render_config.get_full_render_qs()
@@ -57,9 +62,9 @@ class LinkInjector:
             self.tiler_href,
             f"collections/{collection_id}/items/{item_id}/WebMercatorQuad/map?{qs}",
         )
-
+        title = f"Map of {self.render_key} asset"
         return {
-            "title": "Map of Item",
+            "title": title,
             "href": href,
             "rel": "preview",
             "type": "text/html",
@@ -75,7 +80,7 @@ class LinkInjector:
         )
 
         return {
-            "title": "Rendered preview",
+            "title": f"Rendered preview for {self.render_key}",
             "href": href,
             "rel": "preview",
             "roles": ["overview"],

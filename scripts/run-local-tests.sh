@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+# =================================================================
+#  Ensure all Python dependencies are installed
+# =================================================================
+echo "--- Installing all development dependencies ---"
+pip install -r ingest_api/runtime/requirements_dev.txt
+echo "--- Dependency installation complete ---"
+# =================================================================
+
 # Lint
 pre-commit run --all-files
 
@@ -29,10 +37,13 @@ trap cleanup EXIT
 docker exec veda.loadtestdata /tmp/scripts/bin/load-data.sh
 
 # Run tests
+echo "--- Running stac and raster tests ---"
 python -m pytest .github/workflows/tests/ -vv -s
 
 # Run ingest unit tests
+echo "--- Running ingest api runtime tests ---"
 NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
 
 # Transactions tests
-python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
+echo "--- Running stac api runtime tests ---"
+python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s -p no:warnings

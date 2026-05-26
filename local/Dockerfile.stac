@@ -5,14 +5,18 @@ FROM ghcr.io/vincentsarago/uvicorn-gunicorn:${PYTHON_VERSION}
 ENV CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
 
 # fixes rust toolchain error
-RUN pip install --upgrade pip 
+RUN pip install --upgrade pip
 # Installing boto3, which isn't needed in the lambda container instance
 # since lambda execution environment includes boto3 by default
 
 RUN pip install boto3
 
+COPY common/auth /tmp/common_auth
+RUN pip install /tmp/common_auth
+RUN rm -rf /tmp/common_auth
+
 COPY stac_api/runtime /tmp/stac
-RUN pip install /tmp/stac 
+RUN pip install /tmp/stac
 RUN rm -rf /tmp/stac
 
 ENV MODULE_NAME src.app
