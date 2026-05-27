@@ -262,30 +262,11 @@ def test_environ():
     os.environ["VEDA_STAC_ROOT_PATH"] = "/api/stac"
 
     # Config mocks
-<<<<<<< HEAD
     os.environ["PGUSER"] = "username"
     os.environ["PGPASSWORD"] = "password"
     os.environ["PGDATABASE"] = "postgis"
     os.environ["PGHOST"] = "0.0.0.0"
     os.environ["PGPORT"] = "5439"
-=======
-    os.environ["POSTGRES_USER"] = "username"
-    os.environ["POSTGRES_PASS"] = "password"
-    os.environ["POSTGRES_DBNAME"] = "postgis"
-    os.environ["POSTGRES_HOST_READER"] = "0.0.0.0"
-    os.environ["POSTGRES_HOST_WRITER"] = "0.0.0.0"
-    os.environ["POSTGRES_PORT"] = "5439"
-
-
-def override_validated_token():
-    """
-    Mock function to override validated token dependency.
-
-    Returns:
-        str: A fake token to bypass authorization in tests.
-    """
-    return "fake_token"
->>>>>>> 23d3b936e8d8fc705ee06754ac74b654262030a1
 
 
 def override_jwks_client():
@@ -455,11 +436,7 @@ def invalid_stac_item():
 
 
 @pytest.fixture
-<<<<<<< HEAD
 async def collection_in_db(app: FastAPI, api_client, valid_stac_collection):
-=======
-async def collection_in_db(api_client, valid_stac_collection):
->>>>>>> 23d3b936e8d8fc705ee06754ac74b654262030a1
     """
     Fixture to ensure a valid STAC collection exists in the database.
 
@@ -467,13 +444,9 @@ async def collection_in_db(api_client, valid_stac_collection):
     the collection ID.
     """
     # Create the collection
-<<<<<<< HEAD
     response = await api_client.post(
         f"{app.root_path}/collections", json=valid_stac_collection
     )
-=======
-    response = await api_client.post("/collections", json=valid_stac_collection)
->>>>>>> 23d3b936e8d8fc705ee06754ac74b654262030a1
 
     # Ensure the setup was successful before the test proceeds
     # The setup is successful if the collection was created (201) or if it
@@ -481,7 +454,6 @@ async def collection_in_db(api_client, valid_stac_collection):
     assert response.status_code in [201, 409]
 
     yield valid_stac_collection["id"]
-<<<<<<< HEAD
 
     await api_client.delete(
         f"{app.root_path}/collections/{valid_stac_collection['id']}"
@@ -557,5 +529,3 @@ def valid_stac_collection_renders_with_tiler_url(
     for render_config in coll["renders"].values():
         render_config["tiler_url"] = "https://custom-tiler.example.com"
     return coll
-=======
->>>>>>> 23d3b936e8d8fc705ee06754ac74b654262030a1
