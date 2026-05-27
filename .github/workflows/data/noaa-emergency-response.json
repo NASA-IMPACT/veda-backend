@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "id": "noaa-emergency-response",
   "title": "NOAA Emergency Response Imagery",
   "description": "NOAA Emergency Response Imagery hosted on AWS Public Dataset.",
@@ -11,6 +12,33 @@
     },
     "temporal": {
       "interval": [["2005-01-01T00:00:00Z", null]]
+=======
+    "id": "noaa-emergency-response",
+    "title": "NOAA Emergency Response Imagery",
+    "description": "NOAA Emergency Response Imagery hosted on AWS Public Dataset.",
+    "stac_version": "1.0.0",
+    "license": "public-domain",
+    "links": [],
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "2005-01-01T00:00:00Z",
+                    null
+                ]
+            ]
+        }
+>>>>>>> 23d3b936e8d8fc705ee06754ac74b654262030a1
     }
   },
   "eic:tenant": "emergency"

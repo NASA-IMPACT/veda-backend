@@ -29,12 +29,16 @@ services:
       # https://github.com/developmentseed/eoAPI/issues/16
       # - TITILER_ENDPOINT=raster
       - TITILER_ENDPOINT=http://0.0.0.0:8082
+<<<<<<< HEAD
       - VEDA_STAC_ROOT_PATH=/api/stac
       - VEDA_STAC_OPENID_CONFIGURATION_URL=http://localhost:8888/.well-known/openid-configuration
       - VEDA_STAC_OPENID_CONFIGURATION_INTERNAL_URL=http://oidc:8888/.well-known/openid-configuration
       - VEDA_STAC_ENABLE_TRANSACTIONS=True
       - VEDA_STAC_GIT_SHA=local123
       - VEDA_STAC_ENABLE_STAC_AUTH_PROXY=True
+=======
+      - VEDA_STAC_ENABLE_TRANSACTIONS=True
+>>>>>>> 23d3b936e8d8fc705ee06754ac74b654262030a1
     depends_on:
       - database
       - raster
