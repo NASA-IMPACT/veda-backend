@@ -35,6 +35,14 @@ _COLLECTIONS_ITEMS_PATH_PATTERN = re.compile(COLLECTIONS_ITEMS_PATH_RE)
 _COLLECTIONS_BULK_ITEMS_PATH_PATTERN = re.compile(COLLECTIONS_BULK_ITEMS_PATH_RE)
 
 
+def _request_path(request: Request) -> str:
+    """Use request.scope["path"] primarily"""
+    scope_path = request.scope.get("path")
+    if isinstance(scope_path, str) and scope_path:
+        return scope_path
+    return request.url.path
+
+
 def _stac_collection_resource_id(request: Request) -> str:
     """Return tenant-based or public STAC collection resource ID."""
     tenant = getattr(request.state, "tenant", None)
@@ -93,7 +101,7 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
     - Collections: STAC_COLLECTION_TEMPLATE or STAC_COLLECTION_PUBLIC
     - Items: STAC_ITEM_TEMPLATE or STAC_ITEM_PUBLIC
     """
-    path = request.url.path
+    path = _request_path(request)
     method = request.method
 
     if _COLLECTIONS_CREATE_PATH_PATTERN.match(path) and method == "POST":
@@ -120,7 +128,7 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
 
 async def extract_ingest_resource_id(request: Request) -> Optional[str]:
     """Extract resource ID for Ingest API requests"""
-    path = request.url.path
+    path = _request_path(request)
     method = request.method
 
     if path.endswith("/collections") and method == "POST":
