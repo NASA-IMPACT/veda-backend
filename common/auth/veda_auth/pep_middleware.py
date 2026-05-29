@@ -55,14 +55,6 @@ STAC_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
 )
 
 
-def _request_path(request: Request) -> str:
-    """Use request.scope["path"] primarily"""
-    scope_path = request.scope.get("path")
-    if isinstance(scope_path, str) and scope_path:
-        return scope_path
-    return request.url.path
-
-
 def pep_error_response(
     status_code: int,
     detail: str,
@@ -104,7 +96,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
         self, request: Request
     ) -> Optional[tuple[str, str]]:
         """Return (scope, method) for the route that matches, otherwise return None"""
-        path = _request_path(request).rstrip("/") or "/"
+        path = (request.scope.get("path") or request.url.path).rstrip("/") or "/"
         method = request.method.upper()
         for pattern, route_method, scope in self._compiled:
             if route_method == method and pattern.search(path):
@@ -120,7 +112,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Check UMA authorization for protected routes, pass through otherwise."""
-        path = _request_path(request)
+        path = (request.scope.get("path") or request.url.path).rstrip("/") or "/"
         matched_request = self._get_matching_scope_and_route(request)
         if matched_request is None:
             logger.debug(
