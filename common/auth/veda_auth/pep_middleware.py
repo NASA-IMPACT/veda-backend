@@ -96,7 +96,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
         self, request: Request
     ) -> Optional[tuple[str, str]]:
         """Return (scope, method) for the route that matches, otherwise return None"""
-        path = request.url.path.rstrip("/") or "/"
+        path = (request.scope.get("path") or request.url.path).rstrip("/") or "/"
         method = request.method.upper()
         for pattern, route_method, scope in self._compiled:
             if route_method == method and pattern.search(path):
@@ -112,12 +112,13 @@ class PEPMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Check UMA authorization for protected routes, pass through otherwise."""
+        path = (request.scope.get("path") or request.url.path).rstrip("/") or "/"
         matched_request = self._get_matching_scope_and_route(request)
         if matched_request is None:
             logger.debug(
                 "PEP: no protected route match for %s %s... continuing",
                 request.method,
-                request.url.path,
+                path,
             )
             return await call_next(request)
 
@@ -125,7 +126,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
         logger.info(
             "PEP: matched protected route %s %s and scope=%s",
             _method,
-            request.url.path,
+            path,
             scope,
         )
 
@@ -133,9 +134,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
 
         token = self._get_bearer_token(request)
         if not token:
-            logger.warning(
-                "PEP: missing Bearer token for %s %s", _method, request.url.path
-            )
+            logger.warning("PEP: missing Bearer token for %s %s", _method, path)
             return pep_error_response(
                 401,
                 "Missing or invalid Authorization header (Bearer token required)",
@@ -144,7 +143,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
 
         resource_id = await self._extract_resource_id(request)
         if not resource_id:
-            logger.warning("PEP: no resource ID for %s %s", _method, request.url.path)
+            logger.warning("PEP: no resource ID for %s %s", _method, path)
             return pep_error_response(
                 403, "Could not determine resource for authorization"
             )
@@ -153,7 +152,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
             "PEP: checking permission resource_id=%s, scope=%s, path=%s",
             resource_id,
             scope,
-            request.url.path,
+            path,
         )
 
         try:
@@ -163,9 +162,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
                 scope=scope,
             )
         except TokenError as e:
-            logger.warning(
-                "PEP: token error for %s %s: %s", _method, request.url.path, e.detail
-            )
+            logger.warning("PEP: token error for %s %s: %s", _method, path, e.detail)
             return pep_error_response(
                 401, e.detail, {"WWW-Authenticate": 'Bearer error="invalid_token"'}
             )
@@ -173,7 +170,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
             logger.warning(
                 "PEP: resource not found for %s %s: %s",
                 _method,
-                request.url.path,
+                path,
                 e.resource_id,
             )
             return pep_error_response(
@@ -185,7 +182,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
             logger.warning(
                 "PEP: denied %s %s resource_id=%s, scope=%s",
                 _method,
-                request.url.path,
+                path,
                 e.resource_id,
                 e.scope,
             )
@@ -212,7 +209,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
             "PEP: authorized for resource_id=%s, scope=%s, path=%s",
             resource_id,
             scope,
-            request.url.path,
+            path,
         )
 
         return await call_next(request)

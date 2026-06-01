@@ -93,7 +93,7 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
     - Collections: STAC_COLLECTION_TEMPLATE or STAC_COLLECTION_PUBLIC
     - Items: STAC_ITEM_TEMPLATE or STAC_ITEM_PUBLIC
     """
-    path = request.url.path
+    path = request.scope.get("path") or request.url.path
     method = request.method
 
     if _COLLECTIONS_CREATE_PATH_PATTERN.match(path) and method == "POST":
@@ -120,7 +120,7 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
 
 async def extract_ingest_resource_id(request: Request) -> Optional[str]:
     """Extract resource ID for Ingest API requests"""
-    path = request.url.path
+    path = request.scope.get("path") or request.url.path
     method = request.method
 
     if path.endswith("/collections") and method == "POST":
