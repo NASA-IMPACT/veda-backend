@@ -10,6 +10,7 @@ with open("README.md") as f:
 inst_reqs = [
     "boto3",
     "async-lru>=2.0.5",
+    "starlette==1.0.1",
     "stac-fastapi.api~=6.1",
     "stac-fastapi.types~=6.1",
     "stac-fastapi.extensions~=6.1",
@@ -22,7 +23,7 @@ inst_reqs = [
     "aws_xray_sdk>=2.6.0,<3",
     "pystac[validation]>=1.14.0",
     "pydantic>2",
-    "stac-auth-proxy==0.11.1rc2",
+    "stac-auth-proxy==1.1.1",
 ]
 
 extra_reqs = {

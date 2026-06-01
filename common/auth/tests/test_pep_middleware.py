@@ -13,7 +13,9 @@ from veda_auth.pep_middleware import (
 def _request(path: str, method: str = "GET"):
     """Request mock for route matching"""
     req = MagicMock()
-    req.url.path = path.rstrip("/") or "/"
+    normalized = path.rstrip("/") or "/"
+    req.url.path = normalized
+    req.scope = {"path": normalized}
     req.method = method.upper()
     return req
 
