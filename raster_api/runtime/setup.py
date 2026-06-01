@@ -18,7 +18,7 @@ inst_reqs = [
     # based on AWS observability requirements
     "aws_xray_sdk>=2.6.0,<3",
     "aws-lambda-powertools>=1.18.0",
-    "python-multipart==0.0.7",
+    "python-multipart>=0.0.27,<0.1",
 ]
 
 extra_reqs = {
