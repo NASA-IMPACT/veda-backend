@@ -10,7 +10,7 @@ with open("README.md") as f:
 inst_reqs = [
     "boto3",
     "async-lru>=2.0.5",
-    "starlette==1.0.1",
+    "starlette==1.3.1",
     "stac-fastapi.api>=6.1,<6.3",
     "stac-fastapi.types>=6.1,<6.3",
     "stac-fastapi.extensions>=6.1,<6.3",
