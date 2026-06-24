@@ -1,5 +1,3 @@
-import logging
-
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
@@ -11,15 +9,11 @@ from src.doc import DESCRIPTION
 from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
 from src.utils import get_keycloak_client_credentials
 from veda_auth.keycloak_client import KeycloakPDPClient, parse_keycloak_from_openid_url
-from veda_auth.pep_middleware import PEPMiddleware
-from veda_auth.resource_extractors import extract_ingest_resource_id
 
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
-
-pep_logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="VEDA Ingestion API",
@@ -246,39 +240,6 @@ def _get_keycloak_credentials() -> tuple[str, str]:
             status_code=503,
             detail=f"Failed to retrieve Keycloak credentials: {str(e)}",
         ) from e
-
-
-def _get_keycloak_pdp_client() -> KeycloakPDPClient:
-    """Build Keycloak PDP client for PEP middleware from UMA resource server credentials"""
-    keycloak_url, realm = _parse_keycloak_config()
-    client_id, client_secret = _get_keycloak_credentials()
-    return KeycloakPDPClient(
-        keycloak_url=keycloak_url,
-        realm=realm,
-        client_id=client_id,
-        client_secret=client_secret,
-    )
-
-
-if (
-    auth_settings.openid_configuration_url
-    and settings.keycloak_uma_resource_server_client_secret_name
-):
-    pep_logger.info(
-        "PEP middleware enabled for Ingest API, secret_name=%s",
-        settings.keycloak_uma_resource_server_client_secret_name,
-    )
-    app.add_middleware(
-        PEPMiddleware,
-        pdp_client=_get_keycloak_pdp_client,
-        resource_extractor=extract_ingest_resource_id,
-    )
-else:
-    pep_logger.info(
-        "PEP middleware disabled for Ingest API, openid_url=%s, secret_name=%s",
-        bool(auth_settings.openid_configuration_url),
-        bool(settings.keycloak_uma_resource_server_client_secret_name),
-    )
 
 
 @app.get(
