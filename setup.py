@@ -10,7 +10,7 @@ extra_reqs = {
     "deploy": [
         "aws-cdk-lib<3.0.0,>=2.47.0.a0",
         "constructs>=10.0.0,<11.0.0",
-        "aws-cdk.aws_apigatewayv2_alpha~=2.47.0.a0",
+        "aws-cdk.aws_apigatewayv2_alpha~=2.114.1a0.0",
         "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.47.0.a0",
         "pydantic>=2.4.1",
         "eoapi-cdk==5.4.0",
