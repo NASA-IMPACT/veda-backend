@@ -1,0 +1,29 @@
+version: 2
+updates:
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+    schedule:
+      interval: weekly
+    groups:
+      all:
+        patterns:
+        - "*"
+    commit-message:
+      prefix: "chore(deps):"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: "weekly"
+    groups:
+      all:
+        patterns:
+        - "*"
+    commit-message:
+      prefix: "ci(deps):"

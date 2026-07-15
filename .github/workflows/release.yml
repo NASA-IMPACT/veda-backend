@@ -1,7 +1,6 @@
 name: Release Workflow
 
 permissions:
-  id-token: write
   contents: read
 
 on:

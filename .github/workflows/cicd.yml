@@ -1,7 +1,6 @@
 name: CDK Deploy Dev Workflow 🚀
 
 permissions:
-  id-token: write
   contents: read
 
 on:
@@ -34,6 +33,8 @@ jobs:
     needs: [define-environment]
     environment: ${{ needs.define-environment.outputs.env_name }}
     concurrency: ${{ needs.define-environment.outputs.env_name }}
+    permissions:
+      id-token: write
 
     steps:
       - name: Checkout
