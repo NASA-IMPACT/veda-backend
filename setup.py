@@ -21,7 +21,7 @@ extra_reqs = {
         "pytest-asyncio",
         "pytest-cov",
         "httpx==0.23.3",
-        "pypgstac==0.8.5",
+        "pypgstac==0.9.11",
         "psycopg[binary, pool]",
         "fastapi",
         "openapi-schema-validator",
