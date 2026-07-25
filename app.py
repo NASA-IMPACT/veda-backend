@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-""" CDK Configuration for the veda-backend stack."""
+"""CDK Configuration for the veda-backend stack."""
 
 import subprocess
 
 from aws_cdk import App, Aspects, Stack, Tags, aws_iam
 from constructs import Construct
+from eoapi_cdk import StacBrowser
 
 from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
@@ -16,8 +17,6 @@ from permissions_boundary.infrastructure.construct import PermissionsBoundaryAsp
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
 from s3_website.infrastructure.construct import VedaWebsite
 from stac_api.infrastructure.construct import StacApiLambdaConstruct
-
-from eoapi_cdk import StacBrowser
 
 app = App()
 if veda_app_settings.bootstrap_qualifier:

@@ -1,4 +1,5 @@
 """Integration tests for PEP middleware"""
+
 import copy
 import importlib
 import os
@@ -10,9 +11,8 @@ import pytest
 import src.app
 import src.config
 from httpx import ASGITransport, AsyncClient
-from veda_auth.keycloak_client import PermissionDeniedError, ResourceNotFoundError
-
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
+from veda_auth.keycloak_client import PermissionDeniedError, ResourceNotFoundError
 
 from .conftest import VALID_ITEM
 
@@ -42,12 +42,12 @@ MOCK_KEYCLOAK_SECRET = {
 @pytest.fixture(autouse=True)
 def pep_environ():
     """Set UMA and transaction env vars for PEP middleware tests"""
-    os.environ[
-        "VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
-    ] = "test/keycloak-uma-secret"
-    os.environ[
-        "VEDA_STAC_OPENID_CONFIGURATION_URL"
-    ] = "https://auth.example.com/realms/test-realm/.well-known/openid-configuration"
+    os.environ["VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"] = (
+        "test/keycloak-uma-secret"
+    )
+    os.environ["VEDA_STAC_OPENID_CONFIGURATION_URL"] = (
+        "https://auth.example.com/realms/test-realm/.well-known/openid-configuration"
+    )
     os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
     os.environ["VEDA_STAC_ENABLE_STAC_AUTH_PROXY"] = "True"
     os.environ["VEDA_STAC_ROOT_PATH"] = ROOT_PATH
@@ -74,8 +74,11 @@ async def pep_app(mock_pdp_client):
     src.config.ApiSettings.cache_clear()
     importlib.reload(src.config)
 
-    with patch("src.config.get_secret_dict", return_value=MOCK_KEYCLOAK_SECRET), patch(
-        "veda_auth.keycloak_client.KeycloakPDPClient", return_value=mock_pdp_client
+    with (
+        patch("src.config.get_secret_dict", return_value=MOCK_KEYCLOAK_SECRET),
+        patch(
+            "veda_auth.keycloak_client.KeycloakPDPClient", return_value=mock_pdp_client
+        ),
     ):
         # reload with mocked dependencies
         importlib.reload(src.app)

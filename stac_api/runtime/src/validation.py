@@ -4,13 +4,12 @@ import json
 import re
 from typing import Dict
 
+from fastapi import Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from pystac import STACObjectType
 from pystac.errors import STACTypeError, STACValidationError
 from pystac.validation import validate_dict
-
-from fastapi import Request
-from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 

@@ -3,10 +3,9 @@ from unittest.mock import MagicMock, patch
 
 import boto3
 import pytest
+from fastapi.testclient import TestClient
 from moto import mock_dynamodb, mock_ssm
 from stac_pydantic.item import Item
-
-from fastapi.testclient import TestClient
 
 
 def override_validated_token_for_ingest():
@@ -46,9 +45,9 @@ def test_environ():
     os.environ["RASTER_URL"] = "https://test-raster.url"
     os.environ["STAGE"] = "testing"
     os.environ["ROOT_PATH"] = ""
-    os.environ[
-        "OPENID_CONFIGURATION_URL"
-    ] = "https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration"
+    os.environ["OPENID_CONFIGURATION_URL"] = (
+        "https://auth.openveda.cloud/realms/veda/.well-known/openid-configuration"
+    )
     os.environ["CLIENT_ID"] = "fake_client_id"
 
 

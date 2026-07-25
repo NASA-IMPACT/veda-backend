@@ -2,6 +2,7 @@
 Custom resource lambda handler to bootstrap Postgres db.
 Source: https://github.com/developmentseed/eoAPI/blob/master/deployment/handlers/db_handler.py
 """
+
 import json
 
 import boto3
@@ -75,7 +76,7 @@ def get_secret(secret_name):
 def create_db(cursor, db_name: str) -> None:
     """Create DB."""
     cursor.execute(
-        sql.SQL("SELECT 1 FROM pg_catalog.pg_database " "WHERE datname = %s"), [db_name]
+        sql.SQL("SELECT 1 FROM pg_catalog.pg_database WHERE datname = %s"), [db_name]
     )
     if cursor.fetchone():
         print(f"database {db_name} exists, not creating DB")

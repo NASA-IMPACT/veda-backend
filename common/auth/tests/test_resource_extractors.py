@@ -4,6 +4,7 @@ import json
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from fastapi import HTTPException, Request
 from veda_auth.resource_extractors import (
     STAC_COLLECTION_PUBLIC,
     STAC_COLLECTION_TEMPLATE,
@@ -13,8 +14,6 @@ from veda_auth.resource_extractors import (
     extract_ingest_resource_id,
     extract_stac_resource_id,
 )
-
-from fastapi import HTTPException, Request
 
 
 def _request(path: str, method: str = "GET") -> MagicMock:

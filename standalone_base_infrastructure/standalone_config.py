@@ -1,4 +1,5 @@
 """Configuration options for optional stand-alone VPC Stack"""
+
 from typing import Optional
 
 from pydantic import BaseSettings, Field

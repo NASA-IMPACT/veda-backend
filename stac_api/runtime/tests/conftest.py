@@ -13,11 +13,10 @@ import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from pystac import STACObjectType
 from pystac.errors import STACValidationError
-
-from fastapi import FastAPI
 from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
 
 VALID_SHELL_FEATURE_COLLECTION = {
@@ -254,9 +253,9 @@ def test_environ():
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_REGION"] = "us-west-2"
     os.environ["VEDA_STAC_CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
-    os.environ[
-        "VEDA_STAC_OPENID_CONFIGURATION_URL"
-    ] = "https://example.com/.well-known/openid-configuration"
+    os.environ["VEDA_STAC_OPENID_CONFIGURATION_URL"] = (
+        "https://example.com/.well-known/openid-configuration"
+    )
     os.environ["VEDA_STAC_ENABLE_TRANSACTIONS"] = "True"
     os.environ["VEDA_STAC_ENABLE_STAC_AUTH_PROXY"] = "True"
     os.environ["VEDA_STAC_ROOT_PATH"] = "/api/stac"

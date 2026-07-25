@@ -1,5 +1,4 @@
-"""Setup veda_auth
-"""
+"""Setup veda_auth"""
 
 from setuptools import find_packages, setup
 

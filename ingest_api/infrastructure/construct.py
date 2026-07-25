@@ -1,14 +1,20 @@
 import os
 from typing import Dict, Optional, Union
 
-from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
+from aws_cdk import (
+    CfnOutput,
+    Duration,
+    RemovalPolicy,
+    Stack,
+    aws_apigatewayv2_alpha,
+    aws_apigatewayv2_integrations_alpha,
+    aws_lambda,
+)
 from aws_cdk import aws_apigateway as apigateway
-from aws_cdk import aws_apigatewayv2_alpha, aws_apigatewayv2_integrations_alpha
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_kms as kms
-from aws_cdk import aws_lambda
 from aws_cdk import aws_lambda_event_sources as events
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_ssm as ssm
@@ -49,9 +55,9 @@ class ApiConstruct(Construct):
         }
 
         if config.keycloak_uma_resource_server_client_secret_name:
-            lambda_env[
-                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
-            ] = config.keycloak_uma_resource_server_client_secret_name
+            lambda_env["KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"] = (
+                config.keycloak_uma_resource_server_client_secret_name
+            )
 
         keycloak_secret = get_keycloak_secret(
             self, config.keycloak_uma_resource_server_client_secret_name
@@ -198,11 +204,11 @@ class ApiConstruct(Construct):
     ) -> aws_apigatewayv2_alpha.HttpApi:
         integration_kwargs = dict(handler=handler)
         if custom_host:
-            integration_kwargs[
-                "parameter_mapping"
-            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
-                "host",
-                aws_apigatewayv2_alpha.MappingValue(custom_host),
+            integration_kwargs["parameter_mapping"] = (
+                aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                    "host",
+                    aws_apigatewayv2_alpha.MappingValue(custom_host),
+                )
             )
 
         ingest_api_integration = (
@@ -264,9 +270,9 @@ class IngestorConstruct(Construct):
         }
 
         if config.keycloak_uma_resource_server_client_secret_name:
-            lambda_env[
-                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
-            ] = config.keycloak_uma_resource_server_client_secret_name
+            lambda_env["KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"] = (
+                config.keycloak_uma_resource_server_client_secret_name
+            )
 
         if config.raster_data_access_role_arn:
             lambda_env["DATA_ACCESS_ROLE_ARN"] = config.raster_data_access_role_arn

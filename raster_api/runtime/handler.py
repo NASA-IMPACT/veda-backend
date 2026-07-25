@@ -8,7 +8,6 @@ from mangum import Mangum
 from src.app import app
 from src.config import ApiSettings
 from src.monitoring import logger, metrics, tracer
-
 from titiler.pgstac.db import connect_to_db
 
 settings = ApiSettings()

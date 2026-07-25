@@ -1,4 +1,5 @@
 """App settings."""
+
 from getpass import getuser
 from typing import List, Optional
 

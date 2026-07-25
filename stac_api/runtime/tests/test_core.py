@@ -1,11 +1,11 @@
 """
 Unit tests for VedaCrudClient._search_base in core.py
 """
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from src.core import VedaCrudClient
-
 from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
@@ -37,11 +37,14 @@ class TestSearchBase:
         search_request = self.search_request
         request = self.request
 
-        with patch.object(
-            CoreCrudClient, "_search_base", new_callable=AsyncMock
-        ) as mock_super_search, patch.object(
-            CoreCrudClient, "get_collection", new_callable=AsyncMock
-        ) as mock_get_collection:
+        with (
+            patch.object(
+                CoreCrudClient, "_search_base", new_callable=AsyncMock
+            ) as mock_super_search,
+            patch.object(
+                CoreCrudClient, "get_collection", new_callable=AsyncMock
+            ) as mock_get_collection,
+        ):
             mock_super_search.return_value = valid_stac_features_collection_empty
 
             result = await client._search_base(search_request, request=request)
@@ -57,11 +60,14 @@ class TestSearchBase:
         search_request = self.search_request
         request = self.request
 
-        with patch.object(
-            CoreCrudClient, "_search_base", new_callable=AsyncMock
-        ) as mock_super_search, patch.object(
-            CoreCrudClient, "get_collection", new_callable=AsyncMock
-        ) as mock_get_collection:
+        with (
+            patch.object(
+                CoreCrudClient, "_search_base", new_callable=AsyncMock
+            ) as mock_super_search,
+            patch.object(
+                CoreCrudClient, "get_collection", new_callable=AsyncMock
+            ) as mock_get_collection,
+        ):
             mock_super_search.return_value = (
                 valid_stac_collection_multi_cog_asset_renders
             )
@@ -82,13 +88,17 @@ class TestSearchBase:
         search_request = self.search_request
         request = self.request
 
-        with patch.object(
-            CoreCrudClient, "_search_base", new_callable=AsyncMock
-        ) as mock_super_search, patch.object(
-            CoreCrudClient, "get_collection", new_callable=AsyncMock
-        ) as mock_get_collection, patch(
-            "src.links.tiles_settings.titiler_endpoint",
-            new="https://fake-titiler.example.com",
+        with (
+            patch.object(
+                CoreCrudClient, "_search_base", new_callable=AsyncMock
+            ) as mock_super_search,
+            patch.object(
+                CoreCrudClient, "get_collection", new_callable=AsyncMock
+            ) as mock_get_collection,
+            patch(
+                "src.links.tiles_settings.titiler_endpoint",
+                new="https://fake-titiler.example.com",
+            ),
         ):
             mock_super_search.return_value = (
                 valid_stac_collection_multi_cog_asset_renders_with_dashboard
@@ -116,13 +126,17 @@ class TestSearchBase:
         search_request = self.search_request
         request = self.request
 
-        with patch.object(
-            CoreCrudClient, "_search_base", new_callable=AsyncMock
-        ) as mock_super_search, patch.object(
-            CoreCrudClient, "get_collection", new_callable=AsyncMock
-        ) as mock_get_collection, patch(
-            "src.links.tiles_settings.titiler_endpoint",
-            new="https://fake-titiler.example.com",
+        with (
+            patch.object(
+                CoreCrudClient, "_search_base", new_callable=AsyncMock
+            ) as mock_super_search,
+            patch.object(
+                CoreCrudClient, "get_collection", new_callable=AsyncMock
+            ) as mock_get_collection,
+            patch(
+                "src.links.tiles_settings.titiler_endpoint",
+                new="https://fake-titiler.example.com",
+            ),
         ):
             mock_super_search.return_value = (
                 valid_stac_collection_multi_cog_asset_renders_with_dashboard
@@ -166,13 +180,17 @@ class TestSearchBase:
         custom_tiler_url = "https://custom-tiler.example.com"
         default_tiler_url = "https://default-titiler.example.com"
 
-        with patch.object(
-            CoreCrudClient, "_search_base", new_callable=AsyncMock
-        ) as mock_super_search, patch.object(
-            CoreCrudClient, "get_collection", new_callable=AsyncMock
-        ) as mock_get_collection, patch(
-            "src.links.tiles_settings.titiler_endpoint",
-            new=default_tiler_url,
+        with (
+            patch.object(
+                CoreCrudClient, "_search_base", new_callable=AsyncMock
+            ) as mock_super_search,
+            patch.object(
+                CoreCrudClient, "get_collection", new_callable=AsyncMock
+            ) as mock_get_collection,
+            patch(
+                "src.links.tiles_settings.titiler_endpoint",
+                new=default_tiler_url,
+            ),
         ):
             mock_super_search.return_value = (
                 valid_stac_collection_renders_with_tiler_url
@@ -191,12 +209,12 @@ class TestSearchBase:
 
         # All generated hrefs should use the custom tiler_url, not the default endpoint
         for link in links:
-            assert link["href"].startswith(
-                custom_tiler_url
-            ), f"Expected link href to use tiler_url ({custom_tiler_url}), got: {link['href']}"
+            assert link["href"].startswith(custom_tiler_url), (
+                f"Expected link href to use tiler_url ({custom_tiler_url}), got: {link['href']}"
+            )
 
         rendered_preview_keys = [k for k in assets if k.startswith("rendered_preview_")]
         for key in rendered_preview_keys:
-            assert assets[key]["href"].startswith(
-                custom_tiler_url
-            ), f"Expected preview href to use tiler_url ({custom_tiler_url}), got: {assets[key]['href']}"
+            assert assets[key]["href"].startswith(custom_tiler_url), (
+                f"Expected preview href to use tiler_url ({custom_tiler_url}), got: {assets[key]['href']}"
+            )

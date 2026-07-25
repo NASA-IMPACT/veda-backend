@@ -1,6 +1,7 @@
 import os
 
 from pypgstac.db import PgstacDB
+
 from src.schemas import DashboardCollection
 from src.utils import IngestionType, get_db_credentials, load_into_pgstac
 from src.vedaloader import VEDALoader

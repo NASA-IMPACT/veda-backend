@@ -1,4 +1,5 @@
 """Class that applies permissions boundary to all the roles created within a Stack"""
+
 from typing import Union
 
 import jsii

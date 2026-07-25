@@ -5,6 +5,10 @@ import re
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Optional, Sequence
 
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
+from starlette.types import ASGIApp
 from veda_auth.keycloak_client import (
     KeycloakPDPClient,
     PermissionDeniedError,
@@ -15,11 +19,6 @@ from veda_auth.resource_extractors import (
     COLLECTIONS_CREATE_PATH_RE,
     COLLECTIONS_PATH_RE,
 )
-
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
-from starlette.types import ASGIApp
 
 logger = logging.getLogger(__name__)
 

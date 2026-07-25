@@ -1,4 +1,5 @@
 """CDK Construct for veda-backend RDS instance."""
+
 import json
 import os
 from typing import List, Optional, Union

@@ -1,6 +1,7 @@
 """
 CDK construct for veda-backend VPC.
 """
+
 from typing import Optional
 
 from aws_cdk import CfnOutput, Stack, aws_ec2

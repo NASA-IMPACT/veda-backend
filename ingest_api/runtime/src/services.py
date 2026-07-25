@@ -1,10 +1,11 @@
 import decimal
 from typing import TYPE_CHECKING, List, Optional
 
-import src.schemas as schemas
 from boto3.dynamodb import conditions
 from boto3.dynamodb.types import DYNAMODB_CONTEXT
 from pydantic import TypeAdapter
+
+import src.schemas as schemas
 
 if TYPE_CHECKING:
     from mypy_boto3_dynamodb.service_resource import Table
@@ -45,5 +46,4 @@ class Database:
         }
 
 
-class NotInDb(Exception):
-    ...
+class NotInDb(Exception): ...

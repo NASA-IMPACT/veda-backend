@@ -1,11 +1,11 @@
 import logging
 
 import boto3
+from fastapi import Depends, HTTPException
+
 import src.services as services
 from src.auth import get_username
 from src.config import settings
-
-from fastapi import Depends, HTTPException
 
 logger = logging.getLogger(__name__)
 

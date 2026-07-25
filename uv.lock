@@ -1431,18 +1431,20 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "python-dotenv" },
+    { name = "ruff" },
+]
+test = [
     { name = "fastapi" },
     { name = "httpx" },
-    { name = "mypy" },
     { name = "openapi-schema-validator" },
-    { name = "pre-commit" },
     { name = "psycopg", extra = ["binary", "pool"] },
     { name = "pypgstac" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
-    { name = "python-dotenv" },
-    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -1459,18 +1461,20 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "mypy", specifier = ">=1.11.1" },
+    { name = "pre-commit", specifier = ">=3.8.0" },
+    { name = "python-dotenv" },
+    { name = "ruff", specifier = ">=0.5.6" },
+]
+test = [
     { name = "fastapi" },
     { name = "httpx", specifier = "==0.23.3" },
-    { name = "mypy", specifier = ">=1.11.1" },
     { name = "openapi-schema-validator" },
-    { name = "pre-commit", specifier = ">=3.8.0" },
     { name = "psycopg", extras = ["binary", "pool"] },
     { name = "pypgstac", specifier = "==0.8.5" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
-    { name = "python-dotenv" },
-    { name = "ruff", specifier = ">=0.5.6" },
 ]
 
 [[package]]

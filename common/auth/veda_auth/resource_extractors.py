@@ -1,4 +1,4 @@
-"""" Resource Extractors to use in PEP Middleware.
+""" " Resource Extractors to use in PEP Middleware.
 We need to extract the following from a request in order to create a permission ticket request:
 - resource id
 - scope

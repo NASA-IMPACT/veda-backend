@@ -10,9 +10,8 @@ import boto3
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 from rasterio.session import AWSSession
-from typing_extensions import Annotated
-
 from titiler.pgstac.settings import PostgresSettings
+from typing_extensions import Annotated
 
 
 @lru_cache()

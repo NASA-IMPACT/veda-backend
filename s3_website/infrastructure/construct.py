@@ -1,4 +1,5 @@
 """CDK Construct for getting or creating S3 static website for both a stac-browser and for optional cloudfront origin."""
+
 from aws_cdk import CfnOutput, RemovalPolicy, Stack
 from aws_cdk import aws_s3 as s3
 from constructs import Construct

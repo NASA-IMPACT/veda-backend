@@ -1,4 +1,5 @@
 """Veda-backend database construct configuration."""
+
 from typing import Optional
 
 from aws_cdk import aws_ec2, aws_rds

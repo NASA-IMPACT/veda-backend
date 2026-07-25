@@ -111,9 +111,9 @@ class TestList:
         """
         item_id = valid_stac_item["id"]
         collection_id = valid_stac_item["collection"]
-        assert (
-            collection_id == collection_in_db
-        ), "Collection IDs don't match, test not setup correctly"
+        assert collection_id == collection_in_db, (
+            "Collection IDs don't match, test not setup correctly"
+        )
         valid_request = {"items": {item_id: valid_stac_item}, "method": "upsert"}
 
         response = await api_client.post(
