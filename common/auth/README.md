@@ -19,7 +19,7 @@ The `KeycloakPDPClient` enables applications to:
 The client is part of the `veda_auth` package. You can install it with:
 
 ```bash
-pip install common/auth/
+uv pip install common/auth/
 ```
 
 ### Basic Usage

@@ -1,21 +1,19 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 22.3.0
+  - repo: local
     hooks:
-      - id: black
-        language_version: python
+      - id: lint
+        name: Lint Code
+        entry: make lint
+        language: system
+        types: [python]
+        stages: [commit]
 
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        language_version: python
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        language_version: python
+      - id: format
+        name: Format Code
+        entry: make format
+        language: system
+        types: [python]
+        stages: [commit]
 
   - repo: https://github.com/PyCQA/pydocstyle
     rev: 5.1.1

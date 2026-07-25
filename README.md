@@ -87,11 +87,9 @@ nvm install 22 # .github/workflows/pr.yml uses node version 22
 #### Virtual environment example
 
 ```bash
-# `pipes` package required by the `fire` package deprecated in python >3.12
-pyenv install 3.12
-pyenv shell 3.12
-python3 -m venv .venv
-source .venv/bin/activate
+# Install UV with Homebrew or the official installer, then select Python 3.12 if needed.
+brew install uv
+uv python install 3.12
 ```
 
 #### Install requirements
@@ -99,8 +97,7 @@ source .venv/bin/activate
 ```bash
 nvm use 22
 npm install --location=global aws-cdk
-python3 -m pip install --upgrade pip
-python3 -m pip install -e ".[dev,deploy,test]"
+uv sync --extra dev --extra deploy --extra test
 ```
 
 #### Run the deployment
@@ -109,9 +106,9 @@ python3 -m pip install -e ".[dev,deploy,test]"
 # Login to ECR so that you can pull public docker images
 aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 # Review what infrastructure changes your deployment will cause
-cdk diff
+uv run cdk diff
 # Execute deployment and standby--security changes will require approval for deployment
-cdk deploy
+uv run cdk deploy
 ```
 
 ## Deleting the CloudFormation stack
