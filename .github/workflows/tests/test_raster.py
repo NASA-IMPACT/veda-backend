@@ -1,7 +1,11 @@
 """test veda-backend.raster."""
 
+import time
+
 import httpx
 import pytest
+
+HTTP_TIMEOUT = 30.0
 
 
 class TestList:
@@ -34,11 +38,32 @@ class TestList:
         self.searches = searches
         self.seeded_tms_id = seeded_tms_id
 
+    def _post_with_retry(self, url, json, attempts=5, delay=0.5):
+        """Retry transient startup transport errors when local services are cold."""
+        for attempt in range(1, attempts + 1):
+            try:
+                return httpx.post(url, json=json, timeout=HTTP_TIMEOUT)
+            except (httpx.TimeoutException, httpx.TransportError):
+                if attempt == attempts:
+                    raise
+                time.sleep(delay)
+
+    def _get_with_retry(self, url, attempts=5, delay=0.5, **kwargs):
+        """Retry transient startup transport errors when local services are cold."""
+        for attempt in range(1, attempts + 1):
+            try:
+                return httpx.get(url, timeout=HTTP_TIMEOUT, **kwargs)
+            except (httpx.TimeoutException, httpx.TransportError):
+                if attempt == attempts:
+                    raise
+                time.sleep(delay)
+
     def test_raster_api_health(self):
         """test api."""
         # health
-        resp = httpx.get(
-            self.raster_health_endpoint, headers={"Accept-Encoding": "br, gzip"}
+        resp = self._get_with_retry(
+            self.raster_health_endpoint,
+            headers={"Accept-Encoding": "br, gzip"},
         )
         assert resp.status_code == 200
         assert resp.headers["content-type"] == "application/json"
@@ -47,7 +72,9 @@ class TestList:
     def test_mosaic_api(self):
         """test mosaic."""
         query = {"collections": [self.seeded_collection], "filter-lang": "cql-json"}
-        resp = httpx.post(f"{self.raster_searches_endpoint}/register", json=query)
+        resp = self._post_with_retry(
+            f"{self.raster_searches_endpoint}/register", json=query
+        )
         assert resp.headers["content-type"] == "application/json"
         assert resp.status_code == 200
         assert resp.json()["id"]
@@ -55,16 +82,16 @@ class TestList:
 
         searchid = resp.json()["id"]
         assert resp.status_code == 200
-        resp = httpx.get(
-            f"{self.raster_searches_endpoint}/{searchid}/point/-85.6358,36.1624/assets"
+        resp = self._get_with_retry(
+            f"{self.raster_searches_endpoint}/{searchid}/point/-85.6358,36.1624/assets",
         )
         assert resp.status_code == 200
         assert len(resp.json()) == 1
         assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
         assert resp.json()[0]["id"] == self.seeded_id
 
-        resp = httpx.get(
-            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tms_id}/15/8589/12849/assets"
+        resp = self._get_with_retry(
+            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tms_id}/15/8589/12849/assets",
         )
 
         assert resp.status_code == 200
@@ -72,18 +99,17 @@ class TestList:
         assert list(resp.json()[0]) == ["id", "bbox", "assets", "collection"]
         assert resp.json()[0]["id"] == self.seeded_id
 
-        resp = httpx.get(
+        resp = self._get_with_retry(
             f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tms_id}/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}",
             params={"assets": "cog"},
             headers={"Accept-Encoding": "br, gzip"},
-            timeout=10.0,
         )
         assert resp.status_code == 200
         assert resp.headers["content-type"] == "image/jpeg"
         assert "content-encoding" not in resp.headers
 
-        resp = httpx.get(
-            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tms_id}/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}/assets"
+        resp = self._get_with_retry(
+            f"{self.raster_searches_endpoint}/{searchid}/tiles/{self.seeded_tms_id}/{self.seeded_tilematrix['z']}/{self.seeded_tilematrix['x']}/{self.seeded_tilematrix['y']}/assets",
         )
         assert resp.status_code == 200
 
@@ -91,11 +117,13 @@ class TestList:
         """test mosaic."""
         # register some fake mosaic
         for search in self.searches:
-            resp = httpx.post(f"{self.raster_searches_endpoint}/register", json=search)
+            resp = self._post_with_retry(
+                f"{self.raster_searches_endpoint}/register", json=search
+            )
             assert resp.status_code == 200
             assert resp.json()["id"]
 
-        resp = httpx.get(f"{self.raster_searches_endpoint}/list")
+        resp = self._get_with_retry(f"{self.raster_searches_endpoint}/list")
         assert resp.headers["content-type"] == "application/json"
         assert resp.status_code == 200
         assert (
@@ -116,8 +144,9 @@ class TestList:
             == f"{self.raster_searches_endpoint}/list?limit=10&offset=10"
         )
 
-        resp = httpx.get(
-            f"{self.raster_searches_endpoint}/list", params={"limit": 1, "offset": 1}
+        resp = self._get_with_retry(
+            f"{self.raster_searches_endpoint}/list",
+            params={"limit": 1, "offset": 1},
         )
         assert resp.status_code == 200
         assert resp.json()["context"]["matched"] > 10
@@ -141,8 +170,9 @@ class TestList:
         )
 
         # Filter on mosaic metadata
-        resp = httpx.get(
-            f"{self.raster_searches_endpoint}/list", params={"owner": "vincent"}
+        resp = self._get_with_retry(
+            f"{self.raster_searches_endpoint}/list",
+            params={"owner": "vincent"},
         )
         assert resp.status_code == 200
         assert resp.json()["context"]["matched"] == 7
@@ -150,26 +180,30 @@ class TestList:
         assert resp.json()["context"]["returned"] == 7
 
         # sortBy
-        resp = httpx.get(
-            f"{self.raster_searches_endpoint}/list", params={"sortby": "lastused"}
+        resp = self._get_with_retry(
+            f"{self.raster_searches_endpoint}/list",
+            params={"sortby": "lastused"},
         )
         assert resp.status_code == 200
 
-        resp = httpx.get(
-            f"{self.raster_searches_endpoint}/list", params={"sortby": "usecount"}
+        resp = self._get_with_retry(
+            f"{self.raster_searches_endpoint}/list",
+            params={"sortby": "usecount"},
         )
         assert resp.status_code == 200
 
-        resp = httpx.get(
-            f"{self.raster_searches_endpoint}/list", params={"sortby": "-owner"}
+        resp = self._get_with_retry(
+            f"{self.raster_searches_endpoint}/list",
+            params={"sortby": "-owner"},
         )
         assert resp.status_code == 200
         assert (
             "owner" not in resp.json()["searches"][0]["search"]["metadata"]
         )  # some mosaic don't have owners
 
-        resp = httpx.get(
-            f"{self.raster_searches_endpoint}/list", params={"sortby": "owner"}
+        resp = self._get_with_retry(
+            f"{self.raster_searches_endpoint}/list",
+            params={"sortby": "owner"},
         )
         assert resp.status_code == 200
         assert "owner" in resp.json()["searches"][0]["search"]["metadata"]

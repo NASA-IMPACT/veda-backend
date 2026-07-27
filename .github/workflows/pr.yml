@@ -50,6 +50,15 @@ jobs:
         run: |
           make install-dev
 
+      - name: Wait for pgstac seed data load
+        run: |
+          load_exit_code="$(docker wait veda.loadtestdata)"
+          if [ "$load_exit_code" -ne 0 ]; then
+            echo "pypgstac seed load failed with exit code $load_exit_code"
+            docker logs veda.loadtestdata
+            exit 1
+          fi
+
       - name: Wait for STAC API to be ready
         run: |
           echo "Waiting for STAC API to be available at localhost:8081..."

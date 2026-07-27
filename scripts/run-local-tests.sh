@@ -5,7 +5,7 @@ set -e
 #  Ensure all Python dependencies are installed
 # =================================================================
 echo "--- Installing all development dependencies ---"
-uv sync --extra dev --extra deploy --extra test
+uv sync --all-groups
 uv sync --project ingest_api/runtime --group test
 uv sync --project stac_api/runtime --group test
 echo "--- Dependency installation complete ---"
@@ -14,8 +14,21 @@ echo "--- Dependency installation complete ---"
 # Lint
 uv run pre-commit run --all-files
 
-# Bring up stack for testing; ingestor not required
-docker compose up -d --wait stac raster database dynamodb pypgstac
+# Bring up infra first
+docker compose up -d --wait database dynamodb oidc
+
+# Load fixtures once via the pypgstac service and block until completion
+echo "--- Loading pgstac fixture data ---"
+docker compose up -d pypgstac
+load_exit_code="$(docker wait veda.loadtestdata)"
+if [ "$load_exit_code" -ne 0 ]; then
+    echo "pypgstac seed load failed with exit code $load_exit_code"
+    docker logs veda.loadtestdata
+    exit 1
+fi
+
+# Bring up APIs after data load to avoid startup-time race conditions
+docker compose up -d --wait stac raster
 
 # cleanup, logging in case of failure
 cleanup() {
@@ -34,9 +47,6 @@ cleanup() {
     docker compose down
 }
 trap cleanup EXIT
-
-# Load data for tests
-docker exec veda.loadtestdata /tmp/scripts/bin/load-data.sh
 
 # Run tests
 echo "--- Running stac and raster tests ---"

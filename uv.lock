@@ -1455,13 +1455,13 @@ requires-dist = [
     { name = "boto3" },
     { name = "constructs", specifier = ">=10.0.0,<11.0.0" },
     { name = "eoapi-cdk", specifier = "==5.4.0" },
-    { name = "pydantic", specifier = ">=2.4.1" },
+    { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pydantic-settings", specifier = ">=2.4.1" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "mypy", specifier = ">=1.11.1" },
+    { name = "mypy", specifier = ">=2.3.0" },
     { name = "pre-commit", specifier = ">=3.8.0" },
     { name = "python-dotenv" },
     { name = "ruff", specifier = ">=0.5.6" },
