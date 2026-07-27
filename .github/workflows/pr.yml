@@ -85,7 +85,7 @@ jobs:
         run: uv run --project stac_api/runtime --with common/auth pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
 
       - name: Auth unit tests
-        run: uv run python -m pytest common/auth/tests/ -vv -s
+        run: uv run --with common/auth pytest common/auth/tests/ -vv -s
 
       - name: Stop services
         run: docker compose stop

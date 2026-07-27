@@ -57,12 +57,15 @@ echo "--- Running ingest api runtime tests ---"
 # Must ping PGSTAC_VERSION in multiple places due to version management outside of repository
 PGSTAC_VERSION=0.9.6 
 NO_PYDANTIC_SSM_SETTINGS=1 uv run --project ingest_api/runtime \
-    --with ./common/auth \
+    --with common/auth \
     --with "pypgstac==${PGSTAC_VERSION}" \
     pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
 
 # Transactions tests
 echo "--- Running stac api runtime tests ---"
 uv run --project stac_api/runtime \
-    --with ./common/auth \
+    --with common/auth \
     pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s -p no:warnings
+
+echo "--- Running auth tests ---"
+uv run --with common/auth pytest common/auth/tests/ -vv -s
