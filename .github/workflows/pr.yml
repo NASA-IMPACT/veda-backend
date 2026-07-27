@@ -71,16 +71,18 @@ jobs:
       - name: Install reqs for ingest api
         run: |
           uv sync --project ingest_api/runtime --group test
-          uv pip install common/auth/
 
       - name: Install reqs for stac api
         run: uv sync --project stac_api/runtime --group test
 
       - name: Ingest unit tests
-        run: NO_PYDANTIC_SSM_SETTINGS=1 uv run --project ingest_api/runtime python -m pytest ingest_api/runtime/tests/ -vv -s
+        env:
+          PGSTAC_VERSION: 0.9.6
+        run: |
+          NO_PYDANTIC_SSM_SETTINGS=1 uv run --project ingest_api/runtime --with common/auth --with "pypgstac==${PGSTAC_VERSION}" pytest ingest_api/runtime/tests/ -vv -s
 
       - name: Stac-api extensions unit tests
-        run: uv run --project stac_api/runtime python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
+        run: uv run --project stac_api/runtime --with common/auth pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s
 
       - name: Auth unit tests
         run: uv run python -m pytest common/auth/tests/ -vv -s
