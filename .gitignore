@@ -141,6 +141,8 @@ package-lock.json
 cdk-dev.out
 **/--no-binary/
 stac-browser
+.ruff_cache/
+.DS_Store
 
 container_logs.log
 

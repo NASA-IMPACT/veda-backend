@@ -6,14 +6,14 @@ repos:
         entry: make lint
         language: system
         types: [python]
-        stages: [commit]
+        stages: [pre-commit]
 
       - id: format
         name: Format Code
         entry: make format
         language: system
         types: [python]
-        stages: [commit]
+        stages: [pre-commit]
 
   - repo: https://github.com/PyCQA/pydocstyle
     rev: 5.1.1
@@ -22,7 +22,7 @@ repos:
         language_version: python
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.2.0
+    rev: v2.3.0
     hooks:
       - id: mypy
         language_version: python

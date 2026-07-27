@@ -2,7 +2,7 @@
 
 import json
 import os
-from typing import List, Optional, Union
+from typing import List, Optional, TypedDict, Union
 
 from aws_cdk import (
     CfnOutput,
@@ -83,27 +83,31 @@ class BootstrapPgStac(Construct):
         # Allow lambda to...
         # read new user secret
         self.secret.grant_read(handler)
+
         # read database secret
-        database.secret.grant_read(handler)
+        if database.secret is not None:
+            database.secret.grant_read(handler)
+
         # connect to database
         database.connections.allow_from(handler, port_range=aws_ec2.Port.tcp(5432))
 
         self.connections = database.connections
 
-        CustomResource(
-            scope=scope,
-            id="bootstrapper",
-            service_token=handler.function_arn,
-            properties={
-                # By setting pgstac_version in the properties assures
-                # that Create/Update events will be passed to the service token
-                "pgstac_version": pgstac_version,
-                "conn_secret_arn": database.secret.secret_arn,
-                "new_user_secret_arn": self.secret.secret_arn,
-                "veda_schema_version": veda_schema_version,
-            },
-            removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
-        )
+        if self.secret and database.secret:
+            CustomResource(
+                scope=scope,
+                id="bootstrapper",
+                service_token=handler.function_arn,
+                properties={
+                    # By setting pgstac_version in the properties assures
+                    # that Create/Update events will be passed to the service token
+                    "pgstac_version": pgstac_version,
+                    "conn_secret_arn": database.secret.secret_arn,
+                    "new_user_secret_arn": self.secret.secret_arn,
+                    "veda_schema_version": veda_schema_version,
+                },
+                removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
+            )
 
 
 # https://github.com/developmentseed/eoAPI/blob/master/deployment/cdk/app.py
@@ -118,7 +122,7 @@ class RdsConstruct(Construct):
         self,
         scope: Construct,
         construct_id: str,
-        vpc: aws_ec2.Vpc,
+        vpc: aws_ec2.IVpc,
         subnet_ids: Optional[List],
         stage: str,
         **kwargs,
@@ -175,7 +179,19 @@ class RdsConstruct(Construct):
             self.vpc_subnets = aws_ec2.SubnetSelection(subnet_type=subnet_type)
 
         # Database Configurations
-        database_config = {
+        class DatabaseConfig(TypedDict):
+            id: str
+            instance_identifier: str
+            vpc: aws_ec2.IVpc
+            engine: aws_rds.IInstanceEngine
+            instance_type: aws_ec2.InstanceType
+            vpc_subnets: aws_ec2.SubnetSelection
+            deletion_protection: bool
+            removal_policy: RemovalPolicy
+            publicly_accessible: bool
+            parameter_group: aws_rds.ParameterGroup
+
+        database_config: DatabaseConfig = {
             "id": "rds",
             "instance_identifier": f"{stack_name}-postgres",
             "vpc": vpc,
@@ -188,12 +204,10 @@ class RdsConstruct(Construct):
             "parameter_group": parameter_group,
         }
 
-        # Only set storage_encrypted if creating a database instance not from snapshot. Use an encrypted snapshot when creating a new encrypted database from a snapshot.
-        # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/DatabaseInstanceFromSnapshot.html
-        if not veda_db_settings.snapshot_id and veda_db_settings.rds_encryption:
-            database_config["storage_encrypted"] = veda_db_settings.rds_encryption
-
         # Create a new database instance from snapshot if provided
+        # Use an encrypted snapshot when creating a new encrypted database from a snapshot.
+        # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/DatabaseInstanceFromSnapshot.html
+        database: aws_rds.IDatabaseInstance
         if veda_db_settings.snapshot_id:
             # For the database from snapshot we will need a new master secret
             snapshot_credentials = aws_rds.SnapshotCredentials.from_generated_secret(
@@ -209,7 +223,11 @@ class RdsConstruct(Construct):
 
         # Or create/update RDS Resource
         else:
-            database = aws_rds.DatabaseInstance(self, **database_config)
+            database = aws_rds.DatabaseInstance(
+                self,
+                storage_encrypted=veda_db_settings.rds_encryption or False,
+                **database_config,
+            )
 
         hostname = database.instance_endpoint.hostname
         self.db_security_group = database.connections.security_groups[0]
@@ -241,7 +259,7 @@ class RdsConstruct(Construct):
                 proxy_target=aws_rds.ProxyTarget.from_instance(database),
                 id="RdsProxy",
                 vpc=vpc,
-                secrets=[database.secret, proxy_secret],
+                secrets=[s for s in (database.secret, proxy_secret) if s],
                 db_proxy_name=f"{stack_name}-proxy",
                 role=proxy_role,
                 require_tls=False,

@@ -83,6 +83,8 @@ select = "D1"
 match = '(?!test|ingest_api).*\.py'
 
 [tool.mypy]
+plugins = ["pydantic.mypy"]
+exclude = ".*/build/.*"
 no_implicit_optional = true
 strict_optional = true
 ignore_missing_imports = true

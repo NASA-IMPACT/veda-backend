@@ -1,7 +1,7 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
 
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -131,7 +131,7 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
-        integration_kwargs = dict(handler=lambda_function)
+        integration_kwargs: Dict[str, Any] = dict(handler=lambda_function)
         if veda_stac_settings.custom_host:
             integration_kwargs["parameter_mapping"] = (
                 aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
@@ -153,6 +153,7 @@ class StacApiLambdaConstruct(Construct):
             disable_execute_api_endpoint=veda_stac_settings.disable_default_apigw_endpoint,
         )
 
+        assert self.stac_api.url is not None, "stac_api.url should not be None"
         CfnOutput(
             self,
             "stac-api",

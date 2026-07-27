@@ -124,8 +124,12 @@ class Ingestion(BaseModel):
         None, description="Message returned from the step function."
     )
     created_by: str = Field(..., description="User who created the ingestion")
-    created_at: datetime = Field(None, description="Timestamp of ingestion creation")
-    updated_at: datetime = Field(None, description="Timestamp of ingestion update")
+    created_at: Optional[datetime] = Field(
+        None, description="Timestamp of ingestion creation"
+    )
+    updated_at: Optional[datetime] = Field(
+        None, description="Timestamp of ingestion update"
+    )
 
     item: Union[Item, Json[Item]] = Field(..., description="STAC item to ingest")
 
@@ -202,5 +206,5 @@ class ListIngestionResponse(BaseModel):
 
 
 class UpdateIngestionRequest(BaseModel):
-    status: Status = Field(None, description="Status of the ingestion")
-    message: str = Field(None, description="Message of the ingestion")
+    status: Optional[Status] = Field(None, description="Status of the ingestion")
+    message: Optional[str] = Field(None, description="Message of the ingestion")

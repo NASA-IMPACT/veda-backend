@@ -7,7 +7,12 @@ from typing import Optional
 from aws_cdk import CfnOutput, Stack, aws_ec2
 from constructs import Construct
 
-from .config import dev_vpc_settings, prod_vpc_settings, staging_vpc_settings
+from .config import (
+    BaseVpcSettings,
+    dev_vpc_settings,
+    prod_vpc_settings,
+    staging_vpc_settings,
+)
 
 
 # https://github.com/aws-samples/aws-cdk-examples/tree/master/python/new-vpc-alb-asg-mysql
@@ -35,6 +40,7 @@ class VpcConstruct(Construct):
             )
         # Or create a new VPC using the deployment stage configuration
         else:
+            veda_vpc_settings: BaseVpcSettings
             # Union of pydantic base settings is unpredictable so set stage settings conditionally
             if stage == "prod":
                 veda_vpc_settings = prod_vpc_settings

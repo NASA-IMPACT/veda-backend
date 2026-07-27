@@ -88,7 +88,7 @@ VALID_COLLECTION = {
     },
 }
 
-VALID_SHELL_ITEM = {
+VALID_SHELL_ITEM: dict = {
     "id": "test-item",
     "type": "Feature",
     "collection": "test-collection",
@@ -101,7 +101,7 @@ VALID_SHELL_ITEM = {
     "stac_extensions": [],
 }
 
-VALID_ITEM = {
+VALID_ITEM: dict = {
     "id": "OMI_trno2_0.10x0.10_2023_Col3_V4",
     "bbox": [-180.0, -90.0, 180.0, 90.0],
     "type": "Feature",

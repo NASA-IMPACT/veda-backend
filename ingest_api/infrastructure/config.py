@@ -20,6 +20,9 @@ class IngestorConfig(BaseSettings):
     # S3 key pattern to limit the access to specific items (e.g: "my_data/*.tif")
     key: str = "*"
 
+    aws_account: str
+    aws_region: str
+
     stage: str = Field(
         description=" ".join(
             [
