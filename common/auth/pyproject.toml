@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "veda_auth"
+version = "0.0.1"
+description = ""
+requires-python = ">=3.12"
+dependencies = [
+    "cryptography>=42.0.5",
+    "pyjwt>=2.8.0",
+    "fastapi",
+    "pydantic",
+    "httpx>=0.24.0",
+]
+
+[tool.setuptools.packages.find]
