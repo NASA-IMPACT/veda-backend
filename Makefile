@@ -30,7 +30,7 @@ STACKS = --all
 ARGS =
 
 deploy:
-	uv run npx aws-cdk@2 deploy --outputs-file ./cdk-outputs.json $(STACKS) $(ARGS)
+	uv run npx aws-cdk@2 deploy $(STACKS) $(ARGS)
 
 destroy:
 	uv run npx aws-cdk@2 destroy $(STACKS)

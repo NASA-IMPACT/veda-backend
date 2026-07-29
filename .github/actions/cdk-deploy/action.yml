@@ -84,4 +84,4 @@ runs:
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
-        make deploy ARGS="--require-approval never"
+        make deploy ARGS="--require-approval never --outputs-file ${HOME}/cdk-outputs.json"
