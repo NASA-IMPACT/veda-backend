@@ -166,3 +166,32 @@ st_cmap_vals = (st_cmap(x)[:, :] * 255).astype('uint8')
 
 np.save("surface_temperature.npy", st_cmap_vals)
 ```
+
+###### OPERA Vegetation Disturbance Status Colormap
+
+
+```python
+from rio_tiler.colormap import parse_color
+import numpy as np
+
+opera_veg_dist_status_categories = {
+    "0": "#121212",  # No disturbance
+    "1": "#005555",  # First detection, <50% vegetation loss
+    "2": "#897f4e",  # Provisional disturbance, <50%
+    "3": "#dee043",  # Confirmed disturbance, <50%
+    "4": "#008888",  # First detection, >=50% vegetation loss
+    "5": "#e48727",  # Provisional disturbance, >=50%
+    "6": "#e01b07",  # Confirmed disturbance, >=50%
+    "7": "#777777",  # Confirmed disturbance, <50%, finished
+    "8": "#dddddd",  # Confirmed disturbance, >=50%, finished
+}
+
+cmap = np.zeros((256, 4), dtype=np.uint8)
+
+for value, color in opera_veg_dist_status_categories.items():
+    cmap[int(value)] = np.array(parse_color(color), dtype=np.uint8)
+
+cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
+
+np.save("opera_veg_dist_status.npy", cmap)
+```
