@@ -73,7 +73,7 @@ class vedaAppSettings(BaseSettings):
     )
 
     stac_browser_tag: str = Field(
-        "v3.1.0",
+        "v3.2.0",
         description=(
             "Tag of the radiant earth stac-browser repo to use to build the app"
             "https://github.com/radiantearth/stac-browser/releases."

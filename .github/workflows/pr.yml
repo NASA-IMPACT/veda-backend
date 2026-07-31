@@ -126,4 +126,4 @@ jobs:
       - name: Pre deployment CDK diff
         run: |
           echo $STAGE
-          uv run npx aws-cdk@2 diff -v
+          make diff
