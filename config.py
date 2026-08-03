@@ -1,4 +1,5 @@
 """App settings."""
+
 from getpass import getuser
 from typing import List, Optional
 
@@ -71,8 +72,8 @@ class vedaAppSettings(BaseSettings):
         description="Custom bootstrap qualifier override if not using a default installation of AWS CDK Toolkit to synthesize app.",
     )
 
-    stac_browser_tag: Optional[str] = Field(
-        "v3.1.0",
+    stac_browser_tag: str = Field(
+        "v3.2.0",
         description=(
             "Tag of the radiant earth stac-browser repo to use to build the app"
             "https://github.com/radiantearth/stac-browser/releases."

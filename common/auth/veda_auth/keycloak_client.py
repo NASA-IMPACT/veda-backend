@@ -51,7 +51,7 @@ class PermissionDeniedError(Exception):
 
 
 def parse_keycloak_from_openid_url(
-    openid_configuration_url: Union[str, Any]
+    openid_configuration_url: Union[str, Any],
 ) -> Tuple[str, str]:
     """Extract Keycloak base URL and realm from an OpenID discovery URL such as https://<host>/realms/<realm>/.well-known/openid-configuration"""
     if not openid_configuration_url:

@@ -1,19 +1,19 @@
+from aws_lambda_powertools.metrics import MetricUnit
+from fastapi import Depends, FastAPI, HTTPException, Security
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.requests import Request
+from veda_auth.keycloak_client import KeycloakPDPClient, parse_keycloak_from_openid_url
+
 import src.dependencies as dependencies
 import src.schemas as schemas
 import src.services as services
-from aws_lambda_powertools.metrics import MetricUnit
 from src.auth import auth_settings, get_username, oidc_auth
 from src.collection_publisher import CollectionPublisher
 from src.config import settings
 from src.doc import DESCRIPTION
 from src.monitoring import ObservabilityMiddleware, logger, metrics, tracer
 from src.utils import get_keycloak_client_credentials
-from veda_auth.keycloak_client import KeycloakPDPClient, parse_keycloak_from_openid_url
-
-from fastapi import Depends, FastAPI, HTTPException, Security
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from starlette.requests import Request
 
 app = FastAPI(
     title="VEDA Ingestion API",
@@ -133,8 +133,7 @@ def cancel_ingestion(
         raise HTTPException(
             status_code=400,
             detail=(
-                "Unable to delete ingestion if status is not "
-                f"{schemas.Status.queued}"
+                f"Unable to delete ingestion if status is not {schemas.Status.queued}"
             ),
         )
     return ingestion.cancel(db)

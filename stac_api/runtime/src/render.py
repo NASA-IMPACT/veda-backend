@@ -1,4 +1,5 @@
 """This module contains functions and classes for defining titiler rendering query parameters STAC items."""
+
 import json
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode

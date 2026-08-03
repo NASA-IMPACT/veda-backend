@@ -1,10 +1,8 @@
 from typing import Any, Dict
 
-from typing_extensions import Annotated
-
-from fastapi import Depends
-
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
+from fastapi import Depends
+from typing_extensions import Annotated
 
 auth_settings = OpenIdConnectSettings(_env_prefix="")
 

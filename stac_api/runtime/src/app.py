@@ -5,6 +5,18 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac
 from contextlib import asynccontextmanager
 
 from aws_lambda_powertools.metrics import MetricUnit
+from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
+from stac_auth_proxy import configure_app
+from stac_fastapi.api.app import StacApi
+from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, JSONResponse
+from starlette.templating import Jinja2Templates
+from starlette_cramjam.middleware import CompressionMiddleware
+
 from src.config import (
     TilesApiSettings,
     api_settings,
@@ -15,18 +27,6 @@ from src.config import (
     post_request_model,
 )
 from src.extension import TiTilerExtension
-from stac_auth_proxy import configure_app
-
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
-from stac_fastapi.api.app import StacApi
-from stac_fastapi.pgstac.db import close_db_connection, connect_to_db
-from starlette.middleware import Middleware
-from starlette.middleware.cors import CORSMiddleware
-from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
-from starlette.templating import Jinja2Templates
-from starlette_cramjam.middleware import CompressionMiddleware
 
 from .core import VedaCrudClient
 from .filters import CollectionFilter, ItemFilter
@@ -146,11 +146,12 @@ else:
 
 def _get_keycloak_pdp_client():
     """Build Keycloak PDP client for PEP from UMA resource server credentials stored in AWS Secrets Manager."""
-    from src.config import get_secret_dict
     from veda_auth.keycloak_client import (
         KeycloakPDPClient,
         parse_keycloak_from_openid_url,
     )
+
+    from src.config import get_secret_dict
 
     keycloak_url, realm = parse_keycloak_from_openid_url(
         api_settings.openid_configuration_url

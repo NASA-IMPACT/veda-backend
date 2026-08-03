@@ -10,10 +10,9 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlparse, urlunparse
 
+from fastapi import FastAPI, Request
 from stac_auth_proxy.utils.middleware import JsonResponseMiddleware
 from stac_auth_proxy.utils.stac import get_links
-
-from fastapi import FastAPI, Request
 from starlette.datastructures import Headers
 from starlette.types import Scope
 

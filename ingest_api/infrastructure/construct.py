@@ -1,14 +1,19 @@
 import os
-from typing import Dict, Optional, Union
+from typing import Any, Dict, NotRequired, Optional, TypedDict, Union
 
-from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack
-from aws_cdk import aws_apigateway as apigateway
-from aws_cdk import aws_apigatewayv2_alpha, aws_apigatewayv2_integrations_alpha
+from aws_cdk import (
+    CfnOutput,
+    Duration,
+    RemovalPolicy,
+    Stack,
+    aws_apigatewayv2_alpha,
+    aws_apigatewayv2_integrations_alpha,
+    aws_lambda,
+)
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_kms as kms
-from aws_cdk import aws_lambda
 from aws_cdk import aws_lambda_event_sources as events
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_ssm as ssm
@@ -49,15 +54,26 @@ class ApiConstruct(Construct):
         }
 
         if config.keycloak_uma_resource_server_client_secret_name:
-            lambda_env[
-                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
-            ] = config.keycloak_uma_resource_server_client_secret_name
+            lambda_env["KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"] = (
+                config.keycloak_uma_resource_server_client_secret_name
+            )
 
         keycloak_secret = get_keycloak_secret(
             self, config.keycloak_uma_resource_server_client_secret_name
         )
 
-        build_api_lambda_params = {
+        class IngestorLambdaParams(TypedDict):
+            table: dynamodb.ITable
+            db_secret: secretsmanager.ISecret
+            db_vpc: ec2.IVpc
+            db_security_group: ec2.ISecurityGroup
+            keycloak_secret: Optional[secretsmanager.ISecret]
+            config: IngestorConfig
+            pgstac_version: str
+            env: NotRequired[Dict[str, str]]
+            data_access_role: NotRequired[Optional[iam.IRole]]
+
+        build_api_lambda_params: IngestorLambdaParams = {
             "table": self.table,
             "db_secret": db_secret,
             "db_vpc": db_vpc,
@@ -76,7 +92,9 @@ class ApiConstruct(Construct):
         if config.raster_aws_request_payer:
             lambda_env["AWS_REQUEST_PAYER"] = config.raster_aws_request_payer
 
-        build_api_lambda_params["env"] = lambda_env
+        build_api_lambda_params["env"] = {
+            k: v for k, v in lambda_env.items() if v is not None
+        }
 
         # create lambda
         self.api_lambda = self.build_api_lambda(**build_api_lambda_params)
@@ -97,6 +115,7 @@ class ApiConstruct(Construct):
             disable_default_apigw_endpoint=config.disable_default_apigw_endpoint,
         )
 
+        assert self.api.url is not None, "API URL should not be None"
         stack_name = Stack.of(self).stack_name
         CfnOutput(
             self,
@@ -126,7 +145,7 @@ class ApiConstruct(Construct):
         data_access_role: Union[iam.IRole, None] = None,
         pgstac_version: str,
         code_dir: str = "./",
-    ) -> apigateway.LambdaRestApi:
+    ) -> aws_lambda.IFunction:
         stack_name = Stack.of(self).stack_name
         handler_role = iam.Role(
             self,
@@ -196,13 +215,13 @@ class ApiConstruct(Construct):
         custom_host: Optional[str],
         disable_default_apigw_endpoint: Optional[bool],
     ) -> aws_apigatewayv2_alpha.HttpApi:
-        integration_kwargs = dict(handler=handler)
+        integration_kwargs: Dict[str, Any] = dict(handler=handler)
         if custom_host:
-            integration_kwargs[
-                "parameter_mapping"
-            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
-                "host",
-                aws_apigatewayv2_alpha.MappingValue(custom_host),
+            integration_kwargs["parameter_mapping"] = (
+                aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                    "host",
+                    aws_apigatewayv2_alpha.MappingValue(custom_host),
+                )
             )
 
         ingest_api_integration = (
@@ -264,9 +283,9 @@ class IngestorConstruct(Construct):
         }
 
         if config.keycloak_uma_resource_server_client_secret_name:
-            lambda_env[
-                "KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
-            ] = config.keycloak_uma_resource_server_client_secret_name
+            lambda_env["KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"] = (
+                config.keycloak_uma_resource_server_client_secret_name
+            )
 
         if config.raster_data_access_role_arn:
             lambda_env["DATA_ACCESS_ROLE_ARN"] = config.raster_data_access_role_arn
@@ -283,7 +302,7 @@ class IngestorConstruct(Construct):
 
         self.ingest_lambda = self.build_ingestor(
             table=table,
-            env=lambda_env,
+            env={k: v for k, v in lambda_env.items() if v is not None},
             db_secret=db_secret,
             db_vpc=db_vpc,
             db_security_group=db_security_group,

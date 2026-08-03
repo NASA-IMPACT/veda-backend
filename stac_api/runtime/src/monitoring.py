@@ -1,4 +1,5 @@
 """Observability middleware for logging and tracing requests."""
+
 import json
 import logging
 import time
@@ -6,6 +7,7 @@ from typing import Callable, Optional
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricResolution, MetricUnit
+
 from src.config import ApiSettings
 
 settings = ApiSettings()

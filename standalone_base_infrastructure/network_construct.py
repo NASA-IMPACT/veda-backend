@@ -1,6 +1,7 @@
 """
 CDK construct for standalone base network infrastructure.
 """
+
 from aws_cdk import CfnOutput, aws_ec2
 from constructs import Construct
 from standalone_config import base_settings

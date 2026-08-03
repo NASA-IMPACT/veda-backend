@@ -1,7 +1,9 @@
 """Configuration options for optional stand-alone VPC Stack"""
+
 from typing import Optional
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class baseSettings(BaseSettings):

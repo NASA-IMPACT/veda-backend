@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 
 import jinja2
-
 from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import HTMLResponse

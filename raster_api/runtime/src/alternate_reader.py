@@ -3,7 +3,6 @@
 import attr
 from rio_tiler.errors import InvalidAssetName, MissingAssets
 from rio_tiler.types import AssetInfo
-
 from titiler.pgstac.reader import PgSTACReader
 
 

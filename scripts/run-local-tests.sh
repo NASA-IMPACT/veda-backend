@@ -5,15 +5,30 @@ set -e
 #  Ensure all Python dependencies are installed
 # =================================================================
 echo "--- Installing all development dependencies ---"
-pip install -r ingest_api/runtime/requirements_dev.txt
+uv sync --all-groups
+uv sync --project ingest_api/runtime --group test
+uv sync --project stac_api/runtime --group test
 echo "--- Dependency installation complete ---"
 # =================================================================
 
 # Lint
-pre-commit run --all-files
+uv run pre-commit run --all-files
 
-# Bring up stack for testing; ingestor not required
-docker compose up -d --wait stac raster database dynamodb pypgstac
+# Bring up infra first
+docker compose up -d --wait database dynamodb oidc
+
+# Load fixtures once via the pypgstac service and block until completion
+echo "--- Loading pgstac fixture data ---"
+docker compose up -d pypgstac
+load_exit_code="$(docker wait veda.loadtestdata)"
+if [ "$load_exit_code" -ne 0 ]; then
+    echo "pypgstac seed load failed with exit code $load_exit_code"
+    docker logs veda.loadtestdata
+    exit 1
+fi
+
+# Bring up APIs after data load to avoid startup-time race conditions
+docker compose up -d --wait stac raster
 
 # cleanup, logging in case of failure
 cleanup() {
@@ -33,17 +48,24 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Load data for tests
-docker exec veda.loadtestdata /tmp/scripts/bin/load-data.sh
-
 # Run tests
 echo "--- Running stac and raster tests ---"
-python -m pytest .github/workflows/tests/ -vv -s
+uv run pytest .github/workflows/tests/ -vv -s
 
 # Run ingest unit tests
 echo "--- Running ingest api runtime tests ---"
-NO_PYDANTIC_SSM_SETTINGS=1 python -m pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
+# Must ping PGSTAC_VERSION in multiple places due to version management outside of repository
+PGSTAC_VERSION=0.9.6 
+NO_PYDANTIC_SSM_SETTINGS=1 uv run --project ingest_api/runtime \
+    --with common/auth \
+    --with "pypgstac==${PGSTAC_VERSION}" \
+    pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
 
 # Transactions tests
 echo "--- Running stac api runtime tests ---"
-python -m pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s -p no:warnings
+uv run --project stac_api/runtime \
+    --with common/auth \
+    pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s -p no:warnings
+
+echo "--- Running auth tests ---"
+uv run --with common/auth pytest common/auth/tests/ -vv -s

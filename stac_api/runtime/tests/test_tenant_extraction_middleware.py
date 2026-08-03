@@ -2,9 +2,8 @@
 
 from typing import Any
 
-from src.tenant_extraction_middleware import TenantExtractionMiddleware
-
 from fastapi import FastAPI, Request
+from src.tenant_extraction_middleware import TenantExtractionMiddleware
 from starlette.testclient import TestClient
 from starlette.types import ASGIApp, Receive, Scope, Send
 

@@ -1,3 +1,50 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "veda-backend"
+authors = [
+    { name = "Development Seed", email = "info@developmentseed.org" }
+]
+urls = { "Homepage" = "https://github.com/NASA-IMPACT/veda-backend" }
+version = "0.0.0"
+description = "VEDA backend dependency bundle"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3",
+    "aws-cdk-lib<3.0.0,>=2.47.0.a0",
+    "constructs>=10.0.0,<11.0.0",
+    "aws-cdk.aws_apigatewayv2_alpha~=2.47.0.a0",
+    "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.47.0.a0",
+    "pydantic>=2.13.4",
+    "eoapi-cdk==5.4.0",
+    "pydantic-settings>=2.4.1"
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.3.0",
+	"pre-commit>=3.8.0",
+	"ruff>=0.5.6",
+    "python-dotenv",
+]
+
+test = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "httpx==0.23.3",
+    "pypgstac==0.8.5",
+    "psycopg[binary, pool]",
+    "fastapi",
+    "openapi-schema-validator"
+]
+
+[tool.uv]
+package = false
+
 [tool.semantic_release]
 version_source = "tag_only"
 assets = []
@@ -30,3 +77,26 @@ env = "GH_TOKEN"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.pydocstyle]
+select = "D1"
+match = '(?!test|ingest_api).*\.py'
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+exclude = ".*/build/.*"
+no_implicit_optional = true
+strict_optional = true
+ignore_missing_imports = true
+namespace_packages = true
+explicit_package_bases = true
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+exclude = ["ez_setup", "examples", "tests"]
+
+[tool.setuptools.package-data]
+"veda-backend" = ["templates/*.html", "templates/*.xml"]

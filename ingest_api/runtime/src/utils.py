@@ -6,6 +6,7 @@ import boto3
 import pydantic
 from pypgstac.db import PgstacDB
 from pypgstac.load import Methods
+
 from src.schemas import AccessibleItem, DashboardCollection
 from src.vedaloader import VEDALoader
 

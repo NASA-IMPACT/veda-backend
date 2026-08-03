@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "veda.raster_api"
+description = ""
+readme = "README.md"
+requires-python = ">=3.12"
+dynamic = ["version"]
+dependencies = [
+    "boto3",
+    "rio-tiler>=7.0,<8.0",
+    "titiler.pgstac==1.5.0",
+    "titiler.core<0.20",
+    "titiler.mosaic<0.20",
+    "titiler.extensions[cogeo]<0.20",
+    "starlette-cramjam>=0.3,<0.4",
+    "aws_xray_sdk>=2.6.0,<3",
+    "aws-lambda-powertools>=1.18.0",
+    "python-multipart>=0.0.27,<0.1",
+]
+
+[project.optional-dependencies]
+psycopg = ["psycopg[pool]"]
+psycopg-c = ["psycopg[c,pool]"]
+psycopg-binary = ["psycopg[binary,pool]"]
+
+[dependency-groups]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "requests",
+    "brotlipy"
+]
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+exclude = ["tests*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "src.version.__version__" }
+
+[tool.setuptools.package-data]
+src = ["templates/*.html", "cmap_data/*.npy"]

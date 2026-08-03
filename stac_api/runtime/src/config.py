@@ -7,10 +7,9 @@ from functools import lru_cache
 from typing import Optional
 
 import boto3
+from fastapi.responses import ORJSONResponse
 from pydantic import AnyHttpUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from fastapi.responses import ORJSONResponse
 from stac_fastapi.api.models import (
     ItemCollectionUri,
     create_get_request_model,

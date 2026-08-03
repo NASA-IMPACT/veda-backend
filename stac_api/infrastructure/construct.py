@@ -1,7 +1,7 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
 
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from aws_cdk import (
     CfnOutput,
@@ -10,9 +10,10 @@ from aws_cdk import (
     aws_apigatewayv2_alpha,
     aws_apigatewayv2_integrations_alpha,
     aws_ec2,
+    aws_lambda,
+    aws_logs,
 )
 from aws_cdk import aws_kms as kms
-from aws_cdk import aws_lambda, aws_logs
 from aws_cdk import aws_secretsmanager as secretsmanager
 from constructs import Construct
 
@@ -72,17 +73,17 @@ class StacApiLambdaConstruct(Construct):
             lambda_env["VEDA_STAC_CUSTOM_HOST"] = custom_host
 
         if veda_stac_settings.keycloak_stac_api_client_id is not None:
-            lambda_env[
-                "VEDA_STAC_CLIENT_ID"
-            ] = veda_stac_settings.keycloak_stac_api_client_id
+            lambda_env["VEDA_STAC_CLIENT_ID"] = (
+                veda_stac_settings.keycloak_stac_api_client_id
+            )
         if veda_stac_settings.openid_configuration_url is not None:
             lambda_env["VEDA_STAC_OPENID_CONFIGURATION_URL"] = str(
                 veda_stac_settings.openid_configuration_url
             )
         if veda_stac_settings.keycloak_uma_resource_server_client_secret_name:
-            lambda_env[
-                "VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"
-            ] = veda_stac_settings.keycloak_uma_resource_server_client_secret_name
+            lambda_env["VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"] = (
+                veda_stac_settings.keycloak_uma_resource_server_client_secret_name
+            )
 
         lambda_function = aws_lambda.Function(
             self,
@@ -130,13 +131,13 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
-        integration_kwargs = dict(handler=lambda_function)
+        integration_kwargs: Dict[str, Any] = dict(handler=lambda_function)
         if veda_stac_settings.custom_host:
-            integration_kwargs[
-                "parameter_mapping"
-            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
-                "host",
-                aws_apigatewayv2_alpha.MappingValue(veda_stac_settings.custom_host),
+            integration_kwargs["parameter_mapping"] = (
+                aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                    "host",
+                    aws_apigatewayv2_alpha.MappingValue(veda_stac_settings.custom_host),
+                )
             )
         stac_api_integration = (
             aws_apigatewayv2_integrations_alpha.HttpLambdaIntegration(
@@ -152,6 +153,7 @@ class StacApiLambdaConstruct(Construct):
             disable_execute_api_endpoint=veda_stac_settings.disable_default_apigw_endpoint,
         )
 
+        assert self.stac_api.url is not None, "stac_api.url should not be None"
         CfnOutput(
             self,
             "stac-api",

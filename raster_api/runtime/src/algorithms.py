@@ -4,7 +4,6 @@ import math
 
 import numpy
 from rio_tiler.models import ImageData
-
 from titiler.core.algorithm import Algorithms
 from titiler.core.algorithm.base import BaseAlgorithm
 

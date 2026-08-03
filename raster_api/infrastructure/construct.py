@@ -1,6 +1,7 @@
 """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
 
 import os
+from typing import Any, Dict
 
 from aws_cdk import (
     CfnOutput,
@@ -79,13 +80,15 @@ class RasterApiLambdaConstruct(Construct):
                 "AWS_REQUEST_PAYER", veda_raster_settings.raster_aws_request_payer
             )
 
-        integration_kwargs = dict(handler=veda_raster_function)
+        integration_kwargs: Dict[str, Any] = dict(handler=veda_raster_function)
         if veda_raster_settings.custom_host:
-            integration_kwargs[
-                "parameter_mapping"
-            ] = aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
-                "host",
-                aws_apigatewayv2_alpha.MappingValue(veda_raster_settings.custom_host),
+            integration_kwargs["parameter_mapping"] = (
+                aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
+                    "host",
+                    aws_apigatewayv2_alpha.MappingValue(
+                        veda_raster_settings.custom_host
+                    ),
+                )
             )
 
         raster_api_integration = (
@@ -102,6 +105,7 @@ class RasterApiLambdaConstruct(Construct):
             disable_execute_api_endpoint=veda_raster_settings.disable_default_apigw_endpoint,
         )
 
+        assert self.raster_api.url is not None, "API URL should not be None"
         CfnOutput(
             self,
             "raster-api",

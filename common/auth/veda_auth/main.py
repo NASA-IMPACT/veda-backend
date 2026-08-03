@@ -8,7 +8,6 @@ from typing import Annotated, Any, Dict
 
 import boto3
 import jwt
-
 from fastapi import Depends, HTTPException, Security, security, status
 
 logger = logging.getLogger(__name__)
@@ -68,7 +67,7 @@ class VedaAuth:
         self.validated_token = validated_token
 
         def get_username(
-            token: Annotated[Dict[Any, Any], Depends(self.validated_token)]
+            token: Annotated[Dict[Any, Any], Depends(self.validated_token)],
         ) -> str:
             result = token["username"] if "username" in token else str(token.get("sub"))
             return result

@@ -3,16 +3,13 @@ FROM public.ecr.aws/sam/build-python3.12:latest
 WORKDIR /tmp
 
 COPY ingest_api/runtime /tmp/ingestor
-RUN pip install -r /tmp/ingestor/requirements.txt --no-binary pydantic uvicorn
+RUN pip install /tmp/ingestor pypgstac uvicorn -t /asset --no-binary pydantic
 RUN rm -rf /tmp/ingestor
 
 # Install common/auth package (veda_auth)
 COPY common/auth /tmp/common_auth
 RUN pip install /tmp/common_auth -t /asset --no-binary pydantic
 RUN rm -rf /tmp/common_auth
-
-# TODO this is temporary until we use a real packaging system like setup.py or poetry
-COPY ingest_api/runtime/src /asset/src
 
 # # Reduce package size and remove useless files
 RUN cd /asset && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[2-3][0-9]//'); cp $f $n; done;
@@ -25,4 +22,4 @@ COPY ingest_api/runtime/handler.py /asset/handler.py
 COPY ingest_api/runtime/ingestor.py /asset/ingestor.py
 COPY ingest_api/runtime/local.py /asset/local.py
 
-CMD ["python" "/asset/local.py"]
+CMD ["python", "/asset/local.py"]

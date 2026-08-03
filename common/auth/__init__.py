@@ -1,1 +1,1 @@
-""" Common auth """
+"""Common auth"""

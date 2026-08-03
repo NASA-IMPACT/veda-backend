@@ -1,10 +1,12 @@
 """Observability middleware for logging and tracing requests."""
+
 import json
 import time
 from typing import Callable, Optional
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricResolution, MetricUnit
+
 from src.config import Settings
 
 settings = Settings()
@@ -89,7 +91,7 @@ class ObservabilityMiddleware:
             if message["type"] == "http.response.start":
                 status_holder["status"] = message.get("status", 500)
                 # If Content-Length is set, remember it; otherwise we’ll sum body chunks
-                for (h, v) in message.get("headers", []) or []:
+                for h, v in message.get("headers", []) or []:
                     if h.lower() == b"content-length":
                         try:
                             resp_size_holder["bytes"] = int(v.decode("latin1"))

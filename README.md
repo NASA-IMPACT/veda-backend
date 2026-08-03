@@ -32,7 +32,8 @@ This project uses an AWS CDK [CloudFormation](https://docs.aws.amazon.com/AWSClo
 ### Enviroment variables
 
 An [.example.env](.example.env) template is supplied for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `<app-name>-<stage>-env`, for example `veda-backend-dev-env`.
-> **Warning** The environment variables stored as AWS secrets are manually maintained and should be reviewed before deploying updates to existing stacks.
+> [!WARNING]
+> The environment variables stored as AWS secrets are manually maintained and should be reviewed before deploying updates to existing stacks.
 
 ### Fetch environment variables using AWS CLI
 
@@ -71,36 +72,32 @@ The constructs and applications in this project are configured using pydantic. T
 
 #### Install deployment pre-requisites
 
-- [Node](https://nodejs.org/)
-- [NVM](https://github.com/nvm-sh/nvm#node-version-manager---)
 - [jq](https://jqlang.github.io/jq/) (used for exporting environment variable secrets to `.env` in [scripts/sync-env-local.sh](/scripts/sync-env-local.sh))
 
-These can be installed with [homebrew](https://brew.sh/) on MacOS
+This can be installed with [homebrew](https://brew.sh/) on MacOS
 
 ```bash
-brew install node
-brew install nvm # Make sure to add nvm to your path
 brew install jq
-nvm install 22 # .github/workflows/pr.yml uses node version 22
 ```
 
 #### Virtual environment example
 
 ```bash
-# `pipes` package required by the `fire` package deprecated in python >3.12
-pyenv install 3.12
-pyenv shell 3.12
-python3 -m venv .venv
-source .venv/bin/activate
+# Install UV with Homebrew or the official installer, then select Python 3.12 if needed.
+brew install uv
+uv python install 3.12
 ```
+
+> [!TIP]
+> uv can also be installed via pip:
+> ```sh
+> pip install uv
+> ```
 
 #### Install requirements
 
 ```bash
-nvm use 22
-npm install --location=global aws-cdk
-python3 -m pip install --upgrade pip
-python3 -m pip install -e ".[dev,deploy,test]"
+uv sync --all-groups
 ```
 
 #### Run the deployment
@@ -109,9 +106,9 @@ python3 -m pip install -e ".[dev,deploy,test]"
 # Login to ECR so that you can pull public docker images
 aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 # Review what infrastructure changes your deployment will cause
-cdk diff
+make diff
 # Execute deployment and standby--security changes will require approval for deployment
-cdk deploy
+make deploy
 ```
 
 ## Deleting the CloudFormation stack
@@ -158,7 +155,8 @@ In case of failure, all container logs will be written out to `container_logs.lo
 
 ## Adding new data to veda-backend
 
-> **Warning** PgSTAC records should be loaded in the database using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac) for proper indexing and partitioning.
+> [!WARNING]
+> PgSTAC records should be loaded in the database using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac) for proper indexing and partitioning.
 
 The VEDA ecosystem includes tools specifially created for loading PgSTAC records and optimizing data assets. The [veda-data-airflow](https://github.com/NASA-IMPACT/veda-data-airflow) project provides examples of cloud pipelines that transform data to cloud optimized formats, generate STAC metadata, and submit records for publication to the veda-backend database via veda-backend's ingest API. Veda-backend's integrated ingest system includes an API lambda for enqueuing collection and item records in a DynamoDB table and an ingestor lambda that batch loads DDB enqueued records into the PgSTAC database. Currently, the client id and domain of an existing Cognito user pool programmatic client must be supplied in [configuration](ingest_api/infrastructure/config.py) as `VEDA_CLIENT_ID` and `VEDA_COGNITO_DOMAIN` (the [veda-auth project](https://github.com/NASA-IMPACT/veda-auth) can be used to deploy a Cognito user pool and client). To dispense auth tokens via the ingest API swagger docs and `/token` endpoints, an administrator must add the ingest API lambda URL to the allowed callbacks of the Cognito client.
 

@@ -82,7 +82,7 @@ class vedaRasterSettings(BaseSettings):
         description="Complete url of custom host including subdomain. When provided, override host in api integration",
     )
 
-    project_name: Optional[str] = Field(
+    project_name: str = Field(
         "VEDA (Visualization, Exploration, and Data Analysis)",
         description="Name of the STAC Catalog",
     )
@@ -91,7 +91,7 @@ class vedaRasterSettings(BaseSettings):
         description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
     )
 
-    git_sha: Optional[str] = Field(
+    git_sha: str = Field(
         subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
         description="Git SHA of the current commit, used to track deployment version",
     )

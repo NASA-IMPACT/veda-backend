@@ -4,13 +4,11 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, List
 
 import pytest
-
 from fastapi.encoders import jsonable_encoder
 
 if TYPE_CHECKING:
-    from src import schemas, services
-
     from fastapi.testclient import TestClient
+    from src import schemas, services
 
 ingestion_endpoint = "/ingestions"
 
@@ -62,7 +60,7 @@ class TestList:
         assert response.status_code == 200
         assert json.loads(base64.b64decode(response.json()["next"])) == expected_next
         next_item = response.json()["items"][0]
-        next_item[
-            "updated_at"
-        ] = None  # we don't need to compare update_at for this test
+        next_item["updated_at"] = (
+            None  # we don't need to compare update_at for this test
+        )
         assert next_item == jsonable_encoder(example_ingestions[0])
