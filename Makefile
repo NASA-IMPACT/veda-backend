@@ -24,13 +24,13 @@ format:
 	uv run ruff format
 
 diff:
-	uv run npx aws-cdk@2 diff -v
+	uv run npx aws-cdk@2.1134 diff -v
 
 STACKS = --all
 ARGS =
 
 deploy:
-	uv run npx aws-cdk@2 deploy $(STACKS) $(ARGS)
+	uv run npx aws-cdk@2.1134 deploy $(STACKS) $(ARGS)
 
 destroy:
-	uv run npx aws-cdk@2 destroy $(STACKS)
+	uv run npx aws-cdk@2.1134 destroy $(STACKS)
