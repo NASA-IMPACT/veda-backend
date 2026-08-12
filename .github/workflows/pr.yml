@@ -123,7 +123,33 @@ jobs:
             ./scripts/get-env.sh "veda-backend-uah-dev-env"
           fi
 
+      # Version management for stac-browser currently not in secrets,
+      # so we need to get the configured tag from pydantic settings.
+      - name: Resolve configuration variables
+        run: |
+          uv run python -c "
+          from config import veda_app_settings
+          print(f'VEDA_BACKEND_STACK_NAME={veda_app_settings.veda_backend_stack_name}')
+          print(f'SB_STACK_NAME={veda_app_settings.stac_browser_stack_name}')
+          print(f'SB_VERSION_TAG={veda_app_settings.stac_browser_tag}')
+          " >> "$GITHUB_ENV"
+
+      - name: STAC Browser
+        run: |
+          DEPLOYED_TAG=$(aws cloudformation describe-stacks \
+            --stack-name "$SB_STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='StacBrowserTag'].OutputValue" \
+            --output text 2>/dev/null || echo "")
+
+          echo "Deployed tag: '${DEPLOYED_TAG:-<none>}', configured tag: '$SB_VERSION_TAG'"
+
+          if [ "$DEPLOYED_TAG" != "$SB_VERSION_TAG" ]; then
+            echo "Version changed — redeployment required."
+          else
+            echo "No version change — skipping deploy."
+          fi
+
       - name: Pre deployment CDK diff
         run: |
           echo $STAGE
-          make diff
+          make diff STACKS="$VEDA_BACKEND_STACK_NAME"

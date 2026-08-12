@@ -23,11 +23,11 @@ format:
 	uv run ruff check --select I --fix
 	uv run ruff format
 
-diff:
-	uv run npx aws-cdk@2.1134 diff -v
-
-STACKS = --all
+STACKS =
 ARGS =
+
+diff:
+	uv run npx aws-cdk@2.1134 diff $(STACKS) -v
 
 deploy:
 	uv run npx aws-cdk@2.1134 deploy $(STACKS) $(ARGS)
