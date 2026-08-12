@@ -54,6 +54,9 @@ class RasterApiLambdaConstruct(Construct):
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
             environment={
                 **veda_raster_settings.env,
+                # pyproj's vendored PROJ database is dropped at build time to save
+                # ~9MB; point it at rasterio's. See raster_api/runtime/Dockerfile.
+                "PROJ_DATA": "/var/task/rasterio/proj_data",
                 "VEDA_RASTER_ENABLE_MOSAIC_SEARCH": str(
                     veda_raster_settings.raster_enable_mosaic_search
                 ),

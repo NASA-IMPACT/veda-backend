@@ -16,6 +16,12 @@ RUN cd /asset && find . -type f -a -name '*.py' -print0 | xargs -0 rm -f
 RUN find /asset -type d -a -name 'tests' -print0 | xargs -0 rm -rf
 RUN rm -rdf /asset/numpy/doc/ /asset/boto3* /asset/botocore* /asset/bin /asset/geos_license /asset/Misc
 
+# rasterio and pyproj each vendor a ~9.5MB PROJ database; keep only rasterio's.
+# Must keep the newer one - GDAL rejects an older DATABASE.LAYOUT.VERSION.
+# PROJ_DATA here is for the build check below; runtime gets it from construct.py.
+RUN rm -f /asset/pyproj/proj_dir/share/proj/proj.db
+ENV PROJ_DATA=/asset/rasterio/proj_data
+
 COPY raster_api/runtime/handler.py /asset/handler.py
 RUN dnf remove -y gcc-c++
 
