@@ -166,3 +166,87 @@ st_cmap_vals = (st_cmap(x)[:, :] * 255).astype('uint8')
 
 np.save("surface_temperature.npy", st_cmap_vals)
 ```
+
+###### OPERA Vegetation Disturbance Status Colormap
+
+```python
+from rio_tiler.colormap import parse_color
+import numpy as np
+
+opera_veg_dist_status_categories = {
+    "0": "#121212",  # No disturbance
+    "1": "#005555",  # First detection, <50% vegetation loss
+    "2": "#897f4e",  # Provisional disturbance, <50%
+    "3": "#dee043",  # Confirmed disturbance, <50%
+    "4": "#008888",  # First detection, >=50% vegetation loss
+    "5": "#e48727",  # Provisional disturbance, >=50%
+    "6": "#e01b07",  # Confirmed disturbance, >=50%
+    "7": "#777777",  # Confirmed disturbance, <50%, finished
+    "8": "#dddddd",  # Confirmed disturbance, >=50%, finished
+}
+
+cmap = np.zeros((256, 4), dtype=np.uint8)
+
+for value, color in opera_veg_dist_status_categories.items():
+    cmap[int(value)] = np.array(parse_color(color), dtype=np.uint8)
+
+cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
+
+np.save("opera_veg_dist_status.npy", cmap)
+```
+
+###### Sentinel OptiSAR Burn Severity Colormap
+
+```python
+from rio_tiler.colormap import parse_color
+import numpy as np
+
+
+optisar_fire_severity_categories = {
+    "3": "#4CE600",  # Unburnt
+    "4": "#FFFF00",  # Low Severity
+    "5": "#E64C00",  # Medium Severity
+    "6": "#E60000",  # High Severity
+    "7": "#000000",  # Extreme Severity
+}
+
+# Create the 256-entry RGBA lookup table expected by VEDA.
+# Undefined values remain transparent.
+cmap = np.zeros((256, 4), dtype=np.uint8)
+
+for value, color in optisar_fire_severity_categories.items():
+    cmap[int(value)] = np.array(parse_color(color), dtype=np.uint8)
+
+# Common nodata/background value
+cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
+
+np.save("optisar_fire_severity.npy", cmap)
+```
+
+###### Sentinel-1 HydroSAR Water Extent Colormap
+```python
+from rio_tiler.colormap import parse_color
+import numpy as np
+
+
+# Sentinel-1 HydroSAR surface-water extent classification
+s1_hydrosar_water_extent_categories = {
+    "1": "#005CE6",  # Known Water
+    "2": "#FF0000",  # Flooded Developed
+    "3": "#4CE600",  # Flooded Vegetation
+    "4": "#E69800",  # Flooded Cropland/Grassland
+}
+
+# Create the 256-entry RGBA lookup table expected by VEDA.
+# Undefined values remain transparent.
+cmap = np.zeros((256, 4), dtype=np.uint8)
+
+for value, color in s1_hydrosar_water_extent_categories.items():
+    cmap[int(value)] = np.array(parse_color(color), dtype=np.uint8)
+
+# Explicit background/nodata values
+cmap[0] = np.array([0, 0, 0, 0], dtype=np.uint8)
+cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
+
+np.save("s1_hydrosar_water_extent.npy", cmap)
+```
