@@ -223,9 +223,11 @@ class RdsConstruct(Construct):
 
         # Or create/update RDS Resource
         else:
+            if veda_db_settings.rds_encryption:
+                database_config["storage_encrypted"] = True
+
             database = aws_rds.DatabaseInstance(
                 self,
-                storage_encrypted=veda_db_settings.rds_encryption or False,
                 **database_config,
             )
 
