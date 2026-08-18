@@ -15,6 +15,14 @@ repos:
         types: [python]
         stages: [pre-commit]
 
+      - id: uv-lock
+        name: Check uv.lock is up to date
+        entry: uv lock --check
+        language: system
+        files: pyproject\.toml
+        pass_filenames: false
+        stages: [pre-commit]
+
   # re-enable pydocstyle once we have docstrings in place
   # - repo: https://github.com/PyCQA/pydocstyle
   #   rev: 5.1.1

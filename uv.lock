@@ -149,22 +149,6 @@ wheels = [
 ]
 
 [[package]]
-name = "aws-cdk-aws-lambda-python-alpha"
-version = "2.261.0a0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aws-cdk-lib" },
-    { name = "constructs" },
-    { name = "jsii" },
-    { name = "publication" },
-    { name = "typeguard" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/84/d8/1a0df11c558315785c892a1bb43c2ce0f811494c173d358c8d1c2a4ff891/aws_cdk_aws_lambda_python_alpha-2.261.0a0.tar.gz", hash = "sha256:9c96ccaf842cf6d1fdbb3e24df62967985557f52a135961362ea2ce0c3b6d604", size = 100530, upload-time = "2026-07-02T16:32:41.711Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/20/d73aa1b34d7b009ce2d9315ef8e113777caf33b3ef4ab104f19277e749cf/aws_cdk_aws_lambda_python_alpha-2.261.0a0-py3-none-any.whl", hash = "sha256:422b9d469fb9745fbc7d0702e184127d576547ccb0880b3d002adc3350b155ab", size = 99600, upload-time = "2026-07-02T16:31:52.731Z" },
-]
-
-[[package]]
 name = "aws-cdk-cloud-assembly-schema"
 version = "54.12.0"
 source = { registry = "https://pypi.org/simple" }
@@ -365,20 +349,17 @@ wheels = [
 
 [[package]]
 name = "eoapi-cdk"
-version = "5.4.0"
+version = "11.6.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "aws-cdk-aws-apigatewayv2-integrations-alpha" },
-    { name = "aws-cdk-aws-lambda-python-alpha" },
     { name = "aws-cdk-lib" },
     { name = "constructs" },
     { name = "jsii" },
     { name = "publication" },
-    { name = "typeguard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/79/fa/ac55b3f3afced6e1c4c4ea19b21d96043354b14008bc67f873df1b027db1/eoapi-cdk-5.4.0.tar.gz", hash = "sha256:3420786249b9e6a1a8e477b95bf2570bf94a4def334080c1741e07d069607d57", size = 750281, upload-time = "2023-09-05T08:08:08.349Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/32/4a97680be094c057583ebc20358e7a50abd04d7a28ef85f6ed3a05968c40/eoapi_cdk-11.6.4.tar.gz", hash = "sha256:c9a8e8fe2852b78e9070f8174db80613a84d1d4625e6a0665b8cffbd65e1a1fd", size = 641691, upload-time = "2026-08-07T14:14:10.685Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/49/07/35f4c68849d838b9a96c031de56b71d2853ecc582a7a53e6296c57ea9a4a/eoapi_cdk-5.4.0-py3-none-any.whl", hash = "sha256:e845cb7c0583027291ab960feaf45bfeca390ee626fc0e0ecfbe853b583e7860", size = 748296, upload-time = "2023-09-05T08:08:06.599Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/17/e0e5ae397f3923e375c006b7433644795b7891902912417d8cd269e03862/eoapi_cdk-11.6.4-py3-none-any.whl", hash = "sha256:ccb5c8dbc8081cb44e215a47af32772367b5279ac812cea67fef287740af372d", size = 640276, upload-time = "2026-08-07T14:14:09.174Z" },
 ]
 
 [[package]]
@@ -1454,7 +1435,7 @@ requires-dist = [
     { name = "aws-cdk-lib", specifier = ">=2.47.0a0,<3.0.0" },
     { name = "boto3" },
     { name = "constructs", specifier = ">=10.0.0,<11.0.0" },
-    { name = "eoapi-cdk", specifier = "==5.4.0" },
+    { name = "eoapi-cdk", specifier = "==11.6.4" },
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pydantic-settings", specifier = ">=2.4.1" },
 ]
