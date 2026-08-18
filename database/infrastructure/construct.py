@@ -207,7 +207,7 @@ class RdsConstruct(Construct):
         # Create a new database instance from snapshot if provided
         # Use an encrypted snapshot when creating a new encrypted database from a snapshot.
         # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/DatabaseInstanceFromSnapshot.html
-        database: aws_rds.IDatabaseInstance
+        database: aws_rds.DatabaseInstance
         if veda_db_settings.snapshot_id:
             # For the database from snapshot we will need a new master secret
             snapshot_credentials = aws_rds.SnapshotCredentials.from_generated_secret(
