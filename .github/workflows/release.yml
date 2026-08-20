@@ -17,11 +17,11 @@ jobs:
           contents: write
 
         steps:
-        - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           with:
             fetch-depth: 0
         - name: Python Semantic Release
-          uses: python-semantic-release/python-semantic-release@26bb37cfab71a5a372e3db0f48a6eac57519a4a6 # v9.21.0
+          uses: python-semantic-release/python-semantic-release@39dd2052f2ce8282a5d932c31d58a2ca06d2550e # v10.6.1
           with:
             changelog: "false"
             github_token: ${{ secrets.GITHUB_TOKEN }}
