@@ -35,8 +35,8 @@ test = [
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
-    "httpx==0.23.3",
-    "pypgstac==0.8.5",
+    "httpx==0.28.1",
+    "pypgstac==0.9.12",
     "psycopg[binary, pool]",
     "fastapi",
     "openapi-schema-validator"
