@@ -38,7 +38,9 @@ class TestDefaultProtectedRoutes:
         assert result == ("create", "POST")
 
     def test_put_collections_no_match(self):
-        """PUT /collections/{id} does not match DEFAULT_PROTECTED_ROUTES so it returns None"""
+        """
+        PUT /collections/{id} does not match DEFAULT_PROTECTED_ROUTES so it returns None
+        """
         app = MagicMock()
         middleware = PEPMiddleware(
             app,

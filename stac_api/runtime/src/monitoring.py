@@ -1,9 +1,10 @@
 """Observability middleware for logging and tracing requests."""
 
+import contextlib
 import json
 import logging
 import time
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricResolution, MetricUnit
@@ -97,10 +98,8 @@ class ObservabilityMiddleware:
                 # If Content-Length is set, remember it; otherwise we’ll sum body chunks
                 for h, v in message.get("headers", []) or []:
                     if h.lower() == b"content-length":
-                        try:
+                        with contextlib.suppress(Exception):
                             resp_size_holder["bytes"] = int(v.decode("latin1"))
-                        except Exception:
-                            pass
             elif message["type"] == "http.response.body":
                 # If no Content-Length, accumulate bytes
                 if resp_size_holder["bytes"] == 0:
@@ -119,7 +118,7 @@ class ObservabilityMiddleware:
         status_family = f"{status // 100}xx"
 
         # After downstream handled routing, try to resolve route template & path params
-        route_template: Optional[str] = None
+        route_template: str | None = None
         path_params = None
         route_obj = scope.get("route")
         if route_obj is not None:

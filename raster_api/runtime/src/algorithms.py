@@ -2,7 +2,7 @@
 
 import math
 
-import numpy
+import numpy as np
 from rio_tiler.models import ImageData
 from titiler.core.algorithm import Algorithms
 from titiler.core.algorithm.base import BaseAlgorithm
@@ -22,10 +22,10 @@ class SWIR(BaseAlgorithm):
 
     def __call__(self, img: ImageData) -> ImageData:
         """Apply processing."""
-        data = numpy.log(img.array)
-        data[numpy.where(data <= self.low_threshold)] = self.low_value
-        data[numpy.where(data >= self.high_threshold)] = self.high_value
-        indices = numpy.where((data > self.low_value) & (data < self.high_value))
+        data = np.log(img.array)
+        data[np.where(data <= self.low_threshold)] = self.low_value
+        data[np.where(data >= self.high_threshold)] = self.high_value
+        indices = np.where((data > self.low_value) & (data < self.high_value))
         data[indices] = (
             self.high_value
             * (data[indices] - self.low_threshold)

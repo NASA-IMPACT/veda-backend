@@ -63,7 +63,7 @@ Multi-tenancy has several parts. The **two optional layers** below (auth-proxy f
 | Layer | What it does | Enabled when | Disabled when |
 | --- | --- | --- | --- |
 | **Tenant-scoped filtering** | Wraps the app with `stac-auth-proxy`: OpenID Connect, registers `CollectionFilter` / `ItemFilter` for tenant-aware list/search, OAuth-scoped write endpoints | `VEDA_STAC_OPENID_CONFIGURATION_URL` is set **and** `VEDA_STAC_ENABLE_STAC_AUTH_PROXY=True` | `VEDA_STAC_ENABLE_STAC_AUTH_PROXY=False` **or** UNSET |
-| **PEP authorization** | Adds Keycloak UMA middleware that checks per-tenant resource permissions on protected routes | `VEDA_STAC_OPENID_CONFIGURATION_URL` is set **and** `VEDA_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME` is set |  `VEDA_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME` is not set |
+| **PEP authorization** | Adds Keycloak UMA middleware that checks per-tenant resource permissions on protected routes | `VEDA_STAC_OPENID_CONFIGURATION_URL` is set **and** `VEDA_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME` is set | `VEDA_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME` is not set |
 
 > **_NOTE:_**  `TenantExtractionMiddleware` and `TenantLinksMiddleware` (URL tenant prefix and JSON link rewriting) are **always** registered. They do not appear in this table because they are not toggled by these env vars; see [Middleware and multitenancy components](#middleware-and-multitenancy-components). When clients only use normal STAC paths (for example `/api/stac/collections` with no extra path segment), tenant extraction is a no-op.
 

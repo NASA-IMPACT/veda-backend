@@ -7,7 +7,7 @@ to make authorization decisions via UMA (User-Managed Access) protocol.
 import base64
 import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 from urllib.parse import urlencode, urlparse
 
 import httpx
@@ -43,7 +43,7 @@ class PermissionDeniedError(Exception):
     the user does not have permission for the requested resource and scope.
     """
 
-    def __init__(self, resource_id: str, scope: Optional[str] = None):
+    def __init__(self, resource_id: str, scope: str | None = None):
         """Initialize with the resource ID and optional scope that was denied"""
         self.resource_id = resource_id
         self.scope = scope
@@ -51,8 +51,8 @@ class PermissionDeniedError(Exception):
 
 
 def parse_keycloak_from_openid_url(
-    openid_configuration_url: Union[str, Any],
-) -> Tuple[str, str]:
+    openid_configuration_url: str | Any,
+) -> tuple[str, str]:
     """Extract Keycloak base URL and realm from an OpenID discovery URL such as https://<host>/realms/<realm>/.well-known/openid-configuration"""
     if not openid_configuration_url:
         raise ValueError("Missing or empty OpenID configuration URL")
@@ -95,7 +95,8 @@ def _add_base64_padding(payload: str) -> str:
 class KeycloakPDPClient:
     """Client for Keycloak Policy Decision Point (Authorization Services)
 
-    This client calls Keycloak's User Managed Access (UMA) endpoints to get authorization decisions.
+    This client calls Keycloak's User Managed Access (UMA) endpoints
+    to get authorization decisions.
     """
 
     def __init__(
@@ -103,7 +104,7 @@ class KeycloakPDPClient:
         keycloak_url: str,
         realm: str,
         client_id: str,
-        client_secret: Optional[str] = None,
+        client_secret: str | None = None,
         timeout: float = 5.0,
     ):
         """
@@ -132,8 +133,8 @@ class KeycloakPDPClient:
     def get_rpt(
         self,
         access_token: str,
-        resources: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        resources: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """Request the RPT (Requesting Party Token) from Keycloak"""
         permissions = []
         for resource in resources:
@@ -144,7 +145,7 @@ class KeycloakPDPClient:
                 permissions.append(permission_str)
 
         # https://www.keycloak.org/docs/latest/authorization_services/#_service_authorization_api
-        data_dict: Dict[str, Any] = {
+        data_dict: dict[str, Any] = {
             "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
             "audience": self.client_id,
         }
@@ -183,14 +184,15 @@ class KeycloakPDPClient:
             return response.json()
         except httpx.HTTPStatusError as e:
             logger.error(
-                f"Failed to get RPT from Keycloak: {e.response.status_code} {e.response.text}"
+                f"Failed to get RPT from Keycloak: {e.response.status_code} "
+                f"{e.response.text}"
             )
             raise
         except Exception as e:
             logger.error(f"error getting RPT: {e}")
             raise
 
-    def _extract_permissions_from_jwt(self, jwt_token: str) -> List[Dict[str, Any]]:
+    def _extract_permissions_from_jwt(self, jwt_token: str) -> list[dict[str, Any]]:
         """Extract permissions from RPT (requesting party token) JWT token"""
         try:
             parts = jwt_token.split(".")
@@ -219,8 +221,8 @@ class KeycloakPDPClient:
             return []
 
     def _resolve_permissions(
-        self, rpt_response: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, rpt_response: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Extract permissions from an RPT response, and fall back to the JWT"""
         permissions = rpt_response.get("permissions", [])
         if not permissions:
@@ -232,7 +234,7 @@ class KeycloakPDPClient:
 
     def _has_matching_permission(
         self,
-        permissions: List[Dict[str, Any]],
+        permissions: list[dict[str, Any]],
         resource_id: str,
         scope: str,
     ) -> bool:
@@ -250,7 +252,7 @@ class KeycloakPDPClient:
         self,
         error: httpx.HTTPStatusError,
         resource_id: str,
-        scope: Optional[str] = None,
+        scope: str | None = None,
     ) -> None:
         """Translate an HTTPStatusError from get_rpt
 
@@ -273,7 +275,8 @@ class KeycloakPDPClient:
             if error_body.get("error") == "invalid_resource":
                 raise ResourceNotFoundError(resource_id=resource_id) from error
         logger.error(
-            f"Permission check failed: {error.response.status_code} {error.response.text}"
+            f"Permission check failed: {error.response.status_code} "
+            f"{error.response.text}"
         )
         raise error
 
@@ -311,7 +314,7 @@ class KeycloakPDPClient:
             logger.error(f"Unexpected error checking permission: {e}")
             raise
 
-    def _decode_jwt_payload(self, token: str) -> Dict[str, Any]:
+    def _decode_jwt_payload(self, token: str) -> dict[str, Any]:
         """Decode JWT payload to extract the claims"""
         parts = token.split(".")
         if len(parts) < 2:
@@ -322,7 +325,7 @@ class KeycloakPDPClient:
         decoded = base64.urlsafe_b64decode(payload)
         return json.loads(decoded)
 
-    def _extract_tenants_from_token(self, access_token: str) -> List[str]:
+    def _extract_tenants_from_token(self, access_token: str) -> list[str]:
         """Extract tenant names from user token claims"""
         try:
             claims = self._decode_jwt_payload(access_token)
@@ -354,9 +357,9 @@ class KeycloakPDPClient:
     def get_tenants_with_create_update_access(
         self,
         access_token: str,
-        tenant_list: Optional[List[str]] = None,
+        tenant_list: list[str] | None = None,
         resource_type: str = "collection",
-    ) -> List[str]:
+    ) -> list[str]:
         """Get list of tenants the user has create and update access to"""
 
         if tenant_list is None:
@@ -379,7 +382,8 @@ class KeycloakPDPClient:
 
         except httpx.HTTPStatusError as e:
             logger.error(
-                f"Failed to get tenant access from Keycloak: {e.response.status_code} {e.response.text}"
+                f"Failed to get tenant access from Keycloak: {e.response.status_code} "
+                f"{e.response.text}"
             )
             if e.response.status_code in (401, 403):
                 return []
@@ -388,7 +392,7 @@ class KeycloakPDPClient:
             logger.error(f"Error getting tenant access: {e}")
             raise
 
-    def _get_permissions_from_rpt(self, access_token: str) -> List[Dict[str, Any]]:
+    def _get_permissions_from_rpt(self, access_token: str) -> list[dict[str, Any]]:
         """Get permissions from RPT response (either from JSON or JWT)"""
         rpt_response = self.get_rpt(
             access_token=access_token,
@@ -407,23 +411,23 @@ class KeycloakPDPClient:
                 permissions = self._extract_permissions_from_jwt(rpt_jwt)
                 logger.info(f"Extracted {len(permissions)} permissions from RPT JWT")
                 if permissions:
-                    logger.debug(
-                        f"Sample permission from JWT: {permissions[0] if permissions else 'None'}"
-                    )
+                    sample = permissions[0] if permissions else "None"
+                    logger.debug(f"Sample permission from JWT: {sample}")
             else:
                 logger.warning("No permissions in RPT response and no access_token JWT")
 
         return permissions
 
     def _process_permissions_for_tenants(
-        self, permissions: List[Dict[str, Any]], resource_type: str
-    ) -> Dict[str, set]:
+        self, permissions: list[dict[str, Any]], resource_type: str
+    ) -> dict[str, set]:
         """Process permissions and extract tenant scopes by resource type"""
         logger.info(
-            f"Processing {len(permissions)} permissions for resource_type={resource_type}"
+            f"Processing {len(permissions)} permissions "
+            f"for resource_type={resource_type}"
         )
 
-        tenant_scopes: Dict[str, set] = {}
+        tenant_scopes: dict[str, set] = {}
 
         for permission in permissions:
             resource_identifier = self._extract_resource_identifier(permission)
@@ -444,7 +448,7 @@ class KeycloakPDPClient:
 
         return tenant_scopes
 
-    def _extract_resource_identifier(self, permission: Dict[str, Any]) -> Optional[str]:
+    def _extract_resource_identifier(self, permission: dict[str, Any]) -> str | None:
         """Extract resource identifier from permission, skipping UUIDs"""
         resource_identifier = permission.get("rsname") or permission.get("resource_id")
 
@@ -453,12 +457,14 @@ class KeycloakPDPClient:
             return None
 
         logger.info(
-            f"Processing permission: resource_identifier={resource_identifier}, scopes={permission.get('scopes', [])}"
+            f"Processing permission: resource_identifier={resource_identifier}, "
+            f"scopes={permission.get('scopes', [])}"
         )
 
         if ":" not in resource_identifier:
             logger.info(
-                f"Skipping UUID resource identifier (not a resource name): {resource_identifier}"
+                "Skipping UUID resource identifier "
+                f"(not a resource name): {resource_identifier}"
             )
             return None
 
@@ -467,10 +473,13 @@ class KeycloakPDPClient:
     def _parse_resource_permission(
         self,
         resource_identifier: str,
-        permission: Dict[str, Any],
+        permission: dict[str, Any],
         resource_type: str,
-    ) -> Tuple[Optional[str], Optional[set]]:
-        """Parse resource identifier and return Tuple(tenant and scopes) if matches resource_type"""
+    ) -> tuple[str | None, set | None]:
+        """
+        Parse resource identifier and return Tuple(tenant and scopes)
+        if matches resource_type
+        """
         parts = resource_identifier.split(":")
         logger.info(f"Split resource_identifier into parts: {parts}")
 
@@ -483,22 +492,23 @@ class KeycloakPDPClient:
         scopes = set(permission.get("scopes", []))
 
         logger.info(
-            f"Resource: category={resource_category}, tenant={tenant}, scopes={scopes}, looking for {resource_type}"
+            f"Resource: category={resource_category}, tenant={tenant}, "
+            f"scopes={scopes}, looking for {resource_type}"
         )
 
         if resource_category == resource_type:
             return tenant, scopes
-        else:
-            logger.info(f"Skipping {resource_category} (not {resource_type})")
-            return None, None
+        logger.info(f"Skipping {resource_category} (not {resource_type})")
+        return None, None
 
     def _filter_tenants_with_create_update(
-        self, tenant_scopes: Dict[str, set]
-    ) -> List[str]:
+        self, tenant_scopes: dict[str, set]
+    ) -> list[str]:
         """Filter tenants that have both create and update scopes"""
         result = []
         logger.info(
-            f"Checking {len(tenant_scopes)} tenants for create and update access: {list(tenant_scopes.keys())}"
+            f"Checking {len(tenant_scopes)} tenants for create "
+            f"and update access: {list(tenant_scopes.keys())}"
         )
 
         for tenant, scopes in tenant_scopes.items():
@@ -507,7 +517,8 @@ class KeycloakPDPClient:
                 result.append(tenant)
             else:
                 logger.info(
-                    f"Tenant {tenant} missing create or update: actual scopes are {scopes}"
+                    f"Tenant {tenant} missing create or update: "
+                    f"actual scopes are {scopes}"
                 )
 
         logger.info(

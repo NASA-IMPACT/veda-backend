@@ -1,5 +1,5 @@
 import decimal
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from boto3.dynamodb import conditions
 from boto3.dynamodb.types import DYNAMODB_CONTEXT
@@ -27,11 +27,11 @@ class Database:
         )
         try:
             return schemas.Ingestion.model_validate(response["Item"])
-        except KeyError:
-            raise NotInDb("Record not found")
+        except KeyError as e:
+            raise NotInDb("Record not found") from e
 
     def fetch_many(
-        self, status: str, next: Optional[dict] = None, limit: Optional[int] = None
+        self, status: str, next: dict | None = None, limit: int | None = None
     ) -> schemas.ListIngestionResponse:
         response = self.table.query(
             IndexName="status",
@@ -39,7 +39,7 @@ class Database:
             **{"Limit": limit} if limit else {},
             **{"ExclusiveStartKey": next} if next else {},
         )
-        list_of_ingestions = TypeAdapter(List[schemas.Ingestion])
+        list_of_ingestions = TypeAdapter(list[schemas.Ingestion])
         return {
             "items": list_of_ingestions.validate_python(response["Items"]),
             "next": response.get("LastEvaluatedKey"),

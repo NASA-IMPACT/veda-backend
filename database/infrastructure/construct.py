@@ -1,8 +1,8 @@
 """CDK Construct for veda-backend RDS instance."""
 
 import json
-import os
-from typing import List, Optional, TypedDict, Union
+from pathlib import Path
+from typing import TypedDict
 
 from aws_cdk import (
     CfnOutput,
@@ -33,7 +33,7 @@ class BootstrapPgStac(Construct):
         self,
         scope: Construct,
         construct_id: str,
-        database: Union[aws_rds.DatabaseInstance, aws_rds.DatabaseInstanceFromSnapshot],
+        database: aws_rds.DatabaseInstance | aws_rds.DatabaseInstanceFromSnapshot,
         new_dbname: str,
         new_username: str,
         secrets_prefix: str,
@@ -51,7 +51,7 @@ class BootstrapPgStac(Construct):
             handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath("./"),
+                path=Path("./").absolute(),
                 file="database/runtime/Dockerfile",
                 build_args={"PGSTAC_VERSION": pgstac_version},
             ),
@@ -63,7 +63,7 @@ class BootstrapPgStac(Construct):
         self.secret = aws_secretsmanager.Secret(
             self,
             "secret",
-            secret_name=os.path.join(secrets_prefix, construct_id, self.node.addr[-8:]),
+            secret_name=str(Path(secrets_prefix) / construct_id / self.node.addr[-8:]),
             generate_secret_string=aws_secretsmanager.SecretStringGenerator(
                 secret_string_template=json.dumps(
                     {
@@ -77,7 +77,9 @@ class BootstrapPgStac(Construct):
                 generate_string_key="password",
                 exclude_punctuation=True,
             ),
-            description=f"Pgstac database bootsrapped by {Stack.of(self).stack_name} stack",
+            description=(
+                f"Pgstac database bootsrapped by {Stack.of(self).stack_name} stack",
+            ),
         )
 
         # Allow lambda to...
@@ -106,7 +108,9 @@ class BootstrapPgStac(Construct):
                     "new_user_secret_arn": self.secret.secret_arn,
                     "veda_schema_version": veda_schema_version,
                 },
-                removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
+                # This retains the custom resource
+                # (which doesn't really exist), not the database
+                removal_policy=RemovalPolicy.RETAIN,
             )
 
 
@@ -123,7 +127,7 @@ class RdsConstruct(Construct):
         scope: Construct,
         construct_id: str,
         vpc: aws_ec2.IVpc,
-        subnet_ids: Optional[List],
+        subnet_ids: list | None,
         stage: str,
         **kwargs,
     ) -> None:
@@ -148,7 +152,9 @@ class RdsConstruct(Construct):
             aws_ec2.InstanceSize[veda_db_settings.rds_instance_size],
         )
 
-        #  version=aws_rds.PostgresEngineVersion.postgres_major_version(veda_db_settings.rds_engine_version)
+        # version=aws_rds.PostgresEngineVersion.postgres_major_version(
+        #   veda_db_settings.rds_engine_version
+        # )
         parameter_group = aws_rds.ParameterGroup(
             self,
             "parameter-group",
@@ -205,7 +211,7 @@ class RdsConstruct(Construct):
         }
 
         # Create a new database instance from snapshot if provided
-        # Use an encrypted snapshot when creating a new encrypted database from a snapshot.
+        # Use encrypted snapshot when creating a new encrypted database from a snapshot.
         # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/DatabaseInstanceFromSnapshot.html
         database: aws_rds.IDatabaseInstance
         if veda_db_settings.snapshot_id:
@@ -277,13 +283,15 @@ class RdsConstruct(Construct):
                 self.proxy.connections.add_security_group(sg)
 
             # Update the value of host to use the proxy endpoint
-            # The best way is to update the host value in the secret but there is no easy way to do it with CDK
-            # So we will create a new secret with the proxy endpoint and use it in the custom resource
+            # The best way is to update the host value in the secret
+            # but there is no easy way to do it with CDK
+            # So we will create a new secret with the proxy endpoint
+            # and use it in the custom resource
             self.pgstac.secret = aws_secretsmanager.Secret(
                 self,
                 "RDSProxySecret",
-                secret_name=os.path.join(
-                    stack_name, f"rds-proxy-{construct_id}", self.node.addr[-8:]
+                secret_name=str(
+                    Path(stack_name) / f"rds-proxy-{construct_id}" / self.node.addr[-8:]
                 ),
                 description="RDS Proxy secret manager",
                 secret_object_value={
@@ -292,8 +300,8 @@ class RdsConstruct(Construct):
                     "port": SecretValue.unsafe_plain_text("5432"),
                     "host": SecretValue.unsafe_plain_text(self.proxy.endpoint),
                     "username": SecretValue.unsafe_plain_text(veda_db_settings.user),
-                    # Here we use the same password we bootstrapped for pgstac to avoid creating a new user
-                    # for the proxy
+                    # Here we use the same password we bootstrapped for pgstac to avoid
+                    # creating a new user for the proxy
                     "password": self.pgstac.secret.secret_value_from_json("password"),
                 },
             )
@@ -302,7 +310,10 @@ class RdsConstruct(Construct):
             "pgstac-secret-name",
             value=self.pgstac.secret.secret_arn,
             export_name=f"{stack_name}-stac-db-secret-name",
-            description=f"Name of the Secrets Manager instance holding the connection info for the {construct_id} postgres database",
+            description=(
+                "Name of the Secrets Manager instance holding the connection info "
+                f"for the {construct_id} postgres database"
+            ),
         )
         if self.proxy:
             CfnOutput(

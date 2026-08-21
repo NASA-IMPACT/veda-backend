@@ -71,7 +71,9 @@ class TestExtractCollectionResourceIdFromPostBody:
 
     @pytest.mark.asyncio
     async def test_extract_without_tenant(self):
-        """Test extracting resource ID when tenant is not present (defaults to public)."""
+        """
+        Test extracting resource ID when tenant is not present (defaults to public).
+        """
         body_data = {"id": "test-collection", "type": "Collection"}
         test_body = json.dumps(body_data).encode("utf-8")
 
@@ -116,7 +118,10 @@ class TestExtractStacResourceId:
 
     @pytest.mark.asyncio
     async def test_get_collection_without_tenant(self):
-        """Test extracting resource ID for GET collection without tenant (defaults to public)"""
+        """
+        Test extracting resource ID for GET collection without tenant
+        (defaults to public)
+        """
         request = _request("/collections/test-collection", "GET")
         request.state = MagicMock()
         delattr(request.state, "tenant")
@@ -138,7 +143,10 @@ class TestExtractStacResourceId:
 
     @pytest.mark.asyncio
     async def test_post_collections_create_with_tenant_in_body(self):
-        """Test extracting resource ID for STAC POST /collections (create, from transactions enabled) with tenant in body"""
+        """
+        Test extracting resource ID for STAC POST /collections
+        (create, from transactions enabled) with tenant in body
+        """
         body_data = {"eic:tenant": "test-tenant", "id": "new-collection"}
         test_body = json.dumps(body_data).encode("utf-8")
 
@@ -150,7 +158,10 @@ class TestExtractStacResourceId:
 
     @pytest.mark.asyncio
     async def test_post_collections_create_without_tenant_in_body(self):
-        """Test extracting resource ID for STAC POST /collections (create, from transactions enabled) without tenant (defaults to public)"""
+        """
+        Test extracting resource ID for STAC POST /collections
+        (create, from transactions enabled) without tenant (defaults to public)
+        """
         body_data = {"id": "new-collection", "type": "Collection"}
         test_body = json.dumps(body_data).encode("utf-8")
 
