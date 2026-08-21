@@ -1,7 +1,8 @@
 import os
 import traceback
+from collections.abc import Iterator, Sequence
 from datetime import datetime
-from typing import TYPE_CHECKING, Iterator, List, Optional, Sequence
+from typing import TYPE_CHECKING
 
 from boto3.dynamodb.types import TypeDeserializer
 from fastapi.encoders import jsonable_encoder
@@ -12,12 +13,11 @@ from src.schemas import Ingestion, Status
 from src.utils import IngestionType, get_db_credentials, load_into_pgstac
 
 if TYPE_CHECKING:
-    from aws_lambda_typing import context as context_
-    from aws_lambda_typing import events
+    from aws_lambda_typing import context as context_, events
     from aws_lambda_typing.events.dynamodb_stream import DynamodbRecord
 
 
-def get_queued_ingestions(records: List["DynamodbRecord"]) -> Iterator[Ingestion]:
+def get_queued_ingestions(records: list["DynamodbRecord"]) -> Iterator[Ingestion]:
     deserializer = TypeDeserializer()
     for record in records:
         # Parse Record
@@ -33,7 +33,7 @@ def get_queued_ingestions(records: List["DynamodbRecord"]) -> Iterator[Ingestion
 def update_dynamodb(
     ingestions: Sequence[Ingestion],
     status: Status,
-    message: Optional[str] = None,
+    message: str | None = None,
 ):
     """
     Bulk update DynamoDB with ingestion results.

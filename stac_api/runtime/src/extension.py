@@ -1,6 +1,6 @@
 """TiTiler extension."""
 
-from typing import Optional
+from typing import Annotated
 from urllib.parse import urlencode
 
 import attr
@@ -38,45 +38,65 @@ class TiTilerExtension(ApiExtension):
         )
         async def tilejson(
             request: Request,
-            collectionId: str = Path(..., description="Collection ID"),
-            itemId: str = Path(..., description="Item ID"),
-            tileMatrixSetId: str = Path(
-                ..., description="TileMatrixSet name (e.g. WebMercatorQuad)."
-            ),
-            tile_format: Optional[str] = Query(
-                None, description="Output image type. Default is auto."
-            ),
-            tile_scale: int = Query(
-                1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
-            ),
-            minzoom: Optional[int] = Query(
-                None, description="Overwrite default minzoom."
-            ),
-            maxzoom: Optional[int] = Query(
-                None, description="Overwrite default maxzoom."
-            ),
-            assets: Optional[str] = Query(  # noqa
-                None,
-                description="comma (',') delimited asset names.",
-            ),
-            expression: Optional[str] = Query(  # noqa
-                None,
-                description="rio-tiler's band math expression between assets (e.g asset1/asset2)",
-            ),
-            bidx: Optional[str] = Query(  # noqa
-                None,
-                description="comma (',') delimited band indexes to apply to each asset",
-            ),
-            asset_expression: Optional[str] = Query(  # noqa
-                None,
-                description="rio-tiler's band math expression (e.g b1/b2) to apply to each asset",
-            ),
+            collectionId: Annotated[str, Path(description="Collection ID")],
+            itemId: Annotated[str, Path(description="Item ID")],
+            tileMatrixSetId: Annotated[
+                str, Path(description="TileMatrixSet name (e.g. WebMercatorQuad).")
+            ],
+            tile_format: Annotated[
+                str | None,
+                Query(description="Output image type. Default is auto."),
+            ] = None,
+            tile_scale: Annotated[
+                int,
+                Query(
+                    gt=0,
+                    lt=4,
+                    description="Tile size scale. 1=256x256, 2=512x512...",
+                ),
+            ] = 1,
+            minzoom: Annotated[
+                int | None,
+                Query(description="Overwrite default minzoom."),
+            ] = None,
+            maxzoom: Annotated[
+                int | None,
+                Query(description="Overwrite default maxzoom."),
+            ] = None,
+            assets: Annotated[
+                str | None,
+                Query(description="comma (',') delimited asset names."),
+            ] = None,
+            expression: Annotated[
+                str | None,
+                Query(
+                    description="rio-tiler's band math expression between "
+                    "assets (e.g asset1/asset2)"
+                ),
+            ] = None,
+            bidx: Annotated[
+                str | None,
+                Query(
+                    description="comma (',') delimited band indexes to apply "
+                    "to each asset"
+                ),
+            ] = None,
+            asset_expression: Annotated[
+                str | None,
+                Query(
+                    description="rio-tiler's band math expression (e.g b1/b2) "
+                    "to apply to each asset"
+                ),
+            ] = None,
         ):
             """Get items and redirect to stac tiler."""
             if not assets and not expression:
                 raise HTTPException(
                     status_code=500,
-                    detail="assets must be defined either via expression or assets options.",
+                    detail=(
+                        "assets must be defined either via expression or "
+                        "assets options."
+                    ),
                 )
 
             qs_key_to_remove = [
@@ -109,8 +129,8 @@ class TiTilerExtension(ApiExtension):
         )
         async def stac_viewer(
             request: Request,
-            collectionId: str = Path(..., description="Collection ID"),
-            itemId: str = Path(..., description="Item ID"),
+            collectionId: Annotated[str, Path(description="Collection ID")],
+            itemId: Annotated[str, Path(description="Item ID")],
         ):
             """Get items and redirect to stac tiler."""
             qs = [(key, value) for (key, value) in request.query_params._list]

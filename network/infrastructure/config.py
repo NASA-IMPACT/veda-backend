@@ -1,7 +1,5 @@
 """Configuration options for the VPC."""
 
-from typing import Dict
-
 from pydantic_settings import BaseSettings
 
 
@@ -26,14 +24,14 @@ class devVpcSettings(BaseVpcSettings):
 class stagingVpcSettings(BaseVpcSettings):
     """Staging VPC settings"""
 
-    env: Dict = {}
+    env: dict = {}
     cidr: str = "10.200.0.0/16"
 
 
 class prodVpcSettings(BaseVpcSettings):
     """Production VPC settings"""
 
-    env: Dict = {}
+    env: dict = {}
     cidr: str = "10.40.0.0/16"
 
 

@@ -3,7 +3,7 @@ import binascii
 import enum
 import json
 from datetime import datetime
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from fastapi.encoders import jsonable_encoder
@@ -52,7 +52,7 @@ class AccessibleAsset(shared.Asset):
 
 
 class AccessibleItem(Item):
-    assets: Dict[str, AccessibleAsset]
+    assets: dict[str, AccessibleAsset]
 
     @field_validator("collection")
     @classmethod
@@ -62,29 +62,35 @@ class AccessibleItem(Item):
 
 
 class DashboardCollection(Collection):
-    is_periodic: Optional[bool] = Field(default=False, alias="dashboard:is_periodic")
-    time_density: Optional[str] = Field(default=None, alias="dashboard:time_density")
-    item_assets: Optional[Dict] = None
-    links: Optional[List[LinkWithExtraFields]] = None
-    assets: Optional[Dict] = None
+    is_periodic: bool | None = Field(default=False, alias="dashboard:is_periodic")
+    time_density: str | None = Field(default=None, alias="dashboard:time_density")
+    item_assets: dict | None = None
+    links: list[LinkWithExtraFields] | None = None
+    assets: dict | None = None
     extent: SpatioTemporalExtent
     model_config = ConfigDict(populate_by_name=True)
-    # workaround for https://github.com/pydantic/pydantic/discussions/8211 and https://github.com/pydantic/pydantic/issues/7186 (changes expected on pydantic 3 roadmap)
-    # URL types don't serialize properly to JSON - stac-pydantic uses those types for stac-extensions
-    stac_extensions: Optional[List[AnyUrl]] = []
+
+    # workaround for
+    # https://github.com/pydantic/pydantic/discussions/8211
+    # and https://github.com/pydantic/pydantic/issues/7186
+    # (changes expected on pydantic 3 roadmap)
+    # URL types don't serialize properly to JSON
+    # stac-pydantic uses those types for stac-extensions
+
+    stac_extensions: list[AnyUrl] | None = []
 
     @field_serializer("stac_extensions")
-    def serialize_url(self, urls: List[AnyUrl], _info):
+    def serialize_url(self, urls: list[AnyUrl], _info):
         return [str(url) for url in urls]
 
 
-class Status(str, enum.Enum):
+class Status(enum.StrEnum):
     @classmethod
     def _missing_(cls, value):
-        for member in cls:
-            if member.value.lower() == value.lower():
-                return member
-        return cls.unknown
+        return next(
+            (member for member in cls if member.value.lower() == value.lower()),
+            cls.unknown,
+        )
 
     started = "started"
     queued = "queued"
@@ -112,7 +118,7 @@ class AuthResponse(BaseModel):
 class TenantAccessResponse(BaseModel):
     """Response model for list tenant access (create and update) endpoint"""
 
-    tenants: List[str] = Field(
+    tenants: list[str] = Field(
         ..., description="List of tenant names the user has create/update access to"
     )
 
@@ -120,18 +126,18 @@ class TenantAccessResponse(BaseModel):
 class Ingestion(BaseModel):
     id: str = Field(..., description="ID of the STAC item")
     status: Status = Field(..., description="Status of the ingestion")
-    message: Optional[str] = Field(
+    message: str | None = Field(
         None, description="Message returned from the step function."
     )
     created_by: str = Field(..., description="User who created the ingestion")
-    created_at: Optional[datetime] = Field(
+    created_at: datetime | None = Field(
         None, description="Timestamp of ingestion creation"
     )
-    updated_at: Optional[datetime] = Field(
+    updated_at: datetime | None = Field(
         None, description="Timestamp of ingestion update"
     )
 
-    item: Union[Item, Json[Item]] = Field(..., description="STAC item to ingest")
+    item: Item | Json[Item] = Field(..., description="STAC item to ingest")
 
     @field_validator("updated_at", "created_at", mode="before")
     def set_ts_now(cls, v):
@@ -166,7 +172,7 @@ class Ingestion(BaseModel):
 class ListIngestionRequest(BaseModel):
     status: Status = Field(Status.queued, description="Status of the ingestion")
     limit: PositiveInt = Field(10, description="Limit number of results")
-    next: Optional[str] = Field(None, description="Next token (json) to load")
+    next: str | None = Field(None, description="Next token (json) to load")
 
     def __post_init_post_parse__(self) -> None:
         # https://github.com/tiangolo/fastapi/issues/1474#issuecomment-1049987786
@@ -175,7 +181,7 @@ class ListIngestionRequest(BaseModel):
 
         try:
             self.next = json.loads(base64.b64decode(self.next))
-        except (UnicodeDecodeError, binascii.Error):
+        except (UnicodeDecodeError, binascii.Error) as e:
             raise RequestValidationError(
                 [
                     error_wrappers.ErrorWrapper(
@@ -185,14 +191,14 @@ class ListIngestionRequest(BaseModel):
                         "query.next",
                     )
                 ]
-            )
+            ) from e
 
 
 class ListIngestionResponse(BaseModel):
-    items: List[Ingestion] = Field(
+    items: list[Ingestion] = Field(
         ..., description="List of STAC items from ingestion."
     )
-    next: Optional[str] = Field(None, description="Next token (json) to load")
+    next: str | None = Field(None, description="Next token (json) to load")
 
     @field_validator("next", mode="before")
     @classmethod
@@ -206,5 +212,5 @@ class ListIngestionResponse(BaseModel):
 
 
 class UpdateIngestionRequest(BaseModel):
-    status: Optional[Status] = Field(None, description="Status of the ingestion")
-    message: Optional[str] = Field(None, description="Message of the ingestion")
+    status: Status | None = Field(None, description="Status of the ingestion")
+    message: str | None = Field(None, description="Message of the ingestion")

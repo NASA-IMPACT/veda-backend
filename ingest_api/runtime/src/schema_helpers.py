@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Union
 
 from pydantic import BaseModel, model_validator
 from stac_pydantic.collection import Extent, TimeInterval
@@ -9,7 +8,7 @@ from stac_pydantic.collection import Extent, TimeInterval
 
 class DatetimeInterval(TimeInterval):
     # reimplement stac_pydantic's TimeInterval to leverage datetime types
-    interval: List[List[Union[datetime, None]]]
+    interval: list[list[datetime | None]]
 
 
 class SpatioTemporalExtent(Extent):
@@ -40,8 +39,8 @@ class BboxExtent(BaseModel):
 
 
 class TemporalExtent(BaseModel):
-    startdate: Union[datetime, None] = None
-    enddate: Union[datetime, None] = None
+    startdate: datetime | None = None
+    enddate: datetime | None = None
 
     @model_validator(mode="before")
     def check_dates(cls, v):

@@ -10,8 +10,10 @@ from eoapi_cdk import StacBrowser
 from config import veda_app_settings
 from database.infrastructure.construct import RdsConstruct
 from ingest_api.infrastructure.config import IngestorConfig as ingest_config
-from ingest_api.infrastructure.construct import ApiConstruct as ingest_api_construct
-from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_construct
+from ingest_api.infrastructure.construct import (
+    ApiConstruct as ingest_api_construct,
+    IngestorConstruct as ingestor_construct,
+)
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
@@ -95,7 +97,8 @@ website = VedaWebsite(
     veda_stack, "stac-browser-bucket", stage=veda_app_settings.stage_name()
 )
 
-# Only create a stac browser if we can infer the catalog url from configuration before synthesis (API Gateway URL not yet available)
+# Only create a stac browser if we can infer the catalog url
+# from configuration before synthesis (API Gateway URL not yet available)
 stac_catalog_url = veda_app_settings.get_stac_catalog_url()
 if stac_catalog_url:
     stac_browser = StacBrowser(
@@ -109,7 +112,8 @@ if stac_catalog_url:
 db_secret_name = database.pgstac.secret.secret_name
 db_security_group = database.db_security_group
 
-# ingestor config requires references to other resources, but can be shared between ingest api and bulk ingestor
+# ingestor config requires references to other resources
+# but can be shared between ingest api and bulk ingestor
 ingestor_config = ingest_config(
     stage=veda_app_settings.stage_name(),
     stac_db_security_group_id=db_security_group.security_group_id,

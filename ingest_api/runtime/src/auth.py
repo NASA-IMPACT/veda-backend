@@ -1,8 +1,7 @@
-from typing import Any, Dict
+from typing import Annotated, Any
 
 from eoapi.auth_utils import OpenIdConnectAuth, OpenIdConnectSettings
 from fastapi import Depends
-from typing_extensions import Annotated
 
 auth_settings = OpenIdConnectSettings(_env_prefix="")
 
@@ -13,11 +12,10 @@ oidc_auth = OpenIdConnectAuth(
 
 
 def get_username(
-    token: Annotated[Dict[Any, Any], Depends(oidc_auth.valid_token_dependency)],
+    token: Annotated[dict[Any, Any], Depends(oidc_auth.valid_token_dependency)],
 ) -> str:
-    result = (
+    return (
         token["preferred_username"]
         if "preferred_username" in token
         else str(token.get("sub"))
     )
-    return result

@@ -4,7 +4,6 @@ Based on https://github.com/developmentseed/eoAPI/tree/master/src/eoapi/stac"""
 import base64
 import json
 from functools import lru_cache
-from typing import Optional
 
 import boto3
 from fastapi.responses import ORJSONResponse
@@ -42,13 +41,13 @@ from stac_fastapi.pgstac.transactions import BulkTransactionsClient, Transaction
 from stac_fastapi.pgstac.types.search import PgstacSearch
 
 
-@lru_cache()
+@lru_cache
 def get_secret_dict(secret_name: str):
     """Retrieve secrets from AWS Secrets Manager
 
     Args:
-        secret_name (str): name of aws secrets manager secret containing database connection secrets
-        profile_name (str, optional): optional name of aws profile for use in debugger only
+        secret_name (str): secrets manager secret containing database connection secrets
+        profile_name (str, optional): optional name of aws profile for debugger use only
 
     Returns:
         secrets (dict): decrypted secrets in dict
@@ -62,49 +61,58 @@ def get_secret_dict(secret_name: str):
 
     if "SecretString" in get_secret_value_response:
         return json.loads(get_secret_value_response["SecretString"])
-    else:
-        return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
+    return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
 class _ApiSettings(Settings):
     """API settings"""
 
-    project_name: Optional[str] = "veda"
-    project_description: Optional[str] = None
+    project_name: str | None = "veda"
+    project_description: str | None = None
     cors_origins: str = "*"
     cachecontrol: str = "max-age=30,must-revalidate,s-maxage=604800"
     debug: bool = False
-    root_path: Optional[str] = None
-    pgstac_secret_arn: Optional[str] = None
-    stage: Optional[str] = None
-    client_id: Optional[str] = Field(None, description="Auth client ID")
-    openid_configuration_url: Optional[AnyHttpUrl] = Field(
+    root_path: str | None = None
+    pgstac_secret_arn: str | None = None
+    stage: str | None = None
+    client_id: str | None = Field(None, description="Auth client ID")
+    openid_configuration_url: AnyHttpUrl | None = Field(
         None, description="OpenID config url"
     )
-    openid_configuration_internal_url: Optional[AnyHttpUrl] = Field(
+    openid_configuration_internal_url: AnyHttpUrl | None = Field(
         None, description="OpenID config url"
     )
     enable_transactions: bool = Field(
         False,
-        description="Whether to enable transactions. If True, set enable_stac_auth_proxy to True.",
+        description=(
+            "Whether to enable transactions. "
+            "If True, set enable_stac_auth_proxy to True."
+        ),
     )
     enable_stac_auth_proxy: bool = Field(
         False,
-        description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
+        description=(
+            "Whether to enable STAC Auth Proxy. If enable_transactions is True, "
+            "this must also be True."
+        ),
     )
     swagger_ui_endpoint: str = "/docs"
     openapi_spec_endpoint: str = "/openapi.json"
-    custom_host: Optional[str] = Field(
+    custom_host: str | None = Field(
         "http://localhost:8081", description="Custom host URL"
     )
-    git_sha: Optional[str] = None
+    git_sha: str | None = None
     tenant_filter_field: str = Field(
         "eic:tenant",
         description="The field name used for tenant filtering",
     )
-    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
+    keycloak_uma_resource_server_client_secret_name: str | None = Field(
         None,
-        description="Name of AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret. When set with openid_configuration_url, PEP enforces UMA.",
+        description=(
+            "Name of AWS Secrets Manager secret containing Keycloak UMA "
+            "resource server client_id and client_secret. "
+            "When set with openid_configuration_url, PEP enforces UMA."
+        ),
     )
 
     @field_validator("cors_origins")
@@ -132,12 +140,15 @@ class _ApiSettings(Settings):
     )
 
 
-@lru_cache()
+@lru_cache
 def ApiSettings() -> _ApiSettings:
     """
     This function returns a cached instance of the APISettings object.
-    Caching is used to prevent re-reading the environment every time the API settings are used in an endpoint.
-    If you want to change an environment variable and reset the cache (e.g., during testing), this can be done
+    Caching is used to prevent re-reading the environment every time the API settings
+    are used in an endpoint.
+
+    If you want to change an environment variable and reset the cache
+    (e.g., during testing), this can be done
     using the `lru_cache` instance method `get_api_settings.cache_clear()`.
 
     From https://github.com/dmontagu/fastapi-utils/blob/af95ff4a8195caaa9edaa3dbd5b6eeb09691d9c7/fastapi_utils/api_settings.py#L60-L69
@@ -151,15 +162,16 @@ api_settings = ApiSettings()
 class _TilesApiSettings(BaseSettings):
     """Tile API settings"""
 
-    titiler_endpoint: Optional[str] = None
+    titiler_endpoint: str | None = None
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
-@lru_cache()
+@lru_cache
 def TilesApiSettings() -> _TilesApiSettings:
     """
     This function returns a cached instance of the TilesApiSettings object.
-    Caching is used to prevent re-reading the environment every time the API settings are used in an endpoint.
+    Caching is used to prevent re-reading the environment every time the API settings
+    are used in an endpoint.
 
     """
     return _TilesApiSettings()

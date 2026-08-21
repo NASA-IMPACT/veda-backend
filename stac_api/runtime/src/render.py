@@ -1,13 +1,16 @@
-"""This module contains functions and classes for defining titiler rendering query parameters STAC items."""
+"""
+This module contains functions and classes
+for defining titiler rendering query parameters STAC items.
+"""
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlencode
 
 from pydantic import BaseModel
 
 
-def get_param_str(params: Dict[str, Any]) -> str:
+def get_param_str(params: dict[str, Any]) -> str:
     """Get parameter string from a dictionary of parameters."""
     for k, v in params.items():
         if k == "colormap":
@@ -30,12 +33,12 @@ class RenderConfig(BaseModel):
     normal human vision, parameters will likely encode this rendering.
     """
 
-    render_params: Dict[str, Any] = {}
+    render_params: dict[str, Any] = {}
     minzoom: int = 14
-    assets: Optional[List[str]] = ["cog_default"]
-    maxzoom: Optional[int] = 30
-    mosaic_preview_zoom: Optional[int] = None
-    mosaic_preview_coords: Optional[List[float]] = None
+    assets: list[str] | None = ["cog_default"]
+    maxzoom: int | None = 30
+    mosaic_preview_zoom: int | None = None
+    mosaic_preview_coords: list[float] | None = None
 
     def get_full_render_qs(self) -> str:
         """

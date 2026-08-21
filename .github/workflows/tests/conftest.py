@@ -264,8 +264,7 @@ def collection_schema():
         String: A string representation of the yaml schema
     """
     response = httpx.get("https://api.stacspec.org/v1.0.0/collections/openapi.yaml")
-    content = response.text
-    return content
+    return response.text
 
 
 @pytest.fixture(scope="session")
@@ -276,8 +275,7 @@ def feature_schema():
         String: A string representation of the yaml schema
     """
     response = httpx.get("https://api.stacspec.org/v1.0.0/ogcapi-features/openapi.yaml")
-    content = response.text
-    return content
+    return response.text
 
 
 @pytest.fixture

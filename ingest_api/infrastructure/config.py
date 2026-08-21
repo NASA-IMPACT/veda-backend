@@ -1,11 +1,10 @@
 import subprocess
 from getpass import getuser
-from typing import List, Optional
+from typing import Annotated
 
 import aws_cdk
 from pydantic import AnyHttpUrl, Field, StringConstraints
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing_extensions import Annotated
 
 AwsArn = Annotated[str, StringConstraints(pattern=r"^arn:aws:iam::\d{12}:role/.+")]
 
@@ -15,13 +14,13 @@ class IngestorConfig(BaseSettings):
     # specific private and public buckets MUST be added if you want to use s3:// urls
     # You can whitelist all bucket by setting `*`.
     # ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-arn-format.html
-    buckets: List = ["*"]
+    buckets: list = ["*"]
 
     # S3 key pattern to limit the access to specific items (e.g: "my_data/*.tif")
     key: str = "*"
 
-    aws_account: Optional[str] = None
-    aws_region: Optional[str] = None
+    aws_account: str | None = None
+    aws_region: str | None = None
 
     stage: str = Field(
         description=" ".join(
@@ -47,13 +46,16 @@ class IngestorConfig(BaseSettings):
         description="ID of Security Group used by pgSTAC DB"
     )
 
-    raster_data_access_role_arn: Optional[AwsArn] = Field(  # type: ignore
+    raster_data_access_role_arn: AwsArn | None = Field(  # type: ignore
         None, description="ARN of AWS Role used to validate access to S3 data"
     )
 
-    raster_aws_request_payer: Optional[str] = Field(
+    raster_aws_request_payer: str | None = Field(
         None,
-        description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs",
+        description=(
+            "Set optional global parameter to 'requester' "
+            "if the requester agrees to pay S3 transfer costs"
+        ),
     )
 
     ingest_root_path: str = Field("", description="Root path for ingest API")
@@ -70,36 +72,51 @@ class IngestorConfig(BaseSettings):
         description="URL of Raster API Gateway endpoing used to serve asset tiles"
     )
 
-    custom_host: Optional[str] = Field(
+    custom_host: str | None = Field(
         None,
-        description="Complete url of custom host including subdomain. Used to infer url of apis before app synthesis.",
+        description=(
+            "Complete url of custom host including subdomain. "
+            "Used to infer url of apis before app synthesis."
+        ),
     )
 
-    stac_root_path: Optional[str] = Field(
+    stac_root_path: str | None = Field(
         "",
-        description="STAC API root path. Used to infer url of stac-api before app synthesis.",
+        description=(
+            "STAC API root path. Used to infer url of stac-api before app synthesis."
+        ),
     )
 
-    raster_root_path: Optional[str] = Field(
+    raster_root_path: str | None = Field(
         "",
-        description="Raster API root path. Used to infer url of raster-api before app synthesis.",
+        description=(
+            "Raster API root path. "
+            "Used to infer url of raster-api before app synthesis."
+        ),
     )
 
-    disable_default_apigw_endpoint: Optional[bool] = Field(
+    disable_default_apigw_endpoint: bool | None = Field(
         False,
-        description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
+        description=(
+            "Boolean to disable default API gateway endpoints "
+            "for stac, raster, and ingest APIs. Defaults to false."
+        ),
     )
 
     keycloak_ingest_api_client_id: str = Field(description="Auth client ID")
 
     openid_configuration_url: AnyHttpUrl = Field(description="OpenID config url")
 
-    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
+    keycloak_uma_resource_server_client_secret_name: str | None = Field(
         None,
-        description="Name or ARN of the AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret. Use a full ARN for cross-account access.",
+        description=(
+            "Name or ARN of the AWS Secrets Manager secret containing Keycloak UMA "
+            "resource server client_id and client_secret. "
+            "Use a full ARN for cross-account access."
+        ),
     )
 
-    keycloak_secret_kms_key_arn: Optional[str] = Field(
+    keycloak_secret_kms_key_arn: str | None = Field(
         None,
         description="ARN of KMS key used to encrypt the Keycloak secret",
     )
@@ -107,7 +124,7 @@ class IngestorConfig(BaseSettings):
         case_sensitive=False, env_file=".env", env_prefix="VEDA_", extra="ignore"
     )
 
-    git_sha: Optional[str] = Field(
+    git_sha: str | None = Field(
         subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
         description="Git SHA of the current commit, used to track deployment version",
     )
@@ -125,14 +142,20 @@ class IngestorConfig(BaseSettings):
 
     @property
     def veda_stac_api_cf_url(self) -> str:
-        """inferred cloudfront url of the stac api if app is configured with a custom host and root path"""
+        """
+        inferred cloudfront url of the stac api if app is configured
+        with a custom host and root path
+        """
         if self.custom_host and self.stac_root_path:
             return f"https://{self.custom_host}{self.stac_root_path}"
         return self.stac_api_url
 
     @property
     def veda_raster_api_cf_url(self) -> str:
-        """inferred cloudfront url of the raster api if app is configured with a custom host and root path"""
+        """
+        inferred cloudfront url of the raster api if app is configured
+        with a custom host and root path
+        """
         if self.custom_host and self.raster_root_path:
             return f"https://{self.custom_host}{self.raster_root_path}"
         return self.raster_api_url

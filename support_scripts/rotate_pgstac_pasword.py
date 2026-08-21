@@ -1,5 +1,6 @@
 """
-A boto3 utility to rotate pgstac user database password, update corresponding AWS secret, and reboot lambdas using secret
+A boto3 utility to rotate pgstac user database password,
+update corresponding AWS secret, and reboot lambdas using secret
 """
 
 import argparse
@@ -7,7 +8,6 @@ import base64
 import json
 from datetime import datetime
 from sys import exit
-from typing import Optional
 
 import boto3
 import psycopg
@@ -63,17 +63,20 @@ parser.add_argument(
     required=False,
     action="store_true",
     default=False,
-    help="Optional Dry run to confirm current AWS config profile can read database secrets and connect to postgres",
+    help=(
+        "Optional dry run to confirm current AWS config profile can read "
+        "database secrets and connect to postgres"
+    ),
 )
 args = parser.parse_args()
 
 
-def get_secret_dict(secret_name: str, profile_name: Optional[str] = None) -> dict:
+def get_secret_dict(secret_name: str, profile_name: str | None = None) -> dict:
     """Retrieve secrets from AWS Secrets Manager
 
     Args:
-        secret_name (str): name of aws secrets manager secret containing database connection secrets
-        profile_name (str, optional): optional name of aws profile for use in debugger only
+        secret_name (str): secrets manager secret containing database connection secrets
+        profile_name (str, optional): optional name of aws profile for debugger use only
 
     Returns:
         secrets (dict): decrypted secrets in dict
@@ -92,17 +95,15 @@ def get_secret_dict(secret_name: str, profile_name: Optional[str] = None) -> dic
         raise e
     else:
         # Decrypts secret using the associated KMS key.
-        # Depending on whether the secret is a string or binary, one of these fields will be populated.
+        # Depending on whether the secret is a string or binary,
+        # one of these fields will be populated.
         if "SecretString" in get_secret_value_response:
             return json.loads(get_secret_value_response["SecretString"])
-        else:
-            return json.loads(
-                base64.b64decode(get_secret_value_response["SecretBinary"])
-            )
+        return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
 def update_secret(
-    secret_name: str, updated_secret: dict, profile_name: Optional[str] = None
+    secret_name: str, updated_secret: dict, profile_name: str | None = None
 ) -> None:
     """Update an aws secretsmanager secret"""
     # Create a Secrets Manager client
@@ -115,7 +116,7 @@ def update_secret(
     client.update_secret(SecretId=secret_name, SecretString=json.dumps(updated_secret))
 
 
-def get_random_password(profile_name: Optional[str] = None) -> str:
+def get_random_password(profile_name: str | None = None) -> str:
     """Get new password"""
     if profile_name:
         session = boto3.session.Session(profile_name=profile_name)
@@ -131,7 +132,8 @@ def get_dsn_string(secret: dict) -> str:
     """Form database connection string from a dictionary of connection secrets
 
     Args:
-        secret (dict): dictionary containing connection secrets including username, database name, host, and password
+        secret (dict): dictionary containing connection secrets including
+        username, database name, host, and password
 
     Returns:
         dsn (str): full database data source name
@@ -172,7 +174,7 @@ def create_user(cursor, username: str, password: str) -> None:
 
 
 def force_update_lambda(
-    function_name: str, new_description: str, profile_name: Optional[str] = None
+    function_name: str, new_description: str, profile_name: str | None = None
 ) -> None:
     """Force lambda to reboot by providing a new description string"""
     if profile_name:
@@ -205,9 +207,10 @@ new_password = get_random_password()
 pgstac_secret_dict["password"] = new_password
 
 # Use admin role to update password for pgstac user role
-autocommit = True if args.dry_run is False else False
+autocommit = args.dry_run is False
 print(
-    f"Updating postgres password for username={pgstac_secret_dict['username']} autocommit={autocommit}"
+    f"Updating postgres password for username={pgstac_secret_dict['username']} "
+    f"autocommit={autocommit}"
 )
 with psycopg.connect(admin_dsn, autocommit=autocommit) as conn:
     with conn.cursor() as cur:
@@ -220,7 +223,8 @@ with psycopg.connect(admin_dsn, autocommit=autocommit) as conn:
 
     if args.dry_run:
         print(
-            "Exiting dry run, not committing postgres role update or updating aws secret"
+            "Exiting dry run, not committing postgres role update "
+            "or updating aws secret"
         )
         exit()
 
@@ -237,24 +241,28 @@ if conn:
     conn.close()
 else:
     print(
-        "Connection failed with new pgstac user credentials, rollback role change in postgres"
+        "Connection failed with new pgstac user credentials, "
+        "rollback role change in postgres"
     )
     current_pgstac_secret_dict = get_secret_dict(args.pgstac_secret_name)
-    with psycopg.connect(admin_dsn, autocommit=autocommit) as conn:
-        with conn.cursor() as cur:
-            # Rollback user password
-            create_user(
-                cursor=cur,
-                username=current_pgstac_secret_dict["username"],
-                password=current_pgstac_secret_dict["password"],
-            )
+    with (
+        psycopg.connect(admin_dsn, autocommit=autocommit) as conn,
+        conn.cursor() as cur,
+    ):
+        # Rollback user password
+        create_user(
+            cursor=cur,
+            username=current_pgstac_secret_dict["username"],
+            password=current_pgstac_secret_dict["password"],
+        )
     exit()
 
 # Update aws secrets manager
 print(f"Updating password in secret_name={args.pgstac_secret_name}...")
 update_secret(secret_name=args.pgstac_secret_name, updated_secret=pgstac_secret_dict)
 
-# Force lambdas to reboot and retrieve the new secrets by updating the description string in function configuration
+# Force lambdas to reboot and retrieve the new secrets
+# by updating the description string in function configuration
 print(f"Restarting {args.stac_lambda_name} and {args.raster_lambda_name}...")
 ts = datetime.utcnow().isoformat()
 new_description = f"Updated at {ts}"

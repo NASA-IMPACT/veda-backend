@@ -6,10 +6,10 @@ Optional shared base infrastructure provisioning. This CloudFormation stack is i
 
 ### Fetch environment variables using AWS CLI
 
-To retrieve the variables for a stage that has been previously deployed, the secrets manager can be used to quickly populate an .env file. 
+To retrieve the variables for a stage that has been previously deployed, the secrets manager can be used to quickly populate an .env file.
 > Note: The environment variables stored as AWS secrets are manually maintained and should be reviewed before using.
 
-```
+```shell
 export AWS_SECRET_ID=<base-name>-env
 
 aws secretsmanager get-secret-value --secret-id ${AWS_SECRET_ID} --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' > .env

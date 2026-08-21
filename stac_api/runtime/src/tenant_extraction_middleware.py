@@ -7,7 +7,6 @@ for tenant filtering
 
 import logging
 from dataclasses import dataclass, field
-from typing import Optional, Set
 
 from fastapi import FastAPI, Request
 from starlette.types import Receive, Scope, Send
@@ -27,7 +26,7 @@ class TenantExtractionMiddleware:
     """
 
     app: FastAPI
-    standard_endpoints: Set[str] = field(
+    standard_endpoints: set[str] = field(
         default_factory=lambda: {
             "collections",
             "conformance",
@@ -92,7 +91,7 @@ class TenantExtractionMiddleware:
 
         return await self.app(scope, receive, send)
 
-    def _extract_tenant_from_path(self, request: Request) -> Optional[str]:
+    def _extract_tenant_from_path(self, request: Request) -> str | None:
         """Extracts the tenant identifier from the URL"""
         root_path = request.scope.get("root_path", "")
         path = (

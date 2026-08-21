@@ -1,5 +1,4 @@
 import functools
-from typing import Union
 
 import boto3
 import requests
@@ -41,12 +40,12 @@ def s3_object_is_accessible(bucket: str, key: str):
     except client.exceptions.ClientError as e:
         raise ValueError(
             f"Asset not accessible: {e.__dict__['response']['Error']['Message']}"
-        )
+        ) from e
 
 
 @functools.lru_cache
 def s3_bucket_object_is_accessible(
-    bucket: str, prefix: str, zarr_store: Union[str, None] = None
+    bucket: str, prefix: str, zarr_store: str | None = None
 ):
     """
     Ensure we can send HEAD requests to S3 objects in bucket.
@@ -55,10 +54,12 @@ def s3_bucket_object_is_accessible(
     prefix = f"{prefix}{zarr_store}" if zarr_store else prefix
     try:
         result = client.list_objects(Bucket=bucket, Prefix=prefix, MaxKeys=2)
-    except client.exceptions.NoSuchBucket:
-        raise ValueError("Bucket doesn't exist.")
+    except client.exceptions.NoSuchBucket as e:
+        raise ValueError("Bucket doesn't exist.") from e
     except client.exceptions.ClientError as e:
-        raise ValueError(f"Access denied: {e.__dict__['response']['Error']['Message']}")
+        raise ValueError(
+            f"Access denied: {e.__dict__['response']['Error']['Message']}"
+        ) from e
     content = result.get("Contents", [])
     if len(content) < 1:
         raise ValueError("No data in bucket/prefix.")
@@ -67,7 +68,7 @@ def s3_bucket_object_is_accessible(
     except client.exceptions.ClientError as e:
         raise ValueError(
             f"Asset not accessible: {e.__dict__['response']['Error']['Message']}"
-        )
+        ) from e
 
 
 def url_is_accessible(href: str):
@@ -79,10 +80,10 @@ def url_is_accessible(href: str):
     except requests.exceptions.HTTPError as e:
         raise ValueError(
             f"Asset not accessible: {e.response.status_code} {e.response.reason}"
-        )
+        ) from e
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def collection_exists(collection_id: str) -> bool:
     """
     Ensure collection exists in STAC

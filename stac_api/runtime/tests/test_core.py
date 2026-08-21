@@ -19,7 +19,8 @@ class TestSearchBase:
     """
     Test cases VedaCrudClient.
 
-    This class contains unit tests to ensure that the Veda STAC API Client class functions correctly. Specifically _search_base
+    This class contains unit tests to ensure that the Veda STAC API Client
+    class functions correctly, specifically the _search_base method.
     """
 
     @pytest.fixture(autouse=True)
@@ -32,7 +33,10 @@ class TestSearchBase:
     async def test_empty_features_returns_result_unchanged(
         self, valid_stac_features_collection_empty
     ):
-        """When result has no features, return the result as-is without calling get_collection."""
+        """
+        When result has no features,
+        return the result as-is without calling get_collection.
+        """
         client = self.client
         search_request = self.search_request
         request = self.request
@@ -55,7 +59,10 @@ class TestSearchBase:
     async def test_features_without_dashboard_renders_returns_result_unchanged(
         self, valid_stac_collection_multi_cog_asset_renders
     ):
-        """When collection has no 'dashboard' key in renders, return result unchanged."""
+        """
+        When collection has no 'dashboard' key in renders,
+        return result unchanged.
+        """
         client = self.client
         search_request = self.search_request
         request = self.request
@@ -83,7 +90,10 @@ class TestSearchBase:
     async def test_features_with_dashboard_renders_injects_links(
         self, valid_stac_collection_multi_cog_asset_renders_with_dashboard
     ):
-        """When collection has 'dashboard' renders, expected links and rendered_preview asset are injected into each item."""
+        """
+        When collection has 'dashboard' renders,
+        expected links and rendered_preview asset are injected into each item.
+        """
         client = self.client
         search_request = self.search_request
         request = self.request
@@ -156,7 +166,8 @@ class TestSearchBase:
             "Map of burnRatio asset",
             "Map of dashboard asset",
         ]
-        # Check that all expected Map links are generated for all assets in render config
+        # Check that all expected Map links are generated
+        # for all assets in render config
         assert titles == expected_map_link_title_values
 
         assets = returned["features"][0]["assets"]
@@ -166,13 +177,17 @@ class TestSearchBase:
             "rendered_preview_burnRatio",
             "rendered_preview_dashboard",
         ]
-        # Check that all expected render previews are generated for all assets in render config
+        # Check that all expected render previews are generated
+        # for all assets in render config
         assert assets_keys == expected_render_assets
 
     async def test_tiler_url_override_in_renders(
         self, valid_stac_collection_renders_with_tiler_url
     ):
-        """When 'tiler_url' is present in renders config, uses instead of the default titiler_endpoint."""
+        """
+        When 'tiler_url' is present in renders config,
+        uses instead of the default titiler_endpoint.
+        """
         client = self.client
         search_request = self.search_request
         request = self.request
@@ -210,11 +225,13 @@ class TestSearchBase:
         # All generated hrefs should use the custom tiler_url, not the default endpoint
         for link in links:
             assert link["href"].startswith(custom_tiler_url), (
-                f"Expected link href to use tiler_url ({custom_tiler_url}), got: {link['href']}"
+                f"Expected link href to use tiler_url ({custom_tiler_url}), "
+                f"got: {link['href']}"
             )
 
         rendered_preview_keys = [k for k in assets if k.startswith("rendered_preview_")]
         for key in rendered_preview_keys:
             assert assets[key]["href"].startswith(custom_tiler_url), (
-                f"Expected preview href to use tiler_url ({custom_tiler_url}), got: {assets[key]['href']}"
+                f"Expected preview href to use tiler_url ({custom_tiler_url}), "
+                f"got: {assets[key]['href']}"
             )

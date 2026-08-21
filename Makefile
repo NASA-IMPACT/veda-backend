@@ -11,17 +11,10 @@ install-dev:
 	uv sync --all-groups
 
 install:
-	uv sync --no-dev --frozen
+	uv sync --no-dev --locked
 
 lint:
-	uv run ruff format --diff
-	uv run ruff check
-	uv run mypy .
-
-format:
-	uv run ruff check --fix
-	uv run ruff check --select I --fix
-	uv run ruff format
+	uv run pre-commit run --all-files
 
 diff:
 	uv run npx aws-cdk@2.1134 diff -v

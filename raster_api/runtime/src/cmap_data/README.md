@@ -1,8 +1,8 @@
-## Additional colormap for VEDA
+# Additional colormap for VEDA
 
-##### EPA colormap
+## EPA colormap
 
-ref: https://github.com/NASA-IMPACT/veda-config-ghg/issues/203
+ref: <https://github.com/NASA-IMPACT/veda-config-ghg/issues/203>
 
 ```python
 from matplotlib import colors
@@ -29,12 +29,12 @@ cmap_uint8 = (cmap_vals * 255).astype('uint8')
 np.save("epa-ghgi-ch4.npy", cmap_uint8)
 ```
 
-##### NLCD colormap
+## NLCD colormap
 
-refs: 
+refs:
 
-- https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
-- https://github.com/NASA-IMPACT/veda-backend/issues/429
+- <https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description>
+- <https://github.com/NASA-IMPACT/veda-backend/issues/429>
 
 ```python
 import rasterio
@@ -81,7 +81,7 @@ for c, v in internal_colormap.items():
 np.save("nlcd.npy", cmap)
 ```
 
-##### Soil texture colormap
+## Soil texture colormap
 
 ```python
 from rio_tiler.colormap import parse_color
@@ -89,17 +89,17 @@ import numpy as np
 
 # These categories are based on a USGS soil texture chart, not an official set of color mappings for soil texture categories
 texture_categories = {
-    "1": "#F89E61", 
-    "2": "#BA8560", 
-    "3": "#D8D2B4", 
-    "4": "#AE734C", 
-    "5": "#9E8478", 
+    "1": "#F89E61",
+    "2": "#BA8560",
+    "3": "#D8D2B4",
+    "4": "#AE734C",
+    "5": "#9E8478",
     "6": "#C6A365",
-    "7": "#B4A67D", 
-    "8": "#E1D4C4", 
-    "9": "#BEB56D", 
-    "10": "#777C7A", 
-    "11": "#A89B6F", 
+    "7": "#B4A67D",
+    "8": "#E1D4C4",
+    "9": "#BEB56D",
+    "10": "#777C7A",
+    "11": "#A89B6F",
     "12": "#E9E2AF"
 }
 
@@ -111,7 +111,7 @@ for k in texture_categories.keys():
 np.save("soil_texture.npy", cmap)
 ```
 
-##### Tornadoes colormap
+## Tornadoes colormap
 
 ```python
 from rio_tiler.colormap import parse_color
@@ -136,28 +136,28 @@ for k in tornado_ef_scale.keys():
 np.save("tornado_ef_scale.npy", cmap)
 ```
 
-###### Surface Temperature Colormap
+## Surface Temperature Colormap
 
 ```python
 from matplotlib import colors
 import numpy as np
 
 stops = [
-    "#3CCBCE",  
-    "#C5F8FF",  
-    "#FEC5FF",   
-    "#E079FB",   
-    "#094FC9",  
-    "#009FFF",   
-    "#44E2FF",   
-    "#147F4F",  
-    "#79B32C",  
-    "#FDFE00",   
-    "#FF8700",   
-    "#FF0F00",  
-    "#9D0F2B",   
-    "#4D0000",   
-    "#BA2E6D", 
+    "#3CCBCE",
+    "#C5F8FF",
+    "#FEC5FF",
+    "#E079FB",
+    "#094FC9",
+    "#009FFF",
+    "#44E2FF",
+    "#147F4F",
+    "#79B32C",
+    "#FDFE00",
+    "#FF8700",
+    "#FF0F00",
+    "#9D0F2B",
+    "#4D0000",
+    "#BA2E6D",
 ]
 
 st_cmap = colors.LinearSegmentedColormap.from_list(name='st_cmap',colors=stops, N=256)
@@ -167,7 +167,7 @@ st_cmap_vals = (st_cmap(x)[:, :] * 255).astype('uint8')
 np.save("surface_temperature.npy", st_cmap_vals)
 ```
 
-###### OPERA Vegetation Disturbance Status Colormap
+## OPERA Vegetation Disturbance Status Colormap
 
 ```python
 from rio_tiler.colormap import parse_color
@@ -195,7 +195,7 @@ cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
 np.save("opera_veg_dist_status.npy", cmap)
 ```
 
-###### Sentinel OptiSAR Burn Severity Colormap
+## Sentinel OptiSAR Burn Severity Colormap
 
 ```python
 from rio_tiler.colormap import parse_color
@@ -223,7 +223,8 @@ cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
 np.save("optisar_fire_severity.npy", cmap)
 ```
 
-###### Sentinel-1 HydroSAR Water Extent Colormap
+## Sentinel-1 HydroSAR Water Extent Colormap
+
 ```python
 from rio_tiler.colormap import parse_color
 import numpy as np

@@ -1,8 +1,10 @@
-"""Settings for getting or creating S3 static website for both a stac-browser and for optional cloudfront origin.
-Any environment variables starting with `VEDA_` will overwrite the values of variables in this file
 """
+Settings for getting or creating S3 static website
+for both a stac-browser and for optional cloudfront origin.
 
-from typing import Optional
+Any environment variables starting with `VEDA_`
+will overwrite the values of variables in this file
+"""
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -11,7 +13,7 @@ from pydantic_settings import BaseSettings
 class vedaS3WebsiteSettings(BaseSettings):
     """Application settings"""
 
-    stac_browser_bucket: Optional[str] = Field(
+    stac_browser_bucket: str | None = Field(
         None,
         description=(
             "Optional existing bucket provisioned as public website"

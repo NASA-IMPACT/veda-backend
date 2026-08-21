@@ -1,8 +1,8 @@
-## PostgreSQLCommandRunner
+# PostgreSQLCommandRunner
 
 `PostgreSQLCommandRunner` is a base class that provides functionality to execute SQL commands against a PostgreSQL database. It abstracts the database connection and execution logic.
 
-### Constructor
+## Constructor
 
 ```python
 def __init__(self, host, port, database, user, password):
@@ -14,9 +14,9 @@ def __init__(self, host, port, database, user, password):
 - `user`: The username to authenticate with the PostgreSQL server.
 - `password`: The password to authenticate with the PostgreSQL server.
 
-### Methods
+## Methods
 
-#### `execute()`
+### `execute()`
 
 ```python
 def execute(self):
@@ -26,7 +26,7 @@ This method establishes a connection to the PostgreSQL database, executes the SQ
 
 This method needs to be implemented in the child classes to provide the specific SQL command to execute.
 
-#### `from_conn_string`
+### `from_conn_string`
 
 ```python
 @classmethod
@@ -43,17 +43,14 @@ runner = PostgreSQLCommandRunner.from_conn_string()
 
 This will read the user-provided connection string provided with the `--connection_string` argument from the command line. The connection string is parsed and a `PostgreSQLCommandRunner` instance is created using the extracted connection parameters.
 
-
-### Child Classes
+## Child Classes
 
 `PostgreSQLCommandRunner` has the following child classes that inherit from it:
 
-
-#### ProjExtensionFloatIntFix
+### ProjExtensionFloatIntFix
 
 `ProjExtensionFloatIntFix` updates floating point values for the projection extension of STAC (Spatio-Temporal Asset Catalog) to integers in a PostgreSQL database.
 
-#### DeleteNullStacExtensions
+### DeleteNullStacExtensions
 
 `DeleteNullStacExtensions` provides functionality to delete the stac_extensions field from collections in a PostgreSQL database where it is currently marked as null. This class helps maintain data integrity and consistency within the STAC (Spatio-Temporal Asset Catalog) schema.
-

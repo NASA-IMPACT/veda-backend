@@ -3,7 +3,6 @@
 """
 
 import subprocess
-from typing import Dict, List, Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -15,7 +14,7 @@ class vedaRasterSettings(BaseSettings):
     # Default options are optimized for CloudOptimized GeoTIFF
     # For more information on GDAL env see: https://gdal.org/user/configoptions.html
     # or https://developmentseed.org/titiler/advanced/performance_tuning/
-    env: Dict = {
+    env: dict = {
         "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.TIF,.tiff",
         "GDAL_CACHEMAX": "200",  # 200 mb
         "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
@@ -40,7 +39,7 @@ class vedaRasterSettings(BaseSettings):
     # specific private and public buckets MUST be added if you want to use s3:// urls
     # You can whitelist all bucket by setting `*`.
     # ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-arn-format.html
-    buckets: List = ["*"]
+    buckets: list = ["*"]
 
     # S3 key pattern to limit the access to specific items (e.g: "my_data/*.tif")
     key: str = "*"
@@ -52,24 +51,33 @@ class vedaRasterSettings(BaseSettings):
         False,
         description="Deploy the raster API with the mosaic/list endpoint TRUE/FALSE",
     )
-    raster_pgstac_secret_arn: Optional[str] = Field(
+    raster_pgstac_secret_arn: str | None = Field(
         None,
-        description="Name or ARN of the AWS Secret containing database connection parameters",
+        description=(
+            "Name or ARN of the AWS Secret containing database connection parameters"
+        ),
     )
 
-    raster_data_access_role_arn: Optional[str] = Field(
+    raster_data_access_role_arn: str | None = Field(
         None,
-        description="Resource name of role permitting access to specified external S3 buckets",
+        description=(
+            "Resource name of role permitting access to specified external S3 buckets"
+        ),
     )
 
-    raster_export_assume_role_creds_as_envs: Optional[bool] = Field(
+    raster_export_assume_role_creds_as_envs: bool | None = Field(
         False,
-        description="enables 'get_gdal_config' flow to export AWS credentials as os env vars",
+        description=(
+            "enables 'get_gdal_config' flow to export AWS credentials as os env vars"
+        ),
     )
 
-    raster_aws_request_payer: Optional[str] = Field(
+    raster_aws_request_payer: str | None = Field(
         None,
-        description="Set optional global parameter to 'requester' if the requester agrees to pay S3 transfer costs",
+        description=(
+            "Set optional global parameter to 'requester' "
+            "if the requester agrees to pay S3 transfer costs"
+        ),
     )
 
     raster_root_path: str = Field(
@@ -77,18 +85,25 @@ class vedaRasterSettings(BaseSettings):
         description="Optional root path for all api endpoints",
     )
 
-    custom_host: Optional[str] = Field(
+    custom_host: str | None = Field(
         None,
-        description="Complete url of custom host including subdomain. When provided, override host in api integration",
+        description=(
+            "Complete url of custom host including subdomain. "
+            "When provided, override host in api integration"
+        ),
     )
 
     project_name: str = Field(
         "VEDA (Visualization, Exploration, and Data Analysis)",
         description="Name of the STAC Catalog",
     )
-    disable_default_apigw_endpoint: Optional[bool] = Field(
+
+    disable_default_apigw_endpoint: bool | None = Field(
         False,
-        description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
+        description=(
+            "Boolean to disable default API gateway endpoints for "
+            "stac, raster, and ingest APIs. Defaults to false."
+        ),
     )
 
     git_sha: str = Field(

@@ -4,7 +4,7 @@ import base64
 import hashlib
 import hmac
 import logging
-from typing import Annotated, Any, Dict
+from typing import Annotated, Any
 
 import boto3
 import jwt
@@ -35,7 +35,7 @@ class VedaAuth:
         def validated_token(
             token_str: Annotated[str, Security(self.oauth2_scheme)],
             required_scopes: security.SecurityScopes,
-        ) -> Dict:
+        ) -> dict:
             # Parse & validate token
             logger.info(f"\nToken String {token_str}")
             try:
@@ -58,7 +58,9 @@ class VedaAuth:
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         detail="Not enough permissions",
                         headers={
-                            "WWW-Authenticate": f'Bearer scope="{required_scopes.scope_str}"'
+                            "WWW-Authenticate": (
+                                f'Bearer scope="{required_scopes.scope_str}"'
+                            )
                         },
                     )
 
@@ -67,10 +69,9 @@ class VedaAuth:
         self.validated_token = validated_token
 
         def get_username(
-            token: Annotated[Dict[Any, Any], Depends(self.validated_token)],
+            token: Annotated[dict[Any, Any], Depends(self.validated_token)],
         ) -> str:
-            result = token["username"] if "username" in token else str(token.get("sub"))
-            return result
+            return token["username"] if "username" in token else str(token.get("sub"))
 
         self.get_username = get_username
 
@@ -95,7 +96,7 @@ class VedaAuth:
         user_pool_id: str,
         app_client_id: str,
         app_client_secret: str,
-    ) -> Dict:
+    ) -> dict:
         """Authenticates the credentials and returns token"""
         client = boto3.client("cognito-idp")
         if app_client_secret:

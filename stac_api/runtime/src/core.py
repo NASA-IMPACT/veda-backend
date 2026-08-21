@@ -1,6 +1,6 @@
 """CoreCrudClient extensions for the VEDA STAC API."""
 
-from typing import Any, Dict, Union
+from typing import Any
 
 from stac_fastapi.pgstac.core import CoreCrudClient
 from stac_fastapi.pgstac.types.search import PgstacSearch
@@ -9,7 +9,7 @@ from starlette.requests import Request
 
 from .links import LinkInjector
 
-NumType = Union[float, int]
+NumType = float | int
 
 
 class VedaCrudClient(CoreCrudClient):
@@ -19,7 +19,7 @@ class VedaCrudClient(CoreCrudClient):
         self,
         item: Item,
         render_key: str,
-        render_params: Dict[str, Any],
+        render_params: dict[str, Any],
         request: Request,
     ) -> Item:
         """Add extra/non-mandatory links to an Item"""
@@ -47,7 +47,8 @@ class VedaCrudClient(CoreCrudClient):
 
         result = await _super._search_base(search_request, **kwargs)
         # Without assigning item_collection here we will get the error
-        # UnboundLocalError: local variable 'item_collection' referenced before assignment (cloudfront 500 error)
+        # UnboundLocalError: local variable 'item_collection'
+        # referenced before assignment (cloudfront 500 error)
         # in case len(result["features"]) == 0
         item_collection = result
 
