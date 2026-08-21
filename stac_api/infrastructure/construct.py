@@ -93,7 +93,7 @@ class StacApiLambdaConstruct(Construct):
             handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_docker_build(
-                path=Path(code_dir).absolute(),
+                path=str(Path(code_dir).absolute()),
                 file="stac_api/runtime/Dockerfile",
             ),
             vpc=vpc,
