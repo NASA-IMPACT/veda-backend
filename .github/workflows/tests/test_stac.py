@@ -12,7 +12,7 @@ class TestList:
     """
     Test cases for STAC API.
 
-    This class contains integration tests to ensure that the STAC API functions correctly
+    This class contains integration tests that ensure the STAC API functions correctly
 
     """
 
@@ -91,8 +91,8 @@ class TestList:
         assert resp.status_code == 200
         collections = resp.json()["collections"]
         assert len(collections) > 0
-        id = [c["id"] for c in collections]
-        assert self.seeded_collection in id
+        collection_ids = [c["id"] for c in collections]
+        assert self.seeded_collection in collection_ids
 
     def test_stac_get_collections_by_id(self):
         """test stac get collection by id"""
@@ -165,8 +165,8 @@ class TestTenantFiltering:
     """
     Test cases for STAC API tenant filtering.
 
-    This class contains integration tests to ensure that tenant filtering works correctly
-    with the collections and items loaded in the test environment.
+    This class contains integration tests to ensure that tenant filtering works
+    correctly with the collections and items loaded in the test environment.
     """
 
     from conftest import TENANT_COLLECTIONS
@@ -199,9 +199,7 @@ class TestTenantFiltering:
         """Tenant collections should be listed when accessed with valid tenant."""
         resp = httpx.get(f"{self.stac_endpoint}/{tenant}/collections")
         assert resp.status_code == 200
-        assert set(c["id"] for c in resp.json()["collections"]) == set(
-            tenant_collections
-        )
+        assert {c["id"] for c in resp.json()["collections"]} == set(tenant_collections)
 
     def test_collections_listed_without_tenant(self):
         """All collections should be listed when accessed without tenant."""
@@ -212,7 +210,7 @@ class TestTenantFiltering:
         for collections in self.tenant_collections.values():
             all_collections.update(collections)
 
-        assert set(c["id"] for c in resp.json()["collections"]) == all_collections
+        assert {c["id"] for c in resp.json()["collections"]} == all_collections
 
     def test_collections_not_listed_with_invalid_tenant(self):
         """No collections should be listed when accessed with invalid tenant."""
@@ -237,11 +235,11 @@ class TestTenantFiltering:
 
     @pytest.mark.parametrize(
         "collection",
-        set(
+        {
             collection
             for collections in TENANT_COLLECTIONS.values()
             for collection in collections
-        ),
+        },
     )
     def test_collection_available_without_tenant(self, collection):
         """Any collection should be available when accessed without tenant."""
@@ -251,11 +249,11 @@ class TestTenantFiltering:
 
     @pytest.mark.parametrize(
         "collection",
-        set(
+        {
             collection
             for collections in TENANT_COLLECTIONS.values()
             for collection in collections
-        ),
+        },
     )
     def test_collection_not_available_with_invalid_tenant(self, collection):
         """No collection should be returned when accessed with invalid tenant."""
@@ -288,11 +286,11 @@ class TestTenantFiltering:
 
     @pytest.mark.parametrize(
         "collection",
-        set(
+        {
             collection
             for collections in TENANT_COLLECTIONS.values()
             for collection in collections
-        ),
+        },
     )
     def test_items_available_without_tenant(self, collection):
         """All collection's items should be available when accessed without tenant."""
@@ -307,14 +305,16 @@ class TestTenantFiltering:
 
     @pytest.mark.parametrize(
         "collection",
-        set(
+        {
             collection
             for collections in TENANT_COLLECTIONS.values()
             for collection in collections
-        ),
+        },
     )
     def test_items_not_available_with_invalid_tenant(self, collection):
-        """No collection's items should be returned when accessed with invalid tenant."""
+        """
+        No collection's items should be returned when accessed with invalid tenant.
+        """
         resp = httpx.get(
             f"{self.stac_endpoint}/invalid-tenant/collections/{collection}/items"
         )
@@ -331,7 +331,9 @@ class TestTenantFiltering:
         ],
     )
     def test_search_with_tenant(self, tenant, tenant_collections):
-        """Search with a tenant should return only items from that tenant's collections."""
+        """
+        Search with a tenant should return only items from that tenant's collections.
+        """
         resp = httpx.get(f"{self.stac_endpoint}/{tenant}/search")
         assert resp.status_code == 200
         items = resp.json()["features"]
@@ -348,11 +350,11 @@ class TestTenantFiltering:
         items = resp.json()["features"]
         assert len(items) > 0
         # Should find items from all collections
-        assert set(item["collection"] for item in items) == set(
+        assert {item["collection"] for item in items} == {
             collection
             for collections in self.tenant_collections.values()
             for collection in collections
-        )
+        }
 
     def test_search_not_available_with_invalid_tenant(self):
         """Search should return no items when accessed with invalid tenant."""
@@ -363,7 +365,7 @@ class TestTenantFiltering:
 
     @pytest.mark.parametrize(
         "tenant",
-        [tenant for tenant in TENANT_COLLECTIONS.keys() if tenant],
+        [tenant for tenant in TENANT_COLLECTIONS if tenant],
     )
     def test_tenant_isolation(self, tenant):
         """Tenants should not be able to access each other's collections or items."""

@@ -1,7 +1,5 @@
 """Class that applies permissions boundary to all the roles created within a Stack"""
 
-from typing import Union
-
 import jsii
 from aws_cdk import IAspect, aws_iam
 from constructs import IConstruct
@@ -12,20 +10,21 @@ from jsii._utils import Singleton
 @jsii.implements(IAspect)
 class PermissionsBoundaryAspect:
     """
-    This aspect finds all aws_iam.Role objects in a node (ie. CDK stack) and sets permissions boundary to the given ARN.
+    This aspect finds all aws_iam.Role objects in a node (ie. CDK stack)
+    and sets permissions boundary to the given ARN.
     """
 
-    def __init__(
-        self, permissions_boundary: Union[aws_iam.IManagedPolicy, str]
-    ) -> None:
+    def __init__(self, permissions_boundary: aws_iam.IManagedPolicy | str) -> None:
         """
-        :param permissions_boundary: Either aws_iam.ManagedPolicy object or managed policy's ARN string
+        :param permissions_boundary: Either aws_iam.ManagedPolicy object
+            or managed policy's ARN string
         """
         self.permissions_boundary = permissions_boundary
 
     def visit(self, construct_ref: IConstruct) -> None:
         """
-        construct_ref only contains a string reference to an object. To get the actual object, we need to resolve it using JSII mapping.
+        construct_ref only contains a string reference to an object.
+        To get the actual object, we need to resolve it using JSII mapping.
         :param construct_ref: ObjRef object with string reference to the actual object.
         :return: None
         """

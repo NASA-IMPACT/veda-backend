@@ -1,17 +1,16 @@
 
-### Issue
+# Issue
 
 Link to relevant GitHub issue
 
-### What?
+## What?
 
 - Description of the changes made
 
-### Why?
+## Why?
 
 - Description of why the changes were made
 
-### Testing?
+## Testing?
 
 - Relevant testing details
-

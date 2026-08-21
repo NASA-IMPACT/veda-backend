@@ -1,6 +1,6 @@
 """A module for injecting links to STAC entries"""
 
-from typing import Any, Dict
+from typing import Any
 from urllib.parse import urljoin
 
 import pystac
@@ -32,7 +32,7 @@ class LinkInjector:
         self,
         collection_id: str,
         render_key: str,
-        render_params: Dict[str, Any],
+        render_params: dict[str, Any],
         request: Request,
     ) -> None:
         """Initialize a LinkInjector"""
@@ -56,7 +56,7 @@ class LinkInjector:
                 self._get_item_preview_link(item_id, self.collection_id)
             )
 
-    def _get_item_map_link(self, item_id: str, collection_id: str) -> Dict[str, Any]:
+    def _get_item_map_link(self, item_id: str, collection_id: str) -> dict[str, Any]:
         qs = self.render_config.get_full_render_qs()
         href = urljoin(
             self.tiler_href,
@@ -72,7 +72,7 @@ class LinkInjector:
 
     def _get_item_preview_link(
         self, item_id: str, collection_id: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         qs = self.render_config.get_full_render_qs()
         href = urljoin(
             self.tiler_href,

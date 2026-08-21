@@ -1,7 +1,5 @@
 """Configuration options for optional stand-alone VPC Stack"""
 
-from typing import Optional
-
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -9,22 +7,28 @@ from pydantic_settings import BaseSettings
 class baseSettings(BaseSettings):
     """Settings for standalone base infrastructure"""
 
-    base_name: Optional[str] = Field(
+    base_name: str | None = Field(
         "veda-shared",
         description="Optional name used to name stack and resources",
     )
-    cdk_default_account: Optional[str] = Field(
+    cdk_default_account: str | None = Field(
         None,
-        description="When deploying from a local machine the AWS account id is required to deploy to an exiting VPC",
+        description=(
+            "When deploying from a local machine the AWS account id "
+            "is required to deploy to an exiting VPC"
+        ),
     )
-    cdk_default_region: Optional[str] = Field(
+    cdk_default_region: str | None = Field(
         None,
-        description="When deploying from a local machine the AWS region id is required to deploy to an exiting VPC",
+        description=(
+            "When deploying from a local machine the AWS region id "
+            "is required to deploy to an exiting VPC"
+        ),
     )
 
-    vpc_cidr: Optional[str] = "10.100.0.0/16"
-    vpc_max_azs: Optional[int] = 2
-    vpc_nat_gateways: Optional[int] = 1
+    vpc_cidr: str | None = "10.100.0.0/16"
+    vpc_max_azs: int | None = 2
+    vpc_nat_gateways: int | None = 1
 
     def cdk_env(self) -> dict:
         """Load a cdk environment dict for stack"""

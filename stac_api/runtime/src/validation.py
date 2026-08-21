@@ -2,7 +2,6 @@
 
 import json
 import re
-from typing import Dict
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -16,12 +15,14 @@ from starlette.middleware.base import BaseHTTPMiddleware
 class BulkItems(BaseModel):
     """Validation model for bulk-items endpoint request"""
 
-    items: Dict[str, dict]
+    items: dict[str, dict]
     method: str = Field(default="insert")
 
 
 class ValidationMiddleware(BaseHTTPMiddleware):
-    """Middleware that handles STAC collection and item validation in transaction endpoints"""
+    """
+    Middleware that handles STAC collection and item validation in transaction endpoints
+    """
 
     async def dispatch(self, request: Request, call_next):
         """Middleware dispatch"""
@@ -53,5 +54,4 @@ class ValidationMiddleware(BaseHTTPMiddleware):
                     content={"detail": "Validation Error", "errors": str(e)},
                 )
 
-        response = await call_next(request)
-        return response
+        return await call_next(request)
