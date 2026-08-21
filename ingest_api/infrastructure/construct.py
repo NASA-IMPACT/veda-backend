@@ -167,7 +167,7 @@ class ApiConstruct(Construct):
             self,
             "api-handler",
             code=aws_lambda.Code.from_docker_build(
-                path=Path(code_dir).absolute(),
+                path=str(Path(code_dir).absolute()),
                 file="ingest_api/runtime/Dockerfile",
                 platform="linux/amd64",
                 build_args={"PGSTAC_VERSION": pgstac_version},
@@ -326,7 +326,7 @@ class IngestorConstruct(Construct):
             self,
             "stac-ingestor",
             code=aws_lambda.Code.from_docker_build(
-                path=Path(code_dir).absolute(),
+                path=str(Path(code_dir).absolute()),
                 file="ingest_api/runtime/Dockerfile",
                 platform="linux/amd64",
                 build_args={"PGSTAC_VERSION": pgstac_version},

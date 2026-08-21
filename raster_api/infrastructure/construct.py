@@ -43,7 +43,7 @@ class RasterApiLambdaConstruct(Construct):
             "lambda",
             runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_docker_build(
-                path=Path(code_dir).absolute(),
+                path=str(Path(code_dir).absolute()),
                 file="raster_api/runtime/Dockerfile",
                 platform="linux/amd64",
             ),

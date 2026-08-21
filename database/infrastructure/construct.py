@@ -51,7 +51,7 @@ class BootstrapPgStac(Construct):
             handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_docker_build(
-                path=Path("./").absolute(),
+                path=str(Path("./").absolute()),
                 file="database/runtime/Dockerfile",
                 build_args={"PGSTAC_VERSION": pgstac_version},
             ),
