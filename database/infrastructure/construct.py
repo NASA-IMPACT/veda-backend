@@ -78,7 +78,7 @@ class BootstrapPgStac(Construct):
                 exclude_punctuation=True,
             ),
             description=(
-                f"Pgstac database bootsrapped by {Stack.of(self).stack_name} stack",
+                f"Pgstac database bootsrapped by {Stack.of(self).stack_name} stack"
             ),
         )
 
