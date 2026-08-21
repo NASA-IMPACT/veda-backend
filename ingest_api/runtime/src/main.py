@@ -1,5 +1,7 @@
+from typing import Annotated
+
 from aws_lambda_powertools.metrics import MetricUnit
-from fastapi import Annotated, Depends, FastAPI, HTTPException, Security
+from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
