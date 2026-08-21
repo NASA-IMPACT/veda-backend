@@ -8,7 +8,7 @@
 	destroy
 
 install-dev:
-	uv sync --all-groups
+	uv sync --all-groups --locked
 
 install:
 	uv sync --no-dev --locked
