@@ -10,7 +10,8 @@ from titiler.pgstac.reader import PgSTACReader
 class PgSTACReaderAlt(PgSTACReader):
     """Custom STAC Reader for the alternate asset format used widely by NASA.
 
-    Only accept `pystac.Item` as input (while rio_tiler.io.STACReader accepts url or pystac.Item)
+    Only accept `pystac.Item` as input
+    (while rio_tiler.io.STACReader accepts url or pystac.Item)
 
     """
 
@@ -38,9 +39,10 @@ class PgSTACReaderAlt(PgSTACReader):
             h = asset_info.extra_fields["file:header_size"]
             info["env"].update({"GDAL_INGESTED_BYTES_AT_OPEN": h})
 
-        if requester_pays := extras["alternate"]["s3"].get("storage:requester_pays"):
-            if requester_pays:
-                info["env"].update({"AWS_REQUEST_PAYER": "requester"})
+        if (
+            requester_pays := extras["alternate"]["s3"].get("storage:requester_pays")
+        ) and requester_pays:
+            info["env"].update({"AWS_REQUEST_PAYER": "requester"})
 
         if bands := extras.get("raster:bands"):
             stats = [

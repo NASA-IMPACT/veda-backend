@@ -31,9 +31,17 @@ VALID_SHELL_FEATURE_COLLECTION = {
 VALID_COLLECTION = {
     "id": "test-collection",
     "type": "Collection",
-    "title": "Projected changes to winter (January, February, and March) cumulative daily precipitation",
+    "title": (
+        "Projected changes to winter (January, February, and March) "
+        "cumulative daily precipitation"
+    ),
     "links": [],
-    "description": "Differences in winter (January, February, and March) cumulative daily precipitation between a historical period (1995 - 2014) and multiple 20-year periods from an ensemble of CMIP6 climate projections (SSP2-4.5) downscaled by NASA Earth Exchange (NEX-GDDP-CMIP6)",
+    "description": (
+        "Differences in winter (January, February, and March) cumulative daily "
+        "precipitation between a historical period (1995 - 2014) and multiple "
+        "20-year periods from an ensemble of CMIP6 climate projections (SSP2-4.5) "
+        "downscaled by NASA Earth Exchange (NEX-GDDP-CMIP6)"
+    ),
     "extent": {
         "spatial": {"bbox": [[-126, 30, -104, 51]]},
         "temporal": {"interval": [["2025-01-01T00:00:00Z", "2085-03-31T12:00:00Z"]]},
@@ -141,7 +149,14 @@ VALID_ITEM: dict = {
             "title": "NO2 values",
             "proj:bbox": [-180.0, -90.0, 180.0, 90.0],
             "proj:epsg": 4326,
-            "proj:wkt2": 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AXIS["Latitude",NORTH],AXIS["Longitude",EAST],AUTHORITY["EPSG","4326"]]',
+            "proj:wkt2": (
+                'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",'
+                '6378137,298.257223563,AUTHORITY["EPSG","7030"]],'
+                'AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,'
+                'AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,'
+                'AUTHORITY["EPSG","9122"]],AXIS["Latitude",NORTH],'
+                'AXIS["Longitude",EAST],AUTHORITY["EPSG","4326"]]'
+            ),
             "proj:shape": [1800, 3600],
             "description": "description",
             "raster:bands": [
@@ -253,6 +268,7 @@ def test_environ():
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_REGION"] = "us-west-2"
     os.environ["VEDA_STAC_CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
+    os.environ["VEDA_STAC_CUSTOM_HOST"] = "http://localhost:8081"
     os.environ["VEDA_STAC_OPENID_CONFIGURATION_URL"] = (
         "https://example.com/.well-known/openid-configuration"
     )
@@ -280,7 +296,10 @@ def override_jwks_client():
 
 @pytest.fixture(autouse=True)
 def mock_auth():
-    """Mock the stac_auth_proxy to bypass actual OIDC calls while preserving normal operation."""
+    """
+    Mock the stac_auth_proxy to bypass actual OIDC calls
+    while preserving normal operation.
+    """
     # Define the mock JWT payload that validate_token should return
     mock_jwt_payload = {
         "sub": "test-user",
@@ -289,7 +308,10 @@ def mock_auth():
         "iss": "https://example.com",
         "iat": 1700000000,
         "exp": 1700003600,
-        "scope": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
+        "scope": (
+            "openid stac:item:create stac:item:update stac:item:delete "
+            "stac:collection:create stac:collection:update stac:collection:delete"
+        ),
     }
 
     # Import the class to patch its method
@@ -321,12 +343,10 @@ def mock_stac_validation():
     with patch("src.validation.validate_dict") as mock_validate_dict:
 
         def mock_validate_dict_side_effect(data, stac_type):
-            if stac_type == STACObjectType.COLLECTION:
-                if "extent" not in data:
-                    raise STACValidationError("Missing required field: extent")
-            elif stac_type == STACObjectType.ITEM:
-                if "properties" not in data:
-                    raise STACValidationError("Missing required field: properties")
+            if stac_type == STACObjectType.COLLECTION and "extent" not in data:
+                raise STACValidationError("Missing required field: extent")
+            if stac_type == STACObjectType.ITEM and "properties" not in data:
+                raise STACValidationError("Missing required field: properties")
 
         mock_validate_dict.side_effect = mock_validate_dict_side_effect
         yield mock_validate_dict
@@ -467,14 +487,14 @@ def valid_stac_features_collection_empty():
     Returns:
         dict: A valid STAC features collection with empty features.
     """
-    coll = copy.deepcopy(VALID_SHELL_FEATURE_COLLECTION)
-    return coll
+    return copy.deepcopy(VALID_SHELL_FEATURE_COLLECTION)
 
 
 @pytest.fixture
 def valid_stac_collection_multi_cog_asset_renders():
     """
-    Fixture providing a valid STAC feature collection with renders configuration without dashboard for multiple COG assets.
+    Fixture providing a valid STAC feature collection with renders configuration
+    without dashboard for multiple COG assets.
 
     Returns:
         dict: An valid STAC collection with renders configuration for 3 assets.
@@ -503,7 +523,8 @@ def valid_stac_collection_multi_cog_asset_renders_with_dashboard(
     valid_stac_collection_multi_cog_asset_renders,
 ):
     """
-    Fixture providing a valid STAC feature collection with renders configuration with dashboard for multiple COG assets.
+    Fixture providing a valid STAC feature collection with renders configuration
+    with dashboard for multiple COG assets.
 
     Returns:
         dict: An valid STAC collection with renders configuration for 3 assets.

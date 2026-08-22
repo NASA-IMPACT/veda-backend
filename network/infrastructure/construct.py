@@ -2,9 +2,14 @@
 CDK construct for veda-backend VPC.
 """
 
-from typing import Optional
-
-from aws_cdk import CfnOutput, Stack, aws_ec2
+from aws_cdk import CfnOutput, Stack
+from aws_cdk.aws_ec2 import (
+    GatewayVpcEndpointAwsService,
+    InterfaceVpcEndpointAwsService,
+    SubnetConfiguration,
+    SubnetType,
+    Vpc,
+)
 from constructs import Construct
 
 from .config import (
@@ -25,7 +30,7 @@ class VpcConstruct(Construct):
         scope: Construct,
         construct_id: str,
         stage: str,
-        vpc_id: Optional[str] = None,
+        vpc_id: str | None = None,
     ) -> None:
         """Initialized construct."""
         super().__init__(scope, construct_id)
@@ -33,7 +38,7 @@ class VpcConstruct(Construct):
 
         # Get existing VPC if provided
         if vpc_id:
-            self.vpc = aws_ec2.Vpc.from_lookup(
+            self.vpc = Vpc.from_lookup(
                 self,
                 "vpc",
                 vpc_id=vpc_id,
@@ -41,7 +46,8 @@ class VpcConstruct(Construct):
         # Or create a new VPC using the deployment stage configuration
         else:
             veda_vpc_settings: BaseVpcSettings
-            # Union of pydantic base settings is unpredictable so set stage settings conditionally
+            # Union of pydantic base settings is unpredictable
+            # so set stage settings conditionally
             if stage == "prod":
                 veda_vpc_settings = prod_vpc_settings
             elif stage == "staging":
@@ -49,18 +55,18 @@ class VpcConstruct(Construct):
             else:
                 veda_vpc_settings = dev_vpc_settings
 
-            public_subnet = aws_ec2.SubnetConfiguration(
+            public_subnet = SubnetConfiguration(
                 name="public",
-                subnet_type=aws_ec2.SubnetType.PUBLIC,
+                subnet_type=SubnetType.PUBLIC,
                 cidr_mask=veda_vpc_settings.public_mask,
             )
-            private_subnet = aws_ec2.SubnetConfiguration(
+            private_subnet = SubnetConfiguration(
                 name="private",
-                subnet_type=aws_ec2.SubnetType.PRIVATE_WITH_EGRESS,
+                subnet_type=SubnetType.PRIVATE_WITH_EGRESS,
                 cidr_mask=veda_vpc_settings.private_mask,
             )
 
-            self.vpc = aws_ec2.Vpc(
+            self.vpc = Vpc(
                 self,
                 "vpc",
                 max_azs=veda_vpc_settings.max_azs,
@@ -70,19 +76,19 @@ class VpcConstruct(Construct):
             )
 
             vpc_endpoints = {
-                "secretsmanager": aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-                "cloudwatch-logs": aws_ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
-                "s3": aws_ec2.GatewayVpcEndpointAwsService.S3,
-                "dynamodb": aws_ec2.GatewayVpcEndpointAwsService.DYNAMODB,
-                "ecr": aws_ec2.InterfaceVpcEndpointAwsService.ECR,
-                "ecr-docker": aws_ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER,
-                "sts": aws_ec2.InterfaceVpcEndpointAwsService.STS,
+                "secretsmanager": InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+                "cloudwatch-logs": InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
+                "s3": GatewayVpcEndpointAwsService.S3,
+                "dynamodb": GatewayVpcEndpointAwsService.DYNAMODB,
+                "ecr": InterfaceVpcEndpointAwsService.ECR,
+                "ecr-docker": InterfaceVpcEndpointAwsService.ECR_DOCKER,
+                "sts": InterfaceVpcEndpointAwsService.STS,
             }
 
             for id, service in vpc_endpoints.items():
-                if isinstance(service, aws_ec2.InterfaceVpcEndpointAwsService):
+                if isinstance(service, InterfaceVpcEndpointAwsService):
                     self.vpc.add_interface_endpoint(id, service=service)
-                elif isinstance(service, aws_ec2.GatewayVpcEndpointAwsService):
+                elif isinstance(service, GatewayVpcEndpointAwsService):
                     self.vpc.add_gateway_endpoint(id, service=service)
 
         CfnOutput(

@@ -160,7 +160,8 @@ app.include_router(
 )
 
 ###############################################################################
-# /alt/collections/{collection_id}/items/{item_id} - Custom STAC titiler endpoint for alternate asset locations
+# /alt/collections/{collection_id}/items/{item_id}
+# Custom STAC titiler endpoint for alternate asset locations
 ###############################################################################
 stac_alt = MultiBaseTilerFactory(
     reader=PgSTACReaderAlt,
@@ -242,7 +243,8 @@ app.add_middleware(
 app.add_middleware(ObservabilityMiddleware)
 
 
-# If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
+# If the correlation header is used in the UI, we can analyze traces that originate
+# from a given user or client
 @app.middleware("http")
 async def add_correlation_id(request: Request, call_next):
     """Add correlation ids to all requests and subsequent logs/traces"""

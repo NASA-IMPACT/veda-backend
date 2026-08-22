@@ -1,31 +1,38 @@
 repos:
-  - repo: local
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
     hooks:
-      - id: lint
-        name: Lint Code
-        entry: make lint
-        language: system
-        types: [python]
-        stages: [pre-commit]
+      - id: check-yaml
+      - id: trailing-whitespace
 
-      - id: format
-        name: Format Code
-        entry: make format
-        language: system
-        types: [python]
-        stages: [pre-commit]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.1
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+        types_or: [python, pyi, pyproject]
 
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.2
+    hooks:
+      - id: markdownlint-cli2
+        args:
+        - "--fix"
+        - "--config"
+        - "pyproject.toml"
+        - "--configPointer"
+        - "/tool/markdownlint-cli2"
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.12.5
+    hooks:
       - id: uv-lock
-        name: Check uv.lock is up to date
-        entry: uv lock --check
-        language: system
-        files: pyproject\.toml
-        pass_filenames: false
-        stages: [pre-commit]
 
-  # re-enable pydocstyle once we have docstrings in place
-  # - repo: https://github.com/PyCQA/pydocstyle
-  #   rev: 5.1.1
-  #   hooks:
-  #     - id: pydocstyle
-  #       language_version: python
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.1
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - pydantic>=2.13.4
+          - pydantic-settings>=2.4.1

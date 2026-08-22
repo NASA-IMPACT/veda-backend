@@ -92,12 +92,12 @@ tenants = pdp_client.get_tenants_with_create_update_access(
 # Returns: ["tenant1", "tenant2", "public"]
 ```
 
-
 #### `check_permission(access_token, resource_id, scope)`
 
 Checks if a user has a specific permission for a resource.
 
 **Parameters:**
+
 - `access_token` (str): User's OAuth2 access token
 - `resource_id` (str): Resource identifier (e.g., `"collection:tenant-name"`)
 - `scope` (str): Permission scope to check (e.g., `"create"`, `"update"`, `"read"`)
@@ -181,24 +181,24 @@ This section summarizes how the resource extractor functions in `veda_auth.resou
 
 #### STAC API (`extract_stac_resource_id` function)
 
-| Path pattern                           | Methods                           |  Resource          | Tenant source for resource ID                         | Resource ID returned (shape)                     | Notes                                                                                     |
-|----------------------------------------------------|-----------------------------------|-------------------------------|-------------------------------------------------------|--------------------------------------------------|-------------------------------------------------------------------------------------------|
-| `/collections`                                     | `POST`                            | Create collection             | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | STAC create collection; same body-based extraction as PUT/PATCH.                          |
-| `/collections/{collection_id}`                     | `GET`, `DELETE`   | Single collection             | `request.state.tenant` (from URL), or public fallback | `stac:collection:{tenant}:*` or public           | When the URL contains a tenant, the tenant comes from the URL path, otherwise it falls back to `public`.    |
-| `/collections/{collection_id}`                     | `PUT`, `PATCH`                    | Single collection (write)     | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | It reads the JSON body to determine tenant, if empty body it returns `None`.                    |
-| `/collections/{collection_id}/items/{item_id}`     | All methods                       | Single item                   | `request.state.tenant` (from URL), or public fallback | `stac:item:{tenant}:*` or public                | Item body is **not** read for tenant; only URL-derived tenant (or public) is used.        |
-| `/collections/{collection_id}/items`               | `GET`, `POST`                     | Items under a collection      | `request.state.tenant` (from URL), or public fallback | `stac:collection:{tenant}:*` or public           | Collection-scoped resource ID for listing/creating items.                                 |
-| `/collections/{collection_id}/bulk_items`          | `POST`                            | Bulk item operations          | `request.state.tenant` (from URL), or public fallback | `stac:collection:{tenant}:*` or public           | Bulk operations are treated as collection-scoped actions.                                 |
-| Any path containing `/queryables` or `/search`     | Any                               | Query/search endpoints        | _n/a_                                                 | `None`                                           | Resource ID is not extracted for query/search endpoints.                                  |
+| Path pattern                                   | Methods         | Resource                  | Tenant source for resource ID                                  | Resource ID returned (shape)           | Notes                                                                                                    |
+|------------------------------------------------|-----------------|---------------------------|----------------------------------------------------------------|----------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `/collections`                                 | `POST`          | Create collection         | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | STAC create collection; same body-based extraction as PUT/PATCH.                                         |
+| `/collections/{collection_id}`                 | `GET`, `DELETE` | Single collection         | `request.state.tenant` (from URL), or public fallback          | `stac:collection:{tenant}:*` or public | When the URL contains a tenant, the tenant comes from the URL path, otherwise it falls back to `public`. |
+| `/collections/{collection_id}`                 | `PUT`, `PATCH`  | Single collection (write) | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | It reads the JSON body to determine tenant, if empty body it returns `None`.                             |
+| `/collections/{collection_id}/items/{item_id}` | All methods     | Single item               | `request.state.tenant` (from URL), or public fallback          | `stac:item:{tenant}:*` or public       | Item body is **not** read for tenant; only URL-derived tenant (or public) is used.                       |
+| `/collections/{collection_id}/items`           | `GET`, `POST`   | Items under a collection  | `request.state.tenant` (from URL), or public fallback          | `stac:collection:{tenant}:*` or public | Collection-scoped resource ID for listing/creating items.                                                |
+| `/collections/{collection_id}/bulk_items`      | `POST`          | Bulk item operations      | `request.state.tenant` (from URL), or public fallback          | `stac:collection:{tenant}:*` or public | Bulk operations are treated as collection-scoped actions.                                                |
+| Any path containing `/queryables` or `/search` | Any             | Query/search endpoints    | _n/a_                                                          | `None`                                 | Resource ID is not extracted for query/search endpoints.                                                 |
 
 \* For methods on `/collections/{collection_id}` other than `PUT`/`PATCH`, the extractor uses the URL-derived tenant (or public) via `_stac_collection_resource_id`.
 
 #### Ingest API (`extract_ingest_resource_id` function)
 
-| Path pattern          | Method | Resource      | Tenant source for resource ID                          | Resource ID returned (shape)            | Notes                                                                                   |
-|------------------------------------|--------|---------------------------|--------------------------------------------------------|-----------------------------------------|-----------------------------------------------------------------------------------------|
-| `/collections`                     | `POST` | Create collection request | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | Uses the same body-based extraction helper as the STAC collection write case.           |
-| `/collections/{collection_id}`     | `DELETE` | Delete collection        | _none_ (no tenant used)                                | `collection:{collection_id}`           | Ingest delete uses an ID-scoped resource (`collection:{id}`) without tenant component. Tenant-aware deletes will be handled in Phase 2. |
+| Path pattern                   | Method   | Resource                  | Tenant source for resource ID                                  | Resource ID returned (shape)           | Notes                                                                                                                                   |
+|--------------------------------|----------|---------------------------|----------------------------------------------------------------|----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `/collections`                 | `POST`   | Create collection request | Request body field `eic:tenant` (or `TENANT_FIELD`), or public | `stac:collection:{tenant}:*` or public | Uses the same body-based extraction helper as the STAC collection write case.                                                           |
+| `/collections/{collection_id}` | `DELETE` | Delete collection         | _none_ (no tenant used)                                        | `collection:{collection_id}`           | Ingest delete uses an ID-scoped resource (`collection:{id}`) without tenant component. Tenant-aware deletes will be handled in Phase 2. |
 
 ### See Also
 

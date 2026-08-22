@@ -4,7 +4,6 @@ import copy
 import importlib
 import os
 import uuid
-from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -45,6 +44,7 @@ def pep_environ():
     os.environ["VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"] = (
         "test/keycloak-uma-secret"
     )
+    os.environ["VEDA_STAC_CUSTOM_HOST"] = "http://localhost:8081"
     os.environ["VEDA_STAC_OPENID_CONFIGURATION_URL"] = (
         "https://auth.example.com/realms/test-realm/.well-known/openid-configuration"
     )
@@ -102,7 +102,7 @@ async def pep_client(pep_app):
         yield client
 
 
-def _collection(tenant: Optional[str] = None) -> dict:
+def _collection(tenant: str | None = None) -> dict:
     """Build a valid STAC collection"""
     body = dict(VALID_COLLECTION_TEMPLATE)
     body["id"] = f"pep-test-{uuid.uuid4().hex[:8]}"
@@ -111,7 +111,7 @@ def _collection(tenant: Optional[str] = None) -> dict:
     return body
 
 
-def _item(collection_id: str, item_id: Optional[str] = None) -> dict:
+def _item(collection_id: str, item_id: str | None = None) -> dict:
     """Build a STAC item"""
     item_id_value = item_id or f"pep-item-{uuid.uuid4().hex[:8]}"
     item = copy.deepcopy(VALID_ITEM)
@@ -194,7 +194,10 @@ class TestPEPIntegration:
     async def test_post_collection_with_tenant_uses_tenant_resource(
         self, pep_client, mock_pdp_client
     ):
-        """POST /collections with tenant in body and PDP called with tenant resource ID"""
+        """
+        POST /collections with tenant in body
+        and PDP called with tenant resource ID
+        """
         mock_pdp_client.check_permission.return_value = True
         collection = _collection(tenant="veda")
 
@@ -218,7 +221,10 @@ class TestPEPIntegration:
     async def test_post_collection_without_tenant_uses_public_resource(
         self, pep_client, mock_pdp_client
     ):
-        """POST /collections without tenant in body so PDP is called with public resource ID"""
+        """
+        POST /collections without tenant in body
+        so PDP is called with public resource ID
+        """
         mock_pdp_client.check_permission.return_value = True
         collection = _collection()
 
@@ -242,7 +248,9 @@ class TestPEPIntegration:
     async def test_post_collection_nonexistent_tenant_returns_404(
         self, pep_client, mock_pdp_client
     ):
-        """POST /collections with a tenant that doesn't exist in Keycloak should return 404"""
+        """
+        POST /collections with a tenant that doesn't exist in Keycloak should return 404
+        """
         mock_pdp_client.check_permission.side_effect = ResourceNotFoundError(
             resource_id="stac:collection:nonexistent-tenant:*"
         )
@@ -258,7 +266,10 @@ class TestPEPIntegration:
 
     @pytest.mark.asyncio
     async def test_get_collections_not_affected_by_pep(self, pep_client):
-        """GET /collections should not be intercepted by PEP (because its not a protected route)"""
+        """
+        GET /collections should not be intercepted by PEP
+        (because its not a protected route)
+        """
         response = await pep_client.get(COLLECTIONS_ENDPOINT)
         assert response.status_code == 200
 
