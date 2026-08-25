@@ -32,6 +32,10 @@ jobs:
   test:
     needs: [lint, lint-conventional-pr]
     runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
