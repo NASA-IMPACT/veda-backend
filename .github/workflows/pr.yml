@@ -25,20 +25,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: amannn/action-semantic-pull-request@0723387faaf9b38adef4775cd42cfd5155ed6017 # v5.5.3
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
     needs: [lint, lint-conventional-pr]
     runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - name: Configure awscli
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          role-to-assume: ${{ secrets.DEPLOYMENT_ROLE_ARN }}
+          role-session-name: "veda-backend-test-${{ github.event.pull_request.number }}"
+          aws-region: 'us-west-2'
+
       - name: Launch services
         run: |
-          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}}
           docker compose up --build -d
 
       - name: Set up uv
@@ -92,10 +101,12 @@ jobs:
 
   predeploy:
     needs: [test]
-
     runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      id-token: write
+      contents: read
     steps:
-
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up uv
@@ -104,11 +115,11 @@ jobs:
           enable-cache: true
 
       - name: Configure awscli
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
+          role-to-assume: ${{ secrets.DEPLOYMENT_ROLE_ARN }}
+          role-session-name: "veda-backend-predeploy-${{ github.event.pull_request.number }}"
+          aws-region: 'us-west-2'
 
       - name: Install python dependencies
         run: |
