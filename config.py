@@ -1,7 +1,6 @@
 """App settings."""
 
 from getpass import getuser
-from typing import List, Optional
 
 from pydantic import Field, constr
 from pydantic_settings import BaseSettings
@@ -13,7 +12,7 @@ class vedaAppSettings(BaseSettings):
     """Application settings."""
 
     # App name and deployment stage
-    app_name: Optional[str] = Field(
+    app_name: str | None = Field(
         "veda-backend",
         description="Optional app name used to name stack and resources",
     )
@@ -35,41 +34,53 @@ class vedaAppSettings(BaseSettings):
         default_factory=getuser,
     )
 
-    vpc_id: Optional[str] = Field(
+    vpc_id: str | None = Field(
         None,
         description=(
             "Resource identifier of VPC, if none a new VPC with public and private "
             "subnets will be provisioned."
         ),
     )
-    subnet_ids: Optional[List[AwsSubnetId]] = Field(  # type: ignore
+    subnet_ids: list[AwsSubnetId] | None = Field(  # type: ignore
         [],
-        description="The subnet ids of subnets associated with the VPC to be used for the database and lambda function.",
+        description=(
+            "The subnet ids of subnets associated with the VPC to be used "
+            "for the database and lambda function."
+        ),
     )
-    cdk_default_account: Optional[str] = Field(
+    cdk_default_account: str | None = Field(
         None,
-        description="When deploying from a local machine the AWS account id is required to deploy to an exiting VPC",
+        description=(
+            "When deploying from a local machine the AWS account id is required "
+            "to deploy to an exiting VPC"
+        ),
     )
-    cdk_default_region: Optional[str] = Field(
+    cdk_default_region: str | None = Field(
         None,
-        description="When deploying from a local machine the AWS region id is required to deploy to an exiting VPC",
+        description=(
+            "When deploying from a local machine the AWS region id is required "
+            "to deploy to an exiting VPC"
+        ),
     )
-    permissions_boundary_policy_name: Optional[str] = Field(
+    permissions_boundary_policy_name: str | None = Field(
         None,
         description="Name of IAM policy to define stack permissions boundary",
     )
-    veda_domain_alt_hosted_zone_id: Optional[str] = Field(
+    veda_domain_alt_hosted_zone_id: str | None = Field(
         None,
         description="Route53 zone identifier if using a custom domain name",
     )
-    veda_domain_alt_hosted_zone_name: Optional[str] = Field(
+    veda_domain_alt_hosted_zone_name: str | None = Field(
         None,
         description="Custom domain name, i.e. veda-backend.xyz",
     )
 
-    bootstrap_qualifier: Optional[str] = Field(
+    bootstrap_qualifier: str | None = Field(
         None,
-        description="Custom bootstrap qualifier override if not using a default installation of AWS CDK Toolkit to synthesize app.",
+        description=(
+            "Custom bootstrap qualifier override if not using a default installation "
+            "of AWS CDK Toolkit to synthesize app."
+        ),
     )
 
     stac_browser_tag: str = Field(
@@ -80,19 +91,24 @@ class vedaAppSettings(BaseSettings):
         ),
     )
 
-    cloudfront: Optional[bool] = Field(
+    cloudfront: bool | None = Field(
         False,
         description="Boolean if Cloudfront Distribution should be deployed",
     )
 
-    veda_custom_host: Optional[str] = Field(
+    veda_custom_host: str | None = Field(
         None,
-        description="Complete url of custom host including subdomain. Used to infer url of stac-api before app synthesis.",
+        description=(
+            "Complete url of custom host including subdomain. "
+            "Used to infer url of stac-api before app synthesis."
+        ),
     )
 
     veda_stac_root_path: str = Field(
         "",
-        description="STAC API root path. Used to infer url of stac-api before app synthesis.",
+        description=(
+            "STAC API root path. Used to infer url of stac-api before app synthesis."
+        ),
     )
 
     veda_raster_root_path: str = Field(
@@ -103,17 +119,22 @@ class vedaAppSettings(BaseSettings):
     veda_domain_create_custom_subdomains: bool = Field(
         False,
         description=(
-            "When true and hosted zone config is provided, create a unique subdomain for stac and raster apis. "
-            "For example <stage>-stac.<hosted_zone_name> and <stage>-raster.<hosted_zone_name>"
+            "When true and hosted zone config is provided, "
+            "create a unique subdomain for stac and raster apis. "
+            "For example <stage>-stac.<hosted_zone_name> and "
+            "<stage>-raster.<hosted_zone_name>"
         ),
     )
-    veda_domain_hosted_zone_name: Optional[str] = Field(
+    veda_domain_hosted_zone_name: str | None = Field(
         None, description="Custom domain name, i.e. veda-backend.xyz"
     )
 
-    disable_default_apigw_endpoint: Optional[bool] = Field(
+    disable_default_apigw_endpoint: bool | None = Field(
         False,
-        description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
+        description=(
+            "Boolean to disable default API gateway endpoints "
+            "for stac, raster, and ingest APIs. Defaults to false."
+        ),
     )
 
     def cdk_env(self) -> dict:
@@ -124,15 +145,17 @@ class vedaAppSettings(BaseSettings):
                 "account": self.cdk_default_account,
                 "region": self.cdk_default_region,
             }
-        else:
-            return {}
+        return {}
 
     def stage_name(self) -> str:
         """Force lowercase stage name"""
         return self.stage.lower()
 
-    def get_stac_catalog_url(self) -> Optional[str]:
-        """Infer stac catalog url based on whether the app is configured to deploy the catalog to a custom subdomain or to a cloudfront route"""
+    def get_stac_catalog_url(self) -> str | None:
+        """
+        Infer stac catalog url based on whether the app is configured to deploy the
+        catalog to a custom subdomain or to a cloudfront route
+        """
         if self.veda_custom_host and self.veda_stac_root_path:
             return f"https://{veda_app_settings.veda_custom_host}{veda_app_settings.veda_stac_root_path}"
         if (

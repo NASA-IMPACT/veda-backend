@@ -4,23 +4,22 @@ import base64
 import json
 import os
 from functools import lru_cache
-from typing import Optional
+from typing import Annotated
 
 import boto3
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 from rasterio.session import AWSSession
 from titiler.pgstac.settings import PostgresSettings
-from typing_extensions import Annotated
 
 
-@lru_cache()
+@lru_cache
 def get_secret_dict(secret_name: str):
     """Retrieve secrets from AWS Secrets Manager
 
     Args:
-        secret_name (str): name of aws secrets manager secret containing database connection secrets
-        profile_name (str, optional): optional name of aws profile for use in debugger only
+        secret_name (str): secrets manager secret containing database connection secrets
+        profile_name (str, optional): optional name of aws profile for debugger use only
 
     Returns:
         secrets (dict): decrypted secrets in dict
@@ -34,8 +33,7 @@ def get_secret_dict(secret_name: str):
 
     if "SecretString" in get_secret_value_response:
         return json.loads(get_secret_value_response["SecretString"])
-    else:
-        return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
+    return json.loads(base64.b64decode(get_secret_value_response["SecretBinary"]))
 
 
 def get_role_credentials(role_arn: str):
@@ -55,14 +53,14 @@ class ApiSettings(BaseSettings):
     cors_origins: str = "*"
     cachecontrol: str = "max-age=30,must-revalidate,s-maxage=604800"
     debug: bool = False
-    root_path: Optional[str] = None
-    stage: Optional[str] = None
-    git_sha: Optional[str] = None
+    root_path: str | None = None
+    stage: str | None = None
+    git_sha: str | None = None
 
     # MosaicTiler settings
     enable_mosaic_search: bool = False
 
-    pgstac_secret_arn: Optional[str] = None
+    pgstac_secret_arn: str | None = None
 
     model_config = {
         "env_file": ".env",
@@ -88,25 +86,33 @@ class ApiSettings(BaseSettings):
                 postgres_port=int(secret["port"]),
                 postgres_dbname=secret["dbname"],
             )
-        else:
-            return PostgresSettings()
+        return PostgresSettings()
 
     data_access_role_arn: Annotated[
-        Optional[str],
+        str | None,
         Field(
-            description="Resource name of role permitting access to specified external S3 buckets"
+            description=(
+                "Resource name of role permitting access "
+                "to specified external S3 buckets"
+            )
         ),
     ] = None
 
     export_assume_role_creds_as_envs: Annotated[
         bool,
         Field(
-            description="enables 'get_gdal_config' flow to export AWS credentials as os env vars",
+            description=(
+                "enables 'get_gdal_config' flow to export AWS credentials "
+                "as os env vars"
+            )
         ),
     ] = False
 
     def get_gdal_config(self):
-        """return default aws session config or assume role data_access_role_arn credentials session"""
+        """
+        return default aws session config or
+        assume role data_access_role_arn credentials session
+        """
         # STS assume data access role for session credentials
         if self.data_access_role_arn:
             try:
@@ -115,8 +121,9 @@ class ApiSettings(BaseSettings):
                 )
 
                 # hack for issue https://github.com/NASA-IMPACT/veda-backend/issues/192
-                # which forces any nested `rasterio.Env` context managers (which run in separate threads)
-                # to pick up the assume-role `AWS_*` os env vars and re-init from there via:
+                # which forces any nested `rasterio.Env` context managers
+                # (which run in separate threads) to pick up the assume-role `AWS_*`
+                # os env vars and re-init from there via:
                 # https://github.com/rasterio/rasterio/blob/main/rasterio/env.py#L204-L205
                 if self.export_assume_role_creds_as_envs:
                     os.environ["AWS_ACCESS_KEY_ID"] = data_access_credentials[
@@ -140,7 +147,8 @@ class ApiSettings(BaseSettings):
                 }
             except Exception as e:
                 print(
-                    f"Unable to assume role {self.data_access_role_arn} with exception={e}"
+                    f"Unable to assume role {self.data_access_role_arn} "
+                    f"with exception={e}"
                 )
                 return {}
         else:

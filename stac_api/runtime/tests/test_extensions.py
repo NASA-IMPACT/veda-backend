@@ -1,9 +1,10 @@
 """
-Test suite for STAC (SpatioTemporal Asset Catalog) Extensions including Transactions and Collections Search API endpoints.
+Test suite for STAC (SpatioTemporal Asset Catalog) Extensions
+including Transactions and Collections Search API endpoints.
 
 This module contains tests for the collection and item endpoints of the STAC API.
-It verifies the behavior of the API when posting valid and invalid STAC collections and items,
-as well as bulk items.
+It verifies the behavior of the API when posting valid
+and invalid STAC collections and items, as well as bulk items.
 
 Endpoints tested:
 Transactions
@@ -125,7 +126,8 @@ class TestList:
         """
         Test searching for a specific collection by its ID.
         """
-        # The `collection_in_db` fixture ensures the collection exists and provides its ID.
+        # The `collection_in_db` fixture ensures
+        # the collection exists and provides its ID.
         collection_id = collection_in_db
 
         # Perform a GET request to the /collections endpoint with an "id" query

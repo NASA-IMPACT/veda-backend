@@ -1,12 +1,16 @@
 """
-This script deletes the stac_extensions field from collections that have a null value for it.
+This script deletes the stac_extensions field
+from collections that have a null value for it.
 """
 
 from postgres_runner import PostgreSQLCommandRunner
 
 
 class DeleteNullStacExtensions(PostgreSQLCommandRunner):
-    """This class deletes the stac_extensions field from collections that have a null value for it."""
+    """
+    This class deletes the stac_extensions field from collections
+    that have a null value for it.
+    """
 
     @property
     def sql_commands(self):

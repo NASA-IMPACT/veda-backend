@@ -1,5 +1,6 @@
 """Resource Extractors to use in PEP Middleware.
-We need to extract the following from a request in order to create a permission ticket request:
+We need to extract the following from a request in order
+to create a permission ticket request:
 - resource id
 - scope
 - tenant
@@ -10,7 +11,7 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import HTTPException, Request
 
@@ -48,18 +49,15 @@ def _stac_item_resource_id(request: Request) -> str:
 
 
 def _extract_tenant_from_body(
-    body_data: Dict[str, Any], tenant_field: Optional[str] = None
-) -> Optional[str]:
+    body_data: dict[str, Any], tenant_field: str | None = None
+) -> str | None:
     """Extract tenant from request body JSON data"""
     if tenant_field is None:
         tenant_field = TENANT_FIELD
 
     try:
         tenant = body_data.get(tenant_field)
-        if tenant:
-            return tenant
-
-        return None
+        return tenant or None
     except (AttributeError, TypeError) as e:
         logger.debug(f"Failed to extract tenant from body: {e}")
         return None
@@ -67,14 +65,16 @@ def _extract_tenant_from_body(
 
 async def _extract_collection_resource_id_from_post_body(
     request: Request,
-) -> Optional[str]:
+) -> str | None:
     """Extract collection resource ID from POST/PUT collections request body"""
     try:
         request_body = await request.body()
         if not request_body:
             raise HTTPException(
                 status_code=400,
-                detail="Cannot extract resource ID: empty body for collection operation",
+                detail=(
+                    "Cannot extract resource ID: empty body for collection operation"
+                ),
             )
 
         body_data = json.loads(request_body)
@@ -87,7 +87,7 @@ async def _extract_collection_resource_id_from_post_body(
         return None
 
 
-async def extract_stac_resource_id(request: Request) -> Optional[str]:
+async def extract_stac_resource_id(request: Request) -> str | None:
     """Extract resource ID for STAC API requests
     Resource ID format matches Keycloak resource definitions (wildcard patterns):
     - Collections: STAC_COLLECTION_TEMPLATE or STAC_COLLECTION_PUBLIC
@@ -118,7 +118,7 @@ async def extract_stac_resource_id(request: Request) -> Optional[str]:
     return None
 
 
-async def extract_ingest_resource_id(request: Request) -> Optional[str]:
+async def extract_ingest_resource_id(request: Request) -> str | None:
     """Extract resource ID for Ingest API requests"""
     path = request.scope.get("path") or request.url.path
     method = request.method

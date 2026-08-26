@@ -1,7 +1,7 @@
 """CDK Constrcut for a Lambda based TiTiler API with pgstac extension."""
 
-import os
-from typing import Any, Dict
+from pathlib import Path
+from typing import Any
 
 from aws_cdk import (
     CfnOutput,
@@ -43,7 +43,7 @@ class RasterApiLambdaConstruct(Construct):
             "lambda",
             runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath(code_dir),
+                path=str(Path(code_dir).absolute()),
                 file="raster_api/runtime/Dockerfile",
                 platform="linux/amd64",
             ),
@@ -83,7 +83,7 @@ class RasterApiLambdaConstruct(Construct):
                 "AWS_REQUEST_PAYER", veda_raster_settings.raster_aws_request_payer
             )
 
-        integration_kwargs: Dict[str, Any] = dict(handler=veda_raster_function)
+        integration_kwargs: dict[str, Any] = {"handler": veda_raster_function}
         if veda_raster_settings.custom_host:
             integration_kwargs["parameter_mapping"] = (
                 aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
@@ -128,7 +128,8 @@ class RasterApiLambdaConstruct(Construct):
             )
         )
 
-        # Optional use sts assume role with GetObject permissions for external S3 bucket(s)
+        # Optional use sts assume role with GetObject permissions
+        # for external S3 bucket(s)
         if veda_raster_settings.raster_data_access_role_arn:
             # Get the role for external data access
             data_access_role = aws_iam.Role.from_role_arn(
@@ -148,7 +149,8 @@ class RasterApiLambdaConstruct(Construct):
                 veda_raster_settings.raster_data_access_role_arn,
             )
 
-        # Optional configuration to export assume role session into lambda function environment
+        # Optional configuration to export assume role session
+        # into lambda function environment
         if veda_raster_settings.raster_export_assume_role_creds_as_envs:
             veda_raster_function.add_environment(
                 "VEDA_RASTER_EXPORT_ASSUME_ROLE_CREDS_AS_ENVS",

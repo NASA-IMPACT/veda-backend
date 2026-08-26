@@ -27,12 +27,17 @@ def send(
     This file is licensed to you under the AWS Customer Agreement (the "License").
     You may not use this file except in compliance with the License.
     A copy of the License is located at http://aws.amazon.com/agreement/ .
-    This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied.
-    See the License for the specific language governing permissions and limitations under the License.
+    This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+    ANY KIND, express or implied.
+
+    See the License for the specific language governing permissions and limitations
+    under the License.
 
     Send response from AWS Lambda.
 
-    Note: The cfnresponse module is available only when you use the ZipFile property to write your source code.
+    Note: The cfnresponse module is available only when you use the ZipFile property
+    to write your source code.
+
     It isn't available for source code that's stored in Amazon S3 buckets.
     For code in buckets, you must write your own functions to send responses.
     """
@@ -60,9 +65,9 @@ def send(
 
     try:
         response = requests.put(responseUrl, data=json_responseBody, headers=headers)
-        print("Status code: " + response.reason)
+        print(f"Status code: {response.reason}")
     except Exception as e:
-        print("send(..) failed executing requests.put(..): " + str(e))
+        print(f"send(..) failed executing requests.put(..): {str(e)}")
 
 
 def get_secret(secret_name):
@@ -149,12 +154,15 @@ def create_dashboard_schema(cursor, username: str) -> None:
 def create_collection_extents_functions(cursor) -> None:
     """
     Functions to update spatial and temporal extents off all items in a collection
-    This is slightly different from the inbuilt pgstac.update_collection_extents function which describes the range of nominal datetimes,
+    This is slightly different from the inbuilt pgstac.update_collection_extents
+    function which describes the range of nominal datetimes,
     here we capture the maximum range which must include max end datetime.
     """
 
     collection_temporal_extent_max_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.collection_temporal_extent_max(id text) RETURNS jsonb
+    CREATE OR REPLACE FUNCTION dashboard.collection_temporal_extent_max(
+        id text
+    ) RETURNS jsonb
     LANGUAGE sql
     IMMUTABLE PARALLEL SAFE
     SET search_path TO 'pgstac', 'public'
@@ -180,7 +188,8 @@ def create_collection_extents_functions(cursor) -> None:
                         'bbox', collection_bbox(collections.id)
                     ),
                     'temporal', jsonb_build_object(
-                        'interval', dashboard.collection_temporal_extent_max(collections.id)
+                        'interval',
+                        dashboard.collection_temporal_extent_max(collections.id)
                     )
                 )
             )
@@ -193,20 +202,30 @@ def create_collection_extents_functions(cursor) -> None:
 
 def create_collection_summaries_functions(cursor) -> None:
     """
-    Functions to summarize datetimes and raster statistics for 'default' collections of items
+    Functions to summarize datetimes and raster statistics
+    for 'default' collections of items
     """
 
     periodic_datetime_summary_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.periodic_datetime_summary(id text) RETURNS jsonb
+    CREATE OR REPLACE FUNCTION dashboard.periodic_datetime_summary(
+        id text
+    ) RETURNS jsonb
     LANGUAGE sql
     IMMUTABLE PARALLEL SAFE
     SET search_path TO 'pgstac', 'public'
     AS $function$
         SELECT to_jsonb(
             array[
-                to_char(min(datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
-                to_char(max(end_datetime) at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
-            ])​
+                to_char(
+                    min(datetime) at time zone 'Z',
+                    'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                ),
+                to_char(
+                    max(end_datetime) at time zone 'Z',
+                    'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                )
+            ]
+        )
         FROM items WHERE collection=$1;
     ;
     $function$
@@ -215,12 +234,18 @@ def create_collection_summaries_functions(cursor) -> None:
     cursor.execute(sql.SQL(periodic_datetime_summary_sql))
 
     distinct_datetime_summary_sql = """
-    CREATE OR REPLACE FUNCTION dashboard.discrete_datetime_summary(id text) RETURNS jsonb
+    CREATE OR REPLACE FUNCTION dashboard.discrete_datetime_summary(
+        id text
+    ) RETURNS jsonb
     LANGUAGE sql
     IMMUTABLE PARALLEL SAFE
     SET search_path TO 'pgstac', 'public'
     AS $function$
-        SELECT jsonb_agg(distinct to_char(datetime at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
+        SELECT jsonb_agg(
+            distinct to_char(
+                datetime at time zone 'Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+            )
+        )
         FROM items WHERE collection=$1;
     ;
     $function$
@@ -290,20 +315,22 @@ def handler(event, context):
             host=connection_params["host"],
             port=connection_params["port"],
         )
-        with psycopg.connect(admin_db_conninfo, autocommit=True) as conn:
-            with conn.cursor() as cur:
-                print("Creating database...")
-                create_db(
-                    cursor=cur,
-                    db_name=user_params["dbname"],
-                )
+        with (
+            psycopg.connect(admin_db_conninfo, autocommit=True) as conn,
+            conn.cursor() as cur,
+        ):
+            print("Creating database...")
+            create_db(
+                cursor=cur,
+                db_name=user_params["dbname"],
+            )
 
-                print("Creating user...")
-                create_user(
-                    cursor=cur,
-                    username=user_params["username"],
-                    password=user_params["password"],
-                )
+            print("Creating user...")
+            create_user(
+                cursor=cur,
+                username=user_params["username"],
+                password=user_params["password"],
+            )
 
         # Install extensions on the user DB with
         # superuser permissions, since they will
@@ -318,10 +345,12 @@ def handler(event, context):
             host=connection_params["host"],
             port=connection_params["port"],
         )
-        with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
-            with conn.cursor() as cur:
-                print("Registering PostGIS ...")
-                register_extensions(cursor=cur)
+        with (
+            psycopg.connect(stac_db_conninfo, autocommit=True) as conn,
+            conn.cursor() as cur,
+        ):
+            print("Registering PostGIS ...")
+            register_extensions(cursor=cur)
 
         stac_db_admin_dsn = (
             "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
@@ -340,15 +369,18 @@ def handler(event, context):
         print("Running migrations...")
         Migrate(pgdb).run_migration(params["pgstac_version"])
 
-        # Assign appropriate permissions to user (requires pgSTAC migrations to have run)
-        with psycopg.connect(admin_db_conninfo, autocommit=True) as conn:
-            with conn.cursor() as cur:
-                print("Setting permissions...")
-                create_permissions(
-                    cursor=cur,
-                    db_name=user_params["dbname"],
-                    username=user_params["username"],
-                )
+        # Assign appropriate permissions to user
+        # (requires pgSTAC migrations to have run)
+        with (
+            psycopg.connect(admin_db_conninfo, autocommit=True) as conn,
+            conn.cursor() as cur,
+        ):
+            print("Setting permissions...")
+            create_permissions(
+                cursor=cur,
+                db_name=user_params["dbname"],
+                username=user_params["username"],
+            )
 
         print("Adding mosaic index...")
         with psycopg.connect(
@@ -358,23 +390,27 @@ def handler(event, context):
         ) as conn:
             conn.execute(
                 sql.SQL(
-                    "CREATE INDEX IF NOT EXISTS searches_mosaic ON searches ((true)) WHERE metadata->>'type'='mosaic';"
+                    "CREATE INDEX IF NOT EXISTS searches_mosaic ON searches "
+                    "((true)) WHERE metadata->>'type'='mosaic';"
                 )
             )
 
         # As admin, create custom dashboard functions
-        with psycopg.connect(stac_db_conninfo, autocommit=True) as conn:
-            with conn.cursor() as cur:
-                print("Creating dashboard schema...")
-                create_dashboard_schema(cursor=cur, username=user_params["username"])
+        with (
+            psycopg.connect(stac_db_conninfo, autocommit=True) as conn,
+            conn.cursor() as cur,
+        ):
+            print("Creating dashboard schema...")
+            create_dashboard_schema(cursor=cur, username=user_params["username"])
 
-                print("Creating functions for summarizing collection datetimes...")
-                create_collection_summaries_functions(cursor=cur)
+            print("Creating functions for summarizing collection datetimes...")
+            create_collection_summaries_functions(cursor=cur)
 
-                print(
-                    "Creating functions for setting the maximum end_datetime temporal extent of a collection..."
-                )
-                create_collection_extents_functions(cursor=cur)
+            print(
+                "Creating functions for setting the maximum "
+                "end_datetime temporal extent of a collection..."
+            )
+            create_collection_extents_functions(cursor=cur)
 
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")

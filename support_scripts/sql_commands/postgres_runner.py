@@ -4,7 +4,6 @@ This module provides a base class for running PostgreSQL commands.
 
 import abc
 import argparse
-from typing import List
 
 import psycopg2
 
@@ -43,7 +42,7 @@ class PostgreSQLCommandRunner(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def sql_commands(self) -> List[str]:
+    def sql_commands(self) -> list[str]:
         """A list of SQL commands to execute."""
         raise NotImplementedError(
             "sql_command attribute must be implemented in the child class"

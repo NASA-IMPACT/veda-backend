@@ -55,7 +55,7 @@ uv run pytest .github/workflows/tests/ -vv -s
 # Run ingest unit tests
 echo "--- Running ingest api runtime tests ---"
 # Must ping PGSTAC_VERSION in multiple places due to version management outside of repository
-PGSTAC_VERSION=0.9.6 
+PGSTAC_VERSION=0.9.6
 NO_PYDANTIC_SSM_SETTINGS=1 uv run --project ingest_api/runtime \
     --with common/auth \
     --with "pypgstac==${PGSTAC_VERSION}" \
