@@ -3,46 +3,17 @@
 
 import subprocess
 
-from aws_cdk import App, Aspects, Stack, Tags, aws_iam
-from constructs import Construct
-from eoapi_cdk import StacBrowser
+from aws_cdk import App, Tags
 
 from config import veda_app_settings
-from database.infrastructure.construct import RdsConstruct
-from ingest_api.infrastructure.config import IngestorConfig as ingest_config
-from ingest_api.infrastructure.construct import ApiConstruct as ingest_api_construct
-from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_construct
-from network.infrastructure.construct import VpcConstruct
-from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
-from raster_api.infrastructure.construct import RasterApiLambdaConstruct
-from s3_website.infrastructure.construct import VedaWebsite
-from stac_api.infrastructure.construct import StacApiLambdaConstruct
+from stacks.stac_browser import StacBrowserStack
+from stacks.veda_backend import VedaStack
 
 app = App()
 if veda_app_settings.bootstrap_qualifier:
     app.node.set_context(
         "@aws-cdk/core:bootstrapQualifier", veda_app_settings.bootstrap_qualifier
     )
-
-
-class VedaStack(Stack):
-    """CDK stack for the veda-backend stack."""
-
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
-        """."""
-        super().__init__(scope, construct_id, **kwargs)
-
-        if veda_app_settings.permissions_boundary_policy_name:
-            permissions_boundary_policy = (
-                aws_iam.ManagedPolicy.from_managed_policy_name(
-                    self,
-                    "permissions-boundary",
-                    veda_app_settings.permissions_boundary_policy_name,
-                )
-            )
-            aws_iam.PermissionsBoundary.of(self).apply(permissions_boundary_policy)
-            Aspects.of(self).add(PermissionsBoundaryAspect(permissions_boundary_policy))
-
 
 git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
 try:
@@ -52,92 +23,27 @@ except subprocess.CalledProcessError:
 
 veda_stack = VedaStack(
     app,
-    f"{veda_app_settings.app_name}-{veda_app_settings.stage_name()}",
+    veda_app_settings.veda_backend_stack_name,
     env=veda_app_settings.cdk_env(),
-)
-
-if veda_app_settings.vpc_id:
-    vpc = VpcConstruct(
-        veda_stack,
-        "network",
-        vpc_id=veda_app_settings.vpc_id,
-        stage=veda_app_settings.stage_name(),
-    )
-else:
-    vpc = VpcConstruct(veda_stack, "network", stage=veda_app_settings.stage_name())
-
-database = RdsConstruct(
-    veda_stack,
-    "database",
-    vpc=vpc.vpc,
-    subnet_ids=veda_app_settings.subnet_ids,
-    stage=veda_app_settings.stage_name(),
-)
-
-raster_api = RasterApiLambdaConstruct(
-    veda_stack,
-    "raster-api",
-    stage=veda_app_settings.stage_name(),
-    vpc=vpc.vpc,
-    database=database,
-)
-
-stac_api = StacApiLambdaConstruct(
-    veda_stack,
-    "stac-api",
-    stage=veda_app_settings.stage_name(),
-    vpc=vpc.vpc,
-    database=database,
-    raster_api=raster_api,
-)
-
-website = VedaWebsite(
-    veda_stack, "stac-browser-bucket", stage=veda_app_settings.stage_name()
-)
-
-# Only create a stac browser if we can infer the catalog url from configuration before synthesis (API Gateway URL not yet available)
-stac_catalog_url = veda_app_settings.get_stac_catalog_url()
-if stac_catalog_url:
-    stac_browser = StacBrowser(
-        veda_stack,
-        "stac-browser",
-        github_repo_tag=veda_app_settings.stac_browser_tag,
-        stac_catalog_url=stac_catalog_url,
-        bucket_arn=website.bucket.bucket_arn,
-    )
-
-db_secret_name = database.pgstac.secret.secret_name
-db_security_group = database.db_security_group
-
-# ingestor config requires references to other resources, but can be shared between ingest api and bulk ingestor
-ingestor_config = ingest_config(
-    stage=veda_app_settings.stage_name(),
-    stac_db_security_group_id=db_security_group.security_group_id,
-    stac_api_url=stac_api.stac_api.url,
-    raster_api_url=raster_api.raster_api.url,
     git_sha=git_sha,
+    stage=veda_app_settings.stage,
+    vpc_id=veda_app_settings.vpc_id,
+    subnet_ids=veda_app_settings.subnet_ids,
+    permissions_boundary_policy_name=veda_app_settings.permissions_boundary_policy_name,
 )
 
-ingest_api = ingest_api_construct(
-    veda_stack,
-    "ingest-api",
-    config=ingestor_config,
-    db_secret=database.pgstac.secret,
-    db_vpc=vpc.vpc,
-)
-
-ingestor = ingestor_construct(
-    veda_stack,
-    "IngestorConstruct",
-    config=ingestor_config,
-    table=ingest_api.table,
-    db_secret=database.pgstac.secret,
-    db_vpc=vpc.vpc,
-)
+if veda_app_settings.stac_catalog_url:
+    stac_browser = StacBrowserStack(
+        app,
+        veda_app_settings.stac_browser_stack_name,
+        stage=veda_app_settings.stage,
+        version_tag=veda_app_settings.stac_browser_tag,
+        stac_catalog_url=veda_app_settings.stac_catalog_url,
+    )
 
 for key, value in {
     "Project": veda_app_settings.app_name,
-    "Stack": veda_app_settings.stage_name(),
+    "Stack": veda_app_settings.stage,
     "Client": "nasa-impact",
     "Owner": veda_app_settings.owner,
     "GitCommit": git_sha,

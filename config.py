@@ -3,7 +3,7 @@
 from getpass import getuser
 from typing import List, Optional
 
-from pydantic import Field, constr
+from pydantic import Field, computed_field, constr, field_validator
 from pydantic_settings import BaseSettings
 
 AwsSubnetId = constr(pattern=r"^subnet-[a-z0-9]{17}$")
@@ -127,22 +127,34 @@ class vedaAppSettings(BaseSettings):
         else:
             return {}
 
-    def stage_name(self) -> str:
+    @field_validator("stage")
+    @classmethod
+    def stage_name(cls, v: str) -> str:
         """Force lowercase stage name"""
-        return self.stage.lower()
+        return v.lower()
 
-    def get_stac_catalog_url(self) -> Optional[str]:
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def stac_catalog_url(self) -> Optional[str]:
         """Infer stac catalog url based on whether the app is configured to deploy the catalog to a custom subdomain or to a cloudfront route"""
         if self.veda_custom_host and self.veda_stac_root_path:
-            return f"https://{veda_app_settings.veda_custom_host}{veda_app_settings.veda_stac_root_path}"
+            return f"https://{self.veda_custom_host}{self.veda_stac_root_path}"
         if (
             self.veda_domain_create_custom_subdomains
             and self.veda_domain_hosted_zone_name
         ):
-            return (
-                f"https://{self.stage.lower()}-stac.{self.veda_domain_hosted_zone_name}"
-            )
+            return f"https://{self.stage}-stac.{self.veda_domain_hosted_zone_name}"
         return None
+
+    @property
+    def stac_browser_stack_name(self) -> str:
+        """Infer stac browser stack name based on app name and stage"""
+        return f"{self.app_name}-stac-browser-{self.stage}"
+
+    @property
+    def veda_backend_stack_name(self) -> str:
+        """Infer veda backend stack name based on app name and stage"""
+        return f"{self.app_name}-{self.stage}"
 
     class Config:
         """model config."""
