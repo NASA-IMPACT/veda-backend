@@ -52,6 +52,15 @@ class vedaRasterSettings(BaseSettings):
         False,
         description="Deploy the raster API with the mosaic/list endpoint TRUE/FALSE",
     )
+    raster_reserved_concurrency: Optional[int] = Field(
+        None,
+        description=(
+            "Optional reserved concurrency for the raster API lambda, caps the "
+            "connections it can open against the database. Unset by default because "
+            "the appropriate value depends on the account's concurrency limit"
+        ),
+        ge=1,
+    )
     raster_pgstac_secret_arn: Optional[str] = Field(
         None,
         description="Name or ARN of the AWS Secret containing database connection parameters",

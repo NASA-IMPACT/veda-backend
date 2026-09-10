@@ -51,6 +51,7 @@ class RasterApiLambdaConstruct(Construct):
             handler="handler.handler",
             memory_size=veda_raster_settings.memory,
             timeout=Duration.seconds(veda_raster_settings.timeout),
+            reserved_concurrent_executions=veda_raster_settings.raster_reserved_concurrency,
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
             environment={
                 **veda_raster_settings.env,

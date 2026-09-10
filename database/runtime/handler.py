@@ -146,6 +146,16 @@ def create_dashboard_schema(cursor, username: str) -> None:
     )
 
 
+def set_statement_timeout(cursor, username: str, statement_timeout: str) -> None:
+    """Cap the duration of queries run by the pgstac role."""
+    cursor.execute(
+        sql.SQL("ALTER ROLE {username} SET statement_timeout = {timeout};").format(
+            username=sql.Identifier(username),
+            timeout=sql.Literal(statement_timeout),
+        )
+    )
+
+
 def create_collection_extents_functions(cursor) -> None:
     """
     Functions to update spatial and temporal extents off all items in a collection
@@ -367,6 +377,17 @@ def handler(event, context):
             with conn.cursor() as cur:
                 print("Creating dashboard schema...")
                 create_dashboard_schema(cursor=cur, username=user_params["username"])
+
+                # Absent when a rollback replays the properties of a stack
+                # version that predates this setting
+                statement_timeout = params.get("statement_timeout")
+                if statement_timeout:
+                    print("Setting statement timeout...")
+                    set_statement_timeout(
+                        cursor=cur,
+                        username=user_params["username"],
+                        statement_timeout=statement_timeout,
+                    )
 
                 print("Creating functions for summarizing collection datetimes...")
                 create_collection_summaries_functions(cursor=cur)

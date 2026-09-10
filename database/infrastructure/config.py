@@ -22,6 +22,21 @@ class vedaDBSettings(BaseSettings):
         "veda",
         description="Name of pgstac role for postgres database",
     )
+    statement_timeout: str = Field(
+        "28s",
+        description=(
+            "Maximum duration of a single query run by the pgstac role, applied when "
+            "the stack deploys and shared by every client that logs in as that "
+            "role--raster, STAC, the bulk ingestor and ad-hoc sessions. It stays "
+            "below the raster API Lambda timeout so queries are cancelled before the "
+            "invocation is killed, but it also caps the ingestor, whose per-batch "
+            "inserts and post-load extent and summary updates scan a whole "
+            "collection in one statement, so deployments with large collections may "
+            "need a higher value. A per-session SET statement_timeout in the "
+            "ingestor overrides this role default where one workload needs longer"
+        ),
+        pattern=r"^\d+(ms|s|min|h|d)$",
+    )
     pgstac_version: str = Field(
         ...,
         description="Version of PgStac database, i.e. 0.5",
@@ -59,6 +74,21 @@ class vedaDBSettings(BaseSettings):
     use_rds_proxy: Optional[bool] = Field(
         False,
         description="Boolean if the RDS should be accessed through a proxy",
+    )
+    proxy_max_connections_percent: int = Field(
+        80,
+        description=(
+            "Percent of the instance's max_connections the RDS proxy may open, which "
+            "bounds how many connections--and so how many concurrent queries--reach "
+            "the instance at once, with further clients waiting in the proxy's borrow "
+            "queue. The useful value depends on instance size, since max_connections "
+            "is derived from instance memory and reaches roughly 1,800 on a "
+            "db.r5.large: 80 percent sits far above the concurrency a two-vCPU "
+            "instance can serve, so a deployment that wants the proxy to bound load "
+            "needs a much lower value. Only used when use_rds_proxy is true"
+        ),
+        ge=1,
+        le=100,
     )
     rds_instance_class: str = Field(
         aws_ec2.InstanceClass.BURSTABLE3.value,

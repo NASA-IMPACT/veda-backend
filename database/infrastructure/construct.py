@@ -44,6 +44,7 @@ class BootstrapPgStac(Construct):
 
         pgstac_version = veda_db_settings.pgstac_version
         veda_schema_version = veda_db_settings.schema_version
+        statement_timeout = veda_db_settings.statement_timeout
 
         handler = aws_lambda.Function(
             self,
@@ -105,6 +106,7 @@ class BootstrapPgStac(Construct):
                     "conn_secret_arn": database.secret.secret_arn,
                     "new_user_secret_arn": self.secret.secret_arn,
                     "veda_schema_version": veda_schema_version,
+                    "statement_timeout": statement_timeout,
                 },
                 removal_policy=RemovalPolicy.RETAIN,  # This retains the custom resource (which doesn't really exist), not the database
             )
@@ -270,6 +272,7 @@ class RdsConstruct(Construct):
                 role=proxy_role,
                 require_tls=False,
                 debug_logging=False,
+                max_connections_percent=veda_db_settings.proxy_max_connections_percent,
             )
 
             # Allow connections to the proxy from the same security groups as the DB
