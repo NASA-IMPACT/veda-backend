@@ -273,6 +273,7 @@ class RdsConstruct(Construct):
                 require_tls=False,
                 debug_logging=False,
                 max_connections_percent=veda_db_settings.proxy_max_connections_percent,
+                max_idle_connections_percent=veda_db_settings.proxy_max_connections_percent,
             )
 
             # Allow connections to the proxy from the same security groups as the DB

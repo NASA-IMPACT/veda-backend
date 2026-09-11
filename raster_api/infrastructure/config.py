@@ -55,9 +55,14 @@ class vedaRasterSettings(BaseSettings):
     raster_reserved_concurrency: Optional[int] = Field(
         None,
         description=(
-            "Optional reserved concurrency for the raster API lambda, caps the "
-            "connections it can open against the database. Unset by default because "
-            "the appropriate value depends on the account's concurrency limit"
+            "Optional reserved concurrency for the raster API lambda. This is a "
+            "backstop, not the primary control: the proxy connection cap is what "
+            "protects the database, but under sustained overload the raster fleet "
+            "still grows toward the account's unreserved concurrency pool, which "
+            "every other function in the account shares. This reservation exists so "
+            "a raster runaway cannot starve them. Set it well above what real "
+            "browser traffic needs and below the account's concurrency limit. Unset "
+            "by default because the right number depends on the account"
         ),
         ge=1,
     )
