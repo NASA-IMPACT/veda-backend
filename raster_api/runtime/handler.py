@@ -21,11 +21,7 @@ handler = Mangum(app, lifespan="off", api_gateway_base_path=app.root_path)
 if "AWS_EXECUTION_ENV" in os.environ:
     loop = asyncio.get_event_loop()
     loop.run_until_complete(
-        connect_to_db(
-            app,
-            settings=settings.load_postgres_settings(),
-            pool_kwargs=settings.pool_kwargs(),
-        )
+        connect_to_db(app, settings=settings.load_postgres_settings(), pool_kwargs={})
     )
 
 # Add tracing

@@ -51,7 +51,6 @@ class RasterApiLambdaConstruct(Construct):
             handler="handler.handler",
             memory_size=veda_raster_settings.memory,
             timeout=Duration.seconds(veda_raster_settings.timeout),
-            reserved_concurrent_executions=veda_raster_settings.raster_reserved_concurrency,
             log_retention=aws_logs.RetentionDays.ONE_WEEK,
             environment={
                 **veda_raster_settings.env,
@@ -65,7 +64,6 @@ class RasterApiLambdaConstruct(Construct):
                 "VEDA_RASTER_STAGE": stage,
                 "VEDA_RASTER_PROJECT_NAME": veda_raster_settings.project_name,
                 "VEDA_RASTER_GIT_SHA": veda_raster_settings.git_sha,
-                "VEDA_RASTER_STATEMENT_TIMEOUT": veda_raster_settings.raster_statement_timeout,
             },
             tracing=aws_lambda.Tracing.ACTIVE,
         )
