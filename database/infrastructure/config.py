@@ -22,21 +22,6 @@ class vedaDBSettings(BaseSettings):
         "veda",
         description="Name of pgstac role for postgres database",
     )
-    statement_timeout: str = Field(
-        "28s",
-        description=(
-            "Maximum duration of a single query run by the pgstac role, applied when "
-            "the stack deploys and shared by every client that logs in as that "
-            "role--raster, STAC, the bulk ingestor and ad-hoc sessions. It stays "
-            "below the raster API Lambda timeout so queries are cancelled before the "
-            "invocation is killed, but it also caps the ingestor, whose per-batch "
-            "inserts and post-load extent and summary updates scan a whole "
-            "collection in one statement, so deployments with large collections may "
-            "need a higher value. A per-session SET statement_timeout in the "
-            "ingestor overrides this role default where one workload needs longer"
-        ),
-        pattern=r"^\d+(ms|s|min|h|d)$",
-    )
     pgstac_version: str = Field(
         ...,
         description="Version of PgStac database, i.e. 0.5",

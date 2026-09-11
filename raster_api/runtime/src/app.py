@@ -55,7 +55,11 @@ else:
 async def lifespan(app: FastAPI):
     """FastAPI Lifespan."""
     # Create Connection Pool
-    await connect_to_db(app, settings=settings.load_postgres_settings(), pool_kwargs={})
+    await connect_to_db(
+        app,
+        settings=settings.load_postgres_settings(),
+        pool_kwargs=settings.pool_kwargs(),
+    )
     yield
     # Close the Connection Pool
     await close_db_connection(app)

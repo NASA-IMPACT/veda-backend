@@ -64,6 +64,10 @@ class ApiSettings(BaseSettings):
 
     pgstac_secret_arn: Optional[str] = None
 
+    # Cancels a query inside Postgres before Lambda kills the invocation that is
+    # waiting on it. Unset means no cap, matching the database's own default.
+    statement_timeout: Optional[str] = None
+
     model_config = {
         "env_file": ".env",
         "extra": "ignore",
@@ -75,6 +79,17 @@ class ApiSettings(BaseSettings):
     def parse_cors_origin(cls, v):
         """Parse CORS origins."""
         return [origin.strip() for origin in v.split(",")]
+
+    def pool_kwargs(self) -> dict:
+        """Connection kwargs for the pgstac pool.
+
+        Only statement_timeout is sent. search_path comes from the pgstac role,
+        which is set to pgstac, dashboard, public at bootstrap; passing a
+        search_path here would override that and drop the dashboard schema.
+        """
+        if not self.statement_timeout:
+            return {}
+        return {"options": f"-c statement_timeout={self.statement_timeout}"}
 
     def load_postgres_settings(self) -> "PostgresSettings":
         """Load postgres connection params from AWS secret"""

@@ -65,6 +65,7 @@ class RasterApiLambdaConstruct(Construct):
                 "VEDA_RASTER_STAGE": stage,
                 "VEDA_RASTER_PROJECT_NAME": veda_raster_settings.project_name,
                 "VEDA_RASTER_GIT_SHA": veda_raster_settings.git_sha,
+                "VEDA_RASTER_STATEMENT_TIMEOUT": veda_raster_settings.raster_statement_timeout,
             },
             tracing=aws_lambda.Tracing.ACTIVE,
         )

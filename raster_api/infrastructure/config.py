@@ -5,7 +5,7 @@
 import subprocess
 from typing import Dict, List, Optional
 
-from pydantic import Field
+from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -51,6 +51,19 @@ class vedaRasterSettings(BaseSettings):
     raster_enable_mosaic_search: bool = Field(
         False,
         description="Deploy the raster API with the mosaic/list endpoint TRUE/FALSE",
+    )
+    raster_statement_timeout: str = Field(
+        "28s",
+        description=(
+            "Maximum duration of a single query issued by the raster API, applied as "
+            "a startup option on the connections this Lambda opens, so it binds only "
+            "this service and leaves ingest and ad-hoc sessions alone. It must be "
+            "shorter than the Lambda timeout: otherwise the invocation is killed "
+            "first and Postgres keeps working on a query whose caller is already "
+            "gone, which is what turned a traffic spike into a database death "
+            "spiral. Needs an explicit unit, e.g. 500ms, 28s, 5min"
+        ),
+        pattern=r"^\d+(ms|s|min|h|d)$",
     )
     raster_reserved_concurrency: Optional[int] = Field(
         None,
@@ -109,6 +122,25 @@ class vedaRasterSettings(BaseSettings):
         subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
         description="Git SHA of the current commit, used to track deployment version",
     )
+
+    @field_validator("raster_statement_timeout")
+    @classmethod
+    def timeout_shorter_than_lambda(cls, value: str, info: ValidationInfo) -> str:
+        """Require the query to be cancelled before the invocation is killed."""
+        lambda_timeout = info.data.get("timeout")
+        if lambda_timeout is None:
+            return value
+
+        unit = value.lstrip("0123456789")
+        scale = {"ms": 0.001, "s": 1, "min": 60, "h": 3600, "d": 86400}[unit]
+        seconds = int(value[: len(value) - len(unit)]) * scale
+        if seconds >= lambda_timeout:
+            raise ValueError(
+                f"raster_statement_timeout ({value}) must be shorter than the raster "
+                f"Lambda timeout ({lambda_timeout}s), so Postgres cancels the query "
+                "before Lambda kills the invocation"
+            )
+        return value
 
     class Config:
         """model config"""
