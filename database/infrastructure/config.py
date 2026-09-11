@@ -61,21 +61,22 @@ class vedaDBSettings(BaseSettings):
         description="Boolean if the RDS should be accessed through a proxy",
     )
     proxy_max_connections_percent: int = Field(
-        3,
+        1,
         description=(
             "Percent of the instance's max_connections the RDS proxy may open. This "
             "is the admission control that bounds how many queries run at the "
-            "database at once; clients past the cap wait in the proxy's borrow queue "
-            "instead of piling more work onto Postgres. The useful value is small, "
-            "because max_connections is derived from instance memory--roughly 1,700 "
-            "on a db.r5.large--while the limit that actually matters is CPU. The "
-            "tested value is 3 on a db.r5.large, about 44 connections or roughly 20 "
-            "per vCPU, which held the incident's peak request rate with no queueing "
-            "at all and turned sustained overload into a bounded wait at the proxy "
-            "rather than a database death spiral. Idle connections are held to the "
-            "same percent so the pool stays warm, and because AWS requires the idle "
-            "percent to be no greater than the max. Only used when use_rds_proxy is "
-            "true"
+            "database at once; the rest wait at the proxy instead of piling more "
+            "work onto Postgres. The right value is a few concurrent queries per "
+            "vCPU, not a share of max_connections, which is derived from instance "
+            "memory and so says nothing about how many queries the instance can "
+            "actually run at once--roughly 1,700 on a db.r5.large, whose real limit "
+            "is two cores. On that instance 1 percent is about 10 connections, "
+            "roughly 5 per vCPU, and it beat 2, 3 and 5 percent on every measure in "
+            "a sweep: each query ran at its idle-time speed instead of contending, "
+            "and the same request rate cost a third less CPU. Idle connections are "
+            "held to the same percent so the pool stays warm, and because AWS "
+            "requires the idle percent to be no greater than the max. Only used "
+            "when use_rds_proxy is true"
         ),
         ge=1,
         le=100,
