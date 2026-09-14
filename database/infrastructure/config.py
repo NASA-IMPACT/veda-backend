@@ -63,20 +63,10 @@ class vedaDBSettings(BaseSettings):
     proxy_max_connections_percent: int = Field(
         1,
         description=(
-            "Percent of the instance's max_connections the RDS proxy may open. This "
-            "is the admission control that bounds how many queries run at the "
-            "database at once; the rest wait at the proxy instead of piling more "
-            "work onto Postgres. The right value is a few concurrent queries per "
-            "vCPU, not a share of max_connections, which is derived from instance "
-            "memory and so says nothing about how many queries the instance can "
-            "actually run at once--roughly 1,700 on a db.r5.large, whose real limit "
-            "is two cores. On that instance 1 percent is about 10 connections, "
-            "roughly 5 per vCPU, and it beat 2, 3 and 5 percent on every measure in "
-            "a sweep: each query ran at its idle-time speed instead of contending, "
-            "and the same request rate cost a third less CPU. Idle connections are "
-            "held to the same percent so the pool stays warm, and because AWS "
-            "requires the idle percent to be no greater than the max. Only used "
-            "when use_rds_proxy is true"
+            "Percent of the instance's max_connections the RDS proxy may open; "
+            "excess clients queue at the proxy. Keep it small: max_connections "
+            "scales with instance memory, but the real limit is a few concurrent "
+            "queries per vCPU."
         ),
         ge=1,
         le=100,
