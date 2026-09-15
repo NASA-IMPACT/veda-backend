@@ -293,3 +293,34 @@ for (start, end), color in gaia_exposure_classes:
 
 np.save("gaia-exposure.npy", cmap)
 ```
+
+###### OPERA Generic Disturbance Status Colormap
+
+ref: https://dev.disasters.openveda.cloud/api/stac/collections/opera-distalert-gen-dist-status-daily
+
+```python
+from rio_tiler.colormap import parse_color
+import numpy as np
+
+# OPERA DIST-ALERT GEN-DIST-STATUS layer: generic (all land cover) disturbance
+# detection status and confidence. Colors match the `renders` block of the
+# opera-distalert-gen-dist-status-daily STAC collection.
+opera_gen_dist_status_categories = {
+    "0": "#ffffff",  # No disturbance
+    "1": "#ffffb2",  # First detection, low confidence
+    "2": "#fecc5c",  # Provisional disturbance, low confidence
+    "3": "#fd8d3c",  # Confirmed disturbance, low confidence
+    "4": "#fc4e2a",  # First detection, high confidence
+    "5": "#e31a1c",  # Provisional disturbance, high confidence
+    "6": "#b10026",  # Confirmed disturbance, high confidence
+}
+
+cmap = np.zeros((256, 4), dtype=np.uint8)
+
+for value, color in opera_gen_dist_status_categories.items():
+    cmap[int(value)] = np.array(parse_color(color), dtype=np.uint8)
+
+cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
+
+np.save("opera_gen_dist_status.npy", cmap)
+```
