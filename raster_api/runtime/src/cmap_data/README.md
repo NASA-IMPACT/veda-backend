@@ -250,3 +250,46 @@ cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
 
 np.save("s1_hydrosar_water_extent.npy", cmap)
 ```
+
+###### GAIA Building Exposure Colormap
+
+ref: https://dev.disasters.openveda.cloud/api/stac/collections/gaia-total-composite
+
+The `gaia-total-composite` render config uses an interval colormap over raw
+built-up-area values (m² per pixel). A `.npy` colormap is a 256-entry lookup
+table applied after the data is rescaled to 0-255, so this file is built for
+`rescale=0,637500` (2500 m² per index), which places every class boundary on an
+exact index. Requests must pass `rescale=0,637500` with
+`colormap_name=gaia-exposure`; values >= 637500 m² clip to the top class.
+
+```python
+import numpy as np
+
+# GAIA gridded building exposure: modeled built-up area in square metres per pixel.
+# Class breakpoints and colors are taken verbatim from the `renders` block of the
+# gaia-total-composite STAC collection.
+#
+# A .npy colormap is a 256-entry lookup table applied *after* the data has been
+# rescaled to 0-255, so this LUT is built for `rescale=0,637500`
+# (2500 m^2 per LUT index). That bin width puts every class boundary on an exact
+# index. Values >= 637500 clip to index 255 and take the top class color.
+# Requests must pass `rescale=0,637500` together with `colormap_name=gaia-exposure`.
+BIN = 2500
+
+gaia_exposure_classes = [
+    ((0, 25000), (63, 42, 107, 255)),
+    ((25000, 50000), (62, 134, 158, 255)),
+    ((50000, 75000), (115, 192, 195, 255)),
+    ((75000, 100000), (195, 224, 156, 255)),
+    ((100000, 150000), (247, 233, 156, 255)),
+    ((150000, 300000), (243, 197, 86, 255)),
+    ((300000, 450000), (231, 142, 65, 255)),
+    ((450000, 10000000), (207, 73, 49, 255)),
+]
+
+cmap = np.zeros((256, 4), dtype=np.uint8)
+for (start, end), color in gaia_exposure_classes:
+    cmap[start // BIN : min(end // BIN, 256)] = color
+
+np.save("gaia-exposure.npy", cmap)
+```
