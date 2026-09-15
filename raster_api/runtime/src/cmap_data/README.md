@@ -302,9 +302,10 @@ ref: https://dev.disasters.openveda.cloud/api/stac/collections/opera-distalert-g
 from rio_tiler.colormap import parse_color
 import numpy as np
 
-# OPERA DIST-ALERT GEN-DIST-STATUS layer: generic (all land cover) disturbance
-# detection status and confidence. Colors match the `renders` block of the
-# opera-distalert-gen-dist-status-daily STAC collection.
+# OPERA DIST-ALERT GEN-DIST-STATUS layer (Sentinel-1 and HLS products): generic
+# (all land cover) disturbance detection status and confidence. Classes 7 and 8
+# (finished) occur in the HLS product only. Colors match the `renders` block of
+# the opera-distalert-gen-dist-status-daily STAC collection.
 opera_gen_dist_status_categories = {
     "0": "#ffffff",  # No disturbance
     "1": "#ffffb2",  # First detection, low confidence
@@ -313,6 +314,8 @@ opera_gen_dist_status_categories = {
     "4": "#fc4e2a",  # First detection, high confidence
     "5": "#e31a1c",  # Provisional disturbance, high confidence
     "6": "#b10026",  # Confirmed disturbance, high confidence
+    "7": "#777777",  # Confirmed disturbance, low confidence, finished (HLS)
+    "8": "#dddddd",  # Confirmed disturbance, high confidence, finished (HLS)
 }
 
 cmap = np.zeros((256, 4), dtype=np.uint8)
