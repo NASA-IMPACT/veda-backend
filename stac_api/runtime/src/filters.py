@@ -2,7 +2,7 @@
 
 import dataclasses
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from async_lru import alru_cache
@@ -49,7 +49,7 @@ class ItemFilter:
         )
         ids = []
 
-        url: Optional[str] = f"{self.api_url}/{tenant}/collections"
+        url: str | None = f"{self.api_url}/{tenant}/collections"
         while url:
             # TODO: Can we do this without going through HTTP?
             response = await self.client.get(url)
@@ -66,7 +66,10 @@ class ItemFilter:
         return ids
 
     async def __call__(self, context: dict[str, Any]) -> str:
-        """If tenant is present on request, filter Items by Collection IDs available to that tenant"""
+        """
+        If tenant is present on request, filter Items
+        by Collection IDs available to that tenant
+        """
         logger.debug("calling ItemFilter with context %s", context)
         tenant = context.get("tenant")
         if not tenant:
@@ -79,7 +82,9 @@ class ItemFilter:
             logger.debug("No collections found for tenant %s", tenant)
             return "1=0"
 
-        # TODO: Figure out cause of "PostgresSyntaxError: syntax error at or near \"IN\"" /cc @bitnerd
+        # TODO: Figure out cause of:
+        # "PostgresSyntaxError: syntax error at or near \"IN\"" /cc @bitnerd
+
         # return {
         #     "op": "in",
         #     "args": [{"property": "collection"}, collection_ids],

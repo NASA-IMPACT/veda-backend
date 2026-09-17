@@ -1,17 +1,20 @@
 import json
-from enum import Enum
-from typing import Sequence, Union
+from collections.abc import Sequence
+from enum import StrEnum
+from typing import TYPE_CHECKING
 
 import boto3
 import pydantic
-from pypgstac.db import PgstacDB
 from pypgstac.load import Methods
 
 from src.schemas import AccessibleItem, DashboardCollection
 from src.vedaloader import VEDALoader
 
+if TYPE_CHECKING:
+    from pypgstac.db import PgstacDB
 
-class IngestionType(str, Enum):
+
+class IngestionType(StrEnum):
     collections = "collections"
     items = "items"
 
@@ -62,7 +65,7 @@ def load_items(items: Sequence[AccessibleItem], loader):
     )
 
     # Trigger update on summaries and extents
-    collections = set([item["collection"] for item in items])
+    collections = {item["collection"] for item in items}
     for collection in collections:
         loader.update_collection_summaries(collection)
 
@@ -82,7 +85,7 @@ def load_collection(collection: Sequence[DashboardCollection], loader):
 
 def load_into_pgstac(
     db: "PgstacDB",
-    ingestions: Union[Sequence[AccessibleItem], Sequence[DashboardCollection]],
+    ingestions: Sequence[AccessibleItem] | Sequence[DashboardCollection],
     table: IngestionType,
 ):
     """

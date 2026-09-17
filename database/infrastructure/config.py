@@ -1,7 +1,5 @@
 """Veda-backend database construct configuration."""
 
-from typing import Optional
-
 from aws_cdk import aws_ec2, aws_rds
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
@@ -30,7 +28,7 @@ class vedaDBSettings(BaseSettings):
         ...,
         description="The version of the custom veda-backend schema, i.e. 0.1.1",
     )
-    snapshot_id: Optional[str] = Field(
+    snapshot_id: str | None = Field(
         None,
         description=(
             "RDS snapshot identifier to initialize RDS from a snapshot. "
@@ -48,7 +46,10 @@ class vedaDBSettings(BaseSettings):
     )
     work_mem: str = Field(
         "64000",
-        description="Maximum amount of memory to be used by a query operation before writing to temporary disk files",
+        description=(
+            "Maximum amount of memory to be used by a query operation "
+            "before writing to temporary disk files"
+        ),
         pattern=r"^[1-9]\d*$",
     )
     temp_buffers: str = Field(
@@ -56,7 +57,7 @@ class vedaDBSettings(BaseSettings):
         description="maximum number of temporary buffers used by each session",
         pattern=r"^[1-9]\d*$",
     )
-    use_rds_proxy: Optional[bool] = Field(
+    use_rds_proxy: bool | None = Field(
         False,
         description="Boolean if the RDS should be accessed through a proxy",
     )
@@ -90,7 +91,7 @@ class vedaDBSettings(BaseSettings):
             "https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_rds/PostgresEngineVersion.html"
         ),
     )
-    rds_encryption: Optional[bool] = Field(
+    rds_encryption: bool | None = Field(
         False,
         description="Boolean if the RDS should be encrypted",
     )

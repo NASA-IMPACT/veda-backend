@@ -1,7 +1,7 @@
 """CDK Construct for a Lambda backed API implementing stac-fastapi."""
 
-import os
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any
 
 from aws_cdk import (
     CfnOutput,
@@ -10,11 +10,11 @@ from aws_cdk import (
     aws_apigatewayv2_alpha,
     aws_apigatewayv2_integrations_alpha,
     aws_ec2,
+    aws_kms as kms,
     aws_lambda,
     aws_logs,
+    aws_secretsmanager as secretsmanager,
 )
-from aws_cdk import aws_kms as kms
-from aws_cdk import aws_secretsmanager as secretsmanager
 from constructs import Construct
 
 from .config import veda_stac_settings
@@ -61,7 +61,9 @@ class StacApiLambdaConstruct(Construct):
             ),
             "DB_MIN_CONN_SIZE": "0",
             "DB_MAX_CONN_SIZE": "1",
-            "PYSTAC_STAC_VERSION_OVERRIDE": veda_stac_settings.pystac_stac_version_override,
+            "PYSTAC_STAC_VERSION_OVERRIDE": (
+                veda_stac_settings.pystac_stac_version_override
+            ),
             **{k.upper(): v for k, v in veda_stac_settings.env.items()},
             "VEDA_STAC_GIT_SHA": veda_stac_settings.git_sha,
         }
@@ -91,7 +93,7 @@ class StacApiLambdaConstruct(Construct):
             handler="handler.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath(code_dir),
+                path=str(Path(code_dir).absolute()),
                 file="stac_api/runtime/Dockerfile",
             ),
             vpc=vpc,
@@ -102,7 +104,7 @@ class StacApiLambdaConstruct(Construct):
             tracing=aws_lambda.Tracing.ACTIVE,
         )
 
-        # # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
+        # lambda_function.add_environment(key="TITILER_ENDPOINT", value=raster_api.url)
         database.pgstac.secret.grant_read(lambda_function)
 
         keycloak_secret = _get_keycloak_secret(
@@ -131,7 +133,7 @@ class StacApiLambdaConstruct(Construct):
             "VEDA_STAC_PGSTAC_SECRET_ARN", database.pgstac.secret.secret_full_arn
         )
 
-        integration_kwargs: Dict[str, Any] = dict(handler=lambda_function)
+        integration_kwargs: dict[str, Any] = {"handler": lambda_function}
         if veda_stac_settings.custom_host:
             integration_kwargs["parameter_mapping"] = (
                 aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
@@ -164,8 +166,8 @@ class StacApiLambdaConstruct(Construct):
 
 
 def _get_keycloak_secret(
-    ctx: Construct, secret_name: Optional[str]
-) -> Optional[secretsmanager.ISecret]:
+    ctx: Construct, secret_name: str | None
+) -> secretsmanager.ISecret | None:
     """Look up Keycloak UMA resource server secret by name"""
     if not secret_name:
         return None

@@ -28,16 +28,15 @@ updates:
     commit-message:
       prefix: "ci(deps):"
 
-  # Re-enable once pydocstyle is re-enabled in pre-commit-config.yaml
-  # - package-ecosystem: pre-commit
-  #   directory: /
-  #   cooldown:
-  #     default-days: 7
-  #   schedule:
-  #     interval: weekly
-  #   groups:
-  #     pre-commit:
-  #       patterns:
-  #       - "*"
-  #   commit-message:
-  #     prefix: "chore(deps):"
+  - package-ecosystem: pre-commit
+    directory: /
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: weekly
+    groups:
+      pre-commit:
+        patterns:
+        - "*"
+    commit-message:
+      prefix: "chore(deps):"

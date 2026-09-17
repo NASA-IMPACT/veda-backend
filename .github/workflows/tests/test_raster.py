@@ -12,7 +12,7 @@ class TestList:
     """
     Test cases for Raster API.
 
-    This class contains integration tests to ensure that the Raster API functions correctly
+    This class contains integration tests that ensure the Raster API functions correctly
 
     """
 
@@ -47,6 +47,7 @@ class TestList:
                 if attempt == attempts:
                     raise
                 time.sleep(delay)
+        return None
 
     def _get_with_retry(self, url, attempts=5, delay=0.5, **kwargs):
         """Retry transient startup transport errors when local services are cold."""
@@ -57,6 +58,7 @@ class TestList:
                 if attempt == attempts:
                     raise
                 time.sleep(delay)
+        return None
 
     def test_raster_api_health(self):
         """test api."""

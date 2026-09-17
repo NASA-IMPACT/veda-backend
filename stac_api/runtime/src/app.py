@@ -72,7 +72,11 @@ api = StacApi(
                 "appName": "STAC API",
                 "clientId": api_settings.client_id,
                 "usePkceWithAuthorizationCodeGrant": True,
-                "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
+                "scopes": (
+                    "openid stac:item:create stac:item:update stac:item:delete "
+                    "stac:collection:create stac:collection:update "
+                    "stac:collection:delete"
+                ),
             }
             if api_settings.client_id
             else {}
@@ -96,7 +100,8 @@ api = StacApi(
 )
 
 if api_settings.openid_configuration_url and api_settings.enable_stac_auth_proxy:
-    # Use stac-auth-proxy when authentication is enabled, which it will be for production envs
+    # Use stac-auth-proxy when authentication is enabled,
+    # which it will be for production envs
     app = configure_app(
         api.app,
         upstream_url=(api_settings.custom_host + (api_settings.root_path or "")),
@@ -145,7 +150,10 @@ else:
 
 
 def _get_keycloak_pdp_client():
-    """Build Keycloak PDP client for PEP from UMA resource server credentials stored in AWS Secrets Manager."""
+    """
+    Build Keycloak PDP client for PEP from UMA resource server credentials
+    stored in AWS Secrets Manager.
+    """
     from veda_auth.keycloak_client import (
         KeycloakPDPClient,
         parse_keycloak_from_openid_url,
@@ -197,7 +205,8 @@ else:
         bool(api_settings.keycloak_uma_resource_server_client_secret_name),
     )
 
-# Note: we want this to be added after stac_auth_proxy so that it runs before stac_auth_proxy's middleware
+# Note: we want this to be added after stac_auth_proxy
+# so that it runs before stac_auth_proxy's middleware
 app.add_middleware(TenantExtractionMiddleware)
 app.add_middleware(TenantLinksMiddleware)
 app.add_middleware(CompressionMiddleware)
@@ -234,7 +243,8 @@ async def viewer_page(request: Request):
 app.add_middleware(ObservabilityMiddleware)
 
 
-# If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
+# If the correlation header is used in the UI,
+# we can analyze traces that originate from a given user or client
 @app.middleware("http")
 async def add_correlation_id(request: Request, call_next):
     """Add correlation ids to all requests and subsequent logs/traces"""

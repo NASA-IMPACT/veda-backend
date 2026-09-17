@@ -1,7 +1,6 @@
 """Configuration options for the Lambda backed API implementing `stac-fastapi`."""
 
 import subprocess
-from typing import Dict, Optional
 
 from pydantic import AnyHttpUrl, Field, model_validator
 from pydantic_settings import BaseSettings
@@ -10,15 +9,17 @@ from pydantic_settings import BaseSettings
 class vedaSTACSettings(BaseSettings):
     """Application settings"""
 
-    env: Dict = {}
+    env: dict = {}
 
     timeout: int = 30  # seconds
     memory: int = 8000  # Mb
 
     # Secret database credentials
-    stac_pgstac_secret_arn: Optional[str] = Field(
+    stac_pgstac_secret_arn: str | None = Field(
         None,
-        description="Name or ARN of the AWS Secret containing database connection parameters",
+        description=(
+            "Name or ARN of the AWS Secret containing database connection parameters"
+        ),
     )
 
     stac_root_path: str = Field(
@@ -31,52 +32,65 @@ class vedaSTACSettings(BaseSettings):
         description="Optional path prefix to add to all raster endpoints",
     )
 
-    custom_host: Optional[str] = Field(
+    custom_host: str | None = Field(
         None,
-        description="Complete url of custom host including subdomain. When provided, override host in api integration",
+        description=(
+            "Complete url of custom host including subdomain. "
+            "When provided, override host in api integration"
+        ),
     )
 
-    project_name: Optional[str] = Field(
+    project_name: str | None = Field(
         "VEDA (Visualization, Exploration, and Data Analysis)",
         description="Name of the STAC Catalog",
     )
 
-    project_description: Optional[str] = Field(
-        "VEDA (Visualization, Exploration, and Data Analysis) is NASA's open-source Earth Science platform in the cloud.",
+    project_description: str | None = Field(
+        (
+            "VEDA (Visualization, Exploration, and Data Analysis) is "
+            "NASA's open-source Earth Science platform in the cloud."
+        ),
         description="Description of the STAC Catalog",
     )
 
-    keycloak_stac_api_client_id: Optional[str] = Field(
-        None, description="Auth client ID"
-    )
-    openid_configuration_url: Optional[AnyHttpUrl] = Field(
+    keycloak_stac_api_client_id: str | None = Field(None, description="Auth client ID")
+    openid_configuration_url: AnyHttpUrl | None = Field(
         None, description="OpenID config url"
     )
     stac_enable_transactions: bool = Field(
         False, description="Whether to enable transactions endpoints"
     )
-    disable_default_apigw_endpoint: Optional[bool] = Field(
+    disable_default_apigw_endpoint: bool | None = Field(
         False,
-        description="Boolean to disable default API gateway endpoints for stac, raster, and ingest APIs. Defaults to false.",
+        description=(
+            "Boolean to disable default API gateway endpoints "
+            "for stac, raster, and ingest APIs. Defaults to false."
+        ),
     )
-    pystac_stac_version_override: Optional[str] = Field(
+    pystac_stac_version_override: str | None = Field(
         "1.0.0",
         description="Stac version override for Pystac validations https://pystac.readthedocs.io/en/stable/api/version.html",
     )
 
-    git_sha: Optional[str] = Field(
+    git_sha: str | None = Field(
         subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8"),
         description="Git SHA of the current commit, used to track deployment version",
     )
     enable_stac_auth_proxy: bool = Field(
         False,
-        description="Whether to enable STAC Auth Proxy. If enable_transactions is True, this must also be True.",
+        description=(
+            "Whether to enable STAC Auth Proxy. If enable_transactions is True, "
+            "this must also be True."
+        ),
     )
-    keycloak_uma_resource_server_client_secret_name: Optional[str] = Field(
+    keycloak_uma_resource_server_client_secret_name: str | None = Field(
         None,
-        description="Name of AWS Secrets Manager secret containing Keycloak UMA resource server client_id and client_secret",
+        description=(
+            "Name of AWS Secrets Manager secret containing Keycloak UMA "
+            "resource server client_id and client_secret"
+        ),
     )
-    keycloak_secret_kms_key_arn: Optional[str] = Field(
+    keycloak_secret_kms_key_arn: str | None = Field(
         None,
         description="ARN of KMS key used to encrypt the Keycloak secret",
     )
@@ -84,7 +98,8 @@ class vedaSTACSettings(BaseSettings):
     @model_validator(mode="before")
     def check_transaction_fields(cls, values):
         """
-        Validates the existence of auth env vars in case stac_enable_transactions is True
+        Validates the existence of auth env vars
+        in case stac_enable_transactions is True
         """
         if values.get("stac_enable_transactions") == "True":
             missing_fields = [
@@ -98,7 +113,8 @@ class vedaSTACSettings(BaseSettings):
             ]
             if missing_fields:
                 raise ValueError(
-                    f"When 'stac_enable_transactions' is True, the following fields must be provided: {', '.join(missing_fields)}"
+                    "When 'stac_enable_transactions' is True, the following fields "
+                    f"must be provided: {', '.join(missing_fields)}"
                 )
         return values
 

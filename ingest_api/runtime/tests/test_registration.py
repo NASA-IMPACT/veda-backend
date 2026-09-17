@@ -1,7 +1,7 @@
 import base64
 import json
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import pytest
 from fastapi.encoders import jsonable_encoder
@@ -25,7 +25,7 @@ class TestList:
         self.mock_table = mock_table
         self.example_ingestion = example_ingestion
 
-    def populate_table(self, count=100) -> List["schemas.Ingestion"]:
+    def populate_table(self, count=100) -> list["schemas.Ingestion"]:
         example_ingestions = []
         for i in range(count):
             ingestion = self.example_ingestion.copy()

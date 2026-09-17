@@ -2,8 +2,8 @@
 
 import logging
 import re
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
-from typing import Awaitable, Callable, Optional, Sequence
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -57,7 +57,7 @@ STAC_PROTECTED_ROUTES: Sequence[ProtectedRoute] = (
 def pep_error_response(
     status_code: int,
     detail: str,
-    headers: Optional[dict] = None,
+    headers: dict | None = None,
 ) -> JSONResponse:
     """Abstracted error response function"""
     return JSONResponse(
@@ -75,10 +75,13 @@ class PEPMiddleware(BaseHTTPMiddleware):
         app: ASGIApp,
         *,
         pdp_client: Callable[[], KeycloakPDPClient],
-        resource_extractor: Callable[[Request], Awaitable[Optional[str]]],
-        protected_routes: Optional[Sequence[ProtectedRoute]] = None,
+        resource_extractor: Callable[[Request], Awaitable[str | None]],
+        protected_routes: Sequence[ProtectedRoute] | None = None,
     ):
-        """Configure PEP middleware with a PDP client, resource extractor, and protected routes."""
+        """
+        Configure PEP middleware with a PDP client, resource extractor,
+        and protected routes.
+        """
         super().__init__(app)
         self._get_pdp_client = pdp_client
         self._extract_resource_id = resource_extractor
@@ -91,9 +94,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
             (re.compile(r.path_re), r.method.upper(), r.scope) for r in routes
         ]
 
-    def _get_matching_scope_and_route(
-        self, request: Request
-    ) -> Optional[tuple[str, str]]:
+    def _get_matching_scope_and_route(self, request: Request) -> tuple[str, str] | None:
         """Return (scope, method) for the route that matches, otherwise return None"""
         path = (request.scope.get("path") or request.url.path).rstrip("/") or "/"
         method = request.method.upper()
@@ -102,7 +103,7 @@ class PEPMiddleware(BaseHTTPMiddleware):
                 return (scope, route_method)
         return None
 
-    def _get_bearer_token(self, request: Request) -> Optional[str]:
+    def _get_bearer_token(self, request: Request) -> str | None:
         """Extract the Bearer token from the Authorization header"""
         auth = request.headers.get("Authorization")
         if not auth or not auth.startswith("Bearer "):

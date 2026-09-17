@@ -1,5 +1,5 @@
-import os
-from typing import Any, Dict, NotRequired, Optional, TypedDict, Union
+from pathlib import Path
+from typing import Any, NotRequired, TypedDict
 
 from aws_cdk import (
     CfnOutput,
@@ -8,15 +8,15 @@ from aws_cdk import (
     Stack,
     aws_apigatewayv2_alpha,
     aws_apigatewayv2_integrations_alpha,
+    aws_dynamodb as dynamodb,
+    aws_ec2 as ec2,
+    aws_iam as iam,
+    aws_kms as kms,
     aws_lambda,
+    aws_lambda_event_sources as events,
+    aws_secretsmanager as secretsmanager,
+    aws_ssm as ssm,
 )
-from aws_cdk import aws_dynamodb as dynamodb
-from aws_cdk import aws_ec2 as ec2
-from aws_cdk import aws_iam as iam
-from aws_cdk import aws_kms as kms
-from aws_cdk import aws_lambda_event_sources as events
-from aws_cdk import aws_secretsmanager as secretsmanager
-from aws_cdk import aws_ssm as ssm
 from constructs import Construct
 
 from .config import IngestorConfig
@@ -67,11 +67,11 @@ class ApiConstruct(Construct):
             db_secret: secretsmanager.ISecret
             db_vpc: ec2.IVpc
             db_security_group: ec2.ISecurityGroup
-            keycloak_secret: Optional[secretsmanager.ISecret]
+            keycloak_secret: secretsmanager.ISecret | None
             config: IngestorConfig
             pgstac_version: str
-            env: NotRequired[Dict[str, str]]
-            data_access_role: NotRequired[Optional[iam.IRole]]
+            env: NotRequired[dict[str, str]]
+            data_access_role: NotRequired[iam.IRole | None]
 
         build_api_lambda_params: IngestorLambdaParams = {
             "table": self.table,
@@ -136,13 +136,13 @@ class ApiConstruct(Construct):
         self,
         *,
         table: dynamodb.ITable,
-        env: Dict[str, str],
+        env: dict[str, str],
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
-        keycloak_secret: Optional[secretsmanager.ISecret] = None,
+        keycloak_secret: secretsmanager.ISecret | None = None,
         config: "IngestorConfig",
-        data_access_role: Union[iam.IRole, None] = None,
+        data_access_role: iam.IRole | None = None,
         pgstac_version: str,
         code_dir: str = "./",
     ) -> aws_lambda.IFunction:
@@ -167,7 +167,7 @@ class ApiConstruct(Construct):
             self,
             "api-handler",
             code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath(code_dir),
+                path=str(Path(code_dir).absolute()),
                 file="ingest_api/runtime/Dockerfile",
                 platform="linux/amd64",
                 build_args={"PGSTAC_VERSION": pgstac_version},
@@ -212,10 +212,10 @@ class ApiConstruct(Construct):
         *,
         construct_id: str,
         handler: aws_lambda.IFunction,
-        custom_host: Optional[str],
-        disable_default_apigw_endpoint: Optional[bool],
+        custom_host: str | None,
+        disable_default_apigw_endpoint: bool | None,
     ) -> aws_apigatewayv2_alpha.HttpApi:
-        integration_kwargs: Dict[str, Any] = dict(handler=handler)
+        integration_kwargs: dict[str, Any] = {"handler": handler}
         if custom_host:
             integration_kwargs["parameter_mapping"] = (
                 aws_apigatewayv2_alpha.ParameterMapping().overwrite_header(
@@ -314,11 +314,11 @@ class IngestorConstruct(Construct):
         self,
         *,
         table: dynamodb.ITable,
-        env: Dict[str, str],
+        env: dict[str, str],
         db_secret: secretsmanager.ISecret,
         db_vpc: ec2.IVpc,
         db_security_group: ec2.ISecurityGroup,
-        keycloak_secret: Optional[secretsmanager.ISecret] = None,
+        keycloak_secret: secretsmanager.ISecret | None = None,
         pgstac_version: str,
         code_dir: str = "./",
     ) -> aws_lambda.Function:
@@ -326,7 +326,7 @@ class IngestorConstruct(Construct):
             self,
             "stac-ingestor",
             code=aws_lambda.Code.from_docker_build(
-                path=os.path.abspath(code_dir),
+                path=str(Path(code_dir).absolute()),
                 file="ingest_api/runtime/Dockerfile",
                 platform="linux/amd64",
                 build_args={"PGSTAC_VERSION": pgstac_version},
@@ -398,8 +398,8 @@ def get_db_secret(
 
 
 def get_keycloak_secret(
-    ctx: Construct, secret_name_or_arn: Optional[str]
-) -> Optional[secretsmanager.ISecret]:
+    ctx: Construct, secret_name_or_arn: str | None
+) -> secretsmanager.ISecret | None:
     """Get Keycloak UMA resource server client secret by name or ARN."""
     if not secret_name_or_arn:
         return None

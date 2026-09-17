@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from aws_lambda_powertools.metrics import MetricUnit
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.exceptions import RequestValidationError
@@ -30,7 +32,10 @@ app = FastAPI(
         "appName": "Ingest API",
         "clientId": auth_settings.client_id,
         "usePkceWithAuthorizationCodeGrant": True,
-        "scopes": "openid stac:item:create stac:item:update stac:item:delete stac:collection:create stac:collection:update stac:collection:delete",
+        "scopes": (
+            "openid stac:item:create stac:item:update stac:item:delete "
+            "stac:collection:create stac:collection:update stac:collection:delete"
+        ),
     },
 )
 
@@ -41,8 +46,8 @@ collection_publisher = CollectionPublisher()
     "/ingestions", response_model=schemas.ListIngestionResponse, tags=["Ingestion"]
 )
 async def list_ingestions(
-    list_request: schemas.ListIngestionRequest = Depends(),
-    db: services.Database = Depends(dependencies.get_db),
+    list_request: Annotated[schemas.ListIngestionRequest, Depends()],
+    db: Annotated[services.Database, Depends(dependencies.get_db)],
 ):
     """
     Lists the STAC items from ingestion.
@@ -65,13 +70,12 @@ async def list_ingestions(
 )
 async def enqueue_ingestion(
     item: schemas.AccessibleItem,
-    username: str = Depends(get_username),
-    db: services.Database = Depends(dependencies.get_db),
+    username: Annotated[str, Depends(get_username)],
+    db: Annotated[services.Database, Depends(dependencies.get_db)],
 ) -> schemas.Ingestion:
     """
     Queues a STAC item for ingestion.
     """
-
     logger.info(f"\nUsername {username}")
     return schemas.Ingestion(
         id=item.id,
@@ -87,7 +91,7 @@ async def enqueue_ingestion(
     tags=["Ingestion"],
 )
 def get_ingestion(
-    ingestion: schemas.Ingestion = Depends(dependencies.fetch_ingestion),
+    ingestion: Annotated[schemas.Ingestion, Depends(dependencies.fetch_ingestion)],
 ) -> schemas.Ingestion:
     """
     Gets the status of an ingestion.
@@ -105,8 +109,8 @@ def get_ingestion(
 )
 def update_ingestion(
     update: schemas.UpdateIngestionRequest,
-    ingestion: schemas.Ingestion = Depends(dependencies.fetch_ingestion),
-    db: services.Database = Depends(dependencies.get_db),
+    ingestion: Annotated[schemas.Ingestion, Depends(dependencies.fetch_ingestion)],
+    db: Annotated[services.Database, Depends(dependencies.get_db)],
 ):
     """
     Updates the STAC item with the provided item.
@@ -124,8 +128,8 @@ def update_ingestion(
     ],
 )
 def cancel_ingestion(
-    ingestion: schemas.Ingestion = Depends(dependencies.fetch_ingestion),
-    db: services.Database = Depends(dependencies.get_db),
+    ingestion: Annotated[schemas.Ingestion, Depends(dependencies.fetch_ingestion)],
+    db: Annotated[services.Database, Depends(dependencies.get_db)],
 ) -> schemas.Ingestion:
     """
     Cancels an ingestion in queued state."""
@@ -162,7 +166,7 @@ def publish_collection(collection: schemas.DashboardCollection):
         raise HTTPException(
             status_code=400,
             detail=(f"Unable to publish collection: {e}"),
-        )
+        ) from e
 
 
 @app.delete(
@@ -181,7 +185,7 @@ def delete_collection(collection_id: str):
         return {f"Successfully deleted: {collection_id}"}
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=400, detail=(f"{e}"))
+        raise HTTPException(status_code=400, detail=(f"{e}")) from e
 
 
 @app.get("/auth/me", tags=["Auth"])
@@ -216,7 +220,10 @@ def _get_keycloak_credentials() -> tuple[str, str]:
     if not settings.keycloak_uma_resource_server_client_secret_name:
         raise HTTPException(
             status_code=503,
-            detail="UMA authorization not configured (missing KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME)",
+            detail=(
+                "UMA authorization not configured "
+                "(missing KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME)"
+            ),
         )
 
     try:
@@ -277,7 +284,7 @@ async def get_writable_tenant_access(
             resource_type="item",
         )
 
-        all_tenants = sorted(list(set(collection_tenants + item_tenants)))
+        all_tenants = sorted(set(collection_tenants + item_tenants))
 
         return schemas.TenantAccessResponse(tenants=all_tenants)
 
@@ -288,7 +295,7 @@ async def get_writable_tenant_access(
         raise HTTPException(
             status_code=502,
             detail=f"Failed to retrieve tenant access: {str(e)}",
-        )
+        ) from e
     finally:
         if pdp_client:
             pdp_client.close()
@@ -297,7 +304,8 @@ async def get_writable_tenant_access(
 app.add_middleware(ObservabilityMiddleware)
 
 
-# If the correlation header is used in the UI, we can analyze traces that originate from a given user or client
+# If the correlation header is used in the UI,
+# we can analyze traces that originate from a given user or client
 @app.middleware("http")
 async def add_correlation_id(request: Request, call_next):
     """Add correlation ids to all requests and subsequent logs/traces"""

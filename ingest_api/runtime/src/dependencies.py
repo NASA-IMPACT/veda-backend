@@ -26,7 +26,7 @@ def fetch_ingestion(
 ):
     try:
         return db.fetch_one(username=username, ingestion_id=ingestion_id)
-    except services.NotInDb:
+    except services.NotInDb as e:
         raise HTTPException(
             status_code=404, detail="No ingestion found with provided ID"
-        )
+        ) from e

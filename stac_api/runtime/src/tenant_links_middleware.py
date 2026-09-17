@@ -1,7 +1,7 @@
 """
 Tenant Links Middleware for STAC API
 
-This middleware detects tenant URLs and modifies the response to add tenant in the links.
+This middleware detects tenant URLs and modifies the response to add tenant in the links
 """
 
 import logging
@@ -48,7 +48,8 @@ class TenantLinksMiddleware(JsonResponseMiddleware):
         root_path = request.scope.get("root_path", "")
         base_url = f"{request.url.scheme}://{request.url.netloc}{root_path}"
         for link in get_links(data):
-            # Ignore links that aren't for this application (e.g. other origin or prefix)
+            # Ignore links that aren't for this application
+            # (e.g. other origin or prefix)
             if not link.get("href", "").startswith(base_url):
                 logger.debug(
                     "Ignoring link %r because it doesn't start with %r",

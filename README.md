@@ -29,7 +29,7 @@ This project uses an AWS CDK [CloudFormation](https://docs.aws.amazon.com/AWSClo
 - [CDK Documentation](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
 
-### Enviroment variables
+### Environment variables
 
 An [.example.env](.example.env) template is supplied for local deployments. If updating an existing deployment, it is essential to check the most current values for these variables by fetching these values from AWS Secrets Manager. The environment secrets are named `<app-name>-<stage>-env`, for example `veda-backend-dev-env`.
 > [!WARNING]
@@ -68,9 +68,9 @@ The constructs and applications in this project are configured using pydantic. T
 | S3 Website | `VEDA` | [s3_website/infrastructure/config.py](s3_website/infrastructure/config.py) |
 | App (global settings) | `N/A` | [config.py](config.py) |
 
-### Deploying to the cloud
+## Deploying to the cloud
 
-#### Install deployment pre-requisites
+### Install deployment pre-requisites
 
 - [jq](https://jqlang.github.io/jq/) (used for exporting environment variable secrets to `.env` in [scripts/sync-env-local.sh](/scripts/sync-env-local.sh))
 
@@ -90,19 +90,20 @@ uv python install 3.12
 
 > [!TIP]
 > uv can also be installed via pip:
+>
 > ```sh
 > pip install uv
 > ```
 
-#### Install requirements
+### Install requirements
 
 ```bash
 uv sync --all-groups
 ```
 
-#### Run the deployment
+### Run the deployment
 
-```
+```shell
 # Login to ECR so that you can pull public docker images
 aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 # Review what infrastructure changes your deployment will cause
@@ -151,47 +152,48 @@ To run tests implicated in CI, a script is included that requires as little setu
 
 In case of failure, all container logs will be written out to `container_logs.log`.
 
-# Operations
+## Operations
 
-## Adding new data to veda-backend
+### Adding new data to veda-backend
 
 > [!WARNING]
 > PgSTAC records should be loaded in the database using [pypgstac](https://github.com/stac-utils/pgstac#pypgstac) for proper indexing and partitioning.
 
 The VEDA ecosystem includes tools specifially created for loading PgSTAC records and optimizing data assets. The [veda-data-airflow](https://github.com/NASA-IMPACT/veda-data-airflow) project provides examples of cloud pipelines that transform data to cloud optimized formats, generate STAC metadata, and submit records for publication to the veda-backend database via veda-backend's ingest API. Veda-backend's integrated ingest system includes an API lambda for enqueuing collection and item records in a DynamoDB table and an ingestor lambda that batch loads DDB enqueued records into the PgSTAC database. Currently, the client id and domain of an existing Cognito user pool programmatic client must be supplied in [configuration](ingest_api/infrastructure/config.py) as `VEDA_CLIENT_ID` and `VEDA_COGNITO_DOMAIN` (the [veda-auth project](https://github.com/NASA-IMPACT/veda-auth) can be used to deploy a Cognito user pool and client). To dispense auth tokens via the ingest API swagger docs and `/token` endpoints, an administrator must add the ingest API lambda URL to the allowed callbacks of the Cognito client.
 
-## Support scripts
+### Support scripts
+
 Support scripts are provided for manual system operations.
 
 - [Rotate pgstac password](support_scripts/README.md#rotate-pgstac-password)
 
-# VEDA ecosystem
+## VEDA ecosystem
 
-## Projects
+### Projects
 
 | Name | Explanation |
 | --- | --- |
 | **veda-backend** | Central index (database) and APIs for recording, discovering, viewing, and using VEDA assets |
-| [**veda-config**](https://github.com/NASA-IMPACT/veda-config) | Configuration for viewing VEDA assets in dashboard UI  |
+| [**veda-config**](https://github.com/NASA-IMPACT/veda-config) | Configuration for viewing VEDA assets in dashboard UI |
 | [**veda-ui**](https://github.com/NASA-IMPACT/veda-ui) | Dashboard UI for viewing and analysing VEDA assets |
-| [**veda-stac-ingestor**](https://github.com/NASA-IMPACT/veda-stac-ingestor) |  Entry-point for users/services to add new records to database |
+| [**veda-stac-ingestor**](https://github.com/NASA-IMPACT/veda-stac-ingestor) | Entry-point for users/services to add new records to database |
 | [**veda-data**](https://github.com/NASA-IMPACT/veda-data) | Collection and asset discovery configuration |
 | [**veda-data-airflow**](https://github.com/NASA-IMPACT/veda-data-airflow) | Cloud optimize data assets and submit records for publication to veda-stac-ingestor |
 | [**veda-docs**](https://github.com/NASA-IMPACT/veda-docs) | Documentation repository for end users of VEDA ecosystem data and tools |
-| [**veda-routes**](https://github.com/NASA-IMPACT/veda-routes)| Configuration for VEDA's Content Delivery Network |
+| [**veda-routes**](https://github.com/NASA-IMPACT/veda-routes) | Configuration for VEDA's Content Delivery Network |
 
-## VEDA usage examples
+### VEDA usage examples
 
-### [VEDA documentation](https://nasa-impact.github.io/veda-docs)
+#### [VEDA documentation](https://nasa-impact.github.io/veda-docs)
 
-### [VEDA dashboard](https://www.earthdata.nasa.gov/dashboard)
+#### [VEDA dashboard](https://www.earthdata.nasa.gov/dashboard)
 
-# STAC community resources
+## STAC community resources
 
-## STAC browser
+### STAC browser
 
-Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the veda-backend STAC catalog, paste the veda-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser [here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
+Radiant Earth's [stac-browser](https://github.com/radiantearth/stac-browser) is a browser for STAC catalogs. The demo version of this browser [radiantearth.github.io/stac-browser](https://radiantearth.github.io/stac-browser/#/) can be used to browse the contents of the veda-backend STAC catalog, paste the veda-backend stac-api URL deployed by this project in the demo and click load. Read more about the recent developments and usage of stac-browser at Radiant Earth's [insights here](https://medium.com/radiant-earth-insights/the-exciting-future-of-the-stac-browser-2351143aa24b).
 
-# License
+## License
 
 This project is licensed under **Apache 2**, see the [LICENSE](LICENSE) file for more details.

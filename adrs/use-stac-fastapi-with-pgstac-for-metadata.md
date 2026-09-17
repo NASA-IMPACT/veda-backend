@@ -14,10 +14,10 @@ Two Python tools will be adopted for managing metadata for the dashboard: STAC-F
 
 ### [STAC-FastApi](https://github.com/stac-utils/stac-fastapi)
 
-Client enforces industry standard stac-api specification, provides basic support and guidance for adding extensions to the core specification, and defines types (but does not yet implement pydantic). 
+Client enforces industry standard stac-api specification, provides basic support and guidance for adding extensions to the core specification, and defines types (but does not yet implement pydantic).
 
-- FastAPI provides browser based interactive API documentation by default. 
-- The API can be implemented with a SqlAlchemy backend or PGStac, we will implement the latter. 
+- FastAPI provides browser based interactive API documentation by default.
+- The API can be implemented with a SqlAlchemy backend or PGStac, we will implement the latter.
 
 ### [PGStac](https://github.com/stac-utils/pgstac)
 
