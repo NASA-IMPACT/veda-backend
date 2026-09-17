@@ -252,9 +252,9 @@ cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
 np.save("s1_hydrosar_water_extent.npy", cmap)
 ```
 
-###### GAIA Building Exposure Colormap
+### GAIA Building Exposure Colormap
 
-ref: https://dev.disasters.openveda.cloud/api/stac/collections/gaia-total-composite
+ref: <https://dev.disasters.openveda.cloud/api/stac/collections/gaia-total-composite>
 
 The `gaia-total-composite` render config uses an interval colormap over raw
 built-up-area values (m² per pixel). A `.npy` colormap is a 256-entry lookup
@@ -295,9 +295,9 @@ for (start, end), color in gaia_exposure_classes:
 np.save("gaia-exposure.npy", cmap)
 ```
 
-###### OPERA Generic Disturbance Status Colormap
+### OPERA Generic Disturbance Status Colormap
 
-ref: https://dev.disasters.openveda.cloud/api/stac/collections/opera-distalert-gen-dist-status-daily
+ref: <https://dev.disasters.openveda.cloud/api/stac/collections/opera-distalert-gen-dist-status-daily>
 
 ```python
 from rio_tiler.colormap import parse_color
