@@ -60,6 +60,17 @@ class vedaDBSettings(BaseSettings):
         False,
         description="Boolean if the RDS should be accessed through a proxy",
     )
+    proxy_max_connections_percent: int = Field(
+        1,
+        description=(
+            "Percent of the instance's max_connections the RDS proxy may open; "
+            "excess clients queue at the proxy. Keep it small: max_connections "
+            "scales with instance memory, but the real limit is a few concurrent "
+            "queries per vCPU."
+        ),
+        ge=1,
+        le=100,
+    )
     rds_instance_class: str = Field(
         aws_ec2.InstanceClass.BURSTABLE3.value,
         description=(
