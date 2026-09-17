@@ -79,9 +79,42 @@ runs:
           else
             uv run ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }} --stack-names ${{ inputs.auth_stack_name }}
         fi
+    
+    # Version management for stac-browser currently not in secrets,
+    # so we need to get the configured tag from pydantic settings.
+    - name: Resolve configuration variables
+      id: config
+      shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: |
+        uv run python -c "
+        from config import veda_app_settings
+        print(f'VEDA_BACKEND_STACK_NAME={veda_app_settings.veda_backend_stack_name}')
+        print(f'SB_STACK_NAME={veda_app_settings.stac_browser_stack_name}')
+        print(f'SB_VERSION_TAG={veda_app_settings.stac_browser_tag}')
+        " >> "$GITHUB_ENV"
+
+    - name: STAC Browser
+      shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: |
+        DEPLOYED_TAG=$(aws cloudformation describe-stacks \
+          --stack-name "$SB_STACK_NAME" \
+          --query "Stacks[0].Outputs[?OutputKey=='StacBrowserTag'].OutputValue" \
+          --output text 2>/dev/null || echo "")
+
+        echo "Deployed tag: '${DEPLOYED_TAG:-<none>}', configured tag: '$SB_VERSION_TAG'"
+
+        if [ "$DEPLOYED_TAG" != "$SB_VERSION_TAG" ]; then
+          echo "Tag changed — deploying."
+          make deploy STACKS="$SB_STACK_NAME" \
+            ARGS="-c stacBrowserTag=$SB_VERSION_TAG --require-approval never --outputs-file ${HOME}/stac-browser-outputs.json"
+        else
+          echo "Tag unchanged — skipping deploy."
+        fi
 
     - name: Deploy
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
-        make deploy ARGS="--require-approval never --outputs-file ${HOME}/cdk-outputs.json"
+        make deploy STACKS="$VEDA_BACKEND_STACK_NAME" ARGS="--require-approval never --outputs-file ${HOME}/cdk-outputs.json"
