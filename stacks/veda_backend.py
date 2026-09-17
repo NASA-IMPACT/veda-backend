@@ -1,12 +1,12 @@
-from typing import Optional
-
 from aws_cdk import Aspects, Stack, aws_iam
 from constructs import Construct
 
 from database.infrastructure.construct import RdsConstruct
 from ingest_api.infrastructure.config import IngestorConfig as ingest_config
-from ingest_api.infrastructure.construct import ApiConstruct as ingest_api_construct
-from ingest_api.infrastructure.construct import IngestorConstruct as ingestor_construct
+from ingest_api.infrastructure.construct import (
+    ApiConstruct as ingest_api_construct,
+    IngestorConstruct as ingestor_construct,
+)
 from network.infrastructure.construct import VpcConstruct
 from permissions_boundary.infrastructure.construct import PermissionsBoundaryAspect
 from raster_api.infrastructure.construct import RasterApiLambdaConstruct
@@ -22,9 +22,9 @@ class VedaStack(Stack):
         id: str,
         git_sha: str,
         stage: str,
-        vpc_id: Optional[str] = None,
-        subnet_ids: Optional[list] = None,
-        permissions_boundary_policy_name: Optional[str] = None,
+        vpc_id: str | None = None,
+        subnet_ids: list | None = None,
+        permissions_boundary_policy_name: str | None = None,
         **kwargs,
     ) -> None:
 
@@ -78,7 +78,8 @@ class VedaStack(Stack):
 
         db_security_group = database.db_security_group
 
-        # ingestor config requires references to other resources, but can be shared between ingest api and bulk ingestor
+        # ingestor config requires references to other resources
+        # but can be shared between ingest api and bulk ingestor
         ingestor_config = ingest_config(
             stage=stage,
             stac_db_security_group_id=db_security_group.security_group_id,

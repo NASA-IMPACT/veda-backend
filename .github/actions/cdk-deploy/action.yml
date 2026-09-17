@@ -79,7 +79,7 @@ runs:
           else
             uv run ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }} --stack-names ${{ inputs.auth_stack_name }}
         fi
-    
+
     # Version management for stac-browser currently not in secrets,
     # so we need to get the configured tag from pydantic settings.
     - name: Resolve configuration variables
