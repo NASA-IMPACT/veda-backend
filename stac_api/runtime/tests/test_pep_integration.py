@@ -44,6 +44,7 @@ def pep_environ():
     os.environ["VEDA_STAC_KEYCLOAK_UMA_RESOURCE_SERVER_CLIENT_SECRET_NAME"] = (
         "test/keycloak-uma-secret"
     )
+    os.environ["VEDA_STAC_CUSTOM_HOST"] = "http://localhost:8081"
     os.environ["VEDA_STAC_OPENID_CONFIGURATION_URL"] = (
         "https://auth.example.com/realms/test-realm/.well-known/openid-configuration"
     )
