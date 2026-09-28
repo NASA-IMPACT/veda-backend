@@ -91,6 +91,14 @@ class vedaAppSettings(BaseSettings):
         ),
     )
 
+    veda_stac_browser_path_prefix: str | None = Field(
+        None,
+        description=(
+            "Optional path prefix the stac-browser is served under, e.g. "
+            "/stac-browser/. Defaults to the site root."
+        ),
+    )
+
     cloudfront: bool | None = Field(
         False,
         description="Boolean if Cloudfront Distribution should be deployed",

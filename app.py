@@ -107,6 +107,7 @@ if stac_catalog_url:
         github_repo_tag=veda_app_settings.stac_browser_tag,
         stac_catalog_url=stac_catalog_url,
         bucket_arn=website.bucket.bucket_arn,
+        path_prefix=veda_app_settings.veda_stac_browser_path_prefix,
     )
 
 db_secret_name = database.pgstac.secret.secret_name
