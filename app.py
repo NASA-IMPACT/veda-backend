@@ -101,13 +101,15 @@ website = VedaWebsite(
 # from configuration before synthesis (API Gateway URL not yet available)
 stac_catalog_url = veda_app_settings.get_stac_catalog_url()
 if stac_catalog_url:
-    stac_browser = StacBrowser(
-        veda_stack,
-        "stac-browser",
-        github_repo_tag=veda_app_settings.stac_browser_tag,
-        stac_catalog_url=stac_catalog_url,
-        bucket_arn=website.bucket.bucket_arn,
-    )
+    stac_browser_kwargs = {
+        "github_repo_tag": veda_app_settings.stac_browser_tag,
+        "stac_catalog_url": stac_catalog_url,
+        "bucket_arn": website.bucket.bucket_arn,
+    }
+    if veda_app_settings.stac_browser_path_prefix:
+        stac_browser_kwargs["path_prefix"] = veda_app_settings.stac_browser_path_prefix
+
+    stac_browser = StacBrowser(veda_stack, "stac-browser", **stac_browser_kwargs)
 
 db_secret_name = database.pgstac.secret.secret_name
 db_security_group = database.db_security_group
