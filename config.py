@@ -96,7 +96,8 @@ class vedaAppSettings(BaseSettings):
         description=(
             "If you don't deploy the STAC Browser instance at the root path"
             " of your (sub) domain, then you need to set the path prefix when building "
-            "(or running) STAC Browser"
+            "(or running) STAC Browser. e.g. '/browser/' will enable the STAC Browser "
+            "to be built in a way that it can be hosted at https://example.com/browser"
         ),
     )
 
