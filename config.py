@@ -91,6 +91,24 @@ class vedaAppSettings(BaseSettings):
         ),
     )
 
+    stac_browser_path_prefix: str | None = Field(
+        None,
+        description=(
+            "If you don't deploy the STAC Browser instance at the root path"
+            " of your (sub) domain, then you need to set the path prefix when building "
+            "(or running) STAC Browser. e.g. '/browser/' will enable the STAC Browser "
+            "to be built in a way that it can be hosted at https://example.com/browser"
+        ),
+    )
+
+    stac_browser_s3_prefix: str | None = Field(
+        None,
+        description=(
+            "S3 prefix to use for the STAC Browser static assets. "
+            "If not set, the assets will be placed at the root of the bucket."
+        ),
+    )
+
     cloudfront: bool | None = Field(
         False,
         description="Boolean if Cloudfront Distribution should be deployed",
