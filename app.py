@@ -109,6 +109,9 @@ if stac_catalog_url:
     if veda_app_settings.stac_browser_path_prefix:
         stac_browser_kwargs["path_prefix"] = veda_app_settings.stac_browser_path_prefix
 
+    if veda_app_settings.stac_browser_s3_prefix:
+        stac_browser_kwargs["s3_prefix"] = veda_app_settings.stac_browser_s3_prefix
+
     stac_browser = StacBrowser(veda_stack, "stac-browser", **stac_browser_kwargs)
 
 db_secret_name = database.pgstac.secret.secret_name

@@ -101,6 +101,14 @@ class vedaAppSettings(BaseSettings):
         ),
     )
 
+    stac_browser_s3_prefix: str | None = Field(
+        None,
+        description=(
+            "S3 prefix to use for the STAC Browser static assets. "
+            "If not set, the assets will be placed at the root of the bucket."
+        ),
+    )
+
     cloudfront: bool | None = Field(
         False,
         description="Boolean if Cloudfront Distribution should be deployed",
