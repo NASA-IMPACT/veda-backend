@@ -115,6 +115,18 @@ class _ApiSettings(Settings):
         ),
     )
 
+    @field_validator("custom_host", mode="before")
+    @classmethod
+    def normalize_custom_host(cls, value):
+        if value is None:
+            return value
+        value = str(value).strip()
+        if not value:
+            return value
+        if not value.startswith(("http://", "https://")):
+            value = f"https://{value}"
+        return value.rstrip("/")
+
     @field_validator("cors_origins")
     @classmethod
     def parse_cors_origin(cls, v):

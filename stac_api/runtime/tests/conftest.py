@@ -268,6 +268,7 @@ def test_environ():
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_REGION"] = "us-west-2"
     os.environ["VEDA_STAC_CLIENT_ID"] = "Xdjkfghadsfkdsadfjas"
+    os.environ["VEDA_STAC_CUSTOM_HOST"] = "http://localhost:8081"
     os.environ["VEDA_STAC_OPENID_CONFIGURATION_URL"] = (
         "https://example.com/.well-known/openid-configuration"
     )
