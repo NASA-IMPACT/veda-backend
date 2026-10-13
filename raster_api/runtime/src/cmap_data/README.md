@@ -328,3 +328,168 @@ cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
 
 np.save("opera_gen_dist_status.npy", cmap)
 ```
+
+## TEMPO NO2 Rainbow 4 Colormap
+
+ref: https://worldview.earthdata.nasa.gov/
+
+This colormap approximates the Rainbow 4 palette in NASA Worldview, based on the TEMPO NO2 provider screenshot. The default display maximum should be 20 × 10^15 molecules/cm² instead of 30 × 10^15 molecules/cm². The display range must be configured separately from the colormap.
+
+```python
+import numpy as np
+from matplotlib import colors
+
+# Approximate Worldview Rainbow 4 color stops
+tempo_no2_stops = [
+    (0.00, "#3582C6"),
+    (0.10, "#93D0AC"),
+    (0.19, "#EFF4A9"),
+    (0.29, "#FEE7A0"),
+    (0.38, "#FEA258"),
+    (0.48, "#E85B63"),
+    (0.58, "#B43678"),
+    (0.67, "#731F7F"),
+    (0.77, "#3E1169"),
+    (0.86, "#180C39"),
+    (0.96, "#090513"),
+    (1.00, "#5A585E"),
+]
+
+cmap = colors.LinearSegmentedColormap.from_list(
+    "tempo_no2",
+    tempo_no2_stops,
+    N=256,
+)
+
+cmap_vals = (cmap(np.arange(256)) * 255).astype("uint8")
+
+np.save("tempo_no2.npy", cmap_vals)
+```
+
+## NAQFC Ozone (8-Hour) Colormap
+
+ref: https://github.com/Air-Quality-Portal/aq-arch/issues/192
+
+This colormap approximates the ozone color ramp used in the NOAA Air Quality Forecast Guidance Viewer. Colors were sampled from the provider's screenshot showing ozone concentrations from 0 to 200 ppb (0–0.200 ppm).
+
+```python
+import numpy as np
+from matplotlib import colors
+
+# Ozone concentration in ppb and corresponding screenshot colors
+o3_stops = [
+    (0, "#AFFEB0"),
+    (10, "#7EFE7E"),
+    (20, "#4BFF4C"),
+    (30, "#08F001"),
+    (40, "#03C300"),
+    (50, "#008700"),
+    (60, "#E1E103"),
+    (70, "#FEBC2E"),
+    (80, "#E17411"),
+    (90, "#FE7879"),
+    (100, "#BE0001"),
+    (110, "#F0B4E7"),
+    (120, "#DC8CD3"),
+    (130, "#C864BF"),
+    (140, "#B43DAB"),
+    (150, "#A02497"),
+    (160, "#8B1D83"),
+    (170, "#781470"),
+    (180, "#640D5B"),
+    (190, "#500347"),
+    (200, "#3C003C"),
+]
+
+# Normalize ozone concentrations to 0-1
+normalized_stops = [
+    (value / 200.0, color)
+    for value, color in o3_stops
+]
+
+cmap = colors.LinearSegmentedColormap.from_list(
+    "naqfc_o3",
+    normalized_stops,
+    N=256,
+)
+
+cmap_vals = (cmap(np.arange(256)) * 255).astype("uint8")
+
+np.save("naqfc_o3.npy", cmap_vals)
+```
+
+## NAQFC PM2.5 (24-Hour) Colormap
+
+ref: https://github.com/Air-Quality-Portal/aq-arch/issues/192
+
+This colormap uses the same color progression as the NAQFC ozone viewer, redistributed across the EPA 24-hour PM2.5 AQI concentration breakpoints. The range is 0–225.4 µg/m³. Unlike the ozone ramp, these colors are derived from the ozone screenshot rather than an official PM2.5 color table.
+
+```python
+import numpy as np
+from matplotlib import colors
+
+# Reference ozone color ramp from the supplied screenshot
+o3_stops = [
+    (0, "#AFFEB0"),
+    (10, "#7EFE7E"),
+    (20, "#4BFF4C"),
+    (30, "#08F001"),
+    (40, "#03C300"),
+    (50, "#008700"),
+    (60, "#E1E103"),
+    (70, "#FEBC2E"),
+    (80, "#E17411"),
+    (90, "#FE7879"),
+    (100, "#BE0001"),
+    (110, "#F0B4E7"),
+    (120, "#DC8CD3"),
+    (130, "#C864BF"),
+    (140, "#B43DAB"),
+    (150, "#A02497"),
+    (160, "#8B1D83"),
+    (170, "#781470"),
+    (180, "#640D5B"),
+    (190, "#500347"),
+    (200, "#3C003C"),
+]
+
+normalized_stops = [
+    (value / 200.0, color)
+    for value, color in o3_stops
+]
+
+o3_cmap = colors.LinearSegmentedColormap.from_list(
+    "naqfc_o3",
+    normalized_stops,
+    N=256,
+)
+
+# EPA 24-hour PM2.5 AQI category upper bounds (µg/m³)
+pm25_breakpoints = np.array([
+    0.0, 9.0, 35.4, 55.4, 125.4, 225.4
+])
+
+# Corresponding ozone positions used for the color progression
+o3_breakpoints = np.array([
+    0.0, 54.0, 70.0, 85.0, 105.0, 200.0
+])
+
+# Generate a 256-entry lookup table over 0-225.4 µg/m³
+pm25_values = np.linspace(0, 225.4, 256)
+
+# Map each PM2.5 concentration to its equivalent position
+# within the ozone-derived color progression.
+mapped_o3 = np.interp(
+    pm25_values,
+    pm25_breakpoints,
+    o3_breakpoints,
+)
+
+# Convert mapped ozone positions to normalized palette coordinates
+cmap_vals = (
+    o3_cmap(mapped_o3 / 200.0) * 255
+).astype("uint8")
+
+np.save("naqfc_pm25.npy", cmap_vals)
+```
+ 
