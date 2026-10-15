@@ -80,19 +80,26 @@ runs:
             uv run ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }} --stack-names ${{ inputs.auth_stack_name }}
         fi
 
-    # Version management for stac-browser currently not in secrets,
-    # so we need to get the configured tag from pydantic settings.
+    # Prefer the tag set in AWS secrets when present; otherwise fall back to the
+    # configured default in pydantic settings.
     - name: Resolve configuration variables
       id: config
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
-        uv run python -c "
+        uv run python - <<'PY' >> "$GITHUB_ENV"
+        import os
         from config import veda_app_settings
-        print(f'VEDA_BACKEND_STACK_NAME={veda_app_settings.veda_backend_stack_name}')
-        print(f'SB_STACK_NAME={veda_app_settings.stac_browser_stack_name}')
-        print(f'SB_VERSION_TAG={veda_app_settings.stac_browser_tag}')
-        " >> "$GITHUB_ENV"
+
+        sb_version_tag = (
+            os.getenv("STAC_BROWSER_TAG")
+            or veda_app_settings.stac_browser_tag
+        )
+
+        print(f"VEDA_BACKEND_STACK_NAME={veda_app_settings.veda_backend_stack_name}")
+        print(f"SB_STACK_NAME={veda_app_settings.stac_browser_stack_name}")
+        print(f"SB_VERSION_TAG={sb_version_tag}")
+        PY
 
     - name: Conditional STAC Browser Deployment
       shell: bash
