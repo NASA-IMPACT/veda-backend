@@ -1,13 +1,12 @@
 version: 2
 updates:
-
   - package-ecosystem: uv
     directory: /
     cooldown:
       default-days: 7
       semver-major-days: 30
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       python-dependencies:
         patterns:
@@ -20,7 +19,7 @@ updates:
     cooldown:
       default-days: 7
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       github-actions:
         patterns:
@@ -33,7 +32,7 @@ updates:
     cooldown:
       default-days: 7
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       pre-commit:
         patterns:
