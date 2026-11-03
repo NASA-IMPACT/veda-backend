@@ -14,7 +14,7 @@ dependencies = [
     "fsspec==2026.9.0",
     "mangum>=0.15.0",
     "orjson>=3.6.8",
-    "psycopg[binary,pool]>=3.0.15",
+    "psycopg[binary,pool]>=3.0.15,!=3.3.7",
     "pydantic>=2.4.1",
     "python-multipart>=0.0.27,<0.1",
     "requests>=2.27.1",
