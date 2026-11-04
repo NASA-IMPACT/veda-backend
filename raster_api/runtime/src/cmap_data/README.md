@@ -343,9 +343,12 @@ import matplotlib.pyplot as plt
 import os
 
 # 1. Enter file paths
-npy_path = r"C:\Users\jonelson\Downloads\o3_8hr_aqi.npy"
+colormap_dir = os.path.join(
+    "raster_api", "runtime", "src", "cmap_data"
+)
 
-json_path = r"C:\Users\jonelson\Downloads\o3_8hr_aqi.json"
+npy_path = os.path.join(colormap_dir, "o3_8hr_aqi.npy")
+json_path = os.path.join(colormap_dir, "o3_8hr_aqi.json")
 
 # 2. Load the files
 colormap = np.load(npy_path)
@@ -425,9 +428,12 @@ import matplotlib.pyplot as plt
 import os
 
 # 1. Enter file paths
-npy_path = r"C:\Users\jonelson\Downloads\so2_1hr_aqi_rgb.npy"
+colormap_dir = os.path.join(
+    "raster_api", "runtime", "src", "cmap_data"
+)
 
-json_path = r"C:\Users\jonelson\Downloads\so2_1hr_aqi.json"
+npy_path = os.path.join(colormap_dir, "so2_1hr_aqi_rgb.npy")
+json_path = os.path.join(colormap_dir, "so2_1hr_aqi.json")
 
 # 2. Load the files
 colormap = np.load(npy_path)
