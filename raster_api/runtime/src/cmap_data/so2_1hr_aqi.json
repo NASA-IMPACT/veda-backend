@@ -1,0 +1,60 @@
+{
+  "name": "so2_1hr_aqi",
+  "pollutant": "SO2",
+  "duration": "1 HR",
+  "category_ranges": [
+    [
+      0,
+      35
+    ],
+    [
+      36,
+      75
+    ],
+    [
+      76,
+      185
+    ],
+    [
+      186,
+      304
+    ],
+    [
+      305,
+      99999
+    ]
+  ],
+  "category_starts": [
+    0,
+    36,
+    76,
+    186,
+    305
+  ],
+  "display_max": 500,
+  "display_unit": "ppb",
+  "category_names": [
+    "Good",
+    "Moderate",
+    "Unhealthy for Sensitive Groups",
+    "Unhealthy",
+    "Very Unhealthy"
+  ],
+  "category_hex": [
+    "#00e400",
+    "#ffff00",
+    "#ff7e00",
+    "#ff0000",
+    "#8f3f97"
+  ],
+  "lookup_table_shape": [
+    1024,
+    4
+  ],
+  "lookup_table_range": [
+    0,
+    500
+  ],
+  "lookup_table_normalization": "linear, clip values outside display domain",
+  "note": "SO2 99999 is the supplied category upper bound, not a useful visualization maximum; all values >=305 are Very Unhealthy in the supplied scheme. No Hazardous threshold was supplied."
+}
