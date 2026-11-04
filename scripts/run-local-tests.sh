@@ -61,6 +61,14 @@ NO_PYDANTIC_SSM_SETTINGS=1 uv run --project ingest_api/runtime \
     --with "pypgstac==${PGSTAC_VERSION}" \
     pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
 
+echo "--- Running database handler tests ---"
+uv run --no-project \
+    --with pytest \
+    --with boto3 \
+    --with requests \
+    --with "pypgstac[psycopg]==${PGSTAC_VERSION}" \
+    pytest database/runtime/tests/ -vv -s
+
 # Transactions tests
 echo "--- Running stac api runtime tests ---"
 uv run --project stac_api/runtime \
