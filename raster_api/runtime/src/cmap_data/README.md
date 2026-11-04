@@ -328,3 +328,174 @@ cmap[255] = np.array([0, 0, 0, 0], dtype=np.uint8)
 
 np.save("opera_gen_dist_status.npy", cmap)
 ```
+
+### Ozone (O3) 8-Hour AQI Colormap
+
+refs:
+<https://aqs.epa.gov/aqsweb/documents/codetables/aqi_breakpoints.html>
+<https://docs.airnowapi.org/aq101>
+<https://github.com/Air-Quality-Portal/aq-arch/issues/209>
+
+```python
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+import os
+
+# 1. Enter file paths
+npy_path = r"C:\Users\jonelson\Downloads\o3_8hr_aqi.npy"
+
+json_path = r"C:\Users\jonelson\Downloads\o3_8hr_aqi.json"
+
+# 2. Load the files
+colormap = np.load(npy_path)
+
+with open(json_path, "r") as file:
+    settings = json.load(file)
+
+# 3. Read the json file
+categories = settings["category_names"]
+ranges = settings["category_ranges"]
+display_max = settings["display_max"]
+display_unit = settings["display_unit"]
+
+print("\nO3 Colormap Information")
+print("Pollutant:", settings["pollutant"])
+print("Duration:", settings["duration"])
+print("Array shape:", colormap.shape)
+print("Data type:", colormap.dtype)
+print("\nAQI Categories")
+
+for name, value_range in zip(categories, ranges):
+    print(f"{name}: {value_range[0]} - {value_range[1]}")
+
+# 4. Create the colormap
+fig, ax = plt.subplots(figsize=(14, 5))
+
+# Display the actual NumPy color gradient
+ax.imshow(
+    colormap[np.newaxis, :, :],
+    aspect="auto",
+    extent=[0, display_max, 0, 1]
+)
+
+# Calculate the center of each category range
+tick_positions = []
+
+for low, high in ranges:
+
+    if high >= 99999:
+        high = display_max
+
+    tick_positions.append((low + high) / 2)
+
+# Create category labels with concentration ranges
+tick_labels = [
+    f"{name}\n({low:.3f} - {high:.3f})"
+    for name, (low, high) in zip(categories, ranges)
+]
+
+# Create category labels below the colormap
+ax.set_xticks(tick_positions)
+ax.set_xticklabels(tick_labels, fontsize=9)
+
+# Create axis labels and a title
+ax.set_yticks([])
+ax.set_xlabel(f"Concentration ({display_unit})")
+ax.set_title(
+    f"{settings['pollutant']} {settings['duration']} AQI Colormap",
+    fontsize=14
+)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Sulfur Dioxide (SO2) 1-Hour AQI Colormap
+
+refs:
+<https://aqs.epa.gov/aqsweb/documents/codetables/aqi_breakpoints.html>
+<https://docs.airnowapi.org/aq101>
+<https://github.com/Air-Quality-Portal/aq-arch/issues/209>
+
+```python
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+import os
+
+# 1. Enter file paths
+npy_path = r"C:\Users\jonelson\Downloads\so2_1hr_aqi_rgb.npy"
+
+json_path = r"C:\Users\jonelson\Downloads\so2_1hr_aqi.json"
+
+# 2. Load the files
+colormap = np.load(npy_path)
+
+with open(json_path, "r") as file:
+    settings = json.load(file)
+
+# 3. Read the json file
+categories = settings["category_names"]
+ranges = settings["category_ranges"]
+category_starts = settings.get("category_starts")
+display_max = settings["display_max"]
+display_unit = settings["display_unit"]
+
+print("\nSO2 Colormap Information")
+print("Pollutant:", settings["pollutant"])
+print("Duration:", settings["duration"])
+print("Array shape:", colormap.shape)
+print("Data type:", colormap.dtype)
+print("\nAQI Categories")
+
+for name, value_range in zip(categories, ranges):
+    print(f"{name}: {value_range[0]} - {value_range[1]}")
+
+# 4. Create the colormap
+fig, ax = plt.subplots(figsize=(14, 5))
+
+# Display the actual NumPy color gradient
+ax.imshow(
+    colormap[np.newaxis, :, :],
+    aspect="auto",
+    extent=[0, display_max, 0, 1],
+    interpolation="nearest"
+)
+
+# Calculate the center of each category range
+tick_positions = []
+
+for low, high in ranges:
+
+    if high >= 99999:
+        high = display_max
+
+    tick_positions.append((low + high) / 2)
+
+# Create category labels with concentration ranges
+tick_labels = []
+
+for name, (low, high) in zip(categories, ranges):
+
+    if high >= 99999:
+        tick_labels.append(f"{name}\n({low}+)")
+
+    else:
+        tick_labels.append(f"{name}\n({low} - {high})")
+
+# Create category labels below the colormap
+ax.set_xticks(tick_positions)
+ax.set_xticklabels(tick_labels, fontsize=9)
+
+# Create axis labels and a title
+ax.set_yticks([])
+ax.set_xlabel(f"Concentration ({display_unit})")
+ax.set_title(
+    f"{settings['pollutant']} {settings['duration']} AQI Colormap",
+    fontsize=14
+)
+
+plt.tight_layout()
+plt.show()
+```
