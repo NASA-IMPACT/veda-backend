@@ -1,5 +1,6 @@
 """CDK Construct for veda-backend RDS instance."""
 
+import hashlib
 import json
 from pathlib import Path
 from typing import TypedDict
@@ -100,13 +101,17 @@ class BootstrapPgStac(Construct):
                 scope=scope,
                 id="bootstrapper",
                 service_token=handler.function_arn,
+                # CloudFormation sends the handler an Update event only when one
+                # of these properties changes, so including the handler's hash
+                # reruns it whenever handler.py changes.
                 properties={
-                    # By setting pgstac_version in the properties assures
-                    # that Create/Update events will be passed to the service token
                     "pgstac_version": pgstac_version,
                     "conn_secret_arn": database.secret.secret_arn,
                     "new_user_secret_arn": self.secret.secret_arn,
                     "veda_schema_version": veda_schema_version,
+                    "handler_sha256": hashlib.sha256(
+                        Path("database/runtime/handler.py").read_bytes()
+                    ).hexdigest(),
                 },
                 # This retains the custom resource
                 # (which doesn't really exist), not the database
