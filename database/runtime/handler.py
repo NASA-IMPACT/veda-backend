@@ -262,7 +262,14 @@ def create_collection_summaries_functions(cursor) -> None:
     UPDATE collections SET
         "content" = "content" ||
         jsonb_build_object(
-            'summaries', jsonb_build_object(
+            -- || replaces only top-level keys, so merge into the existing
+            -- summaries rather than replacing them with only datetime. Treat
+            -- anything but an object as empty, because || with a non-object
+            -- builds an array.
+            'summaries', (
+                CASE WHEN jsonb_typeof("content"->'summaries') = 'object'
+                THEN "content"->'summaries' ELSE '{}'::jsonb END
+            ) || jsonb_build_object(
                 'datetime', (
                     CASE
                     WHEN (collections."content"->>'dashboard:is_periodic')::boolean
