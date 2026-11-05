@@ -1845,7 +1845,7 @@ requires-dist = [
     { name = "aws-lambda-powertools", specifier = ">=1.18.0" },
     { name = "aws-xray-sdk", specifier = ">=2.6.0,<3" },
     { name = "boto3" },
-    { name = "psycopg", extras = ["binary", "pool"], marker = "extra == 'psycopg-binary'" },
+    { name = "psycopg", extras = ["binary", "pool"], marker = "extra == 'psycopg-binary'", specifier = "!=3.3.7" },
     { name = "psycopg", extras = ["c", "pool"], marker = "extra == 'psycopg-c'" },
     { name = "psycopg", extras = ["pool"], marker = "extra == 'psycopg'" },
     { name = "python-multipart", specifier = ">=0.0.27,<0.1" },
