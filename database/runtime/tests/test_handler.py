@@ -45,6 +45,11 @@ DATETIME_SUMMARY = ["2021-01-01T00:00:00Z"]
             {"datetime": DATETIME_SUMMARY},
             id="null summaries",
         ),
+        pytest.param(
+            {"summaries": []},
+            {"datetime": DATETIME_SUMMARY},
+            id="array summaries",
+        ),
     ],
 )
 def test_update_collection_default_summaries(collection_fields, expected):
