@@ -71,6 +71,23 @@ class TestList:
         assert resp.headers["content-type"] == "application/json"
         assert resp.headers["content-encoding"] in ["br", "gzip"]
 
+    def test_gaia_exposure_colormap(self):
+        """gaia-exposure is packaged and served as an interval colormap."""
+        resp = self._get_with_retry(
+            f"{self.raster_health_endpoint.rsplit('/', 1)[0]}/colorMaps/gaia-exposure"
+        )
+        assert resp.status_code == 200
+        assert resp.json() == [
+            [[0, 25000], [63, 42, 107, 255]],
+            [[25000, 50000], [62, 134, 158, 255]],
+            [[50000, 75000], [115, 192, 195, 255]],
+            [[75000, 100000], [195, 224, 156, 255]],
+            [[100000, 150000], [247, 233, 156, 255]],
+            [[150000, 300000], [243, 197, 86, 255]],
+            [[300000, 450000], [231, 142, 65, 255]],
+            [[450000, 10000000], [207, 73, 49, 255]],
+        ]
+
     def test_mosaic_api(self):
         """test mosaic."""
         query = {"collections": [self.seeded_collection], "filter-lang": "cql-json"}
