@@ -1,15 +1,35 @@
-"""Tests for the dashboard SQL functions that handler.py installs.
+"""Tests for handler.py.
 
-These run against the database service in docker-compose.yml, inside a
-transaction that is always rolled back.
+These run against the database service in docker-compose.yml. The SQL
+function tests run inside a transaction that is always rolled back.
 """
 
 import psycopg
 import pytest
-from handler import create_collection_summaries_functions, create_dashboard_schema
+from handler import (
+    bootstrap,
+    create_collection_summaries_functions,
+    create_dashboard_schema,
+)
+from psycopg import sql
 from psycopg.types.json import Jsonb
+from pypgstac.version import __version__ as PGSTAC_VERSION
 
-DSN = "postgresql://username:password@localhost:5439/postgis"
+# The secrets that bootstrap receives, as get_secret returns them.
+ADMIN_SECRET = {
+    "host": "localhost",
+    "port": 5439,
+    "dbname": "postgis",
+    "username": "username",
+    "password": "password",
+}
+DSN = "postgresql://{username}:{password}@{host}:{port}/{dbname}".format(**ADMIN_SECRET)
+RERUN_NAME = "rerun_test"
+USER_SECRET = ADMIN_SECRET | {
+    "dbname": RERUN_NAME,
+    "username": RERUN_NAME,
+    "password": RERUN_NAME,
+}
 
 COLLECTION = {
     "id": "test-summaries",
@@ -74,3 +94,27 @@ def test_update_collection_default_summaries(collection_fields, expected):
         )
 
         assert cur.fetchone() == (expected,)
+
+
+@pytest.fixture
+def drop_rerun_db():
+    """Drop the database and user that the handler creates."""
+    yield
+
+    name = sql.Identifier(RERUN_NAME)
+
+    with psycopg.connect(DSN, autocommit=True) as conn:
+        conn.execute(sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(name))
+        # Revokes the default privileges create_permissions sets in postgis.
+        conn.execute(sql.SQL("DROP OWNED BY {}").format(name))
+        conn.execute(sql.SQL("DROP ROLE {}").format(name))
+
+
+@pytest.mark.usefixtures("drop_rerun_db")
+def test_bootstrap_reruns():
+    """Every change to handler.py reruns it on deploy, so a rerun must succeed.
+
+    A step that cannot repeat raises on the second call.
+    """
+    bootstrap(ADMIN_SECRET, USER_SECRET, PGSTAC_VERSION)
+    bootstrap(ADMIN_SECRET, USER_SECRET, PGSTAC_VERSION)
