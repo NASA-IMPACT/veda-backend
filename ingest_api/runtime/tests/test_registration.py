@@ -64,3 +64,21 @@ class TestList:
             None  # we don't need to compare update_at for this test
         )
         assert next_item == jsonable_encoder(example_ingestions[0])
+
+
+class TestAuth:
+    def _dependency_names(self, app, path, method):
+        for route in app.routes:
+            if getattr(route, "path", None) == path and method in route.methods:
+                return [d.call.__name__ for d in route.dependant.dependencies]
+        raise AssertionError(f"no route for {method} {path}")
+
+    def test_listing_ingestions_needs_a_token(self, app):
+        """Every other ingestion route validates the token; listing them all
+        must too, since the query spans every user's records."""
+        protected = self._dependency_names(app, "/ingestions", "POST")
+        listing = self._dependency_names(app, "/ingestions", "GET")
+
+        token_dependency = "override_validated_token_for_ingest"
+        assert token_dependency in protected
+        assert token_dependency in listing
