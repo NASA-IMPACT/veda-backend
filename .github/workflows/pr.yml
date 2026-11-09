@@ -81,10 +81,10 @@ jobs:
 
       - name: Install reqs for ingest api
         run: |
-          uv sync --project ingest_api/runtime --group test
+          uv sync --project ingest_api/runtime --group test --locked
 
       - name: Install reqs for stac api
-        run: uv sync --project stac_api/runtime --group test
+        run: uv sync --project stac_api/runtime --group test --locked
 
       - name: Ingest unit tests
         run: |

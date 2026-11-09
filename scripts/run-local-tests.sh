@@ -5,9 +5,9 @@ set -e
 #  Ensure all Python dependencies are installed
 # =================================================================
 echo "--- Installing all development dependencies ---"
-uv sync --all-groups
-uv sync --project ingest_api/runtime --group test
-uv sync --project stac_api/runtime --group test
+uv sync --all-groups --locked
+uv sync --project ingest_api/runtime --group test --locked
+uv sync --project stac_api/runtime --group test --locked
 echo "--- Dependency installation complete ---"
 # =================================================================
 
