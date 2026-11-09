@@ -28,6 +28,22 @@ repos:
     rev: 0.12.5
     hooks:
       - id: uv-lock
+      - id: uv-lock
+        name: uv-lock (common/auth)
+        args: [--project, common/auth]
+        files: ^common/auth/(uv\.lock|pyproject\.toml)$
+      - id: uv-lock
+        name: uv-lock (ingest_api/runtime)
+        args: [--project, ingest_api/runtime]
+        files: ^ingest_api/runtime/(uv\.lock|pyproject\.toml)$
+      - id: uv-lock
+        name: uv-lock (raster_api/runtime)
+        args: [--project, raster_api/runtime]
+        files: ^raster_api/runtime/(uv\.lock|pyproject\.toml)$
+      - id: uv-lock
+        name: uv-lock (stac_api/runtime)
+        args: [--project, stac_api/runtime]
+        files: ^stac_api/runtime/(uv\.lock|pyproject\.toml)$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v2.3.1

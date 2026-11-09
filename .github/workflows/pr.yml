@@ -36,6 +36,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      PGSTAC_VERSION: 0.9.6
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -79,16 +81,18 @@ jobs:
 
       - name: Install reqs for ingest api
         run: |
-          uv sync --project ingest_api/runtime --group test
+          uv sync --project ingest_api/runtime --group test --locked
 
       - name: Install reqs for stac api
-        run: uv sync --project stac_api/runtime --group test
+        run: uv sync --project stac_api/runtime --group test --locked
 
       - name: Ingest unit tests
-        env:
-          PGSTAC_VERSION: 0.9.6
         run: |
           NO_PYDANTIC_SSM_SETTINGS=1 uv run --project ingest_api/runtime --with common/auth --with "pypgstac==${PGSTAC_VERSION}" pytest ingest_api/runtime/tests/ -vv -s
+
+      - name: Database handler tests
+        run: |
+          uv run --no-project --with pytest --with boto3 --with requests --with "pypgstac[psycopg]==${PGSTAC_VERSION}" pytest database/runtime/tests/ -vv -s
 
       - name: Stac-api extensions unit tests
         run: uv run --project stac_api/runtime --with common/auth pytest stac_api/runtime/tests/ --asyncio-mode=auto -vv -s

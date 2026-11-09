@@ -5,9 +5,9 @@ set -e
 #  Ensure all Python dependencies are installed
 # =================================================================
 echo "--- Installing all development dependencies ---"
-uv sync --all-groups
-uv sync --project ingest_api/runtime --group test
-uv sync --project stac_api/runtime --group test
+uv sync --all-groups --locked
+uv sync --project ingest_api/runtime --group test --locked
+uv sync --project stac_api/runtime --group test --locked
 echo "--- Dependency installation complete ---"
 # =================================================================
 
@@ -60,6 +60,14 @@ NO_PYDANTIC_SSM_SETTINGS=1 uv run --project ingest_api/runtime \
     --with common/auth \
     --with "pypgstac==${PGSTAC_VERSION}" \
     pytest --cov=ingest_api/runtime/src ingest_api/runtime/tests/ -vv -s
+
+echo "--- Running database handler tests ---"
+uv run --no-project \
+    --with pytest \
+    --with boto3 \
+    --with requests \
+    --with "pypgstac[psycopg]==${PGSTAC_VERSION}" \
+    pytest database/runtime/tests/ -vv -s
 
 # Transactions tests
 echo "--- Running stac api runtime tests ---"
