@@ -47,4 +47,4 @@ exclude = ["tests*"]
 version = { attr = "src.version.__version__" }
 
 [tool.setuptools.package-data]
-src = ["templates/*.html", "cmap_data/*.npy"]
+src = ["templates/*.html", "cmap_data/*.npy", "cmap_data/*.json"]

@@ -9,9 +9,11 @@ except ImportError:
     # Try backported to PY<39 `importlib_resources`.
     from importlib_resources import files as resources_files  # type: ignore
 
+# .npy: 256-entry lookup table; .json: discrete or interval colormap (rio-tiler format)
 VEDA_CMAPS_FILES = {
     f.stem: str(f)
-    for f in (resources_files(__package__) / "cmap_data").glob("*.npy")  # type: ignore
+    for pattern in ("*.npy", "*.json")
+    for f in (resources_files(__package__) / "cmap_data").glob(pattern)  # type: ignore
 }
 cmap = default_cmap.register(VEDA_CMAPS_FILES)
 ColorMapParams = create_colormap_dependency(cmap)
