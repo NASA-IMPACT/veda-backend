@@ -348,6 +348,7 @@ colormap_dir = os.path.join(
 )
 
 npy_path = os.path.join(colormap_dir, "o3_8hr_aqi.npy")
+npy_path = os.path.join(colormap_dir, "o3_8hr_aqi_rgb.npy")
 json_path = os.path.join(colormap_dir, "o3_8hr_aqi.json")
 
 # 2. Load the files
@@ -432,6 +433,7 @@ colormap_dir = os.path.join(
     "raster_api", "runtime", "src", "cmap_data"
 )
 
+npy_path = os.path.join(colormap_dir, "so2_1hr_aqi_rgb.npy")
 npy_path = os.path.join(colormap_dir, "so2_1hr_aqi_rgb.npy")
 json_path = os.path.join(colormap_dir, "so2_1hr_aqi.json")
 
