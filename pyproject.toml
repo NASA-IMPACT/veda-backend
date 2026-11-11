@@ -19,7 +19,7 @@ dependencies = [
     "aws-cdk.aws_apigatewayv2_alpha~=2.47.0.a0",
     "aws_cdk.aws_apigatewayv2_integrations_alpha~=2.47.0.a0",
     "pydantic>=2.13.4",
-    "eoapi-cdk==11.8.0",
+    "eoapi-cdk==11.8.1",
     "pydantic-settings>=2.4.1"
 ]
 
@@ -34,7 +34,7 @@ test = [
     "pytest-asyncio",
     "pytest-cov",
     "httpx>=0.28.1",
-    "pypgstac==0.8.5",
+    "pypgstac==0.10.0",
     "psycopg[binary, pool]",
     "fastapi",
     "openapi-schema-validator"
