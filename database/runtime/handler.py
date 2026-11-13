@@ -302,6 +302,118 @@ def create_collection_summaries_functions(cursor) -> None:
     cursor.execute(sql.SQL(update_all_collection_default_summaries_sql))
 
 
+def bootstrap(connection_params: dict, user_params: dict, pgstac_version: str) -> None:
+    """Create the STAC database, its user, pgSTAC, and the dashboard functions.
+
+    Every step must be safe to repeat, because each change to handler.py reruns
+    it on deploy. A rerun does not change an existing object created with IF NOT
+    EXISTS (e.g., the searches_mosaic index), and CREATE OR REPLACE cannot change
+    a function's return type, so changing either takes more than editing it here.
+    """
+    print("Connecting to admin DB...")
+    admin_db_conninfo = make_conninfo(
+        dbname=connection_params.get("dbname", "postgres"),
+        user=connection_params["username"],
+        password=connection_params["password"],
+        host=connection_params["host"],
+        port=connection_params["port"],
+    )
+    with (
+        psycopg.connect(admin_db_conninfo, autocommit=True) as conn,
+        conn.cursor() as cur,
+    ):
+        print("Creating database...")
+        create_db(
+            cursor=cur,
+            db_name=user_params["dbname"],
+        )
+
+        print("Creating user...")
+        create_user(
+            cursor=cur,
+            username=user_params["username"],
+            password=user_params["password"],
+        )
+
+    # Install extensions on the user DB with
+    # superuser permissions, since they will
+    # otherwise fail to install when run as
+    # the non-superuser within the pgstac
+    # migrations.
+    print("Connecting to STAC DB...")
+    stac_db_conninfo = make_conninfo(
+        dbname=user_params["dbname"],
+        user=connection_params["username"],
+        password=connection_params["password"],
+        host=connection_params["host"],
+        port=connection_params["port"],
+    )
+    with (
+        psycopg.connect(stac_db_conninfo, autocommit=True) as conn,
+        conn.cursor() as cur,
+    ):
+        print("Registering PostGIS ...")
+        register_extensions(cursor=cur)
+
+    stac_db_admin_dsn = "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
+        dbname=user_params.get("dbname", "postgres"),
+        user=connection_params["username"],
+        password=connection_params["password"],
+        host=connection_params["host"],
+        port=connection_params["port"],
+    )
+
+    with PgstacDB(dsn=stac_db_admin_dsn, debug=True) as pgdb:
+        print(f"Current {pgdb.version=}")
+
+        # As admin, run migrations
+        print("Running migrations...")
+        Migrate(pgdb).run_migration(pgstac_version)
+
+    # Assign appropriate permissions to user
+    # (requires pgSTAC migrations to have run)
+    with (
+        psycopg.connect(admin_db_conninfo, autocommit=True) as conn,
+        conn.cursor() as cur,
+    ):
+        print("Setting permissions...")
+        create_permissions(
+            cursor=cur,
+            db_name=user_params["dbname"],
+            username=user_params["username"],
+        )
+
+    print("Adding mosaic index...")
+    with psycopg.connect(
+        stac_db_admin_dsn,
+        autocommit=True,
+        options="-c search_path=pgstac,public -c application_name=pgstac",
+    ) as conn:
+        conn.execute(
+            sql.SQL(
+                "CREATE INDEX IF NOT EXISTS searches_mosaic ON searches "
+                "((true)) WHERE metadata->>'type'='mosaic';"
+            )
+        )
+
+    # As admin, create custom dashboard functions
+    with (
+        psycopg.connect(stac_db_conninfo, autocommit=True) as conn,
+        conn.cursor() as cur,
+    ):
+        print("Creating dashboard schema...")
+        create_dashboard_schema(cursor=cur, username=user_params["username"])
+
+        print("Creating functions for summarizing collection datetimes...")
+        create_collection_summaries_functions(cursor=cur)
+
+        print(
+            "Creating functions for setting the maximum "
+            "end_datetime temporal extent of a collection..."
+        )
+        create_collection_extents_functions(cursor=cur)
+
+
 def handler(event, context):
     """Lambda Handler."""
     print(f"Handling {event}")
@@ -311,113 +423,11 @@ def handler(event, context):
 
     try:
         params = event["ResourceProperties"]
-        connection_params = get_secret(params["conn_secret_arn"])
-        user_params = get_secret(params["new_user_secret_arn"])
-
-        print("Connecting to admin DB...")
-        admin_db_conninfo = make_conninfo(
-            dbname=connection_params.get("dbname", "postgres"),
-            user=connection_params["username"],
-            password=connection_params["password"],
-            host=connection_params["host"],
-            port=connection_params["port"],
+        bootstrap(
+            connection_params=get_secret(params["conn_secret_arn"]),
+            user_params=get_secret(params["new_user_secret_arn"]),
+            pgstac_version=params["pgstac_version"],
         )
-        with (
-            psycopg.connect(admin_db_conninfo, autocommit=True) as conn,
-            conn.cursor() as cur,
-        ):
-            print("Creating database...")
-            create_db(
-                cursor=cur,
-                db_name=user_params["dbname"],
-            )
-
-            print("Creating user...")
-            create_user(
-                cursor=cur,
-                username=user_params["username"],
-                password=user_params["password"],
-            )
-
-        # Install extensions on the user DB with
-        # superuser permissions, since they will
-        # otherwise fail to install when run as
-        # the non-superuser within the pgstac
-        # migrations.
-        print("Connecting to STAC DB...")
-        stac_db_conninfo = make_conninfo(
-            dbname=user_params["dbname"],
-            user=connection_params["username"],
-            password=connection_params["password"],
-            host=connection_params["host"],
-            port=connection_params["port"],
-        )
-        with (
-            psycopg.connect(stac_db_conninfo, autocommit=True) as conn,
-            conn.cursor() as cur,
-        ):
-            print("Registering PostGIS ...")
-            register_extensions(cursor=cur)
-
-        stac_db_admin_dsn = (
-            "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
-                dbname=user_params.get("dbname", "postgres"),
-                user=connection_params["username"],
-                password=connection_params["password"],
-                host=connection_params["host"],
-                port=connection_params["port"],
-            )
-        )
-
-        pgdb = PgstacDB(dsn=stac_db_admin_dsn, debug=True)
-        print(f"Current {pgdb.version=}")
-
-        # As admin, run migrations
-        print("Running migrations...")
-        Migrate(pgdb).run_migration(params["pgstac_version"])
-
-        # Assign appropriate permissions to user
-        # (requires pgSTAC migrations to have run)
-        with (
-            psycopg.connect(admin_db_conninfo, autocommit=True) as conn,
-            conn.cursor() as cur,
-        ):
-            print("Setting permissions...")
-            create_permissions(
-                cursor=cur,
-                db_name=user_params["dbname"],
-                username=user_params["username"],
-            )
-
-        print("Adding mosaic index...")
-        with psycopg.connect(
-            stac_db_admin_dsn,
-            autocommit=True,
-            options="-c search_path=pgstac,public -c application_name=pgstac",
-        ) as conn:
-            conn.execute(
-                sql.SQL(
-                    "CREATE INDEX IF NOT EXISTS searches_mosaic ON searches "
-                    "((true)) WHERE metadata->>'type'='mosaic';"
-                )
-            )
-
-        # As admin, create custom dashboard functions
-        with (
-            psycopg.connect(stac_db_conninfo, autocommit=True) as conn,
-            conn.cursor() as cur,
-        ):
-            print("Creating dashboard schema...")
-            create_dashboard_schema(cursor=cur, username=user_params["username"])
-
-            print("Creating functions for summarizing collection datetimes...")
-            create_collection_summaries_functions(cursor=cur)
-
-            print(
-                "Creating functions for setting the maximum "
-                "end_datetime temporal extent of a collection..."
-            )
-            create_collection_extents_functions(cursor=cur)
 
     except Exception as e:
         print(f"Unable to bootstrap database with exception={e}")

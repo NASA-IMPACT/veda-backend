@@ -26,7 +26,10 @@ class vedaDBSettings(BaseSettings):
     )
     schema_version: str = Field(
         ...,
-        description="The version of the custom veda-backend schema, i.e. 0.1.1",
+        description=(
+            "Any new value reruns the database bootstrap Lambda, e.g., 0.1.1. "
+            "Changes to database/runtime/handler.py rerun it automatically."
+        ),
     )
     snapshot_id: str | None = Field(
         None,

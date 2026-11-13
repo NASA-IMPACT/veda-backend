@@ -7,6 +7,9 @@ WORKDIR /tmp
 
 RUN pip install requests "psycopg[binary,pool]!=3.3.7" pypgstac==${PGSTAC_VERSION} -t /asset
 
+# handler_sha256 in database/infrastructure/construct.py hashes only handler.py.
+# Add any other file copied into /asset to that hash, or edits to it will not
+# rerun the bootstrap.
 COPY database/runtime/handler.py /asset/handler.py
 
 # https://stackoverflow.com/a/61746719
