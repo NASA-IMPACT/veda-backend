@@ -8,6 +8,7 @@ import psycopg
 import pytest
 from handler import (
     bootstrap,
+    create_collection_extents_functions,
     create_collection_summaries_functions,
     create_dashboard_schema,
 )
@@ -94,6 +95,57 @@ def test_update_collection_default_summaries(collection_fields, expected):
         )
 
         assert cur.fetchone() == (expected,)
+
+
+def test_update_collection_extents_max():
+    """Ingestion writes the temporal extent as UTC RFC 3339 date-times.
+
+    The STAC collection schema requires each bound to be a JSON Schema
+    `date-time` ending in `Z` or `+00:00`, thus Postgres's text form of a
+    timestamp (`2023-01-15 00:00:00+00`) fails validation.
+    """
+    collection = {
+        "id": "test-extents",
+        "extent": {
+            "spatial": {"bbox": [[-180, -90, 180, 90]]},
+            "temporal": {"interval": [[None, None]]},
+        },
+    }
+    item = {
+        "id": "test-item",
+        "collection": "test-extents",
+        "geometry": {"type": "Point", "coordinates": [0, 0]},
+        "properties": {
+            "datetime": None,
+            "start_datetime": "2023-01-15T00:00:00Z",
+            "end_datetime": "2024-08-08T23:59:59Z",
+        },
+    }
+
+    with psycopg.connect(DSN) as conn, conn.transaction(force_rollback=True):
+        cur = conn.cursor()
+        # A session time zone other than UTC, so the bounds must convert to UTC.
+        cur.execute("SET LOCAL TimeZone = 'Asia/Tokyo'")
+
+        create_dashboard_schema(cur, conn.info.user)
+        create_collection_summaries_functions(cur)
+        create_collection_extents_functions(cur)
+
+        cur.execute("SELECT pgstac.create_collection(%s)", [Jsonb(collection)])
+        cur.execute("SELECT pgstac.create_item(%s)", [Jsonb(item)])
+        cur.execute(
+            "SELECT dashboard.update_collection_extents_max(%s)", [collection["id"]]
+        )
+        cur.execute(
+            "SELECT content->'extent'->'temporal'"
+            "  FROM pgstac.collections"
+            " WHERE id = %s",
+            [collection["id"]],
+        )
+
+        assert cur.fetchone() == (
+            {"interval": [["2023-01-15T00:00:00Z", "2024-08-08T23:59:59Z"]]},
+        )
 
 
 @pytest.fixture
