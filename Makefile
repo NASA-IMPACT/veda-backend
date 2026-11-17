@@ -16,11 +16,11 @@ install:
 lint:
 	uv run pre-commit run --all-files
 
-diff:
-	uv run npx aws-cdk@2.1134 diff -v
-
-STACKS = --all
+STACKS =
 ARGS =
+
+diff:
+	uv run npx aws-cdk@2.1134 diff $(STACKS) -v
 
 deploy:
 	uv run npx aws-cdk@2.1134 deploy $(STACKS) $(ARGS)

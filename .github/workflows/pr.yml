@@ -138,7 +138,29 @@ jobs:
             ./scripts/get-env.sh "veda-backend-uah-dev-env"
           fi
 
+      # Prefer the tag set in AWS secrets when present; otherwise fall back to the
+      # configured default in pydantic settings.
+      - name: Resolve configuration variables
+        uses: "./.github/actions/resolve-config"
+        with:
+          dir: "."
+
+      - name: STAC Browser
+        run: |
+          DEPLOYED_TAG=$(aws cloudformation describe-stacks \
+            --stack-name "$SB_STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='StacBrowserTag'].OutputValue" \
+            --output text 2>/dev/null || echo "")
+
+          echo "Deployed tag: '${DEPLOYED_TAG:-<none>}', configured tag: '$SB_VERSION_TAG'"
+
+          if [ "$DEPLOYED_TAG" != "$SB_VERSION_TAG" ]; then
+            echo "Version changed — redeployment required."
+          else
+            echo "No version change — skipping deploy."
+          fi
+
       - name: Pre deployment CDK diff
         run: |
           echo $STAGE
-          make diff
+          make diff STACKS="$VEDA_BACKEND_STACK_NAME"
