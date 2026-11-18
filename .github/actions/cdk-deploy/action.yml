@@ -80,8 +80,35 @@ runs:
             uv run ${{ inputs.script_path }} --secret-id ${{ inputs.env_aws_secret_name }} --stack-names ${{ inputs.auth_stack_name }}
         fi
 
-    - name: Deploy
+    # Prefer the tag set in AWS secrets when present; otherwise fall back to the
+    # configured default in pydantic settings.
+    - name: Resolve configuration variables
+      uses: "./.github/actions/resolve-config"
+      with:
+        dir: ${{ inputs.dir }}
+
+    - name: Get deployed STAC Browser tag
+      id: deployed-tag
+      shell: bash
+      run: |
+        DEPLOYED_TAG=$(aws cloudformation describe-stacks \
+          --stack-name "$SB_STACK_NAME" \
+          --query "Stacks[0].Outputs[?OutputKey=='StacBrowserTag'].OutputValue" \
+          --output text 2>/dev/null || echo "None")
+
+        echo "deployed_tag=$DEPLOYED_TAG" >> "$GITHUB_OUTPUT"
+
+    - name: Deploy STAC Browser
+      if: ${{ steps.deployed-tag.outputs.deployed_tag != env.SB_VERSION_TAG }}
       shell: bash
       working-directory: ${{ inputs.dir }}
       run: |
-        make deploy ARGS="--require-approval never --outputs-file ${HOME}/cdk-outputs.json"
+        echo "Tag changed — deploying."
+        make deploy STACKS="$SB_STACK_NAME" \
+          ARGS="-c stacBrowserTag=$SB_VERSION_TAG --require-approval never --outputs-file ${HOME}/stac-browser-outputs.json"
+
+    - name: VEDA Backend Deployment
+      shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: |
+        make deploy STACKS="$VEDA_BACKEND_STACK_NAME" ARGS="--require-approval never --outputs-file ${HOME}/cdk-outputs.json"
