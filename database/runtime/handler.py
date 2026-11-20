@@ -167,8 +167,7 @@ def create_collection_extents_functions(cursor) -> None:
     IMMUTABLE PARALLEL SAFE
     SET search_path TO 'pgstac', 'public'
     AS $function$
-        SELECT to_jsonb(array[array[min(datetime)::text, max(end_datetime)::text]])
-        FROM items WHERE collection=$1;
+        SELECT jsonb_build_array(dashboard.periodic_datetime_summary($1));
     $function$
     ;
     """

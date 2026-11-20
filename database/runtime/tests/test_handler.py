@@ -8,6 +8,7 @@ import psycopg
 import pytest
 from handler import (
     bootstrap,
+    create_collection_extents_functions,
     create_collection_summaries_functions,
     create_dashboard_schema,
 )
@@ -94,6 +95,88 @@ def test_update_collection_default_summaries(collection_fields, expected):
         )
 
         assert cur.fetchone() == (expected,)
+
+
+@pytest.mark.parametrize(
+    ("item_properties", "expected"),
+    [
+        pytest.param(
+            [
+                {
+                    "datetime": None,
+                    "start_datetime": "2023-01-15T00:00:00Z",
+                    "end_datetime": "2024-08-08T23:59:59Z",
+                },
+            ],
+            [["2023-01-15T00:00:00Z", "2024-08-08T23:59:59Z"]],
+            id="datetime range",
+        ),
+        pytest.param(
+            [
+                {"datetime": "2023-01-15T00:00:00Z"},
+            ],
+            [["2023-01-15T00:00:00Z", "2023-01-15T00:00:00Z"]],
+            id="1 nominal datetime",
+        ),
+        pytest.param(
+            [
+                {"datetime": "2023-01-15T00:00:00Z"},
+                {"datetime": "2023-03-15T00:00:00Z"},
+            ],
+            [["2023-01-15T00:00:00Z", "2023-03-15T00:00:00Z"]],
+            id="2 nominal datetimes",
+        ),
+    ],
+)
+def test_update_collection_extents_max(item_properties, expected):
+    """Ingestion writes the temporal extent as UTC RFC 3339 date-times.
+
+    The extent spans the items' earliest start to their latest end, where an
+    item with only a nominal `datetime` starts and ends at it.
+
+    The STAC collection schema requires each bound to be a JSON Schema
+    `date-time` ending in `Z` or `+00:00`, thus Postgres's text form of a
+    timestamp (`2023-01-15 00:00:00+00`) fails validation.
+    """
+    collection = {
+        "id": "test-extents",
+        "extent": {
+            "spatial": {"bbox": [[-180, -90, 180, 90]]},
+            "temporal": {"interval": [[None, None]]},
+        },
+    }
+    items = [
+        {
+            "id": f"test-item-{i}",
+            "collection": collection["id"],
+            "geometry": {"type": "Point", "coordinates": [0, 0]},
+            "properties": properties,
+        }
+        for i, properties in enumerate(item_properties)
+    ]
+
+    with psycopg.connect(DSN) as conn, conn.transaction(force_rollback=True):
+        cur = conn.cursor()
+        # A session time zone other than UTC, so the bounds must convert to UTC.
+        cur.execute("SET LOCAL TimeZone = 'Asia/Tokyo'")
+
+        create_dashboard_schema(cur, conn.info.user)
+        create_collection_summaries_functions(cur)
+        create_collection_extents_functions(cur)
+
+        cur.execute("SELECT pgstac.create_collection(%s)", [Jsonb(collection)])
+        cur.execute("SELECT pgstac.create_items(%s)", [Jsonb(items)])
+        cur.execute(
+            "SELECT dashboard.update_collection_extents_max(%s)", [collection["id"]]
+        )
+        cur.execute(
+            "SELECT content->'extent'->'temporal'"
+            "  FROM pgstac.collections"
+            " WHERE id = %s",
+            [collection["id"]],
+        )
+
+        assert cur.fetchone() == ({"interval": expected},)
 
 
 @pytest.fixture
