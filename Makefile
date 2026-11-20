@@ -16,14 +16,20 @@ install:
 lint:
 	uv run pre-commit run --all-files
 
-STACKS =
+# The CDK CLI that `npm ci` installs from package-lock.json
+CDK = uv run node_modules/.bin/cdk
+
+node_modules: package-lock.json
+	npm ci
+
+diff: node_modules
+	$(CDK) diff -v
+
+STACKS = --all
 ARGS =
 
-diff:
-	uv run npx aws-cdk@2.1134 diff $(STACKS) -v
+deploy: node_modules
+	$(CDK) deploy $(STACKS) $(ARGS)
 
-deploy:
-	uv run npx aws-cdk@2.1134 deploy $(STACKS) $(ARGS)
-
-destroy:
-	uv run npx aws-cdk@2.1134 destroy $(STACKS)
+destroy: node_modules
+	$(CDK) destroy $(STACKS)
