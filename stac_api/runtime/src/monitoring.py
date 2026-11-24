@@ -100,10 +100,12 @@ class ObservabilityMiddleware:
                     if h.lower() == b"content-length":
                         with contextlib.suppress(Exception):
                             resp_size_holder["bytes"] = int(v.decode("latin1"))
-            elif message["type"] == "http.response.body":
+            elif (
+                message["type"] == "http.response.body"
+                and resp_size_holder["bytes"] == 0
+            ):
                 # If no Content-Length, accumulate bytes
-                if resp_size_holder["bytes"] == 0:
-                    resp_size_holder["bytes"] += len(message.get("body") or b"")
+                resp_size_holder["bytes"] += len(message.get("body") or b"")
             await send(message)
 
         # Route/execute the request with tracing around the app call
