@@ -43,7 +43,10 @@ collection_publisher = CollectionPublisher()
 
 
 @app.get(
-    "/ingestions", response_model=schemas.ListIngestionResponse, tags=["Ingestion"]
+    "/ingestions",
+    response_model=schemas.ListIngestionResponse,
+    tags=["Ingestion"],
+    dependencies=[Depends(oidc_auth.valid_token_dependency)],
 )
 async def list_ingestions(
     list_request: Annotated[schemas.ListIngestionRequest, Depends()],
