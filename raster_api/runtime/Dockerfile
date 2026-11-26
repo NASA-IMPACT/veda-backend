@@ -13,6 +13,7 @@ RUN cp /usr/lib64/libexpat.so.1 /asset/
 RUN cd /asset && find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[0-9]*//'); cp $f $n; done;
 RUN cd /asset && find . -type d -a -name '__pycache__' -print0 | xargs -0 rm -rf
 RUN cd /asset && find . -type f -a -name '*.py' -print0 | xargs -0 rm -f
+RUN cd /asset && find . -type f -name '*.so*' -exec strip --strip-unneeded {} \; 2>/dev/null || true
 RUN find /asset -type d -a -name 'tests' -print0 | xargs -0 rm -rf
 RUN rm -rdf /asset/numpy/doc/ /asset/boto3* /asset/botocore* /asset/bin /asset/geos_license /asset/Misc
 
@@ -27,5 +28,14 @@ RUN dnf remove -y gcc-c++
 
 WORKDIR /asset
 RUN python -c "from handler import handler; print('All Good')"
+
+# Lambda rejects a function whose unzipped code is larger than 262,144,000
+# bytes, so fail the build here rather than the deploy.
+RUN <<EOF
+set -e
+bytes=$(find /asset -type f -printf '%s\n' | awk '{s += $1} END {print s}')
+echo "/asset is $bytes bytes, and Lambda's limit is 262144000"
+test "$bytes" -le 262144000
+EOF
 
 CMD ["echo", "hello world"]
